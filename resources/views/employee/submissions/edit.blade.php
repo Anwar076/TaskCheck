@@ -176,6 +176,32 @@
                                 </div>
                             @endif
 
+                            @if($task->checklist_items && count($task->checklist_items) > 0)
+                                <div class="mb-6 p-4 bg-cyan-50 rounded-xl border border-cyan-200">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mr-3">
+                                            <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="text-sm font-semibold text-cyan-900 mb-3">Checklist</h4>
+                                            <div class="space-y-2">
+                                                @foreach($task->checklist_items as $index => $item)
+                                                    <label class="flex items-start space-x-3 p-2 rounded-lg hover:bg-cyan-100 cursor-pointer transition-colors">
+                                                        <input type="checkbox" 
+                                                               data-task-id="{{ $task->id }}"
+                                                               class="checklist-checkbox mt-0.5 w-5 h-5 text-cyan-600 border-2 border-cyan-300 rounded focus:ring-cyan-500 focus:ring-2">
+                                                        <span class="text-sm text-cyan-800 flex-1">{{ $item }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                            <p class="text-xs text-cyan-600 mt-3 italic">Check off items as you complete them. These are for guidance only.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6">
                                 @csrf
 
@@ -506,6 +532,9 @@
 <!-- Enhanced JavaScript with Animations -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Checklist persistence
+    initializeChecklists();
+    
     // Card animations
     const cards = document.querySelectorAll('.task-card');
     cards.forEach((card, index) => {
@@ -798,6 +827,33 @@ function removePreviewItem(button, taskId) {
     });
     
     fileInput.files = dataTransfer.files;
+}
+
+// Checklist state management
+function initializeChecklists() {
+    const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+    const submissionId = '{{ $submission->id }}';
+    
+    checklistCheckboxes.forEach((checkbox, index) => {
+        const taskId = checkbox.dataset.taskId;
+        const checklistKey = `checklist_${submissionId}_${taskId}`;
+        
+        // Load saved state from localStorage
+        const savedState = localStorage.getItem(checklistKey);
+        if (savedState) {
+            const checkedItems = JSON.parse(savedState);
+            if (checkedItems[index]) {
+                checkbox.checked = true;
+            }
+        }
+        
+        // Save state on change
+        checkbox.addEventListener('change', function() {
+            const allCheckboxes = document.querySelectorAll(`.checklist-checkbox[data-task-id="${taskId}"]`);
+            const checkedState = Array.from(allCheckboxes).map(cb => cb.checked);
+            localStorage.setItem(checklistKey, JSON.stringify(checkedState));
+        });
+    });
 }
 </script>
 

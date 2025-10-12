@@ -106,8 +106,13 @@ class TaskListController extends Controller
                     $validated['schedule_config'] = null;
                     break;
                 case 'weekly':
+                    $weekdays = $validated['schedule_config']['weekdays'] ?? [];
                     $validated['schedule_config'] = [
-                        'weekdays' => $validated['schedule_config']['weekdays'] ?? []
+                        'weekdays' => $weekdays,
+                        'weekly_structure' => [
+                            'enabled' => !empty($weekdays),
+                            'selected_days' => $weekdays
+                        ]
                     ];
                     break;
                 case 'monthly':
@@ -139,6 +144,11 @@ class TaskListController extends Controller
         }
 
         $validated['created_by'] = auth()->id();
+        
+        // Ensure boolean fields have default values
+        $validated['requires_signature'] = $validated['requires_signature'] ?? false;
+        $validated['is_template'] = $validated['is_template'] ?? false;
+        $validated['is_active'] = $validated['is_active'] ?? true;
 
         $list = TaskList::create($validated);
 
@@ -238,8 +248,13 @@ class TaskListController extends Controller
                     $validated['schedule_config'] = null;
                     break;
                 case 'weekly':
+                    $weekdays = $validated['schedule_config']['weekdays'] ?? [];
                     $validated['schedule_config'] = [
-                        'weekdays' => $validated['schedule_config']['weekdays'] ?? []
+                        'weekdays' => $weekdays,
+                        'weekly_structure' => [
+                            'enabled' => !empty($weekdays),
+                            'selected_days' => $weekdays
+                        ]
                     ];
                     break;
                 case 'monthly':
@@ -272,6 +287,11 @@ class TaskListController extends Controller
 
         $oldScheduleType = $list->schedule_type;
         $oldScheduleConfig = $list->schedule_config;
+        
+        // Ensure boolean fields have default values
+        $validated['requires_signature'] = $validated['requires_signature'] ?? $list->requires_signature ?? false;
+        $validated['is_template'] = $validated['is_template'] ?? $list->is_template ?? false;
+        $validated['is_active'] = $validated['is_active'] ?? $list->is_active ?? true;
         
         $list->update($validated);
 
@@ -649,9 +669,9 @@ class TaskListController extends Controller
             'schedule_config' => null,
             'priority' => $parentList->priority,
             'category' => $parentList->category,
-            'requires_signature' => $parentList->requires_signature,
+            'requires_signature' => $parentList->requires_signature ?? false,
             'is_template' => false,
-            'is_active' => $parentList->is_active,
+            'is_active' => $parentList->is_active ?? true,
             'created_by' => $parentList->created_by,
         ]);
 

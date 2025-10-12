@@ -20,6 +20,7 @@ class Task extends Model
         'order',
         'attachments',
         'validation_rules',
+        'checklist_items',
         'requires_signature',
         'weekday',
         'created_by',
@@ -31,6 +32,7 @@ class Task extends Model
             'is_required' => 'boolean',
             'attachments' => 'json',
             'validation_rules' => 'json',
+            'checklist_items' => 'json',
             'requires_signature' => 'boolean',
         ];
     }

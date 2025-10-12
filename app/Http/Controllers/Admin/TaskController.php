@@ -45,6 +45,8 @@ class TaskController extends Controller
             'target_list_id' => 'nullable|exists:lists,id', // For weekday specific creation
             'weekdays' => 'nullable|array', // For weekly structure
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'checklist_items' => 'nullable|array',
+            'checklist_items.*' => 'string|max:500',
         ]);
 
         // Determine the target list (weekday sublist or main list)
@@ -57,6 +59,16 @@ class TaskController extends Controller
         $validated['is_required'] = $request->has('is_required');
         $validated['requires_signature'] = $request->has('requires_signature');
         $validated['order_index'] = $validated['order_index'] ?? ($targetList->tasks()->max('order_index') + 1);
+        
+        // Clean up checklist items (remove empty items)
+        if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {
+            $validated['checklist_items'] = array_values(array_filter($validated['checklist_items'], function($item) {
+                return !empty(trim($item));
+            }));
+            if (empty($validated['checklist_items'])) {
+                $validated['checklist_items'] = null;
+            }
+        }
         
         // Remove target_list_id from validated data as it's not a Task field
         unset($validated['target_list_id']);
@@ -118,10 +130,22 @@ class TaskController extends Controller
             'order_index' => 'nullable|integer|min:1',
             'weekdays' => 'nullable|array', // For weekly structure
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'checklist_items' => 'nullable|array',
+            'checklist_items.*' => 'string|max:500',
         ]);
 
         $validated['is_required'] = $request->has('is_required');
         $validated['requires_signature'] = $request->has('requires_signature');
+
+        // Clean up checklist items (remove empty items)
+        if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {
+            $validated['checklist_items'] = array_values(array_filter($validated['checklist_items'], function($item) {
+                return !empty(trim($item));
+            }));
+            if (empty($validated['checklist_items'])) {
+                $validated['checklist_items'] = null;
+            }
+        }
 
         // Handle weekdays for weekly structure
         if ($task->taskList->hasWeeklyStructure() && isset($validated['weekdays']) && !empty($validated['weekdays'])) {

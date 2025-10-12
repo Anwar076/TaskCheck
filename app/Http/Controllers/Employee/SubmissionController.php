@@ -240,7 +240,7 @@ class SubmissionController extends Controller
 
         $submissionTask->update($updateData);
 
-        return back()->with('success', 'Task completed successfully!');
+        return redirect()->route('employee.submissions.edit', $submission)->with('success', 'Task completed successfully!');
     }
 
     /**
