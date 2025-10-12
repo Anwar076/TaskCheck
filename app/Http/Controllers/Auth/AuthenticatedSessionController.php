@@ -68,9 +68,9 @@ class AuthenticatedSessionController extends Controller
                  request()->headers->get('sec-fetch-dest') === 'empty';
 
         if ($isPwa) {
-            return redirect()->route('login', ['source' => 'pwa']);
+            return redirect()->route('login', ['source' => 'pwa', 'logout' => time()]);
         }
 
-        return redirect('/');
+        return redirect('/')->with('logout', time());
     }
 }

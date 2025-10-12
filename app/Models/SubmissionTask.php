@@ -14,6 +14,7 @@ class SubmissionTask extends Model
         'task_id',
         'proof_text',
         'proof_files',
+        'checklist_progress',
         'digital_signature',
         'signature_date',
         'status',
@@ -30,6 +31,7 @@ class SubmissionTask extends Model
     {
         return [
             'proof_files' => 'json',
+            'checklist_progress' => 'json',
             'completed_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'rejected_at' => 'datetime',

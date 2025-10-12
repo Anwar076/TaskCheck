@@ -38,7 +38,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('login') }}" class="space-y-6">
+        <form method="POST" action="{{ route('login') }}" class="space-y-6" id="login-form">
             @csrf
 
             <!-- Email Address -->
@@ -133,4 +133,70 @@
             </p>
         </div>
     </div>
+    
+    <!-- Prevent CSRF token expiry issues -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+        
+        // Force reload on navigation back to login (prevents cached CSRF token)
+        if (performance.navigation && performance.navigation.type === 2) {
+            window.location.reload(true);
+        } else if (window.performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+            window.location.reload(true);
+        }
+        
+        // Check if coming from logout
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('logout')) {
+            // Force hard refresh to get new CSRF token
+            window.location.href = window.location.pathname + (urlParams.has('source') ? '?source=' + urlParams.get('source') : '');
+        }
+        
+        if (loginForm) {
+            let formSubmitting = false;
+            
+            loginForm.addEventListener('submit', async function(e) {
+                if (formSubmitting) {
+                    return; // Already submitting
+                }
+                
+                e.preventDefault();
+                formSubmitting = true;
+                
+                try {
+                    // Fetch fresh CSRF token
+                    const response = await fetch('{{ route('refresh-csrf') }}', {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Update CSRF token in form
+                        const csrfInput = loginForm.querySelector('input[name="_token"]');
+                        if (csrfInput && data.token) {
+                            csrfInput.value = data.token;
+                        }
+                        
+                        // Update meta tag
+                        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                        if (csrfMeta && data.token) {
+                            csrfMeta.setAttribute('content', data.token);
+                        }
+                    }
+                } catch (error) {
+                    console.log('CSRF refresh attempted, continuing with existing token');
+                }
+                
+                // Submit the form (with fresh or existing token)
+                loginForm.submit();
+            });
+        }
+    });
+    </script>
 </x-guest-layout>

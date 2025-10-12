@@ -89,7 +89,7 @@ class TaskController extends Controller
                 $createdTasks[] = Task::create($taskData);
             }
             
-            return redirect()->route('admin.lists.show', $list)
+            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
                 ->with('success', 'Tasks created successfully for ' . count($weekdays) . ' day(s).');
         } else {
             // Single task creation
@@ -102,7 +102,7 @@ class TaskController extends Controller
             
             $task = Task::create($validated);
             
-            return redirect()->route('admin.lists.show', $list)
+            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
                 ->with('success', 'Task added successfully.');
         }
     }
@@ -162,7 +162,7 @@ class TaskController extends Controller
 
         $task->update($validated);
 
-        return redirect()->route('admin.lists.show', $task->taskList)
+        return redirect()->route('admin.lists.show', ['list' => $task->taskList->id, 'updated' => time()])
             ->with('success', 'Task updated successfully.');
     }
 
@@ -179,7 +179,7 @@ class TaskController extends Controller
         // Delete the task itself
         $task->delete();
 
-        return redirect()->route('admin.lists.show', $list)
+        return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
             ->with('success', 'Task deleted successfully.');
     }
 }

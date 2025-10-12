@@ -191,6 +191,7 @@
                                                     <label class="flex items-start space-x-3 p-2 rounded-lg hover:bg-cyan-100 cursor-pointer transition-colors">
                                                         <input type="checkbox" 
                                                                data-task-id="{{ $task->id }}"
+                                                               data-item-index="{{ $index }}"
                                                                class="checklist-checkbox mt-0.5 w-5 h-5 text-cyan-600 border-2 border-cyan-300 rounded focus:ring-cyan-500 focus:ring-2">
                                                         <span class="text-sm text-cyan-800 flex-1">{{ $item }}</span>
                                                     </label>
@@ -202,8 +203,11 @@
                                 </div>
                             @endif
 
-                            <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6">
+                            <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6" id="task-form-{{ $task->id }}">
                                 @csrf
+                                
+                                <!-- Hidden field for checklist progress -->
+                                <input type="hidden" name="checklist_progress" id="checklist-progress-{{ $task->id }}" value="">
 
                                 <!-- Text Proof -->
                                 @if(in_array($task->required_proof_type, ['text', 'any']) || $task->required_proof_type === 'none')
@@ -370,6 +374,41 @@
                                     <div class="text-sm font-semibold text-green-900 mb-2">
                                         Completed: {{ $submissionTask->completed_at->format('M j, Y g:i A') }}
                                     </div>
+                                    
+                                    @if($task->checklist_items && count($task->checklist_items) > 0)
+                                        <div class="mb-4">
+                                            <strong class="text-sm text-green-800">Checklist Progress:</strong>
+                                            <div class="mt-2 bg-white p-3 rounded-lg border border-green-200">
+                                                @php
+                                                    $checklistProgress = is_array($submissionTask->checklist_progress) ? $submissionTask->checklist_progress : [];
+                                                    $completedCount = 0;
+                                                @endphp
+                                                <div class="space-y-1">
+                                                    @foreach($task->checklist_items as $index => $item)
+                                                        @php
+                                                            $isChecked = isset($checklistProgress[$index]) && $checklistProgress[$index];
+                                                            if ($isChecked) $completedCount++;
+                                                        @endphp
+                                                        <div class="flex items-center space-x-2 text-sm {{ $isChecked ? 'text-green-700' : 'text-gray-500' }}">
+                                                            @if($isChecked)
+                                                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                                </svg>
+                                                            @else
+                                                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                                                </svg>
+                                                            @endif
+                                                            <span class="{{ $isChecked ? 'font-medium' : 'line-through' }}">{{ $item }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                <p class="text-xs text-green-600 mt-2 font-medium">
+                                                    {{ $completedCount }}/{{ count($task->checklist_items) }} items completed
+                                                </p>
+                                            </div>
+                                        </div>
+                                    @endif
                                     
                                     @if($submissionTask->proof_text)
                                         <div class="mb-4">
@@ -834,15 +873,16 @@ function initializeChecklists() {
     const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
     const submissionId = '{{ $submission->id }}';
     
-    checklistCheckboxes.forEach((checkbox, index) => {
+    checklistCheckboxes.forEach((checkbox) => {
         const taskId = checkbox.dataset.taskId;
         const checklistKey = `checklist_${submissionId}_${taskId}`;
+        const itemIndex = parseInt(checkbox.dataset.itemIndex);
         
         // Load saved state from localStorage
         const savedState = localStorage.getItem(checklistKey);
         if (savedState) {
             const checkedItems = JSON.parse(savedState);
-            if (checkedItems[index]) {
+            if (checkedItems[itemIndex]) {
                 checkbox.checked = true;
             }
         }
@@ -850,8 +890,29 @@ function initializeChecklists() {
         // Save state on change
         checkbox.addEventListener('change', function() {
             const allCheckboxes = document.querySelectorAll(`.checklist-checkbox[data-task-id="${taskId}"]`);
-            const checkedState = Array.from(allCheckboxes).map(cb => cb.checked);
+            const checkedState = {};
+            allCheckboxes.forEach(cb => {
+                const idx = parseInt(cb.dataset.itemIndex);
+                checkedState[idx] = cb.checked;
+            });
             localStorage.setItem(checklistKey, JSON.stringify(checkedState));
+        });
+    });
+    
+    // Add form submit handlers to save checklist progress
+    const forms = document.querySelectorAll('form[id^="task-form-"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const taskId = form.id.replace('task-form-', '');
+            const checklistKey = `checklist_${submissionId}_${taskId}`;
+            const savedState = localStorage.getItem(checklistKey);
+            
+            if (savedState) {
+                const progressInput = document.getElementById(`checklist-progress-${taskId}`);
+                if (progressInput) {
+                    progressInput.value = savedState;
+                }
+            }
         });
     });
 }

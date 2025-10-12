@@ -55,7 +55,7 @@ class UserController extends Controller
 
         $user = User::create($validated);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('admin.users.index', ['updated' => time()])
             ->with('success', 'User created successfully.');
     }
 
@@ -102,7 +102,7 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('admin.users.show', $user)
+        return redirect()->route('admin.users.show', ['user' => $user->id, 'updated' => time()])
             ->with('success', 'User updated successfully.');
     }
 
@@ -112,13 +112,13 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {
-            return redirect()->route('admin.users.index')
+            return redirect()->route('admin.users.index', ['updated' => time()])
                 ->with('error', 'You cannot delete your own account.');
         }
 
         $user->delete();
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('admin.users.index', ['updated' => time()])
             ->with('success', 'User deleted successfully.');
     }
 }

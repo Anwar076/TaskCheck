@@ -66,6 +66,49 @@
                                 <p class="mt-2 text-sm text-gray-600">{{ $submissionTask->task->description }}</p>
                             @endif
 
+                            <!-- Checklist Items -->
+                            @if($submissionTask->task->checklist_items && count($submissionTask->task->checklist_items) > 0)
+                                <div class="mt-4 bg-cyan-50 rounded-lg p-4 border border-cyan-200">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mr-3">
+                                            <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h5 class="text-sm font-semibold text-cyan-900 mb-2">Checklist Items</h5>
+                                            <div class="space-y-1">
+                                                @php
+                                                    $checklistProgress = is_array($submissionTask->checklist_progress) ? $submissionTask->checklist_progress : [];
+                                                    $completedCount = 0;
+                                                @endphp
+                                                @foreach($submissionTask->task->checklist_items as $index => $item)
+                                                    @php
+                                                        $isChecked = isset($checklistProgress[$index]) && $checklistProgress[$index];
+                                                        if ($isChecked) $completedCount++;
+                                                    @endphp
+                                                    <div class="flex items-center space-x-2 text-sm {{ $isChecked ? 'text-green-800' : 'text-gray-600' }}">
+                                                        @if($isChecked)
+                                                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                        @else
+                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                        @endif
+                                                        <span class="{{ $isChecked ? 'font-medium' : 'opacity-75' }}">{{ $item }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <p class="text-xs text-cyan-600 mt-2 italic">
+                                                {{ $completedCount }}/{{ count($submissionTask->task->checklist_items) }} items checked by employee
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <!-- Employee's Proof -->
                             @if($submissionTask->proof_text || $submissionTask->proof_files || $submissionTask->digital_signature)
                                 <div class="mt-4 bg-gray-50 rounded-lg p-4">

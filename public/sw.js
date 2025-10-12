@@ -1,15 +1,20 @@
-const CACHE_NAME = 'taskcheck-v3.0.0';
+const CACHE_NAME = 'taskcheck-v3.1.0';
 const urlsToCache = [
-  '/login',
-  '/admin/dashboard',
-  '/admin/lists',
-  '/employee/submissions',
   '/css/app.css',
   '/js/app.js',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/favicon.svg'
+  '/favicon.svg',
+  '/offline.html'
+];
+
+// Never cache these URLs (always fetch fresh)
+const NEVER_CACHE = [
+  '/login',
+  '/logout',
+  '/refresh-csrf',
+  '/sanctum/csrf-cookie'
 ];
 
 // Install event - cache resources
@@ -67,6 +72,23 @@ self.addEventListener('fetch', (event) => {
 
   // Skip requests to external domains
   if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+  
+  // Check if URL should never be cached
+  const url = new URL(event.request.url);
+  const shouldNeverCache = NEVER_CACHE.some(path => url.pathname.includes(path));
+  
+  if (shouldNeverCache) {
+    // Always fetch fresh for login/logout/csrf routes
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Return offline page if network fails
+        if (event.request.destination === 'document') {
+          return caches.match('/offline.html');
+        }
+      })
+    );
     return;
   }
 

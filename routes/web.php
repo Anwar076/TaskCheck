@@ -14,6 +14,11 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// CSRF token refresh route (for handling expired sessions)
+Route::get('/refresh-csrf', function () {
+    return response()->json(['token' => csrf_token()]);
+})->name('refresh-csrf');
+
 // Public pages (only for web browsers)
 Route::get('/features', function () {
     return view('features');

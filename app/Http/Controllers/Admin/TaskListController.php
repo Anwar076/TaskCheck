@@ -166,7 +166,7 @@ class TaskListController extends Controller
             }
         }
 
-        return redirect()->route('admin.lists.show', $list)
+        return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
             ->with('success', 'Task list created successfully.');
     }
 
@@ -298,7 +298,7 @@ class TaskListController extends Controller
         // Handle schedule type changes and day-specific list management
         $this->handleScheduleTypeChanges($list, $oldScheduleType, $oldScheduleConfig, $validated);
 
-        return redirect()->route('admin.lists.show', $list)
+        return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
             ->with('success', 'Task list updated successfully.');
     }
 
@@ -394,7 +394,8 @@ class TaskListController extends Controller
                 ]);
             }
             
-            return back()->with('success', 'List assigned successfully.');
+            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
+                ->with('success', 'List assigned successfully.');
             
         } catch (\Exception $e) {
             \Log::error('Assignment failed: ' . $e->getMessage());
@@ -406,7 +407,8 @@ class TaskListController extends Controller
                 ], 422);
             }
             
-            return back()->withErrors(['error' => 'Assignment failed: ' . $e->getMessage()]);
+            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
+                ->withErrors(['error' => 'Assignment failed: ' . $e->getMessage()]);
         }
     }
 
@@ -428,7 +430,9 @@ class TaskListController extends Controller
                 ]);
             }
             
-            return back()->with('success', 'Assignment removed successfully.');
+            $listId = $assignment->list_id;
+            return redirect()->route('admin.lists.show', ['list' => $listId, 'updated' => time()])
+                ->with('success', 'Assignment removed successfully.');
             
         } catch (\Exception $e) {
             \Log::error('Failed to remove assignment: ' . $e->getMessage());
@@ -440,7 +444,12 @@ class TaskListController extends Controller
                 ], 422);
             }
             
-            return back()->withErrors(['error' => 'Failed to remove assignment: ' . $e->getMessage()]);
+            $listId = $assignment->list_id ?? null;
+            if ($listId) {
+                return redirect()->route('admin.lists.show', ['list' => $listId, 'updated' => time()])
+                    ->withErrors(['error' => 'Failed to remove assignment: ' . $e->getMessage()]);
+            }
+            return redirect()->route('admin.lists.index')->withErrors(['error' => 'Failed to remove assignment: ' . $e->getMessage()]);
         }
     }
     public function submissions(Request $request)
@@ -502,7 +511,8 @@ class TaskListController extends Controller
             'status' => $allApproved ? 'reviewed' : 'rejected'
         ]);
 
-        return back()->with('success', 'Submission reviewed successfully.');
+        return redirect()->route('admin.submissions.show', ['submission' => $submission->id, 'updated' => time()])
+            ->with('success', 'Submission reviewed successfully.');
     }
 
     /**
@@ -516,7 +526,8 @@ class TaskListController extends Controller
 
         $submissionTask->reject($validated['rejection_reason'], auth()->id());
 
-        return back()->with('success', 'Task rejected successfully.');
+        return redirect()->route('admin.submissions.show', ['submission' => $submissionTask->submission_id, 'updated' => time()])
+            ->with('success', 'Task rejected successfully.');
     }
 
     /**
@@ -526,7 +537,8 @@ class TaskListController extends Controller
     {
         $submissionTask->requestRedo(auth()->id());
 
-        return back()->with('success', 'Redo requested successfully.');
+        return redirect()->route('admin.submissions.show', ['submission' => $submissionTask->submission_id, 'updated' => time()])
+            ->with('success', 'Redo requested successfully.');
     }
 
     /**
@@ -625,7 +637,8 @@ class TaskListController extends Controller
     public function createDailySubLists(TaskList $list)
     {
         if (!$list->isMainList()) {
-            return back()->with('error', 'Only main lists can have daily sub-lists.');
+            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
+                ->with('error', 'Only main lists can have daily sub-lists.');
         }
 
         // Update the main list to daily schedule type
@@ -633,7 +646,8 @@ class TaskListController extends Controller
 
         $list->createDailySubLists();
 
-        return back()->with('success', 'Daily sub-lists created successfully. You can now drag and drop tasks to specific days.');
+        return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
+            ->with('success', 'Daily sub-lists created successfully. You can now drag and drop tasks to specific days.');
     }
 
     /**

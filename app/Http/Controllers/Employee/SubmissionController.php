@@ -113,7 +113,7 @@ class SubmissionController extends Controller
             ->first();
 
         if ($existingSubmission) {
-            return redirect()->route('employee.submissions.edit', $existingSubmission)
+            return redirect()->route('employee.submissions.edit', ['submission' => $existingSubmission->id, 'updated' => time()])
                 ->with('info', 'You have already started this list today.');
         }
 
@@ -155,7 +155,7 @@ class SubmissionController extends Controller
             ]);
         }
 
-        return redirect()->route('employee.submissions.edit', $submission)
+        return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
             ->with('success', 'Task list started successfully!');
     }
 
@@ -206,6 +206,9 @@ class SubmissionController extends Controller
         if ($task->requires_signature) {
             $rules['digital_signature'] = 'required|string';
         }
+        
+        // Checklist progress (optional)
+        $rules['checklist_progress'] = 'nullable|string';
 
         $validated = $request->validate($rules);
 
@@ -237,10 +240,19 @@ class SubmissionController extends Controller
             $updateData['digital_signature'] = $validated['digital_signature'];
             $updateData['signature_date'] = now();
         }
+        
+        // Add checklist progress if provided
+        if ($request->has('checklist_progress') && !empty($request->input('checklist_progress'))) {
+            $checklistProgress = json_decode($request->input('checklist_progress'), true);
+            if (is_array($checklistProgress)) {
+                $updateData['checklist_progress'] = $checklistProgress;
+            }
+        }
 
         $submissionTask->update($updateData);
 
-        return redirect()->route('employee.submissions.edit', $submission)->with('success', 'Task completed successfully!');
+        return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
+            ->with('success', 'Task completed successfully!');
     }
 
     /**
@@ -262,7 +274,8 @@ class SubmissionController extends Controller
             ->count();
 
         if ($pendingTasks > 0) {
-            return back()->with('error', 'Please complete all required tasks before submitting.');
+            return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
+                ->with('error', 'Please complete all required tasks before submitting.');
         }
 
         // Handle digital signature if required
