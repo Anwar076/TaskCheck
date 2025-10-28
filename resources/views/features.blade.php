@@ -1,87 +1,14 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Features - {{ config('app.name', 'TaskCheck') }}</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui'],
-                    },
-                    colors: {
-                        primary: {
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @keyframes fadeUp { from { opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
-        @keyframes fadeIn { from { opacity:0;} to {opacity:1;} }
-        @keyframes float { 0%,100% {transform:translateY(0);} 50% {transform:translateY(-8px);} }
-
-        .fade-up { animation: fadeUp 0.9s ease-out forwards; }
-        .fade-in { animation: fadeIn 1s ease-out forwards; }
-        .float { animation: float 6s ease-in-out infinite; }
-
-        .card-hover { transition: all 0.35s ease; }
-        .card-hover:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-
-        .btn-gradient {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            transition: all 0.3s ease;
-        }
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(139,92,246,0.35);
-        }
-    </style>
+    <title>Functies - {{ config('app.name', 'TaskCheck') }}</title>
+    @include('components.head')
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen font-sans text-gray-900">
 
-    <!-- Navbar -->
-    <nav class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md border-b border-gray-200/40">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
-            <div class="flex items-center space-x-3">
-                <a href="{{ url('/') }}" class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                        </svg>
-                    </div>
-                    <span class="text-xl font-extrabold">TaskCheck</span>
-                </a>
-            </div>
-            <div class="flex items-center space-x-6">
-                <a href="{{ url('/') }}" class="text-gray-700 hover:text-primary-600 font-medium">Home</a>
-                <a href="{{ url('/features') }}" class="text-primary-600 font-medium">Features</a>
-                <a href="{{ url('/pricing') }}" class="text-gray-700 hover:text-primary-600 font-medium">Pricing</a>
-                <a href="{{ url('/about') }}" class="text-gray-700 hover:text-primary-600 font-medium">About</a>
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-primary-600 font-medium">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn-gradient text-white px-5 py-2 rounded-lg font-medium">Login</a>
-                    @endauth
-                @endif
-            </div>
-        </div>
-    </nav>
+    @include('components.header')
+
+
 
     <!-- Hero -->
     <section class="pt-32 pb-20 text-center relative overflow-hidden">
@@ -425,6 +352,22 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             checkPwaAndRedirect();
+        });
+    </script>
+
+    @include('components.footer')
+
+    <!-- Mobile menu script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const mobileMenu = document.querySelector('.mobile-menu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
         });
     </script>
 </body>

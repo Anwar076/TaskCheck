@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\TaskListController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\SubmissionController;
 use Illuminate\Support\Facades\Route;
@@ -88,15 +89,28 @@ Route::get('/dashboard', function () {
 // Admin Routes
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    Route::resource('lists', TaskListController::class);
+    
+    // API-powered routes
+    Route::get('/lists', [TaskListController::class, 'index'])->name('lists.index');
+    
+    Route::get('/users', function() {
+        return view('admin.users.index-api');
+    })->name('users.index');
+    
+    Route::get('/submissions', function() {
+        return view('admin.submissions.index-api');
+    })->name('submissions.index');
+    
+    // Regular routes for create/edit/show
+    Route::resource('lists', TaskListController::class)->except(['index']);
     Route::resource('lists.tasks', TaskController::class)->shallow();
-    Route::resource('users', UserController::class);
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::resource('templates', TaskTemplateController::class);
+    Route::resource('users', UserController::class)->except(['index']);
+    Route::resource('submissions', SubmissionController::class)->except(['index']);
     
     // Additional admin routes
     Route::post('/lists/{list}/assign', [TaskListController::class, 'assign'])->name('lists.assign');
     Route::delete('/assignments/{assignment}', [TaskListController::class, 'removeAssignment'])->name('assignments.destroy');
-    Route::get('/submissions', [TaskListController::class, 'submissions'])->name('submissions.index');
     Route::get('/submissions/{submission}', [TaskListController::class, 'showSubmission'])->name('submissions.show');
     Route::post('/submissions/{submission}/review', [TaskListController::class, 'reviewSubmission'])->name('submissions.review');
     Route::post('/submission-tasks/{submissionTask}/reject', [TaskListController::class, 'rejectTask'])->name('submission-tasks.reject');
@@ -106,6 +120,14 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/weekly-overview', [TaskListController::class, 'weeklyOverview'])->name('weekly-overview');
     Route::post('/lists/{list}/create-daily-sublists', [TaskListController::class, 'createDailySubLists'])->name('lists.create-daily-sublists');
     Route::post('/lists/{list}/create-day-list', [TaskListController::class, 'createDayList'])->name('lists.create-day-list');
+    
+    // Template routes
+    Route::post('/templates/{template}/create-list', [TaskTemplateController::class, 'createFromTemplate'])->name('templates.create-list');
+    
+    // Debug routes
+    Route::get('/debug/test-assignment', function() {
+        return view('debug.test-assignment');
+    })->name('debug.test-assignment');
 });
 
 // Employee Routes
@@ -123,6 +145,8 @@ Route::middleware(['auth', 'verified', 'employee'])->prefix('employee')->name('e
     Route::get('/notifications', [App\Http\Controllers\Employee\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/mark-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::delete('/notifications/clear-all', [App\Http\Controllers\Employee\NotificationController::class, 'clearAll'])->name('notifications.clear-all');
+    Route::get('/notifications/count', [App\Http\Controllers\Employee\NotificationController::class, 'getCount'])->name('notifications.count');
     Route::delete('/notifications/{notification}', [App\Http\Controllers\Employee\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 

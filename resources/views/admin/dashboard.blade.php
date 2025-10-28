@@ -6,7 +6,7 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div class="mb-4 lg:mb-0">
                 <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-                <p class="text-gray-600">Comprehensive overview of your task management system</p>
+                <p class="text-gray-600">Uitgebreid overzicht van uw taakbeheersysteem</p>
             </div>
             <div class="hidden lg:block">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center">
@@ -32,7 +32,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Employees</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Totaal aantal werknemers</p>
                         <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['total_employees'] }}</p>
                     </div>
                 </div>
@@ -40,7 +40,7 @@
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
-                    <span class="font-medium">Active workforce</span>
+                    <span class="font-medium">Actieve werknemers</span>
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Active Lists</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Actieve lijsten</p>
                         <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['total_lists'] }}</p>
                     </div>
                 </div>
@@ -61,7 +61,7 @@
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
-                    <span class="font-medium">In progress</span>
+                    <span class="font-medium">Bezig</span>
                 </div>
             </div>
 
@@ -74,7 +74,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pending Review</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">In afwachting van beoordeling</p>
                         <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['pending_submissions'] }}</p>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                     </svg>
-                    <span class="font-medium">Awaiting approval</span>
+                    <span class="font-medium">In afwachting van goedkeuring</span>
                 </div>
             </div>
 
@@ -95,7 +95,7 @@
                         </svg>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Completed Today</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Vandaag voltooid</p>
                         <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['completed_today'] }}</p>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
-                    <span class="font-medium">Tasks finished</span>
+                    <span class="font-medium">Taken voltooid</span>
                 </div>
             </div>
         </div>
@@ -115,8 +115,8 @@
                 <div class="p-4 lg:p-6 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-900">Recent Activity</h3>
-                            <p class="text-gray-600 mt-1">Latest submissions and updates from your team</p>
+                            <h3 class="text-xl font-bold text-gray-900">Recente Activiteit</h3>
+                            <p class="text-gray-600 mt-1">Laatste inzendingen en updates van uw team</p>
                         </div>
                         <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +155,7 @@
                                         {{ ucfirst($submission->status) }}
                                     </span>
                                     <a href="{{ route('admin.submissions.show', $submission) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                        Review
+                                        Beoordeling
                                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                         </svg>
@@ -169,8 +169,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                     </svg>
                                 </div>
-                                <p class="text-gray-500 font-semibold text-lg">No recent activity</p>
-                                <p class="text-gray-400 text-sm mt-1">Activity will appear here as users submit tasks</p>
+                                <p class="text-gray-500 font-semibold text-lg">Geen recente activiteit</p>
+                                <p class="text-gray-400 text-sm mt-1">Activiteit verschijnt hier zodra gebruikers taken indienen</p>
                             </div>
                         @endforelse
                     </div>
@@ -187,8 +187,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-xl font-bold text-gray-900">Quick Actions</h3>
-                            <p class="text-gray-600 text-sm">Manage your workspace efficiently</p>
+                            <h3 class="text-xl font-bold text-gray-900">Snelle acties</h3>
+                            <p class="text-gray-600 text-sm">Beheer uw werkruimte efficiënt</p>
                         </div>
                     </div>
                 </div>
@@ -202,8 +202,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-gray-900">Create New List</h4>
-                                    <p class="text-sm text-gray-600">Start a new task list for your team</p>
+                                    <h4 class="font-semibold text-gray-900">Nieuwe lijst aanmaken</h4>
+                                    <p class="text-sm text-gray-600">Start een nieuwe takenlijst voor uw team</p>
                                 </div>
                             </div>
                         </a>
@@ -216,8 +216,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-gray-900">Review Submissions</h4>
-                                    <p class="text-sm text-gray-600">Check and approve team submissions</p>
+                                    <h4 class="font-semibold text-gray-900">Inzendingen beoordelen</h4>
+                                    <p class="text-sm text-gray-600">Controleer en keur teaminzendingen goed</p>
                                 </div>
                             </div>
                         </a>
@@ -230,8 +230,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-gray-900">Add User</h4>
-                                    <p class="text-sm text-gray-600">Invite new team members</p>
+                                    <h4 class="font-semibold text-gray-900">Voeg gebruiker toe</h4>
+                                    <p class="text-sm text-gray-600">Nodig nieuwe teamleden uit</p>
                                 </div>
                             </div>
                         </a>
@@ -246,7 +246,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">Team Performance</h3>
-                        <p class="text-gray-600 mt-1">30-day completion analytics and insights</p>
+                        <p class="text-gray-600 mt-1">30-dagen voltooiingsanalyses en inzichten</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +272,7 @@
                                 </div>
                                 <div class="text-right">
                                     <p class="text-2xl font-bold text-gray-900">{{ $employee->completion_rate }}%</p>
-                                    <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Completion Rate</p>
+                                    <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Voltooiingspercentage</p>
                                 </div>
                             </div>
                             <div class="mb-4">
@@ -280,7 +280,7 @@
                                 <p class="text-sm text-gray-500 mt-1 flex items-center space-x-2">
                                     <span class="font-medium">{{ $employee->department }}</span>
                                     <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                    <span>{{ $employee->completed_submissions }}/{{ $employee->total_submissions }} tasks</span>
+                                    <span>{{ $employee->completed_submissions }}/{{ $employee->total_submissions }} taken</span>
                                 </p>
                             </div>
                             <div class="flex items-center justify-between">
@@ -288,7 +288,7 @@
                                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                     </svg>
-                                    <span class="font-medium">Performance</span>
+                                    <span class="font-medium">Prestatie</span>
                                 </div>
                                 <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                                     <div class="h-full bg-green-500 rounded-full transition-all duration-1000" style="width: {{ $employee->completion_rate }}%"></div>
@@ -302,8 +302,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
                             </div>
-                            <p class="text-gray-500 font-semibold text-lg">No employee data</p>
-                            <p class="text-gray-400 text-sm mt-1">Employee performance will appear here</p>
+                            <p class="text-gray-500 font-semibold text-lg">Geen werknemersgegevens</p>
+                            <p class="text-gray-400 text-sm mt-1">Prestatiegegevens van werknemers zullen hier verschijnen</p>
                         </div>
                     @endforelse
                 </div>

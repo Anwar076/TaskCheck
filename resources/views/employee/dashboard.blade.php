@@ -10,16 +10,16 @@
                 <div class="flex-1 min-w-0">
                     <div class="mb-6">
                         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">
-                            Good {{ now()->hour < 12 ? 'Morning' : (now()->hour < 17 ? 'Afternoon' : 'Evening') }}, 
+                            Goede{{ now()->hour < 12 ? 'morgen' : (now()->hour < 17 ? 'middag' : 'avond') }}, 
                             <span class="text-blue-600">{{ explode(' ', auth()->user()->name)[0] }}</span>
                         </h1>
-                        <p class="text-gray-600 text-base sm:text-lg">{{ now()->format('l, F j, Y') }}</p>
+                        <p class="text-gray-600 text-base sm:text-lg">{{ now()->translatedFormat('l, j F Y') }}</p>
                     </div>
                     
                     <!-- Linear Progress Bar -->
                     <div class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
-                            <span class="text-sm font-medium text-gray-700">Today's Progress</span>
+                            <span class="text-sm font-medium text-gray-700">Voortgang Vandaag</span>
                             <span class="text-sm font-bold text-blue-600">
                                 {{ round((($stats['completed_today'] + $stats['in_progress']) / max(($stats['pending_tasks'] + $stats['completed_today'] + $stats['in_progress']), 1)) * 100) }}%
                             </span>
@@ -30,8 +30,8 @@
                             </div>
                         </div>
                         <div class="flex flex-col xs:flex-row xs:justify-between text-xs text-gray-500 mt-2 gap-1">
-                            <span>{{ $stats['completed_today'] }} completed</span>
-                            <span>{{ $stats['pending_tasks'] }} pending</span>
+                            <span>{{ $stats['completed_today'] }} afgerond</span>
+                            <span>{{ $stats['pending_tasks'] }} openstaand</span>
                         </div>
                     </div>
                 </div>
@@ -54,8 +54,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900">Tasks Need Attention</h3>
-                                <p class="text-sm text-gray-600">{{ $rejectedTasks->count() }} rejected tasks</p>
+                                <h3 class="text-lg font-semibold text-gray-900">Taken Vereisen Aandacht</h3>
+                                <p class="text-sm text-gray-600">{{ $rejectedTasks->count() }} afgewezen taken</p>
                             </div>
                         </div>
                     </div>
@@ -69,13 +69,13 @@
                         </div>
                         <a href="{{ route('employee.submissions.edit', $rejectedTask->submission) }}" 
                            class="mt-2 xs:mt-0 xs:ml-4 bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors whitespace-nowrap">
-                            Fix
+                            Herstel
                         </a>
                     </div>
                     @endforeach
                     @if($rejectedTasks->count() > 3)
                     <div class="text-center mt-3">
-                        <a href="#" class="text-sm text-red-600 hover:text-red-700 font-medium">View all {{ $rejectedTasks->count() }} tasks</a>
+                        <a href="#" class="text-sm text-red-600 hover:text-red-700 font-medium">Bekijk alle {{ $rejectedTasks->count() }} taken</a>
                     </div>
                     @endif
                 </div>
@@ -93,12 +93,12 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
-                                <p class="text-sm text-gray-600">{{ $notifications->count() }} unread</p>
+                                <h3 class="text-lg font-semibold text-gray-900">Meldingen</h3>
+                                <p class="text-sm text-gray-600">{{ $notifications->count() }} ongelezen</p>
                             </div>
                         </div>
                         <a href="{{ route('employee.notifications.index') }}" 
-                           class="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2 sm:mt-0">View all</a>
+                           class="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2 sm:mt-0">Bekijk alle</a>
                     </div>
                 </div>
                 <div class="p-4 flex-1 flex flex-col">
@@ -136,8 +136,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg sm:text-xl font-bold text-gray-900">Today's Tasks</h3>
-                                    <p class="text-gray-600 text-sm sm:text-base">{{ $todaysLists->count() }} lists assigned</p>
+                                    <h3 class="text-lg sm:text-xl font-bold text-gray-900">Taken van Vandaag</h3>
+                                    <p class="text-gray-600 text-sm sm:text-base">{{ $todaysLists->count() }} lijsten toegewezen</p>
                                 </div>
                             </div>
                         </div>
@@ -156,17 +156,20 @@
                                             @elseif($list->priority === 'high') bg-orange-100 text-orange-800 border border-orange-200
                                             @elseif($list->priority === 'medium') bg-amber-100 text-amber-800 border border-amber-200
                                             @else bg-green-100 text-green-800 border border-green-200 @endif">
-                                            {{ ucfirst($list->priority) }} Priority
+                                            @if($list->priority === 'urgent') Urgente
+                                            @elseif($list->priority === 'high') Hoge
+                                            @elseif($list->priority === 'medium') Gemiddelde
+                                            @else Lage @endif Prioriteit
                                         </span>
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                            {{ $list->tasks->count() }} tasks
+                                            {{ $list->tasks->count() }} taken
                                         </span>
                                         @if($list->requires_signature)
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
-                                            Signature Required
+                                            Handtekening Vereist
                                         </span>
                                         @endif
                                     </div>
@@ -186,7 +189,7 @@
                                         @endforeach
                                         @if($list->tasks->count() > 3)
                                         <div class="text-sm text-gray-500 ml-7">
-                                            +{{ $list->tasks->count() - 3 }} more tasks
+                                            +{{ $list->tasks->count() - 3 }} meer taken
                                         </div>
                                         @endif
                                     </div>
@@ -197,7 +200,7 @@
                                     <svg class="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                     </svg>
-                                    <span class="truncate">Start Task</span>
+                                    <span class="truncate">Start Taak</span>
                                 </a>
                             </div>
                         </div>
@@ -208,8 +211,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">All done for today!</h3>
-                            <p class="text-gray-600 text-base sm:text-lg">You've completed all your assigned tasks. Great work!</p>
+                            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">Alles klaar voor vandaag!</h3>
+                            <p class="text-gray-600 text-base sm:text-lg">Je hebt alle toegewezen taken voltooid. Geweldig werk!</p>
                         </div>
                         @endforelse
                     </div>
@@ -227,8 +230,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-lg sm:text-xl font-bold text-gray-900">Recent Activity</h3>
-                                <p class="text-gray-600 text-sm sm:text-base">Your latest submissions</p>
+                                <h3 class="text-lg sm:text-xl font-bold text-gray-900">Recente Activiteit</h3>
+                                <p class="text-gray-600 text-sm sm:text-base">Jouw laatste inzendingen</p>
                             </div>
                         </div>
                     </div>
@@ -255,14 +258,18 @@
                                 <div class="flex-1 min-w-0">
                                     <h4 class="font-semibold text-gray-900 mb-1 truncate">{{ $submission->taskList->title }}</h4>
                                     <p class="text-sm text-gray-600 mb-2 truncate">
-                                        {{ $submission->completed_at ? 'Completed ' . $submission->completed_at->diffForHumans() : 'Started ' . $submission->created_at->diffForHumans() }}
+                                        {{ $submission->completed_at ? 'Afgerond ' . $submission->completed_at->diffForHumans() : 'Gestart ' . $submission->created_at->diffForHumans() }}
                                     </p>
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                         @if($submission->status === 'completed') bg-green-100 text-green-800 border border-green-200
                                         @elseif($submission->status === 'reviewed') bg-blue-100 text-blue-800 border border-blue-200
                                         @elseif($submission->status === 'rejected') bg-red-100 text-red-800 border border-red-200
                                         @else bg-amber-100 text-amber-800 border border-amber-200 @endif">
-                                        {{ ucfirst($submission->status) }}
+                                        @if($submission->status === 'completed') Afgerond
+                                        @elseif($submission->status === 'reviewed') Beoordeeld
+                                        @elseif($submission->status === 'rejected') Afgewezen
+                                        @elseif($submission->status === 'in_progress') In Behandeling
+                                        @else {{ ucfirst($submission->status) }} @endif
                                     </span>
                                 </div>
                             </div>
@@ -274,8 +281,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            <p class="text-base sm:text-lg font-medium">No recent activity</p>
-                            <p class="text-xs sm:text-sm">Start working on tasks to see progress here</p>
+                            <p class="text-base sm:text-lg font-medium">Geen recente activiteit</p>
+                            <p class="text-xs sm:text-sm">Begin met werken aan taken om hier voortgang te zien</p>
                         </div>
                         @endforelse
                     </div>
@@ -293,11 +300,11 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-base sm:text-lg font-semibold text-green-900">Great progress today!</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-green-900">Geweldige voortgang vandaag!</h3>
                     <p class="text-green-700 text-sm sm:text-base">
-                        You've completed {{ $stats['completed_today'] }} 
-                        {{ $stats['completed_today'] === 1 ? 'task' : 'tasks' }} so far. 
-                        Keep up the excellent work!
+                        Je hebt vandaag al {{ $stats['completed_today'] }} 
+                        {{ $stats['completed_today'] === 1 ? 'taak' : 'taken' }} afgerond. 
+                        Ga zo door met je uitstekende werk!
                     </p>
                 </div>
             </div>

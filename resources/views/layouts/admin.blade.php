@@ -18,6 +18,9 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    <!-- API Client -->
+    <script src="{{ asset('js/api-client.js') }}"></script>
+    
     <!-- Additional Meta Tags -->
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,9 +35,8 @@
                 <div class="flex items-center flex-shrink-0 px-6 mb-8">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                            <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
                         <div>
@@ -61,6 +63,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                         Task Lists
+                    </a>
+                    
+                    <a href="{{ route('admin.templates.index') }}" 
+                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.templates.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.templates.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Templates
                     </a>
                     
                     <a href="{{ route('admin.submissions.index') }}" 
@@ -142,6 +152,7 @@
                         <button class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Notifications">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a.75.75 0 01.75.75v.75a7.5 7.5 0 016.75 6.75h.75a.75.75 0 010 1.5h-.75a7.5 7.5 0 01-6.75 6.75v.75a.75.75 0 01-1.5 0v-.75a7.5 7.5 0 01-6.75-6.75H2.25a.75.75 0 010-1.5h.75a7.5 7.5 0 016.75-6.75V3a.75.75 0 01.75-.75z"></path>
                             </svg>
                         </button>
                         <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Settings">
@@ -205,8 +216,10 @@
                 <!-- Mobile Logo -->
                 <div class="flex items-center justify-between p-6 border-b border-slate-200/50">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-tasks text-white text-sm"></i>
+                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                            <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
                         </div>
                         <div>
                             <h1 class="text-lg font-bold text-gray-900">TaskCheck</h1>
@@ -237,6 +250,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                         Task Lists
+                    </a>
+                    
+                    <a href="{{ route('admin.templates.index') }}" 
+                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.templates.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.templates.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Templates
                     </a>
                     
                     <a href="{{ route('admin.submissions.index') }}" 
@@ -334,6 +355,44 @@
                         message.remove();
                     }, 500);
                 }, 5000);
+            });
+
+            // Disabled auto-refresh to prevent menu items from disappearing
+            // Auto-refresh was causing issues with sidebar navigation
+            // const currentPath = window.location.pathname;
+            // const isListsIndex = currentPath === '/admin/lists' || currentPath === '/admin/lists/';
+            // const isTemplatesIndex = currentPath === '/admin/templates' || currentPath === '/admin/templates/';
+            
+            // if (isListsIndex || isTemplatesIndex) {
+            //     setInterval(function() {
+            //         if (!document.hidden && document.hasFocus() && window.location.pathname === currentPath) {
+            //             location.reload();
+            //         }
+            //     }, 60000);
+            // }
+
+            // Disabled focus refresh as it was too aggressive
+            // let lastFocusTime = Date.now();
+            // window.addEventListener('focus', function() {
+            //     const now = Date.now();
+            //     if (now - lastFocusTime > 5000) {
+            //         location.reload();
+            //     }
+            // });
+            // window.addEventListener('blur', function() {
+            //     lastFocusTime = Date.now();
+            // });
+
+            // Add cache-busting to all forms
+            const forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                if (!form.querySelector('input[name="_token"]')) {
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '_token';
+                    tokenInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.appendChild(tokenInput);
+                }
             });
         });
     </script>

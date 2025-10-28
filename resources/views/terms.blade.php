@@ -1,24 +1,12 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Terms of Service - {{ config('app.name', 'TaskCheck') }}</title>
+    <title>Servicevoorwaarden - {{ config('app.name', 'TaskCheck') }}</title>
+    @include('components.head')
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen font-sans text-gray-900">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui'],
-                    },
+    @include('components.header')
                     colors: {
                         primary: {
                             500: '#3b82f6',
@@ -55,9 +43,9 @@
             </div>
             <div class="flex items-center space-x-6">
                 <a href="{{ url('/') }}" class="text-gray-700 hover:text-primary-600 font-medium">Home</a>
-                <a href="{{ url('/features') }}" class="text-gray-700 hover:text-primary-600 font-medium">Features</a>
-                <a href="{{ url('/pricing') }}" class="text-gray-700 hover:text-primary-600 font-medium">Pricing</a>
-                <a href="{{ url('/about') }}" class="text-gray-700 hover:text-primary-600 font-medium">About</a>
+                <a href="{{ url('/features') }}" class="text-gray-700 hover:text-primary-600 font-medium">Functies</a>
+                <a href="{{ url('/pricing') }}" class="text-gray-700 hover:text-primary-600 font-medium">Prijzen</a>
+                <a href="{{ url('/about') }}" class="text-gray-700 hover:text-primary-600 font-medium">Over</a>
                 @if (Route::has('login'))
                     @auth
                         <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-primary-600 font-medium">Dashboard</a>
@@ -73,13 +61,13 @@
     <section class="pt-32 pb-20 text-center relative overflow-hidden">
         <div class="max-w-4xl mx-auto px-4">
             <h1 class="text-4xl sm:text-6xl font-extrabold leading-tight fade-up">
-                Terms of <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Service</span>
+                Service<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">voorwaarden</span>
             </h1>
             <p class="mt-6 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto fade-up" style="animation-delay:0.3s;">
-                Please read these terms carefully before using our service.
+                Lees deze voorwaarden zorgvuldig door voordat je onze service gebruikt.
             </p>
             <p class="mt-4 text-sm text-gray-500 fade-up" style="animation-delay:0.6s;">
-                Last updated: {{ date('F j, Y') }}
+                Laatst bijgewerkt: {{ date('j F Y') }}
             </p>
         </div>
     </section>

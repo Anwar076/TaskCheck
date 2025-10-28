@@ -1,0 +1,277 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\TaskList;
+use App\Models\User;
+use App\Models\ListAssignment;
+use App\Models\Submission;
+use App\Models\SubmissionTask;
+use App\Models\Notification;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class TaskListController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $query = TaskList::with(['creator', 'tasks'])
+            ->withCount(['tasks', 'submissions']);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $searchTerm = $request->get('search');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhere('category', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Filter by status if provided
+        if ($request->filled('is_active')) {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $lists = $query->latest()->paginate(10);
+
+        // Debugging: Log the fetched task lists
+        \Log::info('TaskListController@index - Fetched Task Lists:', [
+            'count' => $lists->count(),
+            'total' => $lists->total(),
+            'ajax_request' => $request->ajax(),
+            'accept_header' => $request->header('Accept')
+        ]);
+
+        // If this is an AJAX request, return JSON
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json($lists);
+        }
+
+        // Otherwise, return the regular view
+        return view('admin.lists.index-api', compact('lists'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $parentLists = TaskList::where('parent_list_id', null)->get();
+        return view('admin.lists.create', compact('parentLists'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'parent_list_id' => 'nullable|exists:lists,id',
+            'schedule_type' => 'required|in:once,daily,weekly,monthly,custom',
+            'schedule_config' => 'nullable|array',
+            'schedule_config.weekdays' => 'nullable|array',
+            'schedule_config.weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'schedule_config.day_of_month' => 'nullable|integer|between:1,31',
+            'schedule_config.type' => 'nullable|in:specific_days,interval,date_range',
+            'schedule_config.days' => 'nullable|array',
+            'schedule_config.days.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'schedule_config.interval_days' => 'nullable|integer|min:1|max:365',
+            'schedule_config.start_date' => 'nullable|date',
+            'schedule_config.end_date' => 'nullable|date|after_or_equal:schedule_config.start_date',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'due_date' => 'nullable|date',
+            'tags' => 'nullable|array',
+            'category' => 'nullable|string|max:100',
+            'requires_signature' => 'boolean',
+            'is_template' => 'boolean',
+            'is_active' => 'boolean',
+            'create_daily_sublists' => 'boolean',
+            // Weekly Schedule Structure fields
+            'enable_weekly_structure' => 'boolean',
+            'selected_days' => 'nullable|array',
+            'selected_days.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'day_tasks' => 'nullable|array',
+            'day_tasks.*' => 'array',
+            'day_tasks.*.*.title' => 'required|string|max:255',
+            'day_tasks.*.*.order' => 'required|integer|min:1',
+            'day_tasks.*.*.description' => 'nullable|string',
+            'day_tasks.*.*.is_required' => 'boolean',
+            'day_tasks.*.*.required_proof_type' => 'in:none,photo,signature,both',
+            'day_tasks.*.*.instructions' => 'nullable|string',
+        ]);
+
+        // Clean up schedule_config based on schedule_type
+        if (isset($validated['schedule_config'])) {
+            switch ($validated['schedule_type']) {
+                case 'once':
+                case 'daily':
+                    $validated['schedule_config'] = null;
+                    break;
+                case 'weekly':
+                    $validated['schedule_config'] = [
+                        'weekdays' => $validated['schedule_config']['weekdays'] ?? []
+                    ];
+                    break;
+                case 'monthly':
+                    $validated['schedule_config'] = [
+                        'day_of_month' => $validated['schedule_config']['day_of_month'] ?? 1
+                    ];
+                    break;
+                case 'custom':
+                    $config = [];
+                    $type = $validated['schedule_config']['type'] ?? 'specific_days';
+                    $config['type'] = $type;
+                    
+                    switch ($type) {
+                        case 'specific_days':
+                            $config['days'] = $validated['schedule_config']['days'] ?? [];
+                            break;
+                        case 'interval':
+                            $config['interval_days'] = $validated['schedule_config']['interval_days'] ?? 1;
+                            $config['start_date'] = $validated['schedule_config']['start_date'] ?? null;
+                            break;
+                        case 'date_range':
+                            $config['start_date'] = $validated['schedule_config']['start_date'] ?? null;
+                            $config['end_date'] = $validated['schedule_config']['end_date'] ?? null;
+                            break;
+                    }
+                    $validated['schedule_config'] = $config;
+                    break;
+            }
+        }
+
+        $validated['created_by'] = auth()->id();
+
+        $list = TaskList::create($validated);
+
+        // Handle Weekly Schedule Structure
+        if ($request->has('enable_weekly_structure') && $request->get('enable_weekly_structure')) {
+            // Store the weekly structure in schedule_config
+            $list->update([
+                'schedule_config' => array_merge($list->schedule_config ?? [], [
+                    'weekly_structure' => [
+                        'enabled' => true,
+                        'selected_days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] // Default to all days
+                    ]
+                ])
+            ]);
+        }
+
+        // Legacy: Create daily sub-lists if requested (for backward compatibility)
+        if ($request->has('create_daily_sublists') && $list->isMainList()) {
+            $list->createDailySubLists();
+        }
+
+        return redirect()->route('admin.lists.show', $list)
+            ->with('success', 'Task list created successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(TaskList $list)
+    {
+        // Load tasks with proper relationships
+        $list->load(['assignments.user', 'submissions.user']);
+        
+        // Load all tasks for this list (both general and day-specific)
+        $list->load(['tasks' => function ($query) {
+            $query->orderBy('order_index')->orderBy('created_at');
+        }]);
+        
+        return view('admin.lists.show', compact('list'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(TaskList $list)
+    {
+        $parentLists = TaskList::where('parent_list_id', null)
+            ->where('id', '!=', $list->id)
+            ->get();
+            
+        return view('admin.lists.edit', compact('list', 'parentLists'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, TaskList $list)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'parent_list_id' => 'nullable|exists:lists,id',
+            'schedule_type' => 'required|in:once,daily,weekly,monthly,custom',
+            'schedule_config' => 'nullable|array',
+            'schedule_config.weekdays' => 'nullable|array',
+            'schedule_config.weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'schedule_config.day_of_month' => 'nullable|integer|between:1,31',
+            'schedule_config.type' => 'nullable|in:specific_days,interval,date_range',
+            'schedule_config.days' => 'nullable|array',
+            'schedule_config.days.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'schedule_config.interval_days' => 'nullable|integer|min:1|max:365',
+            'schedule_config.start_date' => 'nullable|date',
+            'schedule_config.end_date' => 'nullable|date|after_or_equal:schedule_config.start_date',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'due_date' => 'nullable|date',
+            'tags' => 'nullable|array',
+            'category' => 'nullable|string|max:100',
+            'requires_signature' => 'boolean',
+            'is_template' => 'boolean',
+            'is_active' => 'boolean',
+            'create_daily_sublists' => 'boolean',
+            // Weekly Schedule Structure fields
+            'enable_weekly_structure' => 'boolean',
+            'selected_days' => 'nullable|array',
+            'selected_days.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'day_tasks' => 'nullable|array',
+            'day_tasks.*' => 'array',
+            'day_tasks.*.*.title' => 'required|string|max:255',
+            'day_tasks.*.*.order' => 'required|integer|min:1',
+            'day_tasks.*.*.description' => 'nullable|string',
+            'day_tasks.*.*.is_required' => 'boolean',
+            'day_tasks.*.*.required_proof_type' => 'in:none,photo,signature,both',
+            'day_tasks.*.*.instructions' => 'nullable|string',
+        ]);
+
+        // Clean up schedule_config based on schedule_type
+        if (isset($validated['schedule_config'])) {
+            switch ($validated['schedule_type']) {
+                case 'once':
+                case 'daily':
+                    $validated['schedule_config'] = null;
+                    break;
+                case 'weekly':
+                    $validated['schedule_config'] = [
+                        'weekdays' => $validated['schedule_config']['weekdays'] ?? []
+                    ];
+                    break;
+                case 'monthly':
+                    $validated['schedule_config'] = [
+                        'day_of_month' => $validated['schedule_config']['day_of_month'] ?? 1
+                    ];
+                    break;
+                case 'custom':
+                    $config = [];
+                    $type = $validated['schedule_config']['type'] ?? 'specific_days';
+                    $config['type'] = $type;
+                    
+                    switch ($type) {
+                        case 'specific_days':
+                            $config['days'] = $validated['schedule_config']['days'] ?? [];
+                            break;
+                        case 'interval':
+                            $config['interval_days'] = $validated['schedule_config']['interval_days'] ?? 1;
+                            $config['start_date'] = $validated['schedule_config']['start_date'] ?? null;
+                            break;
+                        case 'date_range':
+                            $config['start_date'

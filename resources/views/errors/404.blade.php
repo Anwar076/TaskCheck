@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Page Not Found - TaskCheck</title>
+    <title>Pagina Niet Gevonden - TaskCheck</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     
     <!-- Fonts -->
@@ -65,11 +65,11 @@
             <!-- Error Message -->
             <div class="mb-8">
                 <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                    Oops! Page Not Found
+                   Oeps! Pagina niet gevonden
                 </h2>
                 <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                    The page you're looking for seems to have wandered off into the digital void. 
-                    Don't worry, even the best task managers sometimes lose track of things!
+                    De pagina die je zoekt lijkt te zijn verdwaald in de digitale leegte.
+                    Maak je geen zorgen, zelfs de beste takenbeheerders verliezen soms het overzicht!
                 </p>
             </div>
 
@@ -113,7 +113,7 @@
                             <svg class="w-6 h-6 mr-3 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                             </svg>
-                            Sign In
+                            Inloggen
                         </a>
                     @endauth
                 @endif
@@ -128,9 +128,9 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">Need Help?</h3>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Hulp Nodig?</h3>
                 <p class="text-slate-600 mb-6">
-                    If you believe this page should exist, please check the URL or contact our support team.
+                    Als je denkt dat deze pagina zou moeten bestaan, controleer dan de URL of neem contact op met ons ondersteuningsteam.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
                     <a href="mailto:support@taskcheck.com" 

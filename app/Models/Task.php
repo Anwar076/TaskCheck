@@ -83,4 +83,40 @@ class Task extends Model
     {
         return $query->whereNull('weekday');
     }
+
+    public function scopeForToday($query)
+    {
+        $today = strtolower(now()->format('l')); // 'monday', 'tuesday', etc.
+        return $query->where(function($q) use ($today) {
+            $q->whereNull('weekday') // Tasks without specific day assignment
+              ->orWhere('weekday', $today); // Tasks assigned to today
+        });
+    }
+
+    public function scopeAvailableToday($query)
+    {
+        return $query->forToday();
+    }
+
+    // Helper methods
+    public function isAvailableOnDay($day)
+    {
+        // If no weekday is set, task is available every day
+        if (is_null($this->weekday)) {
+            return true;
+        }
+        
+        return strtolower($this->weekday) === strtolower($day);
+    }
+
+    public function isAvailableToday()
+    {
+        $today = strtolower(now()->format('l'));
+        return $this->isAvailableOnDay($today);
+    }
+
+    public function getWeekdayDisplayName()
+    {
+        return $this->weekday ? ucfirst($this->weekday) : 'Every day';
+    }
 }

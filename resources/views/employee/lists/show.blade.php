@@ -10,7 +10,7 @@
                     <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
-                    <span class="font-medium">Back to Tasks</span>
+                    <span class="font-medium">Terug naar Taken</span>
                 </button>
                 <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,20 +36,20 @@
                     @elseif($list->priority === 'high') bg-orange-100 text-orange-800 border-orange-200
                     @elseif($list->priority === 'medium') bg-amber-100 text-amber-800 border-amber-200
                     @else bg-green-100 text-green-800 border-green-200 @endif">
-                    {{ ucfirst($list->priority) }} Priority
+                    {{ ucfirst($list->priority) }} Prioriteit
                 </span>
                 <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                     </svg>
-                    {{ $list->tasks->count() }} tasks
+                    {{ $list->tasks->count() }} Taken
                 </span>
                 @if($list->requires_signature)
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                         </svg>
-                        Signature Required
+                        Handtekening Vereist
                     </span>
                 @endif
             </div>
@@ -67,8 +67,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">Task Overview</h3>
-                        <p class="text-gray-600">Complete these tasks in order</p>
+                        <h3 class="text-xl font-bold text-gray-900">Taakoverzicht</h3>
+                        <p class="text-gray-600">Voltooi deze taken in volgorde</p>
                     </div>
                 </div>
             </div>
@@ -92,14 +92,14 @@
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                                             </svg>
-                                            {{ count($task->checklist_items) }} checklist steps
+                                            {{ count($task->checklist_items) }} checklist stappen
                                         </span>
                                     </div>
                                 @endif
                                 <div class="flex flex-wrap items-center gap-2">
                                     @if($task->is_required)
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                                            Required
+                                            Vereist
                                         </span>
                                     @endif
                                     @if($task->requires_signature)
@@ -107,7 +107,7 @@
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
-                                            Signature
+                                            Handtekening
                                         </span>
                                     @endif
                                     @if($task->required_proof_type !== 'none')
@@ -138,8 +138,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">How it works</h3>
-                        <p class="text-gray-600">Follow these steps to complete your tasks</p>
+                        <h3 class="text-xl font-bold text-gray-900">Hoe het werkt</h3>
+                        <p class="text-gray-600">Volg deze stappen om uw taken te voltooien</p>
                     </div>
                 </div>
             </div>
@@ -150,8 +150,8 @@
                             <span class="text-sm font-bold text-blue-700">1</span>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Complete Tasks</h4>
-                            <p class="text-sm text-gray-600">Work through each task in the order shown</p>
+                            <h4 class="font-semibold text-gray-900 mb-2">Voltooi Taken</h4>
+                            <p class="text-sm text-gray-600">Werk elke taak in de aangegeven volgorde door</p>
                         </div>
                     </div>
                     <div class="flex items-start">
@@ -159,8 +159,8 @@
                             <span class="text-sm font-bold text-blue-700">2</span>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Upload Proof</h4>
-                            <p class="text-sm text-gray-600">Provide required documentation when needed</p>
+                            <h4 class="font-semibold text-gray-900 mb-2">Upload Bewijs</h4>
+                            <p class="text-sm text-gray-600">Lever de vereiste documentatie aan wanneer nodig</p>
                         </div>
                     </div>
                     <div class="flex items-start">
@@ -168,8 +168,8 @@
                             <span class="text-sm font-bold text-blue-700">3</span>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Submit</h4>
-                            <p class="text-sm text-gray-600">@if($list->requires_signature) Sign and submit for review @else Submit for review @endif</p>
+                            <h4 class="font-semibold text-gray-900 mb-2">Indienen</h4>
+                            <p class="text-sm text-gray-600">@if($list->requires_signature) Handteken en dien in ter beoordeling @else Dien in ter beoordeling @endif</p>
                         </div>
                     </div>
                 </div>
@@ -185,7 +185,7 @@
                 <svg class="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
-                Continue Working
+                Blijf Werken
             </a>
         @else
             <form method="POST" action="{{ route('employee.submissions.start', $list) }}">
@@ -195,7 +195,7 @@
                     <svg class="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
-                    Start Task
+                    Start Taak
                 </button>
             </form>
         @endif

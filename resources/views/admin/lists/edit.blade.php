@@ -95,8 +95,8 @@
                                         class="block w-full px-4 py-4 border-2 border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-lg font-medium" 
                                         onchange="toggleScheduleConfig()">
                                     <option value="once" {{ old('schedule_type', $list->schedule_type) === 'once' ? 'selected' : '' }}>One-time</option>
-                                    <option value="daily" {{ old('schedule_type', $list->schedule_type) === 'daily' ? 'selected' : '' }}>Daily</option>
-                                    <option value="weekly" {{ old('schedule_type', $list->schedule_type) === 'weekly' ? 'selected' : '' }}>Weekly</option>
+                                    <option value="daily" {{ old('schedule_type', $list->schedule_type) === 'daily' ? 'selected' : '' }}>Daily (Every Day)</option>
+                                    <option value="weekly" {{ old('schedule_type', $list->schedule_type) === 'weekly' ? 'selected' : '' }}>Weekly (Specific Days)</option>
                                     <option value="monthly" {{ old('schedule_type', $list->schedule_type) === 'monthly' ? 'selected' : '' }}>Monthly</option>
                                     <option value="custom" {{ old('schedule_type', $list->schedule_type) === 'custom' ? 'selected' : '' }}>Custom</option>
                                 </select>
@@ -113,17 +113,17 @@
                 
                         <!-- Daily Schedule -->
                         <div id="daily-config" class="hidden">
-                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                     </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-blue-900">Daily Schedule</h4>
-                                        <p class="text-sm text-blue-700">This will automatically create separate lists for all 7 days of the week (Monday through Sunday).</p>
-                                        <p class="text-xs text-blue-600 mt-1">⚠️ Changing to daily will create new day-specific lists and may affect existing assignments.</p>
+                                    <div class="flex-1">
+                                        <h4 class="text-xl font-semibold text-green-900 mb-2">Daily Agenda Schedule</h4>
+                                        <p class="text-green-700 font-medium">This list will be available every day of the week. You can assign individual tasks within this list to specific days when editing tasks.</p>
+                                        <p class="text-sm text-green-600 mt-2">✓ Single list that shows every day<br>✓ Tasks can be assigned to specific days<br>✓ Much more flexible than creating 7 separate lists</p>
                                     </div>
                                 </div>
                             </div>
@@ -131,23 +131,37 @@
 
                         <!-- Weekly Schedule -->
                         <div id="weekly-config" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Days of Week</label>
-                            <p class="text-sm text-gray-600 mb-4">Choose which days of the week this list should be active. Separate lists will be created for each selected day.</p>
-                            <div class="grid grid-cols-7 gap-2">
+                            <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                                <div class="flex items-center space-x-4 mb-4">
+                                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-xl font-semibold text-blue-900 mb-2">Weekly Agenda Schedule</h4>
+                                        <p class="text-blue-700 font-medium">This list will only appear on the selected days. Choose which days of the week this list should be active.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <label class="block text-lg font-bold text-slate-700 mb-4">Select Days of Week <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-7 gap-3">
                                 @php
                                     $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                                    $selectedDays = old('schedule_config.weekdays', $list->schedule_config['weekdays'] ?? []);
+                                    $selectedDays = old('selected_days', $list->getShowOnDays());
                                 @endphp
                                 @foreach($weekdays as $day)
-                                <label class="flex items-center justify-center p-2 border rounded cursor-pointer hover:bg-gray-50">
-                                    <input type="checkbox" name="schedule_config[weekdays][]" value="{{ $day }}" 
+                                <label class="flex flex-col items-center p-4 border-2 border-slate-200 rounded-2xl cursor-pointer hover:bg-blue-50 transition-all duration-200 weekday-label">
+                                    <input type="checkbox" name="selected_days[]" value="{{ $day }}" 
                                            class="hidden weekday-checkbox" 
                                            {{ in_array($day, $selectedDays) ? 'checked' : '' }}>
-                                    <span class="text-sm font-medium">{{ ucfirst(substr($day, 0, 3)) }}</span>
+                                    <span class="text-sm font-bold text-slate-700">{{ ucfirst($day) }}</span>
+                                    <span class="text-xs text-slate-500 mt-1">{{ ucfirst(substr($day, 0, 3)) }}</span>
                                 </label>
                                 @endforeach
                             </div>
-                            <p class="text-xs text-orange-600 mt-2">⚠️ Changing selected days will create/remove day-specific lists and may affect existing assignments.</p>
+                            <p class="mt-3 text-sm text-slate-600">💡 <strong>Tip:</strong> Individual tasks within this list can still be assigned to specific days when you edit the tasks.</p>
                         </div>
 
                         <!-- Monthly Schedule -->
@@ -320,10 +334,16 @@
                         <p class="text-lg font-medium mb-4">After updating this task list, you can:</p>
                         <ul class="list-disc list-inside space-y-2 text-base">
                             <li>Add or edit individual tasks in this list</li>
+                            <li><strong>Assign individual tasks to specific days</strong> of the week</li>
                             <li>Assign this list to specific employees, departments, or roles</li>
+                            <li>The list will automatically appear based on your updated schedule settings</li>
                             <li>Monitor completion and review submissions</li>
                             <li>View detailed analytics and performance metrics</li>
                         </ul>
+                        <div class="mt-4 p-4 bg-blue-100 rounded-xl">
+                            <p class="text-sm font-semibold text-blue-900">💡 Schedule Changes:</p>
+                            <p class="text-sm text-blue-800 mt-1">With the new agenda system, schedule changes only affect when this list appears. Your existing tasks will remain intact, and you can assign them to specific days individually.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -390,19 +410,34 @@ function toggleCustomType() {
 document.addEventListener('DOMContentLoaded', function() {
     toggleScheduleConfig();
     
-    
     // Handle weekday checkbox styling for schedule config
     const weekdayCheckboxes = document.querySelectorAll('.weekday-checkbox, .custom-day-checkbox');
     weekdayCheckboxes.forEach(checkbox => {
-        const label = checkbox.parentElement;
+        const label = checkbox.closest('.weekday-label') || checkbox.parentElement;
         
         function updateStyle() {
             if (checkbox.checked) {
                 label.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
-                label.classList.remove('hover:bg-gray-50');
+                label.classList.remove('hover:bg-blue-50', 'border-slate-200');
+                // Update text colors for selected state
+                const spans = label.querySelectorAll('span');
+                spans.forEach(span => {
+                    span.classList.add('text-white');
+                    span.classList.remove('text-slate-700', 'text-slate-500');
+                });
             } else {
                 label.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
-                label.classList.add('hover:bg-gray-50');
+                label.classList.add('hover:bg-blue-50', 'border-slate-200');
+                // Restore original text colors
+                const spans = label.querySelectorAll('span');
+                spans.forEach((span, index) => {
+                    span.classList.remove('text-white');
+                    if (index === 0) {
+                        span.classList.add('text-slate-700');
+                    } else {
+                        span.classList.add('text-slate-500');
+                    }
+                });
             }
         }
         

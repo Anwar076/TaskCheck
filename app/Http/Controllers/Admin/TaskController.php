@@ -18,13 +18,9 @@ class TaskController extends Controller
     {
         $selectedWeekday = $request->get('weekday');
         
-        // If creating for a specific weekday, find or create the sublist
+        // With the new agenda system, we always work with the main list
+        // Tasks can be assigned to specific days using the weekday field
         $targetList = $list;
-        if ($selectedWeekday && $list->hasWeeklyStructure()) {
-            // For weekly structure lists, we don't create sublists
-            // Instead, we just pass the weekday parameter to the form
-            $targetList = $list;
-        }
         
         return view('admin.tasks.create', compact('list', 'targetList', 'selectedWeekday'));
     }
@@ -73,9 +69,9 @@ class TaskController extends Controller
         // Remove target_list_id from validated data as it's not a Task field
         unset($validated['target_list_id']);
 
-        // Handle weekday assignment for tasks
-        if ($list->hasWeeklyStructure() && isset($validated['weekdays']) && !empty($validated['weekdays'])) {
-            // Multiple weekdays selected - create task for each day
+        // Handle weekday assignment for tasks in the new agenda system
+        if (in_array($list->schedule_type, ['daily', 'weekly', 'custom']) && isset($validated['weekdays']) && !empty($validated['weekdays'])) {
+            // Multiple weekdays selected - create separate task for each day
             $weekdays = $validated['weekdays'];
             unset($validated['weekdays']); // Remove from main data
             
@@ -89,21 +85,25 @@ class TaskController extends Controller
                 $createdTasks[] = Task::create($taskData);
             }
             
+            $daysList = implode(', ', array_map('ucfirst', $weekdays));
             return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-                ->with('success', 'Tasks created successfully for ' . count($weekdays) . ' day(s).');
+                ->with('success', "Task '{$validated['title']}' created successfully for specific days: {$daysList}. This task will ONLY appear on these selected days.");
         } else {
-            // Single task creation
+            // Single task creation (general task available every day the list is active)
             $validated['created_by'] = auth()->id();
+            $validated['order'] = $validated['order_index']; // Use order_index as order
             
             // If no weekdays selected, this is a general task (weekday = null)
-            if (!isset($validated['weekdays']) || empty($validated['weekdays'])) {
-                $validated['weekday'] = null;
-            }
+            // This means the task will appear every day the list is available
+            $validated['weekday'] = null;
+            
+            // Remove weekdays from validated data as it's not a Task field
+            unset($validated['weekdays']);
             
             $task = Task::create($validated);
             
             return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-                ->with('success', 'Task added successfully.');
+                ->with('success', "General task '{$validated['title']}' added successfully. This task will appear EVERY day this list is active (because no specific days were selected).");
         }
     }
 
@@ -147,18 +147,23 @@ class TaskController extends Controller
             }
         }
 
-        // Handle weekdays for weekly structure
-        if ($task->taskList->hasWeeklyStructure() && isset($validated['weekdays']) && !empty($validated['weekdays'])) {
+        // Handle weekdays for the new agenda system
+        if (in_array($task->taskList->schedule_type, ['daily', 'weekly', 'custom']) && isset($validated['weekdays']) && !empty($validated['weekdays'])) {
             $weekdays = $validated['weekdays'];
             unset($validated['weekdays']); // Remove from main data
             
             // Update the task with the first selected weekday (for single task editing)
+            // Note: If multiple days are selected, only the first one is used for updates
+            // For multiple days, users should create separate tasks
             $validated['weekday'] = $weekdays[0];
             $validated['order'] = $validated['order_index']; // Use order_index as order
         } else {
             // Clear weekday if no days selected (general task)
             $validated['weekday'] = null;
         }
+        
+        // Remove weekdays from validated data as it's not a Task field
+        unset($validated['weekdays']);
 
         $task->update($validated);
 

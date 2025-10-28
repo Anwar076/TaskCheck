@@ -29,6 +29,7 @@ class TaskList extends Model
         'requires_signature',
         'is_template',
         'is_active',
+        'template_id',
     ];
 
     protected function casts(): array
@@ -66,12 +67,17 @@ class TaskList extends Model
 
     public function assignments()
     {
-        return $this->hasMany(ListAssignment::class, 'list_id');
+        return $this->hasMany(ListAssignment::class, 'list_id')->where('is_active', true);
     }
 
     public function submissions()
     {
         return $this->hasMany(Submission::class, 'list_id');
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(TaskTemplate::class, 'template_id');
     }
 
     // Scopes
@@ -108,7 +114,22 @@ class TaskList extends Model
     public function scopeForToday($query)
     {
         $today = strtolower(now()->format('l')); // 'monday', 'tuesday', etc.
-        return $query->where('weekday', $today);
+        return $query->where(function($q) use ($today) {
+            // Include one-time lists
+            $q->where('schedule_type', 'once')
+              // Include daily lists
+              ->orWhere('schedule_type', 'daily')
+              // Include weekly/custom lists that are scheduled for today
+              ->orWhere(function($subQ) use ($today) {
+                  $subQ->whereIn('schedule_type', ['weekly', 'custom'])
+                       ->whereRaw("JSON_CONTAINS(JSON_EXTRACT(schedule_config, '$.show_on_days'), ?)", ['"'.$today.'"']);
+              });
+        });
+    }
+
+    public function scopeAvailableToday($query)
+    {
+        return $query->forToday();
     }
 
     // Helper methods
@@ -130,6 +151,59 @@ class TaskList extends Model
 
         $today = strtolower(now()->format('l'));
         return $this->subLists()->where('weekday', $today)->first();
+    }
+
+    /**
+     * Check if this list should be shown on a specific day
+     */
+    public function isAvailableOnDay($day)
+    {
+        $day = strtolower($day);
+        
+        // One-time lists are always available
+        if ($this->schedule_type === 'once') {
+            return true;
+        }
+        
+        // Daily lists are available every day
+        if ($this->schedule_type === 'daily') {
+            return true;
+        }
+        
+        // Weekly and custom lists check schedule_config
+        if (in_array($this->schedule_type, ['weekly', 'custom'])) {
+            $config = is_array($this->schedule_config) ? $this->schedule_config : [];
+            $showOnDays = $config['show_on_days'] ?? [];
+            return in_array($day, $showOnDays);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Get the days this list should be shown on
+     */
+    public function getShowOnDays()
+    {
+        if ($this->schedule_type === 'daily') {
+            return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        }
+        
+        if (in_array($this->schedule_type, ['weekly', 'custom'])) {
+            $config = is_array($this->schedule_config) ? $this->schedule_config : [];
+            return $config['show_on_days'] ?? [];
+        }
+        
+        return [];
+    }
+
+    /**
+     * Check if this list is available today
+     */
+    public function isAvailableToday()
+    {
+        $today = strtolower(now()->format('l'));
+        return $this->isAvailableOnDay($today);
     }
 
     public function createDailySubLists()

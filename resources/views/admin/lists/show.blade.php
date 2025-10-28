@@ -2,6 +2,37 @@
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8">
+    <!-- Success/Error Messages -->
+    @if(session('success'))
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Succes!</strong>
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+    
+    @if(session('error'))
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Fout!</strong>
+                <span class="block sm:inline">{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+    
+    @if ($errors->any())
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Validatie fouten:</strong>
+                <ul class="mt-2">
+                    @foreach ($errors->all() as $error)
+                        <li class="list-disc ml-4">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Enhanced Page Header -->
         <div class="mb-8">
@@ -149,37 +180,45 @@
             </div>
         </div>
 
-        @if($list->schedule_type === 'daily' || $list->schedule_type === 'weekly')
-            <!-- Day-Specific Lists Overview -->
+        @if(in_array($list->schedule_type, ['daily', 'weekly', 'custom']))
+            <!-- New Agenda System Overview -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-blue-200">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-gray-900">
+                                <h3 class="text-xl font-bold text-slate-900">
                                     @if($list->schedule_type === 'daily')
-                                        Daily Schedule Lists
+                                        📅 Daily Agenda Schedule
+                                    @elseif($list->schedule_type === 'weekly')
+                                        🗓️ Weekly Agenda Schedule
                                     @else
-                                        Weekly Schedule Lists
+                                        ⚙️ Custom Agenda Schedule
                                     @endif
                                 </h3>
-                                <p class="text-sm text-gray-600">
+                                <p class="text-sm text-blue-700 font-medium">
                                     @if($list->schedule_type === 'daily')
-                                        Separate lists for each day of the week
+                                        This list appears every day. Tasks can be assigned to specific weekdays.
+                                    @elseif($list->schedule_type === 'weekly')
+                                        This list appears on selected days: 
+                                        @php 
+                                            $showOnDays = $list->getShowOnDays();
+                                        @endphp
+                                        {{ implode(', ', array_map('ucfirst', $showOnDays)) }}
                                     @else
-                                        Day-specific lists based on selected schedule
+                                        This list has a custom schedule configuration.
                                     @endif
                                 </p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
                             <a href="{{ route('admin.lists.edit', $list) }}" 
-                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
@@ -190,206 +229,277 @@
                 </div>
                     
                 <div class="p-6">
-                    <!-- Day Selection Display -->
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-3">
-                            @if($list->schedule_type === 'daily')
-                                All Days Overview
-                            @else
-                                Selected Days Overview
-                            @endif
-                        </h4>
-                        <p class="text-sm text-gray-600 mb-4">
-                            @if($list->schedule_type === 'daily')
-                                Click on a day to view its day-specific list. Green days have lists created.
-                            @else
-                                Click on a day to view its day-specific list. Green days have lists created.
-                            @endif
-                        </p>
-                        <div class="grid grid-cols-7 gap-2">
-                            @php
-                                $weekdays = [
-                                    'monday' => 'Monday',
-                                    'tuesday' => 'Tuesday', 
-                                    'wednesday' => 'Wednesday',
-                                    'thursday' => 'Thursday',
-                                    'friday' => 'Friday',
-                                    'saturday' => 'Saturday',
-                                    'sunday' => 'Sunday'
-                                ];
-                                
-                                // Get selected days based on schedule type
-                                if ($list->schedule_type === 'daily') {
-                                    $selectedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                                } else {
-                                    $selectedDays = $list->schedule_config['weekdays'] ?? [];
+                    @php
+                        $weekdays = [
+                            'monday' => 'Monday',
+                            'tuesday' => 'Tuesday', 
+                            'wednesday' => 'Wednesday',
+                            'thursday' => 'Thursday',
+                            'friday' => 'Friday',
+                            'saturday' => 'Saturday',
+                            'sunday' => 'Sunday'
+                        ];
+                        
+                        // Get the days this list should appear on
+                        $showOnDays = $list->getShowOnDays();
+                        
+                        // Group tasks by their assigned weekday
+                        $tasksByDay = [];
+                        $generalTasks = [];
+                        
+                        foreach ($list->tasks as $task) {
+                            if ($task->weekday) {
+                                if (!isset($tasksByDay[$task->weekday])) {
+                                    $tasksByDay[$task->weekday] = [];
                                 }
-                            @endphp
+                                $tasksByDay[$task->weekday][] = $task;
+                            } else {
+                                $generalTasks[] = $task;
+                            }
+                        }
+                    @endphp
+
+                    <!-- Schedule Overview -->
+                    <div class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 mb-6 border border-blue-200">
+                        <h4 class="text-lg font-bold text-slate-900 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Agenda Overview
+                        </h4>
+                        
+                        <!-- Days this list appears on -->
+                        <div class="grid grid-cols-7 gap-3 mb-4">
                             @foreach($weekdays as $dayKey => $dayName)
                                 @php
-                                    // Check if day-specific list exists
-                                    $dayList = $list->subLists()->where('weekday', $dayKey)->first();
-                                    $hasList = $dayList !== null;
-                                    $isSelected = in_array($dayKey, $selectedDays);
+                                    $isActive = in_array($dayKey, $showOnDays);
+                                    $tasksForDay = $tasksByDay[$dayKey] ?? [];
+                                    $taskCount = count($tasksForDay);
                                 @endphp
-                                <div class="group relative">
-                                    <button onclick="scrollToDaySection('{{ $dayKey }}')" 
-                                            class="w-full flex flex-col items-center justify-center p-3 border rounded-lg transition-colors hover:bg-gray-50 cursor-pointer
-                                            @if($hasList) 
-                                                border-green-300 bg-green-50 hover:bg-green-100 
-                                            @elseif($isSelected) 
-                                                border-blue-300 bg-blue-50 hover:bg-blue-100 
-                                            @else 
-                                                border-gray-200 bg-gray-50 hover:bg-gray-100 
-                                            @endif">
-                                        <div class="w-6 h-6 
-                                            @if($hasList) 
-                                                bg-green-500 
-                                            @elseif($isSelected) 
-                                                bg-blue-500 
-                                            @else 
-                                                bg-gray-400 
-                                            @endif rounded-md flex items-center justify-center mb-2 relative">
-                                            <span class="text-white font-bold text-xs">{{ substr($dayName, 0, 1) }}</span>
-                                            @if($hasList)
-                                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                                                    <span class="text-white text-xs font-bold">{{ $dayList->tasks->count() }}</span>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <span class="text-xs font-medium 
-                                            @if($hasList) 
-                                                text-green-700 
-                                            @elseif($isSelected) 
-                                                text-blue-700 
-                                            @else 
-                                                text-gray-500 
-                                            @endif">{{ substr($dayName, 0, 3) }}</span>
-                                        @if($hasList)
-                                            <span class="text-xs text-green-600 mt-1">{{ $dayList->tasks->count() }} task{{ $dayList->tasks->count() > 1 ? 's' : '' }}</span>
+                                <div class="flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200
+                                    @if($isActive) 
+                                        border-blue-300 bg-blue-50 
+                                    @else 
+                                        border-gray-200 bg-gray-50 
+                                    @endif">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center mb-2 
+                                        @if($isActive) 
+                                            bg-blue-600 
+                                        @else 
+                                            bg-gray-400 
+                                        @endif">
+                                        <span class="text-white font-bold text-sm">{{ substr($dayName, 0, 1) }}</span>
+                                        @if($taskCount > 0)
+                                            <div class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                                                <span class="text-white text-xs font-bold">{{ $taskCount }}</span>
+                                            </div>
                                         @endif
-                                    </button>
+                                    </div>
+                                    <span class="text-xs font-medium 
+                                        @if($isActive) 
+                                            text-blue-700 
+                                        @else 
+                                            text-gray-500 
+                                        @endif">{{ substr($dayName, 0, 3) }}</span>
+                                    @if($isActive && $taskCount > 0)
+                                        <span class="text-xs text-blue-600 mt-1">{{ $taskCount }} task{{ $taskCount > 1 ? 's' : '' }}</span>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
+                        
+                        <div class="text-sm text-slate-600">
+                            <p><strong>Schedule:</strong> 
+                                @if($list->schedule_type === 'daily')
+                                    This list appears every day
+                                @elseif($list->schedule_type === 'weekly')
+                                    This list appears on {{ implode(', ', array_map('ucfirst', $showOnDays)) }}
+                                @else
+                                    Custom schedule configuration
+                                @endif
+                            </p>
+                            <p class="mt-1"><strong>Tasks:</strong> 
+                                {{ $list->tasks->count() }} total tasks 
+                                ({{ count($generalTasks) }} general, {{ $list->tasks->whereNotNull('weekday')->count() }} day-specific)
+                            </p>
+                        </div>
                     </div>
 
-                    <!-- Day Sections Display -->
-                    <div class="space-y-4">
-                        @foreach($weekdays as $dayKey => $dayName)
-                            @php
-                                // Check if day-specific list exists
-                                $dayList = $list->subLists()->where('weekday', $dayKey)->first();
-                                $hasList = $dayList !== null;
-                                $isSelected = in_array($dayKey, $selectedDays);
-                            @endphp
-                            @if($isSelected)
-                                <div id="day-section-{{ $dayKey }}" class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-                                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                        <div class="flex items-center justify-between">
+                    <!-- Tasks Overview -->
+                    <div class="space-y-6">
+                        <!-- General Tasks (show every day) -->
+                        @if(count($generalTasks) > 0)
+                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-bold text-slate-900 flex items-center">
+                                        <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        General Tasks (Base Tasks - Always Visible)
+                                    </h4>
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                        {{ count($generalTasks) }} tasks
+                                    </span>
+                                </div>
+                                <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                                    <div class="flex items-start space-x-2">
+                                        <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm text-green-800 font-medium">✅ Algemene Taken (Basis Taken)</p>
+                                            <p class="text-sm text-green-700 mt-1">
+                                                Deze algemene taken verschijnen ELKE dag dat deze lijst actief is. 
+                                                Day-specifieke taken komen hier BOVENOP als extra taken op hun toegewezen dagen.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    @foreach($generalTasks as $task)
+                                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 hover:shadow-sm transition-shadow">
                                             <div class="flex items-center space-x-3">
-                                                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                                    <span class="text-white font-bold text-sm">{{ substr($dayName, 0, 1) }}</span>
+                                                <div class="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
+                                                    <span class="text-white font-bold text-xs">{{ $task->order_index ?? '#' }}</span>
                                                 </div>
                                                 <div>
-                                                    <h4 class="text-lg font-semibold text-gray-900">{{ $dayName }} List</h4>
-                                                    <p class="text-sm text-gray-600">
-                                                        @if($hasList)
-                                                            Day-specific list with {{ $dayList->tasks->count() }} tasks
-                                                        @else
-                                                            Day-specific list not created yet
-                                                        @endif
-                                                    </p>
+                                                    <h5 class="font-semibold text-slate-900">{{ $task->title }}</h5>
+                                                    @if($task->description)
+                                                        <p class="text-sm text-slate-600">{{ Str::limit($task->description, 60) }}</p>
+                                                    @endif
                                                 </div>
                                             </div>
                                             <div class="flex items-center space-x-2">
-                                                @if($hasList)
-                                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-green-100 text-green-800">
-                                                        {{ $dayList->tasks->count() }} tasks
-                                                    </span>
-                                                    <a href="{{ route('admin.lists.show', $dayList) }}" class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                        </svg>
-                                                        View List
-                                                    </a>
-                                                @else
-                                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium bg-orange-100 text-orange-800">
-                                                        Not Created
-                                                    </span>
-                                                    <button onclick="createDayList('{{ $dayKey }}', '{{ $dayName }}')" class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                                        </svg>
-                                                        Create List
-                                                    </button>
+                                                @if($task->is_required)
+                                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">Required</span>
                                                 @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="p-4">
-                                        @if($hasList)
-                                            <div class="text-center py-6">
-                                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                <a href="{{ route('admin.tasks.edit', $task) }}" class="text-blue-600 hover:text-blue-800">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                     </svg>
-                                                </div>
-                                                <h5 class="text-lg font-semibold text-gray-900 mb-2">{{ $dayName }} List Created</h5>
-                                                <p class="text-gray-600 mb-4">This day has its own dedicated list with {{ $dayList->tasks->count() }} tasks</p>
-                                                <a href="{{ route('admin.lists.show', $dayList) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                    </svg>
-                                                    View {{ $dayName }} List
                                                 </a>
                                             </div>
-                                        @else
-                                            <div class="text-center py-6">
-                                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                                                    </svg>
-                                                </div>
-                                                <h5 class="text-lg font-semibold text-gray-900 mb-2">No {{ $dayName }} List Yet</h5>
-                                                <p class="text-gray-600 mb-4">Create a dedicated list for {{ $dayName }} to get started</p>
-                                                <button onclick="createDayList('{{ $dayKey }}', '{{ $dayName }}')" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                                    </svg>
-                                                    Create {{ $dayName }} List
-                                                </button>
-                                            </div>
-                                        @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Day-Specific Tasks -->
+                        @if(count($tasksByDay) > 0)
+                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    Day-Specific Tasks (Extra Tasks)
+                                </h4>
+                                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <div class="flex items-start space-x-2">
+                                        <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm text-blue-800 font-medium">➕ Extra Dag-Taken</p>
+                                            <p class="text-sm text-blue-700 mt-1">
+                                                Deze taken verschijnen als EXTRA taken bovenop de algemene taken op hun toegewezen dagen. 
+                                                Algemene taken blijven altijd zichtbaar.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            @endif
-                        @endforeach
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    @foreach($weekdays as $dayKey => $dayName)
+                                        @if(isset($tasksByDay[$dayKey]) && count($tasksByDay[$dayKey]) > 0)
+                                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <h5 class="font-bold text-slate-900 flex items-center">
+                                                        <div class="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center mr-2">
+                                                            <span class="text-white font-bold text-xs">{{ substr($dayName, 0, 1) }}</span>
+                                                        </div>
+                                                        {{ $dayName }}
+                                                    </h5>
+                                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                                        {{ count($tasksByDay[$dayKey]) }} tasks
+                                                    </span>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    @foreach($tasksByDay[$dayKey] as $task)
+                                                        <div class="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200">
+                                                            <div>
+                                                                <p class="font-medium text-slate-900 text-sm">{{ $task->title }}</p>
+                                                                @if($task->is_required)
+                                                                    <span class="px-1 py-0.5 bg-red-100 text-red-700 rounded text-xs">Required</span>
+                                                                @endif
+                                                            </div>
+                                                            <a href="{{ route('admin.tasks.edit', $task) }}" class="text-blue-600 hover:text-blue-800">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                                </svg>
+                                                            </a>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Add Tasks Button -->
+                        <div class="text-center py-6">
+                            <a href="{{ route('admin.lists.tasks.create', $list) }}" 
+                               class="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-base font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-md">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Add New Task
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         @endif
 
-        <!-- General Tasks Overview (for non-daily/weekly schedules) -->
-        @if($list->schedule_type !== 'daily' && $list->schedule_type !== 'weekly')
+        <!-- Simple Tasks Overview (for one-time and monthly schedules) -->
+        @if(!in_array($list->schedule_type, ['daily', 'weekly', 'custom']))
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div class="bg-gradient-to-r from-slate-50 to-gray-50 px-6 py-4 border-b border-gray-200">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-slate-600 to-gray-700 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-gray-900">Tasks Overview</h3>
-                                <p class="text-sm text-gray-600">{{ $list->tasks->count() }} tasks in this list</p>
+                                <h3 class="text-xl font-bold text-slate-900">
+                                    @if($list->schedule_type === 'once')
+                                        📋 One-Time Task List
+                                    @elseif($list->schedule_type === 'monthly')
+                                        📅 Monthly Task List
+                                    @else
+                                        📝 Task List Overview
+                                    @endif
+                                </h3>
+                                <p class="text-sm text-slate-600 font-medium">
+                                    {{ $list->tasks->count() }} tasks in this list
+                                    @if($list->schedule_type === 'once')
+                                        • Complete once
+                                    @elseif($list->schedule_type === 'monthly')
+                                        • Repeats monthly
+                                    @endif
+                                </p>
                             </div>
                         </div>
                         <a href="{{ route('admin.lists.tasks.create', $list) }}" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
@@ -417,16 +527,6 @@
                                                     <h4 class="text-base font-semibold text-gray-900">{{ $task->title }}</h4>
                                                     @if($task->description)
                                                         <p class="text-sm text-gray-600 mt-1">{{ $task->description }}</p>
-                                                    @endif
-                                                    @if($task->checklist_items && count($task->checklist_items) > 0)
-                                                        <div class="mt-2 text-xs">
-                                                            <span class="inline-flex items-center px-2 py-1 rounded-md bg-cyan-100 text-cyan-800 font-medium">
-                                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                                                                </svg>
-                                                                {{ count($task->checklist_items) }} checklist items
-                                                            </span>
-                                                        </div>
                                                     @endif
                                                 </div>
                                             </div>
@@ -665,9 +765,14 @@
 <div id="assignModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Assign List to Team</h3>
-                <button onclick="closeAssignModal()" class="text-gray-400 hover:text-gray-600">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                    <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Lijst Toewijzen aan Team
+                </h3>
+                <button onclick="closeAssignModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -677,58 +782,74 @@
             <form id="assignForm" method="POST" action="{{ route('admin.lists.assign', $list) }}">
                 @csrf
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Assignment Type</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Toewijzingstype</label>
                     <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="radio" name="assignment_type" value="user" class="assignment-type-radio" checked onchange="toggleAssignmentType()">
-                            <span class="ml-2 text-sm text-gray-700">Individual User</span>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="assignment_type" value="user" class="assignment-type-radio text-blue-600 focus:ring-blue-500" checked onchange="toggleAssignmentType()">
+                            <span class="ml-2 text-sm text-gray-700">👤 Individuele Gebruiker</span>
                         </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="assignment_type" value="department" class="assignment-type-radio" onchange="toggleAssignmentType()">
-                            <span class="ml-2 text-sm text-gray-700">Department</span>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="assignment_type" value="department" class="assignment-type-radio text-blue-600 focus:ring-blue-500" onchange="toggleAssignmentType()">
+                            <span class="ml-2 text-sm text-gray-700">🏢 Afdeling</span>
                         </label>
                     </div>
                 </div>
 
                 <div id="userAssignment" class="mb-4">
-                    <label for="user_ids" class="block text-sm font-medium text-gray-700 mb-2">Select User</label>
-                    <select name="user_ids[]" id="user_ids" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <option value="">Choose a user...</option>
-                        @foreach(\App\Models\User::where('role', 'employee')->get() as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->department ?? 'No Department' }})</option>
+                    <label for="user_ids" class="block text-sm font-medium text-gray-700 mb-2">
+                        Selecteer Gebruiker <span class="text-red-500">*</span>
+                    </label>
+                    <select name="user_ids" id="user_ids" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">Kies een gebruiker...</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                         @endforeach
                     </select>
+                    <p class="text-xs text-gray-500 mt-1">Selecteer de gebruiker aan wie je deze lijst wilt toewijzen</p>
                 </div>
 
                 <div id="departmentAssignment" class="mb-4 hidden">
-                    <label for="department" class="block text-sm font-medium text-gray-700 mb-2">Select Department</label>
-                    <select name="department" id="department" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Choose a department...</option>
-                        @php
-                            $departments = \App\Models\User::where('role', 'employee')->whereNotNull('department')->distinct()->pluck('department');
-                        @endphp
-                        @foreach($departments as $dept)
-                            <option value="{{ $dept }}">{{ $dept }}</option>
-                        @endforeach
+                    <label for="department" class="block text-sm font-medium text-gray-700 mb-2">
+                        Selecteer Afdeling <span class="text-red-500">*</span>
+                    </label>
+                    <select name="department" id="department" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                        <option value="">Kies een afdeling...</option>
+                        <option value="HR">HR</option>
+                        <option value="IT">IT</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Operations">Operations</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Maintenance">Maintenance</option>
                     </select>
+                    <p class="text-xs text-gray-500 mt-1">Selecteer de afdeling aan wie je deze lijst wilt toewijzen</p>
                 </div>
 
                 <div class="mb-4">
-                    <label for="assigned_date" class="block text-sm font-medium text-gray-700 mb-2">Assigned Date</label>
+                    <label for="assigned_date" class="block text-sm font-medium text-gray-700 mb-2">
+                        📅 Toewijzingsdatum <span class="text-red-500">*</span>
+                    </label>
                     <input type="date" name="assigned_date" id="assigned_date" value="{{ date('Y-m-d') }}" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <p class="text-xs text-gray-500 mt-1">Datum waarop deze toewijzing ingaat</p>
                 </div>
 
-                <div class="mb-4">
-                    <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">Due Date (Optional)</label>
+                <div class="mb-6">
+                    <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">
+                        ⏰ Vervaldatum (Optioneel)
+                    </label>
                     <input type="date" name="due_date" id="due_date" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Optionele vervaldatum voor deze toewijzing</p>
                 </div>
 
                 <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeAssignModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
-                        Cancel
+                    <button type="button" onclick="closeAssignModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Annuleren
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                        Assign List
+                    <button type="submit" id="submitAssignmentBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span id="submitBtnText">Lijst Toewijzen</span>
                     </button>
                 </div>
             </form>
@@ -736,179 +857,162 @@
     </div>
 </div>
 
-<!-- Create Day List Modal -->
-<div id="createDayListModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Create Day-Specific List</h3>
-                <button onclick="closeCreateDayListModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <form id="createDayListForm">
-                @csrf
-                <div class="mb-4">
-                    <label for="dayListTitle" class="block text-sm font-medium text-gray-700 mb-2">List Title</label>
-                    <input type="text" name="title" id="dayListTitle" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-
-                <div class="mb-4">
-                    <label for="dayListDescription" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea name="description" id="dayListDescription" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-
-                <input type="hidden" name="weekday" id="dayListWeekday">
-                <input type="hidden" name="parent_list_id" value="{{ $list->id }}">
-
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeCreateDayListModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                        Create List
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Old Create Day List Modal removed - using new agenda system -->
 @endsection
 
 <script>
-// Assignment Modal Functions
 function showAssignModal() {
-    document.getElementById('assignModal').classList.remove('hidden');
+    console.log('Opening assignment modal');
+    const modal = document.getElementById('assignModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        toggleAssignmentType();
+    }
 }
 
 function closeAssignModal() {
-    document.getElementById('assignModal').classList.add('hidden');
-    document.getElementById('assignForm').reset();
+    console.log('Closing assignment modal');
+    const modal = document.getElementById('assignModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        const form = document.getElementById('assignForm');
+        if (form) form.reset();
+    }
 }
 
 function toggleAssignmentType() {
     const userAssignment = document.getElementById('userAssignment');
     const departmentAssignment = document.getElementById('departmentAssignment');
-    const assignmentType = document.querySelector('input[name="assignment_type"]:checked').value;
+    const userSelect = document.getElementById('user_ids');
+    const departmentSelect = document.getElementById('department');
+    const assignmentTypeRadio = document.querySelector('input[name="assignment_type"]:checked');
     
-    if (assignmentType === 'user') {
-        userAssignment.classList.remove('hidden');
-        departmentAssignment.classList.add('hidden');
-        document.getElementById('department').value = '';
+    if (!assignmentTypeRadio) return;
+    
+    if (assignmentTypeRadio.value === 'user') {
+        userAssignment?.classList.remove('hidden');
+        departmentAssignment?.classList.add('hidden');
+        userSelect.disabled = false;
+        departmentSelect.disabled = true;
+        departmentSelect.value = '';
     } else {
-        userAssignment.classList.add('hidden');
-        departmentAssignment.classList.remove('hidden');
-        document.getElementById('user_ids').value = '';
+        userAssignment?.classList.add('hidden');
+        departmentAssignment?.classList.remove('hidden');
+        userSelect.disabled = true;
+        userSelect.value = '';
+        departmentSelect.disabled = false;
     }
 }
 
-// Create Day List Modal Functions
-function createDayList(dayKey, dayName) {
-    document.getElementById('dayListTitle').value = '{{ $list->title }} - ' + dayName;
-    document.getElementById('dayListDescription').value = '{{ $list->description }} - ' + dayName + ' specific tasks';
-    document.getElementById('dayListWeekday').value = dayKey;
-    document.getElementById('createDayListModal').classList.remove('hidden');
-}
+// 🗑️ Remove assignment via AJAX
+window.removeAssignment = function removeAssignment(assignmentId) {
+    if (!assignmentId) return alert('Ongeldige ID.');
 
-function closeCreateDayListModal() {
-    document.getElementById('createDayListModal').classList.add('hidden');
-    document.getElementById('createDayListForm').reset();
-}
+    if (confirm('Weet je zeker dat je deze toewijzing wilt verwijderen?')) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-// Handle Create Day List Form Submission
-document.getElementById('createDayListForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    
-    submitBtn.textContent = 'Creating...';
-    submitBtn.disabled = true;
-    
-    fetch('/admin/lists/{{ $list->id }}/create-day-list', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json',
-        },
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.message || 'Error creating day list');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error creating day list');
-    })
-    .finally(() => {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    });
-});
-
-// Remove Assignment Function
-function removeAssignment(assignmentId) {
-    if (confirm('Are you sure you want to remove this assignment?')) {
         fetch(`/admin/assignments/${assignmentId}`, {
-            method: 'DELETE',
+            method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-            }
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({ _method: 'DELETE' })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                location.reload();
+        .then(res => {
+            if (res.ok) {
+                console.log('✅ Assignment removed');
+                refreshAssignments();
             } else {
-                alert(data.message || 'Error removing assignment');
+                alert('Er ging iets mis bij verwijderen.');
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error removing assignment');
+        .catch(err => {
+            console.error(err);
+            alert('Netwerkfout bij verwijderen.');
         });
     }
-}
+};
 
-// Scroll to Day Section Function
-function scrollToDaySection(dayKey) {
-    const element = document.getElementById('day-section-' + dayKey);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-    }
-}
+// 💾 Handle assignment form submit via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('assignForm');
+    if (!form) return;
 
-// Close modals when clicking outside
-document.addEventListener('click', function(e) {
-    const assignModal = document.getElementById('assignModal');
-    const createDayListModal = document.getElementById('createDayListModal');
-    
-    if (e.target === assignModal) {
-        closeAssignModal();
-    }
-    
-    if (e.target === createDayListModal) {
-        closeCreateDayListModal();
-    }
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('📤 Submitting assignment via AJAX');
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const submitBtn = document.getElementById('submitAssignmentBtn');
+        const formData = new FormData(form);
+
+        submitBtn.disabled = true;
+        document.getElementById('submitBtnText').textContent = 'Bezig met toewijzen...';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => {
+            if (res.ok) {
+                console.log('✅ Assignment added successfully');
+                closeAssignModal();
+                refreshAssignments();
+            } else {
+                return res.text().then(text => { throw new Error(text || 'Onbekende fout'); });
+            }
+        })
+        .catch(err => {
+            console.error('❌ Fout bij toewijzen:', err);
+            alert('Er is een fout opgetreden bij het toewijzen. Controleer de invoer en probeer opnieuw.');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            document.getElementById('submitBtnText').textContent = 'Lijst Toewijzen';
+        });
+    });
+
+    // Modal sluitgedrag
+    document.addEventListener('click', e => {
+        const assignModal = document.getElementById('assignModal');
+        if (e.target === assignModal) closeAssignModal();
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeAssignModal();
+    });
+
+    toggleAssignmentType();
 });
+
+// 🔁 Reload only the assignment section dynamically
+function refreshAssignments() {
+    console.log('🔄 Refreshing assignments list...');
+    fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => res.text())
+        .then(html => {
+            // Parse the new HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newSection = doc.querySelector('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.overflow-hidden:last-of-type');
+            const currentSection = document.querySelector('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.overflow-hidden:last-of-type');
+            
+            if (newSection && currentSection) {
+                currentSection.innerHTML = newSection.innerHTML;
+                console.log('✅ Assignments updated without page reload');
+            } else {
+                console.warn('⚠️ Assignment section not found, doing full reload');
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            console.error('❌ Error refreshing assignments:', err);
+            window.location.reload();
+        });
+}
 </script>

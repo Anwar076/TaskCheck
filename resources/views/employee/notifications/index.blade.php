@@ -7,8 +7,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
-                    <p class="text-gray-600 text-lg">{{ $notifications->count() }} notifications</p>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Meldingen</h1>
+                    <p class="text-gray-600 text-lg">{{ $notifications->count() }} meldingen</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -30,7 +30,7 @@
                 <svg class="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                Mark All as Read
+                Markeer alles als gelezen
             </button>
         </div>
     </div>
@@ -69,7 +69,7 @@
                                     <h3 class="text-lg font-bold text-gray-900">{{ $notification->title }}</h3>
                                     @if(!$notification->isRead())
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                                            New
+                                            Nieuw
                                         </span>
                                     @endif
                                 </div>
@@ -80,7 +80,7 @@
                                         @if($notification->data && isset($notification->data['submission_id']))
                                             <a href="{{ route('employee.submissions.edit', $notification->data['submission_id']) }}" 
                                                class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                                                View Task →
+                                                Bekijk Taak →
                                             </a>
                                         @endif
                                         @if(!$notification->isRead())
@@ -110,14 +110,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">All caught up!</h3>
-                    <p class="text-gray-600 mb-6 text-lg">No notifications to display. You're all set!</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Allemaal bij!</h3>
+                    <p class="text-gray-600 mb-6 text-lg">Geen meldingen om weer te geven. Je bent helemaal klaar!</p>
                     <a href="{{ route('employee.dashboard') }}" 
                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
-                        Back to Dashboard
+                        Terug naar Dashboard
                     </a>
                 </div>
             @endforelse

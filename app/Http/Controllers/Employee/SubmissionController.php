@@ -54,30 +54,42 @@ class SubmissionController extends Controller
             abort(403, 'You do not have access to this task list.');
         }
 
-        // Load tasks based on weekly structure
-        if ($list->hasWeeklyStructure()) {
-            // Debug: Log the weekly structure check
-            \Log::info('Weekly structure list detected', [
+        // Load tasks based on schedule type that supports day filtering
+        if (in_array($list->schedule_type, ['daily', 'weekly', 'custom'])) {
+            // Debug: Log the day filtering check
+            \Log::info('Day filtering enabled list detected', [
                 'list_id' => $list->id,
                 'list_title' => $list->title,
-                'hasWeeklyStructure' => $list->hasWeeklyStructure(),
+                'schedule_type' => $list->schedule_type,
                 'schedule_config' => $list->schedule_config
             ]);
             
-            // For weekly structure lists, only show tasks for today's weekday
+            // For weekly structure lists, implement smart day filtering
             $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
             
             \Log::info('Today weekday', ['today' => $todayWeekday]);
             
+            // First, check if there are any tasks specifically for today
+            $specificTasksForToday = $list->tasks()
+                ->where('is_active', true)
+                ->where('weekday', $todayWeekday)
+                ->count();
+                
+            \Log::info('Specific tasks for today', ['count' => $specificTasksForToday, 'day' => $todayWeekday]);
+            
+            // Always show general tasks PLUS any day-specific tasks for today
             $list->load(['tasks' => function ($query) use ($todayWeekday) {
                 $query->where('is_active', true)
                       ->where(function ($q) use ($todayWeekday) {
-                          $q->where('weekday', $todayWeekday)  // Tasks for today
-                            ->orWhereNull('weekday');           // General tasks (no specific day)
+                          $q->whereNull('weekday')              // General tasks (always show)
+                            ->orWhere('weekday', $todayWeekday); // PLUS tasks for today
                       });
             }]);
             
-            \Log::info('Tasks loaded', ['task_count' => $list->tasks->count()]);
+            \Log::info('Showing general tasks + specific tasks for today', [
+                'task_count' => $list->tasks->count(),
+                'day' => $todayWeekday
+            ]);
         } else {
             // For regular lists, load all active tasks
             $list->load(['tasks' => function ($query) {
@@ -130,16 +142,23 @@ class SubmissionController extends Controller
         ]);
 
         // Create submission tasks for each task in the list
-        // Load tasks with proper filtering for weekly structure lists
-        if ($list->hasWeeklyStructure()) {
-            // For weekly structure lists, only include tasks for today's weekday or general tasks
+        // Load tasks with proper filtering for lists that support day filtering
+        if (in_array($list->schedule_type, ['daily', 'weekly', 'custom'])) {
+            // For lists that support day filtering, implement smart day filtering
             $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
             
+            // First, check if there are any tasks specifically for today
+            $specificTasksForToday = $list->tasks()
+                ->where('is_active', true)
+                ->where('weekday', $todayWeekday)
+                ->count();
+                
+            // Always include general tasks PLUS any day-specific tasks for today
             $tasks = $list->tasks()
                 ->where('is_active', true)
                 ->where(function ($query) use ($todayWeekday) {
-                    $query->where('weekday', $todayWeekday)  // Tasks for today
-                          ->orWhereNull('weekday');           // General tasks (no specific day)
+                    $query->whereNull('weekday')              // General tasks (always include)
+                          ->orWhere('weekday', $todayWeekday); // PLUS tasks for today
                 })
                 ->get();
         } else {

@@ -1,24 +1,12 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>System Status - {{ config('app.name', 'TaskCheck') }}</title>
+    <title>Systeemstatus - {{ config('app.name', 'TaskCheck') }}</title>
+    @include('components.head')
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui'],
-                    },
+    @include('components.header')
                     colors: {
                         primary: {
                             500: '#3b82f6',
@@ -52,15 +40,15 @@
                 </div>
                 <span class="text-xl font-bold">TaskCheck Status</span>
             </div>
-            <a href="{{ route('welcome') }}" class="text-gray-600 hover:text-blue-600">← Back to TaskCheck</a>
+            <a href="{{ route('welcome') }}" class="text-gray-600 hover:text-blue-600">← Terug naar TaskCheck</a>
         </div>
     </nav>
 
     <div class="max-w-4xl mx-auto px-6 py-12">
         <!-- Header -->
         <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 mb-4">System Status</h1>
-            <p class="text-lg text-gray-600">Real-time status of all TaskCheck services and infrastructure</p>
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Systeemstatus</h1>
+            <p class="text-lg text-gray-600">Real-time status van alle TaskCheck services en infrastructuur</p>
             <div class="mt-4 text-sm text-gray-500">
                 Last updated: <span id="last-updated">{{ now()->format('M j, Y \a\t g:i A T') }}</span>
             </div>
