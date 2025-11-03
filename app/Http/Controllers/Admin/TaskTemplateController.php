@@ -172,6 +172,14 @@ class TaskTemplateController extends Controller
             }
         }
 
+        // After updating template tasks, sync changes to any existing lists created from this template
+        try {
+            $template->load('templateTasks');
+            $template->syncToLists();
+        } catch (\Exception $e) {
+            \Log::error('Failed to sync template to lists after update', ['template_id' => $template->id, 'error' => $e->getMessage()]);
+        }
+
         return redirect()->route('admin.templates.index')
             ->with('success', 'Template updated successfully!');
     }

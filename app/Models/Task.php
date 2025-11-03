@@ -26,16 +26,14 @@ class Task extends Model
         'created_by',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_required' => 'boolean',
-            'attachments' => 'json',
-            'validation_rules' => 'json',
-            'checklist_items' => 'json',
-            'requires_signature' => 'boolean',
-        ];
-    }
+    // Proper Eloquent casts so arrays/booleans are serialized correctly
+    protected $casts = [
+        'is_required' => 'boolean',
+        'attachments' => 'array',
+        'validation_rules' => 'array',
+        'checklist_items' => 'array',
+        'requires_signature' => 'boolean',
+    ];
 
     // Relationships
     public function taskList()

@@ -170,7 +170,7 @@
                                         </div>
                                         <div>
                                             <h4 class="text-sm font-semibold text-blue-900 mb-2">Instructions</h4>
-                                            <p class="text-sm text-blue-700">{{ $task->instructions }}</p>
+                                            <p class="text-sm text-blue-700 whitespace-pre-line">{{ $task->instructions }}</p>
                                         </div>
                                     </div>
                                 </div>

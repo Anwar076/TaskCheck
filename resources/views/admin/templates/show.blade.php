@@ -102,7 +102,7 @@
                                 @if($task->instructions)
                                     <div class="ml-9 mb-3">
                                         <h4 class="text-sm font-medium text-gray-700 mb-1">Instructions:</h4>
-                                        <p class="text-sm text-gray-600">{{ $task->instructions }}</p>
+                                        <p class="text-sm text-gray-600 whitespace-pre-line">{{ $task->instructions }}</p>
                                     </div>
                                 @endif
                                 

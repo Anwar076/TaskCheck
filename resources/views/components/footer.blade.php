@@ -68,4 +68,12 @@
             <p>© {{ date('Y') }} TaskCheck. Gebouwd met <span class="text-red-500">♥</span> in Nederland met Laravel & Tailwind CSS.</p>
         </div>
     </div>
+    <script>
+  window.texviaConfig = {
+    companyId: 'fe972c26-e4aa-4d76-9cee-06a37490fea8',
+    theme: 'light',
+    position: 'bottom-right'
+  };
+</script>
+<script src="https://texvia-ai-support.lovable.app/widget.js"></script>
 </footer>
