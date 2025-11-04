@@ -14,7 +14,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // API Routes - Complete Application API
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['web', 'auth:sanctum'])->group(function () {
     // Dashboard
     Route::get('/dashboard/admin/stats', [DashboardController::class, 'adminStats']);
     Route::get('/dashboard/employee/data', [DashboardController::class, 'employeeData']);

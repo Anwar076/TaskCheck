@@ -180,6 +180,14 @@ class TaskTemplateController extends Controller
             \Log::error('Failed to sync template to lists after update', ['template_id' => $template->id, 'error' => $e->getMessage()]);
         }
 
+        // Check if this is coming from the show page (if referer contains /templates/{id})
+        $referer = request()->headers->get('referer');
+        if ($referer && strpos($referer, "/admin/templates/{$template->id}") !== false) {
+            return redirect()->route('admin.templates.show', $template)
+                ->with('success', 'Template updated successfully!')
+                ->with('template_updated', true);
+        }
+
         return redirect()->route('admin.templates.index')
             ->with('success', 'Template updated successfully!');
     }
@@ -189,20 +197,43 @@ class TaskTemplateController extends Controller
      */
     public function destroy(Request $request, TaskTemplate $template)
     {
-        // Check if template is used by any lists
-        if ($template->taskLists()->count() > 0) {
+        // Allow a forced unlink or delete via query param `force`
+        // force=unlink -> set template_id = null on lists that reference this template, then delete template
+        // force=delete -> delete related lists (dangerous)
+        $force = $request->query('force');
+
+        $listsCount = $template->taskLists()->count();
+
+        if ($listsCount > 0 && $force !== 'unlink' && $force !== 'delete') {
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Cannot delete template that is being used by existing lists.'
                 ], 422);
             }
-            
+
             return redirect()->route('admin.templates.index')
                 ->with('error', 'Cannot delete template that is being used by existing lists.');
         }
 
-        $template->delete();
+        if ($listsCount > 0 && $force === 'unlink') {
+            // Unlink template from all lists (safe)
+            foreach ($template->taskLists as $list) {
+                $list->template_id = null;
+                $list->save();
+            }
+            $template->delete();
+        } elseif ($listsCount > 0 && $force === 'delete') {
+            // Dangerous: delete lists that reference this template (and optionally cascade)
+            foreach ($template->taskLists as $list) {
+                // Delete list - this will also delete tasks via model relationships if configured
+                $list->delete();
+            }
+            $template->delete();
+        } else {
+            // No lists reference it, safe to delete
+            $template->delete();
+        }
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([

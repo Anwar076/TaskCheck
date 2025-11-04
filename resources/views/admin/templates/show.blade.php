@@ -2,6 +2,10 @@
 
 @section('page-title', $template->name)
 
+@section('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('header')
 <div class="flex items-center justify-between">
     <div>
@@ -214,6 +218,139 @@ function createListFromTemplate(templateId) {
 
 function closeCreateListModal() {
     document.getElementById('createListModal').classList.add('hidden');
+}
+
+// Auto-refresh functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we just came back from editing
+    const urlParams = new URLSearchParams(window.location.search);
+    const justUpdated = urlParams.get('updated');
+    
+    if (justUpdated === '1') {
+        // Remove the parameter from URL without page reload
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        
+        // Show success message and refresh content
+        showSuccessMessage('Template updated successfully!');
+        setTimeout(() => {
+            refreshTemplateContent();
+        }, 500);
+    }
+    
+    // Listen for page visibility changes (when user comes back to tab)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            // Check if template was recently updated (within last 5 minutes)
+            const lastUpdate = localStorage.getItem(`template_${{{ $template->id }}}_updated`);
+            if (lastUpdate && (Date.now() - parseInt(lastUpdate)) < 300000) { // 5 minutes
+                console.log('Template was recently updated, refreshing content...');
+                refreshTemplateContent();
+                localStorage.removeItem(`template_${{{ $template->id }}}_updated`);
+            }
+        }
+    });
+    
+    // Listen for storage events (when template is updated in another tab)
+    window.addEventListener('storage', function(e) {
+        if (e.key === `template_${{{ $template->id }}}_updated`) {
+            console.log('Template updated in another tab, refreshing content...');
+            setTimeout(() => {
+                refreshTemplateContent();
+            }, 1000); // Small delay to ensure the update is complete
+        }
+    });
+});
+
+async function refreshTemplateContent() {
+    try {
+        console.log('Refreshing template content...');
+        
+        // Show loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.id = 'refresh-indicator';
+        loadingIndicator.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        loadingIndicator.innerHTML = `
+            <div class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Updating...
+            </div>
+        `;
+        document.body.appendChild(loadingIndicator);
+        
+        // Fetch updated template data
+        const response = await fetch(`/admin/templates/{{ $template->id }}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            },
+            credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Update the content areas
+            const newContent = doc.querySelector('.p-6');
+            const currentContent = document.querySelector('.p-6');
+            
+            if (newContent && currentContent) {
+                currentContent.innerHTML = newContent.innerHTML;
+                console.log('Template content updated successfully');
+                showSuccessMessage('Template refreshed!');
+            }
+        }
+        
+        // Remove loading indicator
+        const indicator = document.getElementById('refresh-indicator');
+        if (indicator) {
+            document.body.removeChild(indicator);
+        }
+        
+    } catch (error) {
+        console.error('Failed to refresh template content:', error);
+        
+        // Remove loading indicator
+        const indicator = document.getElementById('refresh-indicator');
+        if (indicator) {
+            document.body.removeChild(indicator);
+        }
+        
+        // Fallback to full page reload
+        window.location.reload();
+    }
+}
+
+function showSuccessMessage(message) {
+    // Create success notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            ${message}
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
 }
 </script>
 @endsection

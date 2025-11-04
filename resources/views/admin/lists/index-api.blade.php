@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@section('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -112,55 +116,11 @@
     </div>
 </div>
 
+<!-- Cache bust: {{ time() }} -->
 <script>
-// Ensure the function is available globally
-window.loadLists = loadLists;
+// Version: {{ time() }} - Fixed delete functionality - v3.0
 
-// Initialize when DOM is ready AND when page becomes visible
-document.addEventListener('DOMContentLoaded', function() {
-    initializeListsPage();
-});
-
-// Also trigger when page becomes visible (for navigation back)
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        setTimeout(loadLists, 100);
-    }
-});
-
-// Also trigger on page show (for browser back/forward)
-window.addEventListener('pageshow', function(event) {
-    setTimeout(loadLists, 100);
-});
-
-function initializeListsPage() {
-    console.log('Initializing lists page...');
-    
-    // Load lists immediately
-    loadLists();
-    
-    // Search functionality
-    const searchInput = document.getElementById('search-input');
-    const statusFilter = document.getElementById('status-filter');
-    const refreshBtn = document.getElementById('refresh-btn');
-    
-    if (searchInput && statusFilter && refreshBtn) {
-        let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                loadLists();
-            }, 500);
-        });
-        
-        statusFilter.addEventListener('change', loadLists);
-        refreshBtn.addEventListener('click', loadLists);
-        
-        console.log('Event listeners attached successfully');
-    } else {
-        console.error('Could not find required elements');
-    }
-}
+// Declare all functions first
 
 // Prevent multiple simultaneous loads
 let isLoading = false;
@@ -281,10 +241,10 @@ async function loadLists() {
                 <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <p class="mt-2 text-sm">Failed to load task lists</p>
-                <p class="mt-1 text-xs text-gray-500">Error: ${error.message}</p>
+                <p class="mt-2 text-sm">Kon takenlijsten niet laden</p>
+                <p class="mt-1 text-xs text-gray-500">Fout: ${error.message}</p>
                 <button onclick="loadLists()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Retry
+                    Opnieuw proberen
                 </button>
             </div>
         `;
@@ -312,26 +272,26 @@ function renderLists(lists) {
                                 ${list.title}
                             </a>
                         </h3>
-                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">${list.description || 'No description'}</p>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">${list.description || 'Geen beschrijving'}</p>
                         
                         <div class="flex items-center space-x-4 text-sm text-gray-500">
                             <div class="flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                 </svg>
-                                ${list.tasks_count || 0} tasks
+                                                                    ${list.tasks_count || 0} taken
                             </div>
                             <div class="flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                                 </svg>
-                                ${list.creator ? list.creator.name : 'Unknown'}
+                                ${list.creator ? list.creator.name : 'Onbekend'}
                             </div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2 ml-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${list.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                            ${list.is_active ? 'Active' : 'Inactive'}
+                            ${list.is_active ? 'Actief' : 'Inactief'}
                         </span>
                         ${list.template ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Template: ${list.template.name}
@@ -341,17 +301,17 @@ function renderLists(lists) {
                 
                 <div class="mt-4 flex items-center justify-between">
                     <div class="text-xs text-gray-500">
-                        Created ${formatDate(list.created_at)}
+                        Aangemaakt ${formatDate(list.created_at)}
                     </div>
                     <div class="flex items-center space-x-2">
                         <a href="/admin/lists/${list.id}" class="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            View
+                            Bekijken
                         </a>
                         <a href="/admin/lists/${list.id}/edit" class="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            Edit
+                            Bewerken
                         </a>
-                        <button onclick="deleteList(${list.id})" class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-xs font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500">
-                            Delete
+                        <button onclick="deleteList(${list.id}, this)" class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-xs font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            Verwijderen
                         </button>
                     </div>
                 </div>
@@ -369,7 +329,7 @@ function renderPagination(lists) {
     
     if (lists.prev_page_url) {
         paginationHtml += `<a href="${lists.prev_page_url}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
-            Previous
+            Vorige
         </a>`;
     }
     
@@ -383,14 +343,14 @@ function renderPagination(lists) {
     
     if (lists.next_page_url) {
         paginationHtml += `<a href="${lists.next_page_url}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
-            Next
+            Volgende
         </a>`;
     }
     
     paginationDiv.innerHTML = `
         <div class="flex items-center justify-between">
             <div class="text-sm text-gray-700">
-                Showing ${lists.from} to ${lists.to} of ${lists.total} results
+                Weergave ${lists.from} tot ${lists.to} van ${lists.total} resultaten
             </div>
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                 ${paginationHtml}
@@ -399,16 +359,63 @@ function renderPagination(lists) {
     `;
 }
 
-async function deleteList(listId) {
-    if (!confirm('Are you sure you want to delete this task list? This action cannot be undone.')) {
+async function deleteList(listId, buttonElement = null) {
+    console.log('deleteList called with:', { listId, buttonElement });
+    
+    if (!confirm('Weet je zeker dat je deze takenlijst wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) {
         return;
     }
     
+    // Show loading state if button is provided
+    let originalText = 'Verwijderen';
+    if (buttonElement) {
+        originalText = buttonElement.textContent;
+        buttonElement.textContent = 'Verwijderen...';
+        buttonElement.disabled = true;
+    }
+    
     try {
-        await ListAPI.deleteList(listId);
-        await loadLists(); // Refresh the list
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        const headers = {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        };
+        
+        if (csrfToken) {
+            headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+        }
+
+        const response = await fetch(`/admin/lists/${listId}`, {
+            method: 'DELETE',
+            headers: headers,
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // Show success message (optional)
+        const result = await response.json();
+        if (result.success || result.message) {
+            console.log('List deleted successfully:', result.message);
+        }
+
+        // Refresh the list
+        await loadLists();
+        
     } catch (error) {
         console.error('Failed to delete list:', error);
+        alert('Er is een fout opgetreden bij het verwijderen van de lijst: ' + error.message);
+        
+        // Restore button state on error
+        if (buttonElement) {
+            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
+        }
     }
 }
 
@@ -420,5 +427,67 @@ function formatDate(dateString) {
         day: 'numeric' 
     });
 }
+
+// Make functions globally available
+window.loadLists = loadLists;
+window.deleteList = deleteList;
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    initializeListsPage();
+});
+
+// Also trigger when page becomes visible (for navigation back)
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        setTimeout(loadLists, 100);
+    }
+});
+
+// Also trigger on page show (for browser back/forward)
+window.addEventListener('pageshow', function(event) {
+    setTimeout(loadLists, 100);
+});
+
+function initializeListsPage() {
+    console.log('Initializing lists page...');
+    
+    // Load lists immediately
+    loadLists();
+    
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+    const refreshBtn = document.getElementById('refresh-btn');
+    
+    if (searchInput && statusFilter && refreshBtn) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadLists();
+            }, 500);
+        });
+        
+        statusFilter.addEventListener('change', loadLists);
+        refreshBtn.addEventListener('click', loadLists);
+        
+        console.log('Event listeners attached successfully');
+    } else {
+        console.error('Could not find required elements');
+    }
+}
+
+// Debug: Check if functions are properly defined
+console.log('Functions defined:', {
+    loadLists: typeof window.loadLists,
+    deleteList: typeof window.deleteList
+});
+
+// Test function to manually test deleteList
+window.testDelete = function(listId) {
+    console.log('Testing delete for list:', listId);
+    deleteList(listId);
+};
 </script>
 @endsection

@@ -106,13 +106,16 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::resource('lists.tasks', TaskController::class)->shallow();
     Route::resource('templates', TaskTemplateController::class);
     Route::resource('users', UserController::class)->except(['index']);
-    Route::resource('submissions', SubmissionController::class)->except(['index']);
+        Route::resource('submissions', SubmissionController::class)->except(['index']);
+
+    // Individual admin routes
     
     // Additional admin routes
     Route::post('/lists/{list}/assign', [TaskListController::class, 'assign'])->name('lists.assign');
     Route::delete('/assignments/{assignment}', [TaskListController::class, 'removeAssignment'])->name('assignments.destroy');
     Route::get('/submissions/{submission}', [TaskListController::class, 'showSubmission'])->name('submissions.show');
     Route::post('/submissions/{submission}/review', [TaskListController::class, 'reviewSubmission'])->name('submissions.review');
+    Route::post('/submission-tasks/{submissionTask}/approve', [TaskListController::class, 'approveTask'])->name('submission-tasks.approve');
     Route::post('/submission-tasks/{submissionTask}/reject', [TaskListController::class, 'rejectTask'])->name('submission-tasks.reject');
     Route::post('/submission-tasks/{submissionTask}/redo', [TaskListController::class, 'requestRedo'])->name('submission-tasks.redo');
     
@@ -145,8 +148,6 @@ Route::middleware(['auth', 'verified', 'employee'])->prefix('employee')->name('e
     Route::get('/notifications', [App\Http\Controllers\Employee\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/mark-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::delete('/notifications/clear-all', [App\Http\Controllers\Employee\NotificationController::class, 'clearAll'])->name('notifications.clear-all');
-    Route::get('/notifications/count', [App\Http\Controllers\Employee\NotificationController::class, 'getCount'])->name('notifications.count');
     Route::delete('/notifications/{notification}', [App\Http\Controllers\Employee\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 

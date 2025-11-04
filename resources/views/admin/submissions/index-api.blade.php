@@ -167,9 +167,11 @@
 
 <script>
 // Submission API helper
+// Use API routes with web session auth support
+const apiBase = "{{ url('/api') }}";
 const SubmissionAPI = {
     async loadSubmissions(params = '') {
-        const url = `/admin/api/submissions${params ? '?' + params : ''}`;
+        const url = `${apiBase}/submissions${params ? '?' + params : ''}`;
         
         const response = await fetch(url, {
             method: 'GET',
@@ -248,6 +250,9 @@ async function loadSubmissions() {
         if (search) params.append('search', search);
         if (status) params.append('status', status);
         
+        // Ensure Sanctum CSRF cookie is present for authenticated API requests
+        await ensureCsrfCookie();
+        
         const result = await SubmissionAPI.loadSubmissions(params.toString());
         
         if (!result.success) {
@@ -297,6 +302,20 @@ async function loadSubmissions() {
                 </button>
             </div>
         `;
+    }
+}
+
+// Ensure Sanctum CSRF cookie (required for auth:sanctum protected API routes)
+async function ensureCsrfCookie() {
+    try {
+        // This endpoint sets the XSRF-TOKEN cookie used by Laravel Sanctum
+        await fetch('/sanctum/csrf-cookie', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+    } catch (e) {
+        // If this fails, the subsequent request will surface the auth error
+        console.warn('Could not fetch csrf-cookie:', e);
     }
 }
 

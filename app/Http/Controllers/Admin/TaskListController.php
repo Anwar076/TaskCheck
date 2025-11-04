@@ -212,8 +212,94 @@ class TaskListController extends Controller
 
     public function destroy(TaskList $list)
     {
-        $list->delete();
-        return redirect()->route('admin.lists.index')->with('success', 'Task list deleted successfully.');
+        try {
+            \Log::info('Attempting to delete task list', [
+                'list_id' => $list->id,
+                'list_title' => $list->title,
+                'request_method' => request()->method(),
+                'request_ajax' => request()->ajax(),
+                'request_expects_json' => request()->expectsJson(),
+            ]);
+
+            // Check for related data that might prevent deletion
+            $tasksCount = $list->tasks()->count();
+            // Get ALL assignments, not just active ones
+            $allAssignmentsCount = \App\Models\ListAssignment::where('list_id', $list->id)->count();
+            $submissionsCount = $list->submissions()->count();
+            $childListsCount = $list->subLists()->count();
+
+            \Log::info('Related data count', [
+                'tasks' => $tasksCount,
+                'all_assignments' => $allAssignmentsCount,
+                'submissions' => $submissionsCount,
+                'child_lists' => $childListsCount
+            ]);
+
+            // First, handle related records in correct order to avoid foreign key violations
+            
+            // 1. Handle child lists (sublists) - set parent_list_id to null or delete them
+            if ($childListsCount > 0) {
+                $list->subLists()->update(['parent_list_id' => null]);
+                \Log::info('Updated child lists to remove parent reference');
+            }
+            
+            // 2. Delete tasks (these have cascade delete, so should work)
+            if ($tasksCount > 0) {
+                $list->tasks()->delete();
+                \Log::info('Deleted associated tasks');
+            }
+            
+            // 3. Delete ALL assignments (both active and inactive) to avoid foreign key constraint
+            if ($allAssignmentsCount > 0) {
+                \App\Models\ListAssignment::where('list_id', $list->id)->delete();
+                \Log::info('Deleted all assignments');
+            }
+            
+            // 4. Handle submissions - delete them if they exist to avoid foreign key constraint
+            if ($submissionsCount > 0) {
+                // First delete submission_tasks that reference the submissions
+                $submissions = $list->submissions;
+                foreach ($submissions as $submission) {
+                    $submission->submissionTasks()->delete();
+                }
+                // Then delete the submissions themselves
+                $list->submissions()->delete();
+                \Log::info('Deleted submissions and their tasks');
+            }
+            
+            // Now delete the list
+            $list->delete();
+            
+            \Log::info('Task list deleted successfully', ['list_id' => $list->id]);
+            
+            // Check if it's an AJAX request
+            if (request()->ajax() || request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Task list deleted successfully.'
+                ]);
+            }
+            
+            return redirect()->route('admin.lists.index')->with('success', 'Task list deleted successfully.');
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete task list', [
+                'list_id' => $list->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Check if it's an AJAX request
+            if (request()->ajax() || request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Er is een fout opgetreden bij het verwijderen: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->route('admin.lists.index')
+                ->with('error', 'Er is een fout opgetreden bij het verwijderen: ' . $e->getMessage());
+        }
     }
 
     public function assign(Request $request, TaskList $list)
@@ -426,7 +512,7 @@ class TaskListController extends Controller
     public function requestRedo(Request $request, \App\Models\SubmissionTask $submissionTask)
     {
         $validatedData = $request->validate([
-            'redo_reason' => 'required|string',
+            'redo_reason' => 'nullable|string',
         ]);
 
         $submissionTask->update([
@@ -438,6 +524,23 @@ class TaskListController extends Controller
 
         return redirect()->back()
             ->with('success', 'Redo requested successfully.');
+    }
+
+    public function approveTask(Request $request, \App\Models\SubmissionTask $submissionTask)
+    {
+        $validatedData = $request->validate([
+            'manager_comment' => 'nullable|string',
+        ]);
+
+        $submissionTask->update([
+            'status' => 'approved',
+            'manager_comment' => $validatedData['manager_comment'],
+            'reviewed_at' => now(),
+            'reviewed_by' => auth()->id(),
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Task approved successfully.');
     }
 
     public function weeklyOverview(Request $request)

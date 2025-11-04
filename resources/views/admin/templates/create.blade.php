@@ -2,6 +2,10 @@
 
 @section('page-title', 'Create Template')
 
+@section('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('header')
 <div class="flex items-center justify-between">
     <div>
@@ -22,6 +26,7 @@
 <div class="p-6">
     <form method="POST" action="{{ route('admin.templates.store') }}" id="templateForm">
         @csrf
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
         
         <!-- Template Info -->
         <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -100,6 +105,14 @@ let taskIndex = 0;
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('tasks-container').children.length === 0) {
         addTask();
+    }
+    
+    // Setup form submission to ensure CSRF token is included
+    const form = document.getElementById('templateForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitting with CSRF token:', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
+        });
     }
 });
 

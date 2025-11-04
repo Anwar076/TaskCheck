@@ -2,6 +2,10 @@
 
 @section('page-title', 'Edit Template')
 
+@section('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('header')
 <div class="flex items-center justify-between">
     <div>
@@ -109,6 +113,17 @@ let taskIndex = 0;
 
 // Load existing tasks
 document.addEventListener('DOMContentLoaded', function() {
+    // Mark that we're editing this template
+    localStorage.setItem(`template_${{{ $template->id }}}_editing`, Date.now().toString());
+    
+    // Setup form submission handler
+    const form = document.getElementById('templateForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Mark that this template was updated
+            localStorage.setItem(`template_${{{ $template->id }}}_updated`, Date.now().toString());
+        });
+    }
     const existingTasks = @json($template->templateTasks);
     
     if (existingTasks.length > 0) {
@@ -122,11 +137,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function addTask(existingTask = null) {
     const container = document.getElementById('tasks-container');
-    const isExisting = existingTask !== null;
-    const taskId = isExisting ? existingTask.id : '';
-    const taskTitle = isExisting ? existingTask.title : '';
-    const taskDescription = isExisting ? existingTask.description : '';
-    const checklistItems = isExisting ? (existingTask.checklist_items || []) : [];
+    // Treat both null and undefined as "no existing task"
+    const isExisting = existingTask != null;
+    // Use optional chaining and sensible defaults to avoid reading properties off null
+    const taskId = existingTask?.id ?? '';
+    const taskTitle = existingTask?.title ?? '';
+    const taskDescription = existingTask?.description ?? '';
+    const taskInstructions = existingTask?.instructions ?? '';
+    const requiredProofType = existingTask?.required_proof_type ?? 'none';
+    const isRequiredFlag = (existingTask && existingTask.is_required !== undefined) ? existingTask.is_required : true;
+    const checklistItems = Array.isArray(existingTask?.checklist_items) ? existingTask.checklist_items : [];
     
     const taskHtml = `
         <div class="task-item bg-gray-50 rounded-lg p-4 border border-gray-200" data-index="${taskIndex}" data-task-id="${taskId}">
@@ -183,7 +203,7 @@ function addTask(existingTask = null) {
                     <textarea name="tasks[${taskIndex}][instructions]" 
                               rows="2"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Enter detailed instructions...">${existingTask.instructions || ''}</textarea>
+                              placeholder="Enter detailed instructions...">${taskInstructions}</textarea>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -192,12 +212,12 @@ function addTask(existingTask = null) {
                         <select name="tasks[${taskIndex}][required_proof_type]" 
                                 required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="none" ${(existingTask.required_proof_type || 'none') === 'none' ? 'selected' : ''}>No Proof Required</option>
-                            <option value="photo" ${existingTask.required_proof_type === 'photo' ? 'selected' : ''}>Photo Required</option>
-                            <option value="video" ${existingTask.required_proof_type === 'video' ? 'selected' : ''}>Video Required</option>
-                            <option value="text" ${existingTask.required_proof_type === 'text' ? 'selected' : ''}>Text Description Required</option>
-                            <option value="file" ${existingTask.required_proof_type === 'file' ? 'selected' : ''}>File Upload Required</option>
-                            <option value="any" ${existingTask.required_proof_type === 'any' ? 'selected' : ''}>Any Proof Type</option>
+                            <option value="none" ${requiredProofType === 'none' ? 'selected' : ''}>No Proof Required</option>
+                            <option value="photo" ${requiredProofType === 'photo' ? 'selected' : ''}>Photo Required</option>
+                            <option value="video" ${requiredProofType === 'video' ? 'selected' : ''}>Video Required</option>
+                            <option value="text" ${requiredProofType === 'text' ? 'selected' : ''}>Text Description Required</option>
+                            <option value="file" ${requiredProofType === 'file' ? 'selected' : ''}>File Upload Required</option>
+                            <option value="any" ${requiredProofType === 'any' ? 'selected' : ''}>Any Proof Type</option>
                         </select>
                     </div>
                     
@@ -205,8 +225,8 @@ function addTask(existingTask = null) {
                         <label class="block text-sm font-medium text-gray-700 mb-1">Task Required</label>
                         <select name="tasks[${taskIndex}][is_required]" 
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="1" ${(existingTask.is_required !== false) ? 'selected' : ''}>Required</option>
-                            <option value="0" ${existingTask.is_required === false ? 'selected' : ''}>Optional</option>
+                            <option value="1" ${(isRequiredFlag !== false) ? 'selected' : ''}>Required</option>
+                            <option value="0" ${isRequiredFlag === false ? 'selected' : ''}>Optional</option>
                         </select>
                     </div>
                 </div>

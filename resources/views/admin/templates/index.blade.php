@@ -273,23 +273,62 @@ async function deleteTemplate(templateId) {
     try {
         const response = await fetch(`/admin/templates/${templateId}`, {
             method: 'DELETE',
+            credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             }
         });
-        
+
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Try to extract JSON error message if present
+            let body = null;
+            try { body = await response.json(); } catch(e) { body = null; }
+
+            // If template is used by lists, offer to unlink and delete
+            if (response.status === 422 && body && body.message && body.message.includes('being used')) {
+                if (confirm('This template is used by existing lists. Do you want to unlink it from those lists and delete the template?')) {
+                    // Retry with force=unlink
+                    const resp2 = await fetch(`/admin/templates/${templateId}?force=unlink`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    if (!resp2.ok) {
+                        let msg2 = `HTTP ${resp2.status}: ${resp2.statusText}`;
+                        try { const b2 = await resp2.json(); if (b2 && b2.message) msg2 = b2.message; } catch(e) {}
+                        throw new Error(msg2);
+                    }
+
+                    await loadTemplates();
+                    return;
+                }
+                // If user cancelled, just return
+                return;
+            }
+
+            let msg = `HTTP ${response.status}: ${response.statusText}`;
+            if (body && body.message) msg = body.message;
+            throw new Error(msg);
         }
-        
+
         // Reload templates after successful deletion
         await loadTemplates();
-        
+
     } catch (error) {
         console.error('Failed to delete template:', error);
-        alert('Failed to delete template. Please try again.');
+        // Provide a more actionable message for CSRF/session issues
+        if (error.message && error.message.includes('419')) {
+            alert('Session expired or CSRF token mismatch. Please refresh the page and try again.');
+        } else {
+            alert(error.message || 'Failed to delete template. Please try again.');
+        }
     }
 }
 
