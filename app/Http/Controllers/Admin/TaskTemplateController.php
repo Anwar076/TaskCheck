@@ -75,6 +75,16 @@ class TaskTemplateController extends Controller
 
         // Create template tasks
         foreach ($validated['tasks'] as $index => $taskData) {
+            // Filter out empty checklist items and ensure proper format
+            $checklistItems = isset($taskData['checklist_items']) ? array_filter($taskData['checklist_items'], function($item) {
+                return !empty(trim($item));
+            }) : null;
+            
+            // Convert to null if empty array
+            if (is_array($checklistItems) && empty($checklistItems)) {
+                $checklistItems = null;
+            }
+            
             TemplateTask::create([
                 'template_id' => $template->id,
                 'title' => $taskData['title'],
@@ -82,7 +92,7 @@ class TaskTemplateController extends Controller
                 'instructions' => $taskData['instructions'] ?? null,
                 'required_proof_type' => $taskData['required_proof_type'],
                 'is_required' => $taskData['is_required'] ?? true,
-                'checklist_items' => $taskData['checklist_items'] ?? null,
+                'checklist_items' => $checklistItems,
                 'sort_order' => $index,
                 'is_active' => true,
             ]);
@@ -144,6 +154,16 @@ class TaskTemplateController extends Controller
 
         // Update or create tasks
         foreach ($validated['tasks'] as $index => $taskData) {
+            // Filter out empty checklist items and ensure proper format
+            $checklistItems = isset($taskData['checklist_items']) ? array_filter($taskData['checklist_items'], function($item) {
+                return !empty(trim($item));
+            }) : null;
+            
+            // Convert to null if empty array
+            if (is_array($checklistItems) && empty($checklistItems)) {
+                $checklistItems = null;
+            }
+            
             if (isset($taskData['id']) && $taskData['id']) {
                 // Update existing task
                 TemplateTask::where('id', $taskData['id'])
@@ -153,7 +173,7 @@ class TaskTemplateController extends Controller
                         'instructions' => $taskData['instructions'] ?? null,
                         'required_proof_type' => $taskData['required_proof_type'],
                         'is_required' => $taskData['is_required'] ?? true,
-                        'checklist_items' => $taskData['checklist_items'] ?? null,
+                        'checklist_items' => $checklistItems,
                         'sort_order' => $index,
                     ]);
             } else {
@@ -165,7 +185,7 @@ class TaskTemplateController extends Controller
                     'instructions' => $taskData['instructions'] ?? null,
                     'required_proof_type' => $taskData['required_proof_type'],
                     'is_required' => $taskData['is_required'] ?? true,
-                    'checklist_items' => $taskData['checklist_items'] ?? null,
+                    'checklist_items' => $checklistItems,
                     'sort_order' => $index,
                     'is_active' => true,
                 ]);

@@ -114,6 +114,7 @@ class TaskListController extends Controller
                         'is_required' => $templateTask->is_required,
                         'attachments' => $templateTask->attachments,
                         'validation_rules' => $templateTask->validation_rules,
+                        'checklist_items' => $templateTask->checklist_items, // Copy checklist items from template
                         'order_index' => $templateTask->sort_order,
                         'created_by' => auth()->id(),
                         'weekday' => null, // Tasks can be assigned to specific days later

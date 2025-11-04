@@ -53,12 +53,13 @@ class TaskTemplate extends Model
                 'title' => $templateTask->title,
                 'description' => $templateTask->description,
                 'instructions' => $templateTask->instructions,
-                'checklist_items' => $templateTask->checklist_items,
+                'checklist_items' => $templateTask->checklist_items, // Ensure checklist items are copied
                 'required_proof_type' => $templateTask->required_proof_type,
                 'is_required' => $templateTask->is_required,
                 'attachments' => $templateTask->attachments,
                 'validation_rules' => $templateTask->validation_rules,
                 'order_index' => $templateTask->sort_order,
+                'created_by' => auth()->id(), // Add created_by field
             ]);
         }
 
