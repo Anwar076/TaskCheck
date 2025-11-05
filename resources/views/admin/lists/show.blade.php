@@ -369,19 +369,6 @@
                                                     @if($task->description)
                                                         <p class="text-sm text-slate-600">{{ Str::limit($task->description, 60) }}</p>
                                                     @endif
-                                                    @if($task->checklist_items && count($task->checklist_items) > 0)
-                                                        <div class="mt-2">
-                                                            <p class="text-xs text-blue-600 font-medium">Checklist items ({{ count($task->checklist_items) }}):</p>
-                                                            <div class="mt-1">
-                                                                @foreach(array_slice($task->checklist_items, 0, 3) as $item)
-                                                                    <span class="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-md mr-1 mb-1">{{ Str::limit($item, 25) }}</span>
-                                                                @endforeach
-                                                                @if(count($task->checklist_items) > 3)
-                                                                    <span class="text-xs text-blue-600">+{{ count($task->checklist_items) - 3 }} meer</span>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    @endif
                                                 </div>
                                             </div>
                                             <div class="flex items-center space-x-2">
@@ -448,19 +435,6 @@
                                                                 <p class="font-medium text-slate-900 text-sm">{{ $task->title }}</p>
                                                                 @if($task->is_required)
                                                                     <span class="px-1 py-0.5 bg-red-100 text-red-700 rounded text-xs">Required</span>
-                                                                @endif
-                                                                @if($task->checklist_items && count($task->checklist_items) > 0)
-                                                                    <div class="mt-1">
-                                                                        <p class="text-xs text-blue-600">Checklist: {{ count($task->checklist_items) }} items</p>
-                                                                        <div class="flex flex-wrap gap-1 mt-1">
-                                                                            @foreach(array_slice($task->checklist_items, 0, 2) as $item)
-                                                                                <span class="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">{{ Str::limit($item, 15) }}</span>
-                                                                            @endforeach
-                                                                            @if(count($task->checklist_items) > 2)
-                                                                                <span class="text-xs text-blue-600">+{{ count($task->checklist_items) - 2 }}</span>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
                                                                 @endif
                                                             </div>
                                                             <a href="{{ route('admin.tasks.edit', $task) }}" class="text-blue-600 hover:text-blue-800">
@@ -587,27 +561,6 @@
                                                 <div class="mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
                                                     <h5 class="text-sm font-medium text-gray-700 mb-1">Instructions:</h5>
                                                     <p class="text-sm text-gray-600">{{ $task->instructions }}</p>
-                                                </div>
-                                            @endif
-                                            
-                                            @if($task->checklist_items && count($task->checklist_items) > 0)
-                                                <div class="mt-3 p-3 bg-blue-50 rounded-md border border-blue-200">
-                                                    <div class="flex items-center mb-2">
-                                                        <svg class="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>
-                                                        <h5 class="text-sm font-medium text-blue-700">Checklist Items ({{ count($task->checklist_items) }}):</h5>
-                                                    </div>
-                                                    <ul class="space-y-1">
-                                                        @foreach($task->checklist_items as $index => $item)
-                                                            <li class="flex items-center text-sm text-blue-800">
-                                                                <svg class="w-3 h-3 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                                </svg>
-                                                                {{ $item }}
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
                                                 </div>
                                             @endif
                                         </div>

@@ -114,7 +114,6 @@ class TaskListController extends Controller
                         'is_required' => $templateTask->is_required,
                         'attachments' => $templateTask->attachments,
                         'validation_rules' => $templateTask->validation_rules,
-                        'checklist_items' => $templateTask->checklist_items, // Copy checklist items from template
                         'order_index' => $templateTask->sort_order,
                         'created_by' => auth()->id(),
                         'weekday' => null, // Tasks can be assigned to specific days later
@@ -244,10 +243,16 @@ class TaskListController extends Controller
                 \Log::info('Updated child lists to remove parent reference');
             }
             
-            // 2. Delete tasks (these have cascade delete, so should work)
-            if ($tasksCount > 0) {
-                $list->tasks()->delete();
-                \Log::info('Deleted associated tasks');
+            // 2. Handle submissions FIRST - delete them and their tasks to avoid foreign key constraint
+            if ($submissionsCount > 0) {
+                // First delete submission_tasks that reference the tasks
+                $submissions = $list->submissions;
+                foreach ($submissions as $submission) {
+                    $submission->submissionTasks()->delete();
+                }
+                // Then delete the submissions themselves
+                $list->submissions()->delete();
+                \Log::info('Deleted submissions and their tasks');
             }
             
             // 3. Delete ALL assignments (both active and inactive) to avoid foreign key constraint
@@ -256,16 +261,10 @@ class TaskListController extends Controller
                 \Log::info('Deleted all assignments');
             }
             
-            // 4. Handle submissions - delete them if they exist to avoid foreign key constraint
-            if ($submissionsCount > 0) {
-                // First delete submission_tasks that reference the submissions
-                $submissions = $list->submissions;
-                foreach ($submissions as $submission) {
-                    $submission->submissionTasks()->delete();
-                }
-                // Then delete the submissions themselves
-                $list->submissions()->delete();
-                \Log::info('Deleted submissions and their tasks');
+            // 4. Delete tasks LAST (after submission_tasks are gone)
+            if ($tasksCount > 0) {
+                $list->tasks()->delete();
+                \Log::info('Deleted associated tasks');
             }
             
             // Now delete the list
