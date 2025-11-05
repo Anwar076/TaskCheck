@@ -899,22 +899,230 @@ function initializeChecklists() {
         });
     });
     
-    // Add form submit handlers to save checklist progress
+    // Add AJAX form submit handlers for task completion
     const forms = document.querySelectorAll('form[id^="task-form-"]');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
             const taskId = form.id.replace('task-form-', '');
             const checklistKey = `checklist_${submissionId}_${taskId}`;
             const savedState = localStorage.getItem(checklistKey);
             
+            // Save checklist progress before submitting
             if (savedState) {
                 const progressInput = document.getElementById(`checklist-progress-${taskId}`);
                 if (progressInput) {
                     progressInput.value = savedState;
                 }
             }
+            
+            // Get the submit button to show loading state
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonContent = submitButton.innerHTML;
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            `;
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            
+            // Submit via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok');
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update the task card to show completed state
+                    updateTaskToCompleted(taskId, data.completed_at);
+                    
+                    // Clear localStorage for this task
+                    localStorage.removeItem(checklistKey);
+                    
+                    // Update progress indicator
+                    updateProgressIndicator();
+                    
+                    // Show success notification
+                    showNotification('Task completed successfully!', 'success');
+                } else {
+                    throw new Error(data.message || 'Unknown error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error completing task. Please try again.', 'error');
+                
+                // Restore button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonContent;
+            });
         });
     });
+    
+    // Add AJAX handler for final submission form
+    const finalSubmitForm = document.querySelector('form[action*="submissions.complete"]');
+    if (finalSubmitForm) {
+        finalSubmitForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            // Get the submit button to show loading state
+            const submitButton = finalSubmitForm.querySelector('button[type="submit"]');
+            const originalButtonContent = submitButton.innerHTML;
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Submitting...
+            `;
+            
+            // Prepare form data
+            const formData = new FormData(finalSubmitForm);
+            
+            // Submit via AJAX
+            fetch(finalSubmitForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok');
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success notification
+                    showNotification('Checklist submitted successfully!', 'success');
+                    
+                    // Redirect to dashboard after a brief delay
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '/employee/dashboard';
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Unknown error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error submitting checklist. Please try again.', 'error');
+                
+                // Restore button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonContent;
+            });
+        });
+    }
+}
+
+// Helper function to update task to completed state
+function updateTaskToCompleted(taskId, completedAt) {
+    const taskCard = document.querySelector(`#task-form-${taskId}`).closest('.task-card');
+    if (taskCard) {
+        // Replace the entire task card content with completed state
+        taskCard.innerHTML = `
+            <div class="p-6 bg-green-50 border-l-4 border-green-400">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 mr-3">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold text-green-900 mb-2">
+                            Completed: ${new Date(completedAt).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                            })}
+                        </div>
+                        <div class="text-sm text-green-800">
+                            ✅ Task completed successfully
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add smooth fade-in animation
+        taskCard.style.opacity = '0';
+        setTimeout(() => {
+            taskCard.style.opacity = '1';
+            taskCard.style.transition = 'opacity 0.5s ease-in-out';
+        }, 100);
+    }
+}
+
+// Helper function to update progress indicator
+function updateProgressIndicator() {
+    const completedTasks = document.querySelectorAll('.bg-green-50').length;
+    const totalTasks = document.querySelectorAll('.task-card').length;
+    const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    // Update progress circle
+    const progressCircle = document.querySelector('circle[stroke="#3b82f6"]');
+    const progressText = document.querySelector('.text-lg.font-bold');
+    const progressCount = document.querySelector('.text-sm.text-gray-500');
+    
+    if (progressCircle && progressText && progressCount) {
+        const circumference = 2 * Math.PI * 40;
+        const strokeDashoffset = circumference * (1 - (progressPercent / 100));
+        
+        progressCircle.style.strokeDashoffset = strokeDashoffset;
+        progressText.textContent = progressPercent + '%';
+        progressCount.textContent = `${completedTasks}/${totalTasks} tasks`;
+    }
+}
+
+// Helper function to show notifications
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    } transform translate-x-full transition-transform duration-300`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Slide in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Slide out and remove
+    setTimeout(() => {
+        notification.style.transform = 'translateX(full)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
 }
 </script>
 

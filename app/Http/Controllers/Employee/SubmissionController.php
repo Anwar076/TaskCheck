@@ -270,6 +270,16 @@ class SubmissionController extends Controller
 
         $submissionTask->update($updateData);
 
+        // Handle AJAX requests
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Task completed successfully!',
+                'completed_at' => $submissionTask->completed_at->toISOString(),
+                'task_id' => $taskId
+            ]);
+        }
+
         return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
             ->with('success', 'Task completed successfully!');
     }
@@ -293,6 +303,13 @@ class SubmissionController extends Controller
             ->count();
 
         if ($pendingTasks > 0) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please complete all required tasks before submitting.'
+                ], 422);
+            }
+            
             return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
                 ->with('error', 'Please complete all required tasks before submitting.');
         }
@@ -309,6 +326,15 @@ class SubmissionController extends Controller
             'employee_signature' => $validated['employee_signature'] ?? null,
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        // Handle AJAX requests
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Checklist submitted successfully!',
+                'redirect_url' => route('employee.dashboard')
+            ]);
+        }
 
         return redirect()->route('employee.dashboard')
             ->with('success', '🎉 Congratulations! You have successfully completed your checklist. Thank you for your hard work!');
