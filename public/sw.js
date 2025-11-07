@@ -1,12 +1,10 @@
-const CACHE_NAME = 'taskcheck-v3.1.0';
+const CACHE_NAME = 'taskcheck-v4.1.0-video-recording-complete';
 const urlsToCache = [
-  '/css/app.css',
-  '/js/app.js',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/favicon.svg',
   '/offline.html'
+  // Note: CSS/JS files are dynamically loaded with versioned filenames
 ];
 
 // Never cache these URLs (always fetch fresh)
@@ -14,7 +12,9 @@ const NEVER_CACHE = [
   '/login',
   '/logout',
   '/refresh-csrf',
-  '/sanctum/csrf-cookie'
+  '/sanctum/csrf-cookie',
+  '/employee/submissions', // Always fetch fresh submission pages
+  '/api/submissions' // Always fetch fresh API calls
 ];
 
 // Install event - cache resources

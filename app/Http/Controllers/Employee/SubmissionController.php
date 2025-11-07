@@ -198,90 +198,150 @@ class SubmissionController extends Controller
      */
     public function completeTask(Request $request, Submission $submission, $taskId)
     {
-        // Check if user owns this submission
-        if ($submission->user_id !== auth()->id()) {
-            abort(403, 'You do not have access to this submission.');
-        }
-
-        $submissionTask = $submission->submissionTasks()
-            ->where('task_id', $taskId)
-            ->firstOrFail();
-
-        $task = $submissionTask->task;
-
-        // Validate based on required proof type
-        $rules = ['proof_text' => 'nullable|string'];
-        
-        if (in_array($task->required_proof_type, ['photo', 'video', 'file', 'any'])) {
-            $rules['proof_files'] = 'nullable|array';
-            $rules['proof_files.*'] = 'file|max:10240'; // 10MB max per file
-        }
-
-        if ($task->required_proof_type === 'photo') {
-            $rules['proof_files.*'] = 'image|max:5120'; // 5MB max for images
-        }
-
-        // Add digital signature validation if required
-        if ($task->requires_signature) {
-            $rules['digital_signature'] = 'required|string';
-        }
-        
-        // Checklist progress (optional)
-        $rules['checklist_progress'] = 'nullable|string';
-
-        $validated = $request->validate($rules);
-
-        // Handle file uploads
-        $proofFiles = [];
-        if ($request->hasFile('proof_files')) {
-            foreach ($request->file('proof_files') as $file) {
-                $path = $file->store('submissions/' . $submission->id, 'public');
-                $proofFiles[] = [
-                    'path' => $path,
-                    'original_name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                ];
+        try {
+            // Check if user owns this submission
+            if ($submission->user_id !== auth()->id()) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Je hebt geen toegang tot deze checklist.'
+                    ], 403);
+                }
+                abort(403, 'You do not have access to this submission.');
             }
-        }
 
-        // Update submission task
-        $updateData = [
-            'proof_text' => $validated['proof_text'] ?? null,
-            'proof_files' => $proofFiles,
-            'status' => 'completed',
-            'completed_at' => now(),
-            'redo_requested' => false, // Reset redo flag when task is completed again
-        ];
+            $submissionTask = $submission->submissionTasks()
+                ->where('task_id', $taskId)
+                ->firstOrFail();
 
-        // Add digital signature if provided
-        if (isset($validated['digital_signature'])) {
-            $updateData['digital_signature'] = $validated['digital_signature'];
-            $updateData['signature_date'] = now();
-        }
-        
-        // Add checklist progress if provided
-        if ($request->has('checklist_progress') && !empty($request->input('checklist_progress'))) {
-            $checklistProgress = json_decode($request->input('checklist_progress'), true);
-            if (is_array($checklistProgress)) {
-                $updateData['checklist_progress'] = $checklistProgress;
+            $task = $submissionTask->task;
+
+            // Validate based on required proof type
+            $rules = ['proof_text' => 'nullable|string'];
+            $messages = [
+                'proof_files.required' => 'Bewijs is vereist voor deze taak.',
+                'proof_files.*.file' => 'Elk bestand moet geldig zijn.',
+                'proof_files.*.max' => 'Bestanden mogen niet groter zijn dan :max KB.',
+                'proof_files.*.image' => 'Alleen afbeeldingen zijn toegestaan voor deze taak.',
+                'digital_signature.required' => 'Een digitale handtekening is vereist voor deze taak.',
+                'proof_text.required' => 'Tekst bewijs is vereist voor deze taak.'
+            ];
+            
+            if (in_array($task->required_proof_type, ['photo', 'video', 'file', 'any'])) {
+                if ($task->required_proof_type !== 'any') {
+                    $rules['proof_files'] = 'required|array|min:1';
+                } else {
+                    $rules['proof_files'] = 'nullable|array';
+                }
+                $rules['proof_files.*'] = 'file|max:10240'; // 10MB max per file
             }
-        }
 
-        $submissionTask->update($updateData);
+            if ($task->required_proof_type === 'photo') {
+                $rules['proof_files.*'] = 'image|max:5120'; // 5MB max for images
+            }
+            
+            if ($task->required_proof_type === 'text') {
+                $rules['proof_text'] = 'required|string|min:3';
+            }
 
-        // Handle AJAX requests
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Task completed successfully!',
-                'completed_at' => $submissionTask->completed_at->toISOString(),
-                'task_id' => $taskId
+            // Add digital signature validation if required
+            if ($task->requires_signature) {
+                $rules['digital_signature'] = 'required|string';
+            }
+            
+            // Checklist progress (optional)
+            $rules['checklist_progress'] = 'nullable|string';
+
+            $validated = $request->validate($rules, $messages);
+
+            // Handle file uploads
+            $proofFiles = [];
+            if ($request->hasFile('proof_files')) {
+                foreach ($request->file('proof_files') as $file) {
+                    $path = $file->store('submissions/' . $submission->id, 'public');
+                    $proofFiles[] = [
+                        'path' => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                }
+            }
+
+            // Update submission task
+            $updateData = [
+                'proof_text' => $validated['proof_text'] ?? null,
+                'proof_files' => $proofFiles,
+                'status' => 'completed',
+                'completed_at' => now(),
+                'redo_requested' => false, // Reset redo flag when task is completed again
+            ];
+
+            // Add digital signature if provided
+            if (isset($validated['digital_signature'])) {
+                $updateData['digital_signature'] = $validated['digital_signature'];
+                $updateData['signature_date'] = now();
+            }
+            
+            // Add checklist progress if provided
+            if ($request->has('checklist_progress') && !empty($request->input('checklist_progress'))) {
+                $checklistProgress = json_decode($request->input('checklist_progress'), true);
+                if (is_array($checklistProgress)) {
+                    $updateData['checklist_progress'] = $checklistProgress;
+                }
+            }
+
+            $submissionTask->update($updateData);
+
+            // Handle AJAX requests
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Taak succesvol afgerond!',
+                    'completed_at' => $submissionTask->completed_at->toISOString(),
+                    'task_id' => $taskId
+                ]);
+            }
+
+            return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
+                ->with('success', 'Task completed successfully!');
+                
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Task completion validation error', [
+                'user_id' => auth()->id(),
+                'submission_id' => $submission->id,
+                'task_id' => $taskId,
+                'errors' => $e->errors()
             ]);
+            
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validatie fout: ' . collect($e->errors())->flatten()->first(),
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            
+            return back()->withErrors($e->errors())->withInput();
+            
+        } catch (\Exception $e) {
+            \Log::error('Task completion error', [
+                'user_id' => auth()->id(),
+                'submission_id' => $submission->id,
+                'task_id' => $taskId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Er is een fout opgetreden bij het afronden van de taak. Probeer het opnieuw.'
+                ], 500);
+            }
+            
+            return back()->with('error', 'Er is een fout opgetreden bij het afronden van de taak. Probeer het opnieuw.');
         }
-
-        return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
-            ->with('success', 'Task completed successfully!');
     }
 
     /**
@@ -289,55 +349,103 @@ class SubmissionController extends Controller
      */
     public function complete(Request $request, Submission $submission)
     {
-        // Check if user owns this submission
-        if ($submission->user_id !== auth()->id()) {
-            abort(403, 'You do not have access to this submission.');
-        }
+        try {
+            // Check if user owns this submission
+            if ($submission->user_id !== auth()->id()) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Je hebt geen toegang tot deze checklist.'
+                    ], 403);
+                }
+                abort(403, 'You do not have access to this submission.');
+            }
 
-        // Check if all required tasks are completed
-        $pendingTasks = $submission->submissionTasks()
-            ->where('status', 'pending')
-            ->whereHas('task', function ($query) {
-                $query->where('is_required', true);
-            })
-            ->count();
+            // Check if all required tasks are completed
+            $pendingTasks = $submission->submissionTasks()
+                ->where('status', 'pending')
+                ->whereHas('task', function ($query) {
+                    $query->where('is_required', true);
+                })
+                ->count();
 
-        if ($pendingTasks > 0) {
+            if ($pendingTasks > 0) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Voltooi eerst alle verplichte taken voordat je de checklist kunt indienen.'
+                    ], 422);
+                }
+                
+                return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
+                    ->with('error', 'Please complete all required tasks before submitting.');
+            }
+
+            // Handle digital signature validation with custom messages
+            $rules = [
+                'employee_signature' => $submission->taskList->requires_signature ? 'required|string' : 'nullable|string',
+                'notes' => 'nullable|string',
+            ];
+            
+            $messages = [
+                'employee_signature.required' => 'Een digitale handtekening is vereist om de checklist in te dienen.'
+            ];
+
+            $validated = $request->validate($rules, $messages);
+
+            $submission->update([
+                'completed_at' => now(),
+                'status' => 'completed',
+                'employee_signature' => $validated['employee_signature'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Handle AJAX requests
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Checklist succesvol ingediend!',
+                    'redirect_url' => route('employee.dashboard')
+                ]);
+            }
+
+            return redirect()->route('employee.dashboard')
+                ->with('success', '🎉 Gefeliciteerd! Je hebt je checklist succesvol voltooid. Bedankt voor je harde werk!');
+                
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Submission completion validation error', [
+                'user_id' => auth()->id(),
+                'submission_id' => $submission->id,
+                'errors' => $e->errors()
+            ]);
+            
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Please complete all required tasks before submitting.'
+                    'message' => 'Validatie fout: ' . collect($e->errors())->flatten()->first(),
+                    'errors' => $e->errors()
                 ], 422);
             }
             
-            return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
-                ->with('error', 'Please complete all required tasks before submitting.');
-        }
-
-        // Handle digital signature if required
-        $validated = $request->validate([
-            'employee_signature' => $submission->taskList->requires_signature ? 'required|string' : 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-
-        $submission->update([
-            'completed_at' => now(),
-            'status' => 'completed',
-            'employee_signature' => $validated['employee_signature'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        // Handle AJAX requests
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Checklist submitted successfully!',
-                'redirect_url' => route('employee.dashboard')
+            return back()->withErrors($e->errors())->withInput();
+            
+        } catch (\Exception $e) {
+            \Log::error('Submission completion error', [
+                'user_id' => auth()->id(),
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+            
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Er is een fout opgetreden bij het indienen van de checklist. Probeer het opnieuw.'
+                ], 500);
+            }
+            
+            return back()->with('error', 'Er is een fout opgetreden bij het indienen van de checklist. Probeer het opnieuw.');
         }
-
-        return redirect()->route('employee.dashboard')
-            ->with('success', '🎉 Congratulations! You have successfully completed your checklist. Thank you for your hard work!');
     }
 
     private function userHasAccessToList($user, $list)
