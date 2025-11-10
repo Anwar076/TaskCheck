@@ -498,15 +498,18 @@ class TaskListController extends Controller
             'rejection_reason' => 'required|string',
         ]);
 
-        $submissionTask->update([
-            'status' => 'rejected',
-            'rejection_reason' => $validatedData['rejection_reason'],
-            'rejected_at' => now(),
-            'rejected_by' => auth()->id(),
-        ]);
+        $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
+
+        // Check if it's an AJAX request
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Task rejected successfully. Employee has been notified.',
+            ]);
+        }
 
         return redirect()->back()
-            ->with('success', 'Task rejected successfully.');
+            ->with('success', 'Task rejected successfully. Employee has been notified.');
     }
 
     public function requestRedo(Request $request, \App\Models\SubmissionTask $submissionTask)
@@ -515,15 +518,18 @@ class TaskListController extends Controller
             'redo_reason' => 'nullable|string',
         ]);
 
-        $submissionTask->update([
-            'status' => 'redo_requested',
-            'redo_reason' => $validatedData['redo_reason'],
-            'redo_requested_at' => now(),
-            'redo_requested_by' => auth()->id(),
-        ]);
+        $submissionTask->requestRedo(auth()->id(), $validatedData['redo_reason']);
+
+        // Check if it's an AJAX request
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Redo requested successfully. Employee can now redo this task and has been notified.',
+            ]);
+        }
 
         return redirect()->back()
-            ->with('success', 'Redo requested successfully.');
+            ->with('success', 'Redo requested successfully. Employee can now redo this task and has been notified.');
     }
 
     public function approveTask(Request $request, \App\Models\SubmissionTask $submissionTask)
@@ -532,12 +538,15 @@ class TaskListController extends Controller
             'manager_comment' => 'nullable|string',
         ]);
 
-        $submissionTask->update([
-            'status' => 'approved',
-            'manager_comment' => $validatedData['manager_comment'],
-            'reviewed_at' => now(),
-            'reviewed_by' => auth()->id(),
-        ]);
+        $submissionTask->approve(auth()->id(), $validatedData['manager_comment']);
+
+        // Check if it's an AJAX request
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Task approved successfully.',
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Task approved successfully.');

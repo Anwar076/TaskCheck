@@ -21,6 +21,7 @@ class SubmissionTask extends Model
         'manager_comment',
         'rejection_reason',
         'redo_requested',
+        'redo_reason',
         'completed_at',
         'reviewed_at',
         'rejected_at',
@@ -84,7 +85,7 @@ class SubmissionTask extends Model
 
     public function scopeRedoRequested($query)
     {
-        return $query->where('redo_requested', true);
+        return $query->where('status', 'redo_requested');
     }
 
     // Helper methods
@@ -107,11 +108,12 @@ class SubmissionTask extends Model
         );
     }
 
-    public function requestRedo($reviewerId)
+    public function requestRedo($reviewerId, $reason = null)
     {
         $this->update([
-            'status' => 'pending',
+            'status' => 'redo_requested',
             'redo_requested' => true,
+            'redo_reason' => $reason,
             'reviewed_by' => $reviewerId,
             'reviewed_at' => now(),
         ]);

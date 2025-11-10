@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Monitoring Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4">🔧 Live Monitoring Debug & Repair</h1>
+        
+        <div class="bg-white rounded-lg shadow p-4 mb-4">
+            <h2 class="font-bold mb-2">Status Checker</h2>
+            <div class="space-y-2">
+                <button id="check-route" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    ✅ Check Route
+                </button>
+                <button id="test-api" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    🧪 Test API
+                </button>
+                <button id="test-auto-refresh" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    🔄 Test Auto-Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4">
+            <h3 class="font-bold mb-2">🔍 Debug Log</h3>
+            <div id="debug-log" class="bg-gray-100 p-3 rounded text-sm font-mono h-64 overflow-y-auto">
+                <div class="text-gray-600">Debug log wordt hier getoond...</div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4 mt-4">
+            <h3 class="font-bold mb-2">📊 Live Data Preview</h3>
+            <div id="data-preview" class="bg-gray-50 p-3 rounded">
+                <div class="text-gray-600">API data wordt hier getoond...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval;
+        let logIndex = 0;
+        
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                'info': 'text-blue-600',
+                'success': 'text-green-600', 
+                'error': 'text-red-600',
+                'warning': 'text-orange-600'
+            };
+            
+            logDiv.innerHTML += `<div class="${colors[type]}"><span class="text-gray-500">[${timestamp}]</span> ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function testAPI() {
+            addLog('🧪 Testing API endpoint...', 'info');
+            
+            fetch('/admin/live-monitoring', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                addLog(`📡 Response status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                addLog('✅ API call successful!', 'success');
+                addLog(`📊 Active sessions: ${data.activeSessions ? data.activeSessions.length : 0}`, 'info');
+                addLog(`🎯 Summary: ${JSON.stringify(data.summary)}`, 'info');
+                
+                // Show data preview
+                const previewDiv = document.getElementById('data-preview');
+                previewDiv.innerHTML = `
+                    <div class="space-y-2">
+                        <div><strong>Actieve sessies:</strong> ${data.activeSessions ? data.activeSessions.length : 0}</div>
+                        <div><strong>Recent voltooid:</strong> ${data.recentCompletions ? data.recentCompletions.length : 0}</div>
+                        <div><strong>Timestamp:</strong> ${data.timestamp}</div>
+                        <details class="mt-2">
+                            <summary class="cursor-pointer font-medium">Raw JSON Data</summary>
+                            <pre class="mt-2 text-xs bg-gray-200 p-2 rounded overflow-auto">${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                addLog(`❌ API Error: ${error.message}`, 'error');
+                console.error('API Error:', error);
+            });
+        }
+        
+        function testAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                addLog('🔄 Auto-refresh stopped', 'warning');
+                document.getElementById('test-auto-refresh').textContent = '🔄 Start Auto-Refresh';
+                refreshInterval = null;
+            } else {
+                addLog('🔄 Starting auto-refresh (every 5 seconds for test)', 'info');
+                refreshInterval = setInterval(() => {
+                    addLog(`🔄 Auto-refresh tick #${++logIndex}`, 'info');
+                    testAPI();
+                }, 5000);
+                document.getElementById('test-auto-refresh').textContent = '⏹️ Stop Auto-Refresh';
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('check-route').addEventListener('click', function() {
+            addLog('🛣️ Checking route availability...', 'info');
+            fetch('/admin/live-monitoring', { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        addLog('✅ Route is accessible!', 'success');
+                    } else {
+                        addLog(`❌ Route error: ${response.status}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ Route check failed: ${error.message}`, 'error');
+                });
+        });
+        
+        document.getElementById('test-api').addEventListener('click', testAPI);
+        document.getElementById('test-auto-refresh').addEventListener('click', testAutoRefresh);
+        
+        // Auto-run initial tests
+        addLog('🚀 Debug tool loaded', 'success');
+        setTimeout(() => {
+            addLog('🔍 Running initial diagnostics...', 'info');
+            document.getElementById('check-route').click();
+        }, 1000);
+    </script>
+</body>
+</html>

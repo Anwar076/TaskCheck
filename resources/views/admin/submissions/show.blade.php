@@ -398,7 +398,7 @@
                                         <h6 class="text-lg font-bold text-gray-900 mb-4 text-center">Review Actions</h6>
                                         
                                         <!-- Approve Form -->
-                                        <form method="POST" action="{{ route('admin.submission-tasks.approve', $submissionTask) }}" class="mb-4">
+                                        <form method="POST" action="{{ route('admin.submission-tasks.approve', $submissionTask) }}" class="mb-4" id="approve-form-{{ $submissionTask->id }}">
                                             @csrf
                                             <div class="mb-4">
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Approval Comment (Optional)</label>
@@ -407,7 +407,7 @@
                                                           rows="3" 
                                                           class="w-full text-sm border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm resize-none"></textarea>
                                             </div>
-                                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105">
+                                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105" id="approve-btn-{{ $submissionTask->id }}">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                                 </svg>
@@ -416,7 +416,7 @@
                                         </form>
 
                                         <!-- Reject Form -->
-                                        <form method="POST" action="{{ route('admin.submission-tasks.reject', $submissionTask) }}">
+                                        <form method="POST" action="{{ route('admin.submission-tasks.reject', $submissionTask) }}" id="reject-form-{{ $submissionTask->id }}">
                                             @csrf
                                             <div class="mb-4">
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Rejection Reason (Required)</label>
@@ -426,7 +426,7 @@
                                                           required
                                                           class="w-full text-sm border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-sm resize-none"></textarea>
                                             </div>
-                                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105">
+                                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105" id="reject-btn-{{ $submissionTask->id }}">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                 </svg>
@@ -448,7 +448,7 @@
                                             <p class="text-sm text-red-700 mb-4">This task has been rejected and is waiting for further action.</p>
                                         </div>
                                         
-                                        <form method="POST" action="{{ route('admin.submission-tasks.redo', $submissionTask) }}">
+                                        <form method="POST" action="{{ route('admin.submission-tasks.redo', $submissionTask) }}" id="redo-form-{{ $submissionTask->id }}">
                                             @csrf
                                             <div class="mb-4">
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Redo Reason (Optional)</label>
@@ -457,7 +457,7 @@
                                                           rows="2" 
                                                           class="w-full text-sm border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-sm resize-none"></textarea>
                                             </div>
-                                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105">
+                                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105" id="redo-btn-{{ $submissionTask->id }}">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                                 </svg>
@@ -551,6 +551,255 @@ document.addEventListener('keydown', function(e) {
         closeImageModal();
     }
 });
+
+// Auto-refresh functionality after form submissions
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle approve form submissions
+    document.querySelectorAll('[id^="approve-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const taskId = form.id.replace('approve-form-', '');
+            const submitBtn = document.getElementById('approve-btn-' + taskId);
+            
+            // Show loading state
+            submitBtn.innerHTML = `
+                <svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Processing...
+            `;
+            submitBtn.disabled = true;
+            
+            // Submit form via fetch
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (response.ok || response.status === 302) {
+                    // Show success message
+                    showNotification('Task approved successfully!', 'success');
+                    // Reload page after short delay to show new status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error('Network response was not ok: ' + response.status);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                showNotification('Error approving task. Please try again.', 'error');
+                // Reset button
+                submitBtn.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Approve Task
+                `;
+                submitBtn.disabled = false;
+            });
+        });
+    });
+    
+    // Handle reject form submissions
+    document.querySelectorAll('[id^="reject-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const taskId = form.id.replace('reject-form-', '');
+            const submitBtn = document.getElementById('reject-btn-' + taskId);
+            
+            // Check if rejection reason is provided
+            const rejectionReason = form.querySelector('textarea[name="rejection_reason"]').value.trim();
+            if (!rejectionReason) {
+                showNotification('Rejection reason is required', 'error');
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.innerHTML = `
+                <svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Processing...
+            `;
+            submitBtn.disabled = true;
+            
+            // Submit form via fetch
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Reject response status:', response.status);
+                if (response.ok || response.status === 302) {
+                    // Show success message
+                    showNotification('Task rejected successfully! Employee will be notified.', 'success');
+                    // Reload page after short delay to show new status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    return response.text().then(text => {
+                        console.error('Reject error response:', text);
+                        throw new Error('Network response was not ok: ' + response.status);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Reject fetch error:', error);
+                showNotification('Error rejecting task. Please try again.', 'error');
+                // Reset button
+                submitBtn.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Reject Task
+                `;
+                submitBtn.disabled = false;
+            });
+        });
+    });
+    
+    // Handle redo form submissions
+    document.querySelectorAll('[id^="redo-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const taskId = form.id.replace('redo-form-', '');
+            const submitBtn = document.getElementById('redo-btn-' + taskId);
+            
+            // Show loading state
+            submitBtn.innerHTML = `
+                <svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Processing...
+            `;
+            submitBtn.disabled = true;
+            
+            // Submit form via fetch
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Redo response status:', response.status);
+                if (response.ok || response.status === 302) {
+                    // Show success message
+                    showNotification('Redo request sent successfully! Employee can now redo this task.', 'success');
+                    // Reload page after short delay to show new status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    return response.text().then(text => {
+                        console.error('Redo error response:', text);
+                        throw new Error('Network response was not ok: ' + response.status);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Redo fetch error:', error);
+                showNotification('Error requesting redo. Please try again.', 'error');
+                // Reset button
+                submitBtn.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Request Employee Redo
+                `;
+                submitBtn.disabled = false;
+            });
+        });
+    });
+});
+
+// Notification function
+function showNotification(message, type = 'success') {
+    // Remove existing notification if any
+    const existingNotification = document.querySelector('.notification-toast');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification-toast fixed top-5 right-5 z-50 max-w-sm p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-out ${
+        type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : 'bg-red-500 text-white'
+    }`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                ${type === 'success' 
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+                }
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <div class="flex">
+                    <button type="button" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()" class="rounded-md p-1.5 hover:bg-black hover:bg-opacity-10 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+        notification.style.opacity = '1';
+    }, 10);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.transform = 'translateX(100%)';
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
+}
 </script>
 
 @endsection

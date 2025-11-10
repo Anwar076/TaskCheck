@@ -89,6 +89,7 @@ Route::get('/dashboard', function () {
 // Admin Routes
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/live-monitoring', [AdminDashboardController::class, 'liveMonitoring'])->name('live-monitoring');
     
     // API-powered routes
     Route::get('/lists', [TaskListController::class, 'index'])->name('lists.index');

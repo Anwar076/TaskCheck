@@ -79,13 +79,42 @@
                                     @endif
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="text-xl font-bold {{ $submissionTask->status === 'completed' ? 'text-green-900' : 'text-gray-900' }} mb-2">
-                                        {{ $task->title }}
-                                    </h3>
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <h3 class="text-xl font-bold {{ $submissionTask->status === 'completed' ? 'text-green-900' : 'text-gray-900' }}">
+                                            {{ $task->title }}
+                                        </h3>
+                                        @if($task->instructions)
+                                            <button type="button" 
+                                                    onclick="toggleInstructions('task-{{ $submissionTask->id }}')"
+                                                    class="flex-shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors"
+                                                    title="Klik voor gedetailleerde instructies">
+                                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
                                     @if($task->description)
                                         <p class="text-sm {{ $submissionTask->status === 'completed' ? 'text-green-700' : 'text-gray-600' }}">
                                             {{ $task->description }}
                                         </p>
+                                    @endif
+                                    
+                                    @if($task->instructions)
+                                        <!-- Collapsible Instructions -->
+                                        <div id="instructions-task-{{ $submissionTask->id }}" class="hidden mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0 mr-2">
+                                                    <svg class="w-4 h-4 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h4 class="text-sm font-semibold text-blue-900 mb-1">Gedetailleerde Instructies</h4>
+                                                    <p class="text-sm text-blue-700 whitespace-pre-line leading-relaxed">{{ $task->instructions }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -117,12 +146,12 @@
                                         </svg>
                                         Rejected
                                     </span>
-                                @elseif($submissionTask->redo_requested)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                @elseif($submissionTask->status === 'redo_requested')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
-                                        Redo Required
+                                        Redo Requested
                                     </span>
                                 @endif
                             </div>
@@ -147,13 +176,18 @@
                                             </p>
                                         @endif
                                         <p class="text-red-700">
-                                            This task was rejected on {{ $submissionTask->rejected_at->format('M j, Y g:i A') }}. 
-                                            Please review the feedback and complete the task again.
+                                            This task was rejected on {{ $submissionTask->rejected_at ? $submissionTask->rejected_at->format('M j, Y g:i A') : 'unknown date' }}. 
+                                            <strong>You cannot edit this task until your manager requests a redo.</strong>
                                         </p>
-                                    @elseif($submissionTask->redo_requested)
-                                        <h4 class="text-lg font-semibold text-amber-900 mb-2">Redo Requested</h4>
-                                        <p class="text-amber-800">
-                                            Please redo this task. Review the instructions and complete it again.
+                                    @elseif($submissionTask->status === 'redo_requested')
+                                        <h4 class="text-lg font-semibold text-orange-900 mb-2">Redo Requested</h4>
+                                        @if($submissionTask->redo_reason)
+                                            <p class="text-orange-800 mb-2">
+                                                <strong>Redo Reason:</strong> {{ $submissionTask->redo_reason }}
+                                            </p>
+                                        @endif
+                                        <p class="text-orange-700">
+                                            Please redo this task with the feedback provided.
                                         </p>
                                     @endif
                                 </div>
@@ -161,24 +195,9 @@
                         </div>
                     @endif
 
-                    @if($submissionTask->status === 'pending' || $submissionTask->status === 'rejected' || $submissionTask->redo_requested)
+                    @if($submissionTask->status === 'pending' || $submissionTask->status === 'redo_requested')
                         <!-- Task Completion Form -->
                         <div class="p-6">
-                            @if($task->instructions)
-                                <div class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                    <div class="flex items-start">
-                                        <div class="flex-shrink-0 mr-3">
-                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-sm font-semibold text-blue-900 mb-2">Instructions</h4>
-                                            <p class="text-sm text-blue-700 whitespace-pre-line">{{ $task->instructions }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
 
                             @if($task->checklist_items && count($task->checklist_items) > 0)
                                 <div class="mb-6 p-4 bg-cyan-50 rounded-xl border border-cyan-200">
@@ -867,6 +886,11 @@ class ValidationError extends Error {
 document.addEventListener('DOMContentLoaded', function() {
     // Checklist persistence & forms
     initializeChecklists();
+    
+    // Check and update final submission form status on page load
+    setTimeout(() => {
+        updateFinalSubmissionForm();
+    }, 500);
 
     // Ensure CSRF meta present
     if (!document.querySelector('meta[name="csrf-token"]')) {
@@ -1019,18 +1043,67 @@ function updateFinalSubmissionForm() {
         const finalSection = document.getElementById('final-submission-section');
         if (!finalSection) return;
 
+        console.log('Updating final submission form:', { completed: completedRequiredTasks, total: totalRequiredTasks });
+
         if (completedRequiredTasks >= totalRequiredTasks && totalRequiredTasks > 0) {
+            // Enable the form and update the header
             enableFinalSubmissionForm();
+            
+            // Smooth scroll and highlight effect
             setTimeout(() => {
                 finalSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 finalSection.style.boxShadow = '0 0 0 3px rgba(34, 197, 94, 0.5)';
                 finalSection.style.transition = 'all 0.5s ease-out';
                 showNotification('🎉 Alle verplichte taken zijn voltooid! Je kunt nu de checklist indienen.', 'success', 5000);
-                setTimeout(() => { finalSection.style.boxShadow = ''; }, 3000);
+                
+                // Remove highlight after 3 seconds
+                setTimeout(() => { 
+                    finalSection.style.boxShadow = ''; 
+                }, 3000);
             }, 100);
+            
+            // Also ensure the form is enabled and visible
+            const form = finalSection.querySelector('#final-submission-form');
+            if (form) {
+                form.style.opacity = '1';
+                form.style.pointerEvents = 'auto';
+            }
+        } else {
+            // Tasks still pending - ensure disabled state
+            updateToDisabledState();
         }
     } catch (e) {
         console.error('updateFinalSubmissionForm error:', e);
+    }
+}
+
+function updateToDisabledState() {
+    const finalSection = document.getElementById('final-submission-section');
+    if (!finalSection) return;
+
+    // Update header to show disabled state
+    const header = finalSection.querySelector('.bg-gradient-to-r');
+    if (header) {
+        header.className = 'bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-100 p-6';
+        
+        const icon = header.querySelector('.w-10.h-10');
+        if (icon) {
+            icon.className = 'w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center mr-4';
+            icon.innerHTML = `
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            `;
+        }
+        
+        const title = header.querySelector('h3');
+        if (title) title.textContent = 'Checklist Indienen';
+        
+        const description = header.querySelector('p');
+        if (description) {
+            description.textContent = 'Voltooi eerst alle verplichte taken om de checklist in te kunnen dienen.';
+            description.className = 'text-amber-700 font-medium';
+        }
     }
 }
 
@@ -1204,13 +1277,16 @@ function countCompletedRequiredTasks() {
             if (serverCompleted || dynamicCompleted) completedRequired++;
         }
     });
+    console.log('Completed required tasks:', completedRequired);
     return completedRequired;
 }
+
 function countTotalRequiredTasks() {
     let totalRequired = 0;
     document.querySelectorAll('.task-card').forEach(card => {
         if (elementContainsText(card, '.text-red-800', 'Required')) totalRequired++;
     });
+    console.log('Total required tasks:', totalRequired);
     return totalRequired;
 }
 
@@ -1437,6 +1513,52 @@ function showNotification(message, type = 'success', duration = 3000) {
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => notification.remove(), 320);
     }, duration);
+}
+
+// Toggle Instructions
+function toggleInstructions(taskId) {
+    const instructionsElement = document.getElementById('instructions-' + taskId);
+    const button = event.target.closest('button');
+    
+    if (instructionsElement.classList.contains('hidden')) {
+        // Show instructions
+        instructionsElement.classList.remove('hidden');
+        instructionsElement.style.maxHeight = '0px';
+        instructionsElement.style.overflow = 'hidden';
+        instructionsElement.style.transition = 'max-height 0.3s ease-out';
+        
+        // Animate in
+        setTimeout(() => {
+            instructionsElement.style.maxHeight = instructionsElement.scrollHeight + 'px';
+        }, 10);
+        
+        // Change button appearance
+        button.classList.add('bg-blue-100');
+        button.title = 'Verberg instructies';
+        
+        // Change icon to close/up arrow
+        const icon = button.querySelector('svg');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>';
+        
+    } else {
+        // Hide instructions
+        instructionsElement.style.maxHeight = '0px';
+        
+        setTimeout(() => {
+            instructionsElement.classList.add('hidden');
+            instructionsElement.style.maxHeight = '';
+            instructionsElement.style.overflow = '';
+            instructionsElement.style.transition = '';
+        }, 300);
+        
+        // Reset button appearance
+        button.classList.remove('bg-blue-100');
+        button.title = 'Klik voor gedetailleerde instructies';
+        
+        // Reset icon to info icon
+        const icon = button.querySelector('svg');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+    }
 }
 </script>
 
