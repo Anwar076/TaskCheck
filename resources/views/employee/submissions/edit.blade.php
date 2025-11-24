@@ -308,26 +308,48 @@
                                                     </button>
                                                 </div>
 
-                                                {{-- MOBIEL / TABLET: één grote Upload / Camera knop --}}
+                                                {{-- MOBIEL / TABLET: keuze tussen foto maken of uploaden --}}
                                                 <button type="button" 
                                                         class="md:hidden w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                        onclick="uploadFile('{{ $submissionTask->id }}')">
+                                                        onclick="openMobileMediaChooser('{{ $submissionTask->id }}', '{{ $task->required_proof_type }}')">
                                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                                     </svg>
-                                                    Upload / Camera
+                                                    Foto maken of uploaden
                                                 </button>
+
                                             </div>
                                         </div>
 
                                         
                                         <!-- Hidden file input -->
-                                        <input type="file" id="file-input-{{ $submissionTask->id }}" name="proof_files[]" multiple 
+                                        @php
+                                            $accept = null;
+                                            $capture = null;
+
+                                            if ($task->required_proof_type === 'photo') {
+                                                $accept = 'image/*';
+                                                $capture = 'environment'; // achtercamera
+                                            } elseif ($task->required_proof_type === 'video') {
+                                                $accept = 'video/*';
+                                                $capture = 'environment';
+                                            } elseif ($task->required_proof_type === 'any') {
+                                                $accept = 'image/*,video/*';
+                                            }
+                                        @endphp
+
+                                        <input
+                                            type="file"
+                                            id="file-input-{{ $submissionTask->id }}"
+                                            name="proof_files[]"
+                                            multiple
                                             class="hidden"
-                                            @if($task->required_proof_type === 'photo') accept="image/*" @endif
-                                            @if($task->required_proof_type === 'video') accept="video/*" @endif
+                                            @if($accept) accept="{{ $accept }}" @endif
+                                            @if($capture) capture="{{ $capture }}" @endif
                                             onchange="handleFileSelect(this, '{{ $submissionTask->id }}')"
-                                            {{ in_array($task->required_proof_type, ['photo', 'video', 'file']) ? 'required' : '' }}>
+                                            {{ in_array($task->required_proof_type, ['photo', 'video', 'file']) ? 'required' : '' }}
+                                        >
+
                                         
                                         <!-- Preview area -->
                                         <div id="preview-area-{{ $submissionTask->id }}" class="mt-4 space-y-2">
