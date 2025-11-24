@@ -1,90 +1,77 @@
-const CACHE_NAME = 'taskcheck-v4.1.0-video-recording-complete';
-const urlsToCache = [
+// ==== BASIS CONFIG ====
+const CACHE_NAME = 'taskcheck-v5.0.0';
+const STATIC_ASSETS = [
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/offline.html'
-  // Note: CSS/JS files are dynamically loaded with versioned filenames
+  '/offline.html',
 ];
 
-// Never cache these URLs (always fetch fresh)
+// Nooit cachen (altijd vers ophalen)
 const NEVER_CACHE = [
   '/login',
   '/logout',
+  '/register',
+  '/password',
   '/refresh-csrf',
   '/sanctum/csrf-cookie',
-  '/employee/submissions', // Always fetch fresh submission pages
-  '/api/submissions' // Always fetch fresh API calls
+  '/employee/submissions', // altijd vers
+  '/admin',                // admin schermen liever niet cachen
+  '/api',                  // api calls niet via cache
 ];
 
-// Install event - cache resources
+function shouldNeverCache(url) {
+  const path = url.pathname;
+  return NEVER_CACHE.some((blocked) => path === blocked || path.startsWith(blocked));
+}
+
+// ==== INSTALL ====
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log('[SW] Installing…');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching files');
-        return cache.addAll(urlsToCache);
-      })
+      .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => {
-        console.log('Service Worker: Installation complete');
+        console.log('[SW] Static assets cached');
         return self.skipWaiting();
       })
-      .catch((error) => {
-        console.error('Service Worker: Installation failed', error);
-      })
+      .catch((err) => console.error('[SW] Install error', err))
   );
 });
 
-// Force update service worker
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
-// Activate event - clean up old caches
+// ==== ACTIVATE ====
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('[SW] Activating…');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Deleting old cache', cacheName);
-            return caches.delete(cacheName);
+    caches.keys().then((names) =>
+      Promise.all(
+        names.map((name) => {
+          if (name !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache', name);
+            return caches.delete(name);
           }
         })
-      );
-    }).then(() => {
-      console.log('Service Worker: Activation complete');
-      return self.clients.claim();
-    })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// Fetch event - serve cached content when offline
+// ==== FETCH HANDLER ====
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  const req = event.request;
 
-  // Skip requests to external domains
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-  
-  // Check if URL should never be cached
-  const url = new URL(event.request.url);
-  const shouldNeverCache = NEVER_CACHE.some(path => url.pathname.includes(path));
-  
-  if (shouldNeverCache) {
-    // Always fetch fresh for login/logout/csrf routes
+  // Alleen GET en zelfde origin
+  if (req.method !== 'GET') return;
+  if (!req.url.startsWith(self.location.origin)) return;
+
+  const url = new URL(req.url);
+
+  // Routes die nooit gecached mogen worden (login/logout, api, csrf, etc.)
+  if (shouldNeverCache(url)) {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        // Return offline page if network fails
-        if (event.request.destination === 'document') {
+      fetch(req).catch(() => {
+        // Als navigatie faalt → offline pagina
+        if (req.mode === 'navigate' || req.destination === 'document') {
           return caches.match('/offline.html');
         }
       })
@@ -92,79 +79,88 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        if (response) {
-          console.log('Service Worker: Serving from cache', event.request.url);
-          return response;
-        }
+  // HTML / navigatie: ALTIJD network-first, NIET cachen
+  // → zorgt dat CSRF tokens en sessies altijd vers zijn
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    event.respondWith(
+      fetch(req)
+        .catch(() => caches.match('/offline.html'))
+    );
+    return;
+  }
 
-        console.log('Service Worker: Fetching from network', event.request.url);
-        return fetch(event.request)
-          .then((response) => {
-            // Don't cache if not a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+  // Static assets (css, js, images, fonts): cache-first
+  if (['style', 'script', 'image', 'font'].includes(req.destination)) {
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+
+        return fetch(req)
+          .then((res) => {
+            // Alleen succesvolle responses cachen
+            if (!res || res.status !== 200 || res.type !== 'basic') {
+              return res;
             }
 
-            // Clone the response
-            const responseToCache = response.clone();
+            const resClone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(req, resClone);
+            });
 
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
+            return res;
           })
           .catch(() => {
-            // Return offline page for navigation requests
-            if (event.request.destination === 'document') {
-              return caches.match('/offline.html');
-            }
+            // eventueel fallback voor images/fonts hier
+            return undefined;
           });
       })
-  );
+    );
+    return;
+  }
+
+  // Overige GET requests: gewoon netwerk (geen cache)
+  event.respondWith(fetch(req).catch(() => undefined));
 });
 
-// Background sync for offline form submissions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-sync') {
-    console.log('Service Worker: Background sync triggered');
-    event.waitUntil(
-      // Handle offline form submissions here
-      handleOfflineSubmissions()
-    );
+// ==== SKIP_WAITING MESSAGE ====
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
 
-// Push notifications
+// ==== BACKGROUND SYNC ====
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    console.log('[SW] Background sync triggered');
+    event.waitUntil(handleOfflineSubmissions());
+  }
+});
+
+// ==== PUSH NOTIFICATIONS ====
 self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push notification received');
-  
+  console.log('[SW] Push received');
+  const body = event.data ? event.data.text() : 'New notification from TaskCheck';
+
   const options = {
-    body: event.data ? event.data.text() : 'New notification from TaskCheck',
+    body: body,
     icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    badge: '/icons/icon-192x192.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      primaryKey: 1,
     },
     actions: [
       {
         action: 'explore',
-        title: 'View Details',
-        icon: '/icons/checkmark.png'
+        title: 'View details',
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/icons/xmark.png'
-      }
-    ]
+      },
+    ],
   };
 
   event.waitUntil(
@@ -172,63 +168,57 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked');
   event.notification.close();
 
   if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/admin/dashboard')
-    );
+    event.waitUntil(clients.openWindow('/admin/dashboard'));
   } else if (event.action === 'close') {
-    // Just close the notification
+    // niets
   } else {
-    // Default action - open the app
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+    event.waitUntil(clients.openWindow('/'));
   }
 });
 
-// Handle offline submissions
+// ==== OFFLINE SUBMISSIONS (BASIS) ====
+// LET OP: hier géén document / window gebruiken! Service worker heeft dat niet.
 async function handleOfflineSubmissions() {
   try {
-    // Get offline submissions from IndexedDB
     const submissions = await getOfflineSubmissions();
-    
+
     for (const submission of submissions) {
       try {
-        const response = await fetch('/api/submissions', {
+        const res = await fetch('/api/submissions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            // Eventuele auth/CSRF hier toevoegen als je dat later goed inricht.
           },
-          body: JSON.stringify(submission)
+          body: JSON.stringify(submission),
         });
 
-        if (response.ok) {
-          // Remove from offline storage
+        if (res.ok) {
           await removeOfflineSubmission(submission.id);
-          console.log('Service Worker: Offline submission synced successfully');
+          console.log('[SW] Offline submission synced', submission.id);
+        } else {
+          console.warn('[SW] Sync failed with status', res.status);
         }
-      } catch (error) {
-        console.error('Service Worker: Failed to sync offline submission', error);
+      } catch (e) {
+        console.error('[SW] Error syncing one submission', e);
       }
     }
-  } catch (error) {
-    console.error('Service Worker: Error handling offline submissions', error);
+  } catch (e) {
+    console.error('[SW] Error in handleOfflineSubmissions', e);
   }
 }
 
-// IndexedDB helpers (simplified)
+// Dummy helpers - implementeer dit in combinatie met IndexedDB als je het echt gaat gebruiken
 async function getOfflineSubmissions() {
-  // Implementation would depend on your IndexedDB setup
+  // TODO: haal data uit IndexedDB
   return [];
 }
 
 async function removeOfflineSubmission(id) {
-  // Implementation would depend on your IndexedDB setup
+  // TODO: verwijder record uit IndexedDB
   return true;
 }
