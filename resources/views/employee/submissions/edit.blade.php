@@ -263,6 +263,7 @@
                                 @endif
 
                                 <!-- File/Photo/Video Proof -->
+                                {{-- File/Photo/Video Proof --}}
                                 @if(in_array($task->required_proof_type, ['photo', 'video', 'file', 'any']))
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -270,31 +271,32 @@
                                             @if($task->required_proof_type !== 'any') <span class="text-red-500">*</span> @endif
                                         </label>
                                         
-                                        <!-- Camera/Upload Options -->
+                                        <!-- Knoppen -->
                                         <div class="mb-4">
                                             <div class="flex flex-col gap-3">
-                                                {{-- DESKTOP: losse knoppen voor foto / video / upload --}}
+
+                                                {{-- DESKTOP: knoppen in één rij --}}
                                                 <div class="hidden md:flex md:flex-row md:flex-wrap md:gap-3">
                                                     @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
                                                         <button type="button" 
                                                                 class="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                                                onclick="takePhoto('{{ $submissionTask->id }}')">
+                                                                onclick="openCamera('{{ $submissionTask->id }}', 'photo')">
                                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                             </svg>
-                                                            Make Photo
+                                                            Foto maken
                                                         </button>
                                                     @endif
                                                     
                                                     @if($task->required_proof_type === 'video' || $task->required_proof_type === 'any')
                                                         <button type="button" 
                                                                 class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                                onclick="takeVideo('{{ $submissionTask->id }}')">
+                                                                onclick="openCamera('{{ $submissionTask->id }}', 'video')">
                                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                                             </svg>
-                                                            Make Video
+                                                            Video opnemen
                                                         </button>
                                                     @endif
 
@@ -304,47 +306,100 @@
                                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                                         </svg>
-                                                        Upload File
+                                                        Upload bestand
                                                     </button>
                                                 </div>
 
-                                                {{-- MOBIEL / TABLET: één grote Upload / Camera knop --}}
-                                                <button type="button" 
-                                                        class="md:hidden w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                        onclick="uploadFile('{{ $submissionTask->id }}')">
-                                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                                    </svg>
-                                                    Upload / Camera
-                                                </button>
+                                                {{-- MOBIEL / TABLET: onder elkaar --}}
+                                                <div class="md:hidden flex flex-col gap-2 w-full">
+                                                    @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
+                                                        <button type="button" 
+                                                                class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                                                onclick="openCamera('{{ $submissionTask->id }}', 'photo')">
+                                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                            </svg>
+                                                            Foto maken
+                                                        </button>
+                                                    @endif
+
+                                                    @if($task->required_proof_type === 'video' || $task->required_proof_type === 'any')
+                                                        <button type="button" 
+                                                                class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                                                onclick="openCamera('{{ $submissionTask->id }}', 'video')">
+                                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                            Video opnemen
+                                                        </button>
+                                                    @endif
+
+                                                    <button type="button" 
+                                                            class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                                            onclick="uploadFile('{{ $submissionTask->id }}')">
+                                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                                        </svg>
+                                                        Upload / galerij
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        
-                                        <!-- Hidden file input -->
-                                        <input type="file" id="file-input-{{ $submissionTask->id }}" name="proof_files[]" multiple 
+                                        {{-- VERBORGEN INPUTS --}}
+
+                                        {{-- Hoofd-input die naar de server gaat --}}
+                                        <input 
+                                            type="file" 
+                                            id="file-input-{{ $submissionTask->id }}" 
+                                            name="proof_files[]" 
+                                            multiple 
                                             class="hidden"
                                             @if($task->required_proof_type === 'photo') accept="image/*" @endif
                                             @if($task->required_proof_type === 'video') accept="video/*" @endif
                                             onchange="handleFileSelect(this, '{{ $submissionTask->id }}')"
                                             {{ in_array($task->required_proof_type, ['photo', 'video', 'file']) ? 'required' : '' }}>
+
+                                        {{-- Camera-input voor foto (wordt via JS gekopieerd naar file-input) --}}
+                                        @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
+                                            <input 
+                                                type="file" 
+                                                id="camera-input-photo-{{ $submissionTask->id }}" 
+                                                accept="image/*" 
+                                                capture="environment"
+                                                class="hidden"
+                                                onchange="handleCameraCapture(this, '{{ $submissionTask->id }}')">
+                                        @endif
+
+                                        {{-- Camera-input voor video (wordt via JS gekopieerd naar file-input) --}}
+                                        @if($task->required_proof_type === 'video' || $task->required_proof_type === 'any')
+                                            <input 
+                                                type="file" 
+                                                id="camera-input-video-{{ $submissionTask->id }}" 
+                                                accept="video/*" 
+                                                capture="environment"
+                                                class="hidden"
+                                                onchange="handleCameraCapture(this, '{{ $submissionTask->id }}')">
+                                        @endif
                                         
                                         <!-- Preview area -->
                                         <div id="preview-area-{{ $submissionTask->id }}" class="mt-4 space-y-2">
-                                            <!-- Preview items will be added here -->
+                                            <!-- Preview items worden hier getoond -->
                                         </div>
                                         
                                         <p class="mt-2 text-xs sm:text-sm text-gray-500">
                                             @if($task->required_proof_type === 'photo')
-                                                Take photos or upload images as proof. Max 5MB per file.
+                                                Maak een foto of upload een afbeelding als bewijs. Max 5MB per bestand.
                                             @elseif($task->required_proof_type === 'video')
-                                                Create videos or upload videos as proof. Max 10MB per file.
+                                                Neem een video op of upload een video als bewijs. Max 10MB per bestand.
                                             @else
-                                                Upload files as proof. Max 10MB per file.
+                                                Upload bestanden als bewijs. Max 10MB per bestand.
                                             @endif
                                         </p>
                                     </div>
                                 @endif
+
 
                                 <!-- Digital Signature for Individual Task -->
                                 @if($task->requires_signature)
@@ -650,16 +705,120 @@
 <script>
 // === GLOBAL CAMERA / UPLOAD API ===
 
-function takePhoto(taskId) {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-        .then(stream => createCameraModal('photo', taskId, stream))
-        .catch(err => alert('Camera toegang mislukt: ' + err.message));
+function openCamera(taskId, mode) {
+    // mode = 'photo' of 'video'
+    const inputId = mode === 'video' 
+        ? 'camera-input-video-' + taskId 
+        : 'camera-input-photo-' + taskId;
+
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.click(); // triggert Android camera (als ondersteund)
+    } else {
+        console.warn('Camera-input niet gevonden voor', inputId);
+    }
 }
 
-function takeVideo(taskId) {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then(stream => createCameraModal('video', taskId, stream))
-        .catch(err => alert('Camera toegang mislukt: ' + err.message));
+function uploadFile(taskId) {
+    const input = document.getElementById('file-input-' + taskId);
+    if (input) {
+        input.click(); // normale upload / galerij
+    } else {
+        console.warn('File-input niet gevonden voor', taskId);
+    }
+}
+
+// ✅ Als de gebruiker een foto/video via de camera-input maakt
+function handleCameraCapture(cameraInput, taskId) {
+    const fileInput = document.getElementById('file-input-' + taskId);
+    if (!fileInput || !cameraInput.files.length) return;
+
+    const dt = new DataTransfer();
+
+    // bestaande bestanden uit hoofd-input behouden
+    for (let i = 0; i < fileInput.files.length; i++) {
+        dt.items.add(fileInput.files[i]);
+    }
+
+    // nieuwe foto/video van camera toevoegen
+    for (let i = 0; i < cameraInput.files.length; i++) {
+        dt.items.add(cameraInput.files[i]);
+    }
+
+    // hoofd-input updaten
+    fileInput.files = dt.files;
+
+    // camera-input resetten zodat je opnieuw iets kunt opnemen
+    cameraInput.value = '';
+
+    // preview updaten op basis van hoofd-input
+    handleFileSelect(fileInput, taskId);
+}
+
+// ✅ Bestaande, maar iets generieker: gebruikt altijd de files van de meegegeven input
+function handleFileSelect(input, taskId) {
+    const previewArea = document.getElementById('preview-area-' + taskId);
+    if (!previewArea) return;
+    previewArea.innerHTML = '';
+
+    Array.from(input.files).forEach(file => updateMediaPreview(taskId, file));
+}
+
+function updateMediaPreview(taskId, file) {
+    const previewArea = document.getElementById('preview-area-' + taskId);
+    if (!previewArea) return;
+
+    const url = URL.createObjectURL(file);
+    const isImg = file.type.startsWith('image/');
+    const isVid = file.type.startsWith('video/');
+
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border flex-col sm:flex-row gap-3 sm:gap-0';
+
+    let mediaHtml = `
+        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+        </div>
+    `;
+
+    if (isImg) {
+        mediaHtml = `<img src="${url}" alt="Preview" class="w-16 h-16 object-cover rounded-lg">`;
+    } else if (isVid) {
+        mediaHtml = `<video src="${url}" class="w-16 h-16 object-cover rounded-lg" muted></video>`;
+    }
+
+    row.innerHTML = `
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+            ${mediaHtml}
+            <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">${file.name}</p>
+                <p class="text-xs text-gray-500">${Math.round(file.size/1024)} KB • ${isImg ? 'Foto' : (isVid ? 'Video' : 'Bestand')}</p>
+            </div>
+        </div>
+        <button type="button" class="text-red-600 hover:text-red-800 self-end sm:self-center" onclick="removePreviewItem(this, '${taskId}', '${file.name}')">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    `;
+
+    previewArea.appendChild(row);
+}
+
+function removePreviewItem(btn, taskId, fileName) {
+    const row = btn.closest('div');
+    if (row) row.remove();
+
+    const fileInput = document.getElementById('file-input-' + taskId);
+    if (!fileInput) return;
+
+    const dt = new DataTransfer();
+    Array.from(fileInput.files).forEach(f => {
+        if (f.name !== fileName) dt.items.add(f);
+    });
+    fileInput.files = dt.files;
 }
 
 function uploadFile(taskId) {
@@ -667,114 +826,6 @@ function uploadFile(taskId) {
     if (fileInput) fileInput.click();
 }
 
-function createCameraModal(type, taskId, stream) {
-    const existing = document.getElementById('camera-modal');
-    if (existing) existing.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'camera-modal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[9999] px-3';
-
-    const isVideo = type === 'video';
-    const startText = isVideo ? 'Start Opname' : 'Maak Foto';
-
-    modal.innerHTML = `
-        <div class="bg-white rounded-xl p-4 sm:p-6 w-full max-w-[520px]">
-            <h3 class="text-base sm:text-lg font-semibold mb-3 text-gray-900">${isVideo ? 'Video opnemen' : 'Foto maken'}</h3>
-            <video id="cam-prev-${taskId}" autoplay playsinline muted class="w-full h-56 sm:h-64 bg-black rounded-lg"></video>
-            <div id="rec-status-${taskId}" class="hidden mt-2 text-red-600 font-semibold text-sm">🔴 Opname bezig...</div>
-            <div class="flex flex-col sm:flex-row gap-2 justify-end mt-4">
-                <button id="cap-btn-${taskId}" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm sm:text-base">${startText}</button>
-                <button id="stop-btn-${taskId}" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 hidden text-sm sm:text-base">Stop Opname</button>
-                <button id="close-btn-${taskId}" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700 text-sm sm:text-base">Sluiten</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const video = document.getElementById(`cam-prev-${taskId}`);
-    video.srcObject = stream;
-
-    let mediaRecorder = null;
-    let chunks = [];
-
-    if (isVideo) {
-        try {
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                chunks = [];
-                addMediaToTask(blob, `video_${Date.now()}.webm`, taskId, 'video');
-                closeCamera(taskId);
-            };
-        } catch (e) {
-            alert('Video opnemen wordt niet ondersteund in deze browser.');
-            closeCamera(taskId);
-            return;
-        }
-    }
-
-    document.getElementById(`cap-btn-${taskId}`).addEventListener('click', () => {
-        if (type === 'photo') {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-            canvas.toBlob((blob) => {
-                addMediaToTask(blob, `photo_${Date.now()}.jpg`, taskId, 'image');
-                closeCamera(taskId);
-            }, 'image/jpeg', 0.9);
-        } else {
-            mediaRecorder.start();
-            document.getElementById(`cap-btn-${taskId}`).classList.add('hidden');
-            document.getElementById(`stop-btn-${taskId}`).classList.remove('hidden');
-            document.getElementById(`rec-status-${taskId}`).classList.remove('hidden');
-        }
-    });
-
-    if (isVideo) {
-        document.getElementById(`stop-btn-${taskId}`).addEventListener('click', () => {
-            if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-        });
-    }
-
-    document.getElementById(`close-btn-${taskId}`).addEventListener('click', () => closeCamera(taskId));
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeCamera(taskId); });
-
-    window['__cam_stream_' + taskId] = stream;
-}
-
-function closeCamera(taskId) {
-    const stream = window['__cam_stream_' + taskId];
-    if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-        delete window['__cam_stream_' + taskId];
-    }
-    const modal = document.getElementById('camera-modal');
-    if (modal) modal.remove();
-}
-
-function addMediaToTask(blob, filename, taskId, mediaType) {
-    const fileInput = document.getElementById('file-input-' + taskId);
-    if (!fileInput) {
-        alert('File input niet gevonden voor task ' + taskId);
-        return;
-    }
-
-    const file = new File([blob], filename, {
-        type: blob.type || (mediaType === 'image' ? 'image/jpeg' : 'video/webm')
-    });
-
-    const dt = new DataTransfer();
-    for (let i = 0; i < fileInput.files.length; i++) dt.items.add(fileInput.files[i]);
-    dt.items.add(file);
-    fileInput.files = dt.files;
-
-    updateMediaPreview(taskId, file);
-}
 
 function handleFileSelect(input, taskId) {
     const previewArea = document.getElementById('preview-area-' + taskId);
