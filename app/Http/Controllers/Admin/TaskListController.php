@@ -110,6 +110,7 @@ class TaskListController extends Controller
                         'title' => $templateTask->title,
                         'description' => $templateTask->description,
                         'instructions' => $templateTask->instructions,
+                        'checklist_items' => $templateTask->checklist_items, // Include checklist items from template
                         'required_proof_type' => $templateTask->required_proof_type,
                         'is_required' => $templateTask->is_required,
                         'attachments' => $templateTask->attachments,
