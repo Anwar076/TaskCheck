@@ -67,11 +67,13 @@ class Notification extends Model
     // Static methods for creating notifications
     public static function createTaskRejected($userId, $taskTitle, $reason, $submissionId)
     {
+        $message = $reason;
+        $message .= "\n\nJe kunt de lijst wel indienen. Als je manager om herhaling vraagt, moet je de taak opnieuw uitvoeren.";
         return self::create([
             'user_id' => $userId,
             'type' => 'task_rejected',
-            'title' => 'Task Rejected',
-            'message' => "Your task '{$taskTitle}' was rejected. Reason: {$reason}",
+            'title' => "Je taak '{$taskTitle}' is afgewezen",
+            'message' => $message,
             'data' => [
                 'submission_id' => $submissionId,
                 'task_title' => $taskTitle,
@@ -80,16 +82,48 @@ class Notification extends Model
         ]);
     }
 
-    public static function createRedoRequested($userId, $taskTitle, $submissionId)
+    public static function createRedoRequested($userId, $taskTitle, $submissionId, $redoReason = null)
     {
+        $message = $redoReason
+            ? "Reden: {$redoReason}\n\nVoer deze taak opnieuw uit om de checklist te kunnen afronden."
+            : "Voer deze taak opnieuw uit om de checklist te kunnen afronden.";
         return self::create([
             'user_id' => $userId,
             'type' => 'task_redo_requested',
-            'title' => 'Redo Requested',
-            'message' => "Please redo the task '{$taskTitle}'",
+            'title' => "Herhaal taak '{$taskTitle}'",
+            'message' => $message,
             'data' => [
                 'submission_id' => $submissionId,
                 'task_title' => $taskTitle,
+                'redo_reason' => $redoReason,
+            ],
+        ]);
+    }
+
+    public static function createTaskOverdue($userId, $taskTitle, $taskId, $listId = null)
+    {
+        // Check of er al een ongelezen notificatie bestaat voor deze taak vandaag
+        $existingNotification = self::where('user_id', $userId)
+            ->where('type', 'task_overdue')
+            ->whereNull('read_at')
+            ->whereDate('created_at', today())
+            ->whereJsonContains('data->task_id', $taskId)
+            ->first();
+
+        // Als er al een notificatie bestaat, maak geen nieuwe
+        if ($existingNotification) {
+            return $existingNotification;
+        }
+
+        return self::create([
+            'user_id' => $userId,
+            'type' => 'task_overdue',
+            'title' => 'Taak Te Laat',
+            'message' => "De taak '{$taskTitle}' is te laat en moet nog worden afgerond",
+            'data' => [
+                'task_id' => $taskId,
+                'task_title' => $taskTitle,
+                'list_id' => $listId,
             ],
         ]);
     }

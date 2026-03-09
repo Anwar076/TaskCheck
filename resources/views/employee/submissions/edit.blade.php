@@ -5,10 +5,11 @@
 @endsection
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <!-- Clean Header Section -->
-    <div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+<div class=" bg-gray-50">
+    {{-- Hero: zelfde wrapper als takenblokken voor identieke breedte --}}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             
             {{-- Titel + info --}}
@@ -25,7 +26,7 @@
                             {{ $submission->taskList->title }}
                         </h1>
                         <p class="mt-1 text-xs sm:text-sm lg:text-base text-gray-600 font-medium">
-                            Started {{ $submission->started_at->format('M j, Y g:i A') }}
+                            Gestart {{ $submission->started_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') }}
                         </p>
                     </div>
                 </div>
@@ -34,56 +35,58 @@
             {{-- Progress indicator --}}
             <div class="flex flex-row md:flex-col items-center justify-between md:items-end gap-2 md:gap-1">
                 @php
-                    $completedTasks = $submission->submissionTasks->where('status', 'completed')->count();
+                    $completedTasks = $submission->submissionTasks->whereIn('status', ['completed', 'approved'])->count();
                     $totalTasks = $submission->submissionTasks->count();
                     $progressPercent = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+                    $progressColor = $progressPercent == 0 ? '#ef4444' : ($progressPercent >= 100 ? '#22c55e' : '#3b82f6');
+                    $textColor = $progressPercent == 0 ? 'text-red-600' : ($progressPercent >= 100 ? 'text-green-600' : 'text-gray-900');
                 @endphp
 
                 <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 relative">
                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="40" stroke="#e5e7eb" stroke-width="6" fill="none" />
                         <circle cx="50" cy="50" r="40"
-                            stroke="#3b82f6"
+                            stroke="{{ $progressColor }}"
                             stroke-width="6"
                             fill="none"
                             stroke-linecap="round"
                             stroke-dasharray="{{ 2 * 3.14159 * 40 }}"
                             stroke-dashoffset="{{ 2 * 3.14159 * 40 * (1 - ($progressPercent / 100)) }}"
-                            class="transition-all duration-1000 ease-out">
+                            class="progress-circle transition-all duration-1000 ease-out">
                         </circle>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <div class="text-sm sm:text-base lg:text-lg font-bold text-gray-900">
+                        <div class="text-sm sm:text-base lg:text-lg font-bold {{ $textColor }}">
                             {{ $progressPercent }}%
                         </div>
                     </div>
                 </div>
 
-                <p class="text-[11px] sm:text-xs lg:text-sm text-gray-500">
-                        {{ $completedTasks }}/{{ $totalTasks }} tasks
+                <p class="text-[11px] sm:text-xs lg:text-sm text-gray-500 text-center">
+                        {{ $completedTasks }}/{{ $totalTasks }} taken
                     </p>
                 </div>
             </div>
         </div>
     </div>
+    </div>
+    </div>
 
-
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
-
-        <!-- Tasks -->
+    {{-- Taken: exact dezelfde max-w-7xl + px wrapper als hero --}}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div class="space-y-6">
             @foreach($submission->submissionTasks as $index => $submissionTask)
                 @php $task = $submissionTask->task; @endphp
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden task-card"
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden task-card group"
                      data-task-id="{{ $task->id }}"
                      data-required="{{ $task->is_required ? '1' : '0' }}"
                      data-status="{{ $submissionTask->status }}">
                     <!-- Task Header -->
-                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 p-4 sm:p-6">
-                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div class="task-header bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 p-4 sm:p-6 flex items-start justify-between gap-4">
+                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 flex-1 min-w-0">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0 mr-3 sm:mr-4">
-                                    @if($submissionTask->status === 'completed')
+                                    @if(in_array($submissionTask->status, ['completed', 'approved']))
                                         <div class="w-9 h-9 sm:w-10 sm:h-10 bg-green-500 rounded-xl flex items-center justify-center">
                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -97,7 +100,7 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-start gap-2 mb-2">
-                                        <h3 class="text-lg sm:text-xl font-bold {{ $submissionTask->status === 'completed' ? 'text-green-900' : 'text-gray-900' }}">
+                                        <h3 class="text-lg sm:text-xl font-bold {{ in_array($submissionTask->status, ['completed', 'approved']) ? 'text-green-900' : 'text-gray-900' }}">
                                             {{ $task->title }}
                                         </h3>
                                         @if($task->instructions)
@@ -112,7 +115,7 @@
                                         @endif
                                     </div>
                                     @if($task->description)
-                                        <p class="text-sm sm:text-base {{ $submissionTask->status === 'completed' ? 'text-green-700' : 'text-gray-600' }}">
+                                        <p class="text-sm sm:text-base {{ in_array($submissionTask->status, ['completed', 'approved']) ? 'text-green-700' : 'text-gray-600' }}">
                                             {{ $task->description }}
                                         </p>
                                     @endif
@@ -138,7 +141,7 @@
                             <div class="flex flex-wrap gap-2 md:justify-end">
                                 @if($task->is_required)
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                                        Required
+                                        Verplicht
                                     </span>
                                 @endif
                                 @if($task->requires_signature)
@@ -146,35 +149,36 @@
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                         </svg>
-                                        Signature
+                                        Handtekening
                                     </span>
                                 @endif
-                                @if($submissionTask->status === 'completed')
+                                @if(in_array($submissionTask->status, ['completed', 'approved']))
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                         </svg>
-                                        Completed
+                                        {{ $submissionTask->status === 'approved' ? 'Goedgekeurd' : 'Afgerond' }}
                                     </span>
                                 @elseif($submissionTask->status === 'rejected')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                         </svg>
-                                        Rejected
+                                        Afgewezen
                                     </span>
                                 @elseif($submissionTask->status === 'redo_requested')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
-                                        Redo Requested
+                                        Opnieuw Vereist
                                     </span>
                                 @endif
                             </div>
                         </div>
                     </div>
 
+                    <div id="task-body-{{ $submissionTask->id }}" class="task-body">
                     @if($submissionTask->status === 'rejected' || $submissionTask->redo_requested)
                         <!-- Rejection/Redo Information -->
                         <div class="bg-red-50 border-l-4 border-red-400 px-4 sm:px-6 py-4 sm:py-6">
@@ -186,25 +190,25 @@
                                 </div>
                                 <div class="flex-1 text-sm sm:text-base">
                                     @if($submissionTask->status === 'rejected')
-                                        <h4 class="text-base sm:text-lg font-semibold text-red-900 mb-2">Task Rejected</h4>
+                                        <h4 class="text-base sm:text-lg font-semibold text-red-900 mb-2">Taak Afgewezen</h4>
                                         @if($submissionTask->rejection_reason)
                                             <p class="text-red-800 mb-2">
-                                                <strong>Reason:</strong> {{ $submissionTask->rejection_reason }}
+                                                <strong>Reden:</strong> {{ $submissionTask->rejection_reason }}
                                             </p>
                                         @endif
                                         <p class="text-red-700">
-                                            This task was rejected on {{ $submissionTask->rejected_at ? $submissionTask->rejected_at->format('M j, Y g:i A') : 'unknown date' }}. 
-                                            <strong>You cannot edit this task until your manager requests a redo.</strong>
+                                            Deze taak is afgewezen op {{ $submissionTask->rejected_at ? $submissionTask->rejected_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') : 'onbekende datum' }}. 
+                                            Je kunt deze taak niet bewerken totdat je manager om herhaling vraagt. <strong>Je kunt de lijst wel indienen.</strong>
                                         </p>
                                     @elseif($submissionTask->status === 'redo_requested')
-                                        <h4 class="text-base sm:text-lg font-semibold text-orange-900 mb-2">Redo Requested</h4>
+                                        <h4 class="text-base sm:text-lg font-semibold text-orange-900 mb-2">Opnieuw Vereist</h4>
                                         @if($submissionTask->redo_reason)
                                             <p class="text-orange-800 mb-2">
-                                                <strong>Redo Reason:</strong> {{ $submissionTask->redo_reason }}
+                                                <strong>Reden voor Herhaling:</strong> {{ $submissionTask->redo_reason }}
                                             </p>
                                         @endif
                                         <p class="text-orange-700">
-                                            Please redo this task with the feedback provided.
+                                            Herhaal deze taak met de verstrekte feedback.
                                         </p>
                                     @endif
                                 </div>
@@ -212,7 +216,7 @@
                         </div>
                     @endif
 
-                    @if($submissionTask->status === 'pending' || $submissionTask->status === 'redo_requested')
+                    @if(in_array($submissionTask->status, ['pending', 'redo_requested']))
                         <!-- Task Completion Form -->
                         <div class="p-4 sm:p-6">
 
@@ -253,11 +257,11 @@
                                 @if(in_array($task->required_proof_type, ['text', 'any']) || $task->required_proof_type === 'none')
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                            Notes/Comments
+                                            Notities/Opmerkingen
                                             @if($task->required_proof_type === 'text') <span class="text-red-500">*</span> @endif
                                         </label>
                                         <textarea name="proof_text" rows="4" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base" 
-                                            placeholder="Add any notes or comments about completing this task..."
+                                            placeholder="Voeg notities of opmerkingen toe over het voltooien van deze taak..."
                                             {{ $task->required_proof_type === 'text' ? 'required' : '' }}></textarea>
                                     </div>
                                 @endif
@@ -267,7 +271,7 @@
                                 @if(in_array($task->required_proof_type, ['photo', 'video', 'file', 'any']))
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                            Proof Files
+                                            Bewijsbestanden
                                             @if($task->required_proof_type !== 'any') <span class="text-red-500">*</span> @endif
                                         </label>
                                         
@@ -404,15 +408,15 @@
                                 <!-- Digital Signature for Individual Task -->
                                 @if($task->requires_signature)
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Signature <span class="text-red-500">*</span></label>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Handtekening <span class="text-red-500">*</span></label>
                                         <div class="mt-2 w-full max-w-full overflow-x-auto">
                                             <canvas id="signature-pad-task-{{ $submissionTask->id }}" class="border border-gray-300 rounded-xl bg-white shadow-sm w-full max-w-sm" width="350" height="120"></canvas>
                                         </div>
                                         <input type="hidden" name="digital_signature" id="signature-input-task-{{ $submissionTask->id }}" required>
                                         <div class="flex flex-col sm:flex-row gap-2 mt-3">
-                                            <button type="button" class="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors" onclick="clearSignaturePad('task-{{ $submissionTask->id }}')">Clear Signature</button>
+                                            <button type="button" class="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors" onclick="clearSignaturePad('task-{{ $submissionTask->id }}')">Handtekening Wissen</button>
                                         </div>
-                                        <p class="mt-2 text-xs sm:text-sm text-gray-500">Draw your signature above. This will be saved as proof of completion.</p>
+                                        <p class="mt-2 text-xs sm:text-sm text-gray-500">Teken je handtekening hierboven. Dit wordt opgeslagen als bewijs van voltooiing.</p>
                                     </div>
                                 @endif
 
@@ -422,12 +426,12 @@
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
-                                            Sign & Complete
+                                            Teken & Voltooien
                                         @else
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            Mark as Complete
+                                            Markeren als Voltooid
                                         @endif
                                     </button>
                                 </div>
@@ -442,14 +446,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 </div>
-                                <div class="flex-1 text-sm sm:text-base">
+                                    <div class="flex-1 text-sm sm:text-base">
                                     <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                                        Completed: {{ $submissionTask->completed_at->format('M j, Y g:i A') }}
+                                        Voltooid: {{ $submissionTask->completed_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') }}
                                     </div>
                                     
                                     @if($task->checklist_items && count($task->checklist_items) > 0)
                                         <div class="mb-4">
-                                            <strong class="text-sm text-green-800">Checklist Progress:</strong>
+                                            <strong class="text-sm text-green-800">Checklist Voortgang:</strong>
                                             <div class="mt-2 bg-white p-3 rounded-lg border border-green-200">
                                                 @php
                                                     $checklistProgress = is_array($submissionTask->checklist_progress) ? $submissionTask->checklist_progress : [];
@@ -476,7 +480,7 @@
                                                     @endforeach
                                                 </div>
                                                 <p class="text-xs text-green-600 mt-2 font-medium">
-                                                    {{ $completedCount }}/{{ count($task->checklist_items) }} items completed
+                                                    {{ $completedCount }}/{{ count($task->checklist_items) }} items voltooid
                                                 </p>
                                             </div>
                                         </div>
@@ -484,14 +488,14 @@
                                     
                                     @if($submissionTask->proof_text)
                                         <div class="mb-4">
-                                            <strong class="text-sm text-green-800">Notes:</strong>
+                                            <strong class="text-sm text-green-800">Notities:</strong>
                                             <p class="text-sm text-green-700 mt-1 bg-white p-3 rounded-lg border border-green-200">{{ $submissionTask->proof_text }}</p>
                                         </div>
                                     @endif
 
                                     @if($submissionTask->proof_files && count($submissionTask->proof_files) > 0)
                                         <div>
-                                            <strong class="text-sm text-green-800">Uploaded Files:</strong>
+                                            <strong class="text-sm text-green-800">Geüploade Bestanden:</strong>
                                             <div class="mt-2 space-y-2">
                                                 @foreach($submissionTask->proof_files as $file)
                                                     <div class="bg-white p-3 rounded-lg border border-green-200">
@@ -525,15 +529,21 @@
                             </div>
                         </div>
                     @endif
+                    </div>{{-- /task-body --}}
                 </div>
             @endforeach
         </div>
 
         <!-- Final Submission -->
         @php
+            // completed, approved, rejected (zonder herhalingsverzoek) = mag indienen
+            // redo_requested, pending = moet eerst afronden
             $allRequiredCompleted = $submission->submissionTasks
                 ->filter(fn($st) => $st->task->is_required)
-                ->every(fn($st) => $st->status === 'completed');
+                ->every(fn($st) => in_array($st->status, ['completed', 'approved', 'rejected']));
+            $hasRedoRequired = $submission->submissionTasks
+                ->filter(fn($st) => $st->task->is_required)
+                ->contains('status', 'redo_requested');
         @endphp
 
         <!-- Final Submission - Always Visible -->
@@ -569,7 +579,11 @@
                             <div class="min-w-0">
                                 <h3 class="text-lg sm:text-xl font-bold text-gray-900 break-words">Checklist Indienen</h3>
                                 <p class="mt-1 text-sm sm:text-base text-amber-700 font-medium">
-                                    Voltooi eerst alle verplichte taken om de checklist in te kunnen dienen.
+                                    @if($hasRedoRequired)
+                                        Voer de taken die opnieuw moeten worden gedaan eerst opnieuw uit om de checklist in te kunnen dienen.
+                                    @else
+                                        Voltooi eerst alle verplichte taken om de checklist in te kunnen dienen.
+                                    @endif
                                 </p>
                             </div>
                         </div>
@@ -669,7 +683,11 @@
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                     </svg>
-                                    Voltooi alle verplichte taken om in te kunnen dienen
+                                    @if($hasRedoRequired)
+                                        Voer de opnieuw vereiste taken eerst opnieuw uit
+                                    @else
+                                        Voltooi alle verplichte taken om in te kunnen dienen
+                                    @endif
                                 </p>
                             @endif
                         </div>
@@ -686,9 +704,13 @@
                             </svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-base sm:text-lg font-semibold text-amber-900 mb-2 break-words">Complete Required Tasks</h3>
+                            <h3 class="text-base sm:text-lg font-semibold text-amber-900 mb-2 break-words">Voltooi Verplichte Taken</h3>
                             <p class="text-sm sm:text-base text-amber-800">
-                                Please complete all required tasks before submitting this checklist.
+                                @if($hasRedoRequired ?? false)
+                                    Voer de taken die opnieuw moeten worden gedaan eerst opnieuw uit.
+                                @else
+                                    Voltooi eerst alle verplichte taken voordat je deze checklist indient.
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -949,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Progress circle init
-    const progressCircle = document.querySelector('circle[stroke="#3b82f6"]');
+    const progressCircle = document.querySelector('.progress-circle');
     if (progressCircle) {
         const circumference = 2 * Math.PI * 40;
         const progressPercent = {{ $progressPercent }};
@@ -1100,7 +1122,7 @@ function countCompletedRequiredTasks() {
     document.querySelectorAll('.task-card').forEach(card => {
         const isRequired = card.dataset.required === '1';
         const status = card.dataset.status;
-        if (isRequired && status === 'completed') completedRequired++;
+        if (isRequired && (status === 'completed' || status === 'approved')) completedRequired++;
     });
     return completedRequired;
 }
@@ -1370,7 +1392,7 @@ function updateTaskToCompleted(taskId, completedAt) {
                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        Completed
+                        Voltooid
                     </span>
                 `;
             }
@@ -1390,10 +1412,10 @@ function updateTaskToCompleted(taskId, completedAt) {
                     </div>
                     <div class="flex-1 text-sm sm:text-base">
                         <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                            ✅ Task completed successfully
+                            ✅ Taak succesvol voltooid
                         </div>
                         <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                            Completed: ${new Date(completedAt).toLocaleDateString('nl-NL', { 
+                            Voltooid: ${new Date(completedAt).toLocaleDateString('nl-NL', { 
                                 month: 'short',
                                 day: 'numeric',
                                 year: 'numeric',
@@ -1421,12 +1443,12 @@ function updateProgressIndicator() {
         const cards = document.querySelectorAll('.task-card');
         let completed = 0;
         cards.forEach(card => {
-            if (card.dataset.status === 'completed') completed++;
+            if (card.dataset.status === 'completed' || card.dataset.status === 'approved') completed++;
         });
         const total = cards.length;
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-        const progressCircle = document.querySelector('circle[stroke="#3b82f6"]');
+        const progressCircle = document.querySelector('.progress-circle');
         const progressText = document.querySelector('.text-base.sm\\:text-lg.font-bold');
         const progressCount = document.querySelector('.text-xs.sm\\:text-sm.text-gray-500');
 
@@ -1435,7 +1457,9 @@ function updateProgressIndicator() {
             const offset = circumference * (1 - (percent / 100));
             progressCircle.style.strokeDashoffset = offset;
             progressText.textContent = percent + '%';
-            progressCount.textContent = `${completed}/${total} tasks`;
+            progressCount.textContent = `${completed}/${total} taken`;
+            const color = percent >= 100 ? '#22c55e' : (percent > 0 ? '#3b82f6' : '#ef4444');
+            progressCircle.setAttribute('stroke', color);
         }
     } catch (e) {
         console.error('updateProgressIndicator error:', e);
@@ -1650,7 +1674,7 @@ button, a[role="button"], a[href*="dashboard"] {
     overflow: hidden;
 }
 
-circle[stroke="#3b82f6"] { transition: stroke-dashoffset 1s ease-in-out; }
+.progress-circle { transition: stroke-dashoffset 1s ease-in-out, stroke 0.3s ease; }
 
 input:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);

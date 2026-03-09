@@ -32,8 +32,15 @@ class SubmissionController extends Controller
                 });
             }
 
-            // Status filter
-            if ($request->filled('status')) {
+            // Tab filter (overrides status when set)
+            if ($request->filled('tab')) {
+                $tab = $request->get('tab');
+                if ($tab === 'to_review') {
+                    $query->where('status', 'completed');
+                } elseif ($tab === 'done') {
+                    $query->whereIn('status', ['reviewed', 'rejected']);
+                }
+            } elseif ($request->filled('status')) {
                 $query->where('status', $request->get('status'));
             }
 
@@ -50,6 +57,17 @@ class SubmissionController extends Controller
             $perPage = $request->get('per_page', 15);
             $submissions = $query->paginate($perPage);
 
+            // Tab counts and stats
+            $baseQuery = Submission::query();
+            $meta = [
+                'to_review_count' => (clone $baseQuery)->where('status', 'completed')->count(),
+                'done_count' => (clone $baseQuery)->whereIn('status', ['reviewed', 'rejected'])->count(),
+                'in_progress_count' => (clone $baseQuery)->where('status', 'in_progress')->count(),
+                'completed_count' => (clone $baseQuery)->where('status', 'completed')->count(),
+                'reviewed_count' => (clone $baseQuery)->where('status', 'reviewed')->count(),
+                'rejected_count' => (clone $baseQuery)->where('status', 'rejected')->count(),
+            ];
+
             // Add calculated fields
             $submissions->getCollection()->transform(function ($submission) {
                 $totalTasks = $submission->submissionTasks->count();
@@ -65,7 +83,7 @@ class SubmissionController extends Controller
                 return $submission;
             });
 
-            return response()->json([
+            $response = [
                 'success' => true,
                 'data' => $submissions->items(),
                 'total' => $submissions->total(),
@@ -77,7 +95,9 @@ class SubmissionController extends Controller
                 'prev_page_url' => $submissions->previousPageUrl(),
                 'next_page_url' => $submissions->nextPageUrl(),
                 'message' => 'Submissions retrieved successfully'
-            ]);
+            ];
+            $response['meta'] = $meta;
+            return response()->json($response);
             
         } catch (\Exception $e) {
             \Log::error('Failed to retrieve submissions', [
@@ -108,6 +128,7 @@ class SubmissionController extends Controller
             $validated['status'] = $validated['status'] ?? 'in_progress';
             $validated['started_at'] = now();
 
+            $validated['company_id'] = auth()->user()->company_id;
             $submission = Submission::create($validated);
             $submission->load(['user', 'taskList']);
 
@@ -140,6 +161,14 @@ class SubmissionController extends Controller
             $submission = Submission::with(['user', 'taskList', 'submissionTasks.task'])
                 ->findOrFail($id);
 
+            // Ensure submission belongs to same company
+            if ($submission->company_id !== auth()->user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to submission.'
+                ], 403);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $submission,
@@ -161,6 +190,14 @@ class SubmissionController extends Controller
     {
         try {
             $submission = Submission::findOrFail($id);
+            
+            // Ensure submission belongs to same company
+            if ($submission->company_id !== auth()->user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to submission.'
+                ], 403);
+            }
             
             $validated = $request->validate([
                 'status' => 'sometimes|in:in_progress,completed,reviewed,rejected',

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Traits\BelongsToCompany;
 
 class User extends Authenticatable
 {
@@ -27,6 +28,7 @@ class User extends Authenticatable
         'department',
         'preferences',
         'is_active',
+        'company_id',
     ];
 
     /**
@@ -104,5 +106,21 @@ class User extends Authenticatable
     public function unreadNotifications()
     {
         return $this->hasMany(Notification::class)->whereNull('read_at');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Scope a query to only include users from the current company
+     */
+    public function scopeForCurrentCompany($query)
+    {
+        if (auth()->check() && auth()->user()->company_id) {
+            return $query->where('company_id', auth()->user()->company_id);
+        }
+        return $query;
     }
 }

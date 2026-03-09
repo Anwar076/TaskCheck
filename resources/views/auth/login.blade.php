@@ -6,8 +6,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
             </svg>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p class="text-gray-600">Sign in to your TaskCheck account</p>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Welkom Terug</h1>
+        <p class="text-gray-600">Log in op uw TaskCheck account</p>
     </div>
 
     <!-- Login Form -->
@@ -44,7 +44,7 @@
             <!-- Email Address -->
             <div>
                 <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address
+                    E-mailadres
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -60,7 +60,7 @@
                            autofocus 
                            autocomplete="username"
                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('email') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Enter your email">
+                           placeholder="Voer uw e-mailadres in">
                 </div>
                 @error('email')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -70,7 +70,7 @@
             <!-- Password -->
             <div>
                 <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Password
+                    Wachtwoord
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -84,7 +84,7 @@
                            required 
                            autocomplete="current-password"
                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('password') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Enter your password">
+                           placeholder="Voer uw wachtwoord in">
                 </div>
                 @error('password')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -99,14 +99,14 @@
                            name="remember"
                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                     <label for="remember_me" class="ml-2 block text-sm text-gray-700">
-                        Remember me
+                        Onthoud mij
                     </label>
                 </div>
 
                 @if (Route::has('password.request'))
                     <a href="{{ route('password.request') }}" 
                        class="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                        Forgot password?
+                        Wachtwoord vergeten?
                     </a>
                 @endif
             </div>
@@ -118,17 +118,32 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                     </svg>
-                    Sign In
+                    Inloggen
                 </button>
             </div>
         </form>
 
+        <!-- Register Button -->
+        <div class="mt-6">
+            <a href="{{ route('register') }}" 
+               class="w-full flex justify-center items-center py-3 px-4 border-2 border-blue-600 rounded-xl shadow-sm text-sm font-semibold text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                Registreren
+            </a>
+        </div>
+
         <!-- Additional Info -->
         <div class="mt-8 text-center">
             <p class="text-sm text-gray-600">
-                Need help? Contact your administrator or 
+                Nog geen account? 
+                <a href="{{ route('register') }}" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                    Maak er een aan
+                </a>
+                <span class="mx-2">|</span>
                 <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                    support team
+                    Hulp nodig?
                 </a>
             </p>
         </div>

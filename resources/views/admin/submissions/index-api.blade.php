@@ -1,462 +1,416 @@
 @extends('layouts.admin')
 
+@section('page-title', 'Inzendingen')
+
 @section('head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Clean Page Header -->
-        <div class="mb-8">
-            <div class="md:flex md:items-center md:justify-between">
-                <div class="min-w-0 flex-1">
-                    <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">
-                        All Submissions
-                    </h1>
-                    <p class="mt-2 text-gray-600">
-                        Review and manage task submissions from employees
-                    </p>
-                </div>
-            </div>
-        </div>
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
 
-        <!-- Loading State -->
-        <div id="submissions-loading" class="text-center py-12">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p class="mt-2 text-sm text-gray-600">Loading submissions...</p>
-        </div>
-
-        <!-- Statistics Cards -->
-        <div id="submissions-stats" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6 lg:mb-8" style="display: none;">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Submissions</p>
-                        <p id="total-submissions" class="text-2xl font-bold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">In Progress</p>
-                        <p id="in-progress-submissions" class="text-2xl font-bold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Completed</p>
-                        <p id="completed-submissions" class="text-2xl font-bold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Reviewed</p>
-                        <p id="reviewed-submissions" class="text-2xl font-bold text-gray-900">0</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Search and Filter Section -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6 lg:mb-8">
-            <div class="bg-gray-50 px-4 lg:px-6 py-4 border-b border-gray-200">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                    <div class="flex-1 max-w-lg">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        {{-- Hero --}}
+        <div class="mb-6 sm:mb-8">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                             </div>
-                            <input type="text" id="search-input" placeholder="Search submissions..." 
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Inzendingen</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Bekijk en beheer taakinzendingen van medewerkers</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <select id="status-filter" class="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Status</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="reviewed">Reviewed</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                        <button id="refresh-btn" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            Refresh
+                </div>
+            </div>
+        </div>
+
+        {{-- Tabs --}}
+        <div id="submissions-tabs" class="mb-6 sm:mb-8" style="display: none;">
+            <div class="border-b border-slate-200">
+                <nav class="flex gap-1" aria-label="Tabs">
+                    <button type="button" class="tab-btn px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 border-blue-600 text-blue-600 transition-colors" data-tab-value="">
+                        Alle inzendingen
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors" data-tab-value="to_review">
+                        Te beoordelen
+                        <span id="tab-to-review-badge" class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 hidden">0</span>
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors" data-tab-value="done">
+                        Afgerond
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        {{-- Laden --}}
+        <div id="submissions-loading" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
+            <p class="mt-3 text-sm text-slate-600">Inzendingen laden...</p>
+        </div>
+
+        {{-- Stats --}}
+        <div id="submissions-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" style="display: none;">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-2xl sm:text-3xl font-bold text-slate-900" id="total-submissions">0</p>
+                        <p class="text-sm text-slate-600">Totaal</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-2xl sm:text-3xl font-bold text-slate-900" id="in-progress-submissions">0</p>
+                        <p class="text-sm text-slate-600">Bezig</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-2xl sm:text-3xl font-bold text-slate-900" id="completed-submissions">0</p>
+                        <p class="text-sm text-slate-600">Afgerond</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-2xl sm:text-3xl font-bold text-slate-900" id="reviewed-submissions">0</p>
+                        <p class="text-sm text-slate-600">Beoordeeld</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Zoeken en filter --}}
+        <div id="submissions-filters" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8" style="display: none;">
+            <div class="px-4 sm:px-6 py-4 sm:py-5">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div class="flex-1 w-full lg:max-w-md">
+                        <label for="search-input" class="sr-only">Zoeken</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                            </div>
+                            <input type="search" id="search-input" placeholder="Zoek op medewerker of lijst..." autocomplete="off"
+                                class="block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div id="status-filter-wrap" class="flex items-center gap-2">
+                            <label for="status-filter" class="text-sm text-slate-600 whitespace-nowrap">Status:</label>
+                            <select id="status-filter" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[140px]">
+                                <option value="">Alle statussen</option>
+                                <option value="in_progress">Bezig</option>
+                                <option value="completed">Afgerond</option>
+                                <option value="reviewed">Beoordeeld</option>
+                                <option value="rejected">Afgewezen</option>
+                            </select>
+                        </div>
+                        <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" title="Vernieuwen">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Submissions Table -->
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div id="submissions-table" style="display: none;">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+        {{-- Tabel --}}
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div id="submissions-table" class="overflow-x-auto" style="display: none;">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task List</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Medewerker</th>
+                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Takenlijst</th>
+                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Voortgang</th>
+                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Ingediend</th>
+                            <th class="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Acties</th>
                         </tr>
                     </thead>
-                    <tbody id="submissions-tbody" class="bg-white divide-y divide-gray-200">
-                        <!-- Submissions will be loaded here via API -->
+                    <tbody id="submissions-tbody" class="divide-y divide-slate-200">
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Empty State -->
-        <div id="empty-state" class="text-center py-12" style="display: none;">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No submissions found</h3>
-            <p class="mt-1 text-sm text-gray-500">No submissions match your current filters.</p>
+        {{-- Lege staat --}}
+        <div id="empty-state" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-12 text-center" style="display: none;">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900" id="empty-state-title">Geen inzendingen</h3>
+            <p class="mt-2 text-sm text-slate-500 max-w-sm mx-auto" id="empty-state-desc">Er zijn geen inzendingen die voldoen aan je filters.</p>
         </div>
 
-        <!-- Pagination -->
-        <div id="pagination-container" class="mt-8 flex items-center justify-between" style="display: none;">
-            <!-- Pagination will be loaded here -->
+        {{-- Fout --}}
+        <div id="error-state" class="bg-white rounded-xl shadow-sm border border-slate-100 p-8 sm:p-10 text-center" style="display: none;">
+            <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="font-semibold text-slate-900">Kon inzendingen niet laden</h3>
+            <p class="mt-1 text-sm text-slate-500">Vernieuw de pagina of probeer het opnieuw.</p>
+            <button type="button" onclick="loadSubmissions()" class="mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                Opnieuw proberen
+            </button>
         </div>
+
+        {{-- Paginatie --}}
+        <div id="pagination-container" class="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style="display: none;"></div>
     </div>
 </div>
 
 <script>
-// Submission API helper
-// Use API routes with web session auth support
 const apiBase = "{{ url('/api') }}";
-const SubmissionAPI = {
-    async loadSubmissions(params = '') {
-        const url = `${apiBase}/submissions${params ? '?' + params : ''}`;
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            credentials: 'same-origin'
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error:', response.status, errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-        
-        return await response.json();
-    },
-    
-    async updateSubmission(id, data) {
-        const response = await fetch(`/api/submissions/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify(data)
-        });
-        
-        return await response.json();
-    }
-};
+let currentPage = 1;
 
-document.addEventListener('DOMContentLoaded', async function() {
+function escapeHtml(t) {
+    if (!t) return '';
+    const d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+}
+
+let currentTab = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
     await loadSubmissions();
-    
-    // Search and filter functionality
     const searchInput = document.getElementById('search-input');
     const statusFilter = document.getElementById('status-filter');
     const refreshBtn = document.getElementById('refresh-btn');
-    
+    const tabBtns = document.querySelectorAll('.tab-btn');
     let searchTimeout;
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentTab = btn.dataset.tabValue || '';
+            currentPage = 1;
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('border-blue-600', 'text-blue-600');
+                b.classList.add('border-transparent', 'text-slate-600');
+            });
+            btn.classList.remove('border-transparent', 'text-slate-600');
+            btn.classList.add('border-blue-600', 'text-blue-600');
             loadSubmissions();
-        }, 500);
+        });
     });
-    
-    statusFilter.addEventListener('change', loadSubmissions);
-    refreshBtn.addEventListener('click', loadSubmissions);
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => { currentPage = 1; loadSubmissions(); }, 350);
+    });
+    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') { currentPage = 1; loadSubmissions(); } });
+    statusFilter.addEventListener('change', () => { currentPage = 1; loadSubmissions(); });
+    refreshBtn.addEventListener('click', () => loadSubmissions());
 });
 
-async function loadSubmissions() {
+async function loadSubmissions(page = 1) {
+    if (page) currentPage = page;
     const loadingDiv = document.getElementById('submissions-loading');
     const statsDiv = document.getElementById('submissions-stats');
+    const filtersDiv = document.getElementById('submissions-filters');
     const tableDiv = document.getElementById('submissions-table');
     const emptyDiv = document.getElementById('empty-state');
+    const errorDiv = document.getElementById('error-state');
     const paginationDiv = document.getElementById('pagination-container');
-    
+    const tabsDiv = document.getElementById('submissions-tabs');
+
+    loadingDiv.style.display = 'block';
+    statsDiv.style.display = 'none';
+    filtersDiv.style.display = 'none';
+    tableDiv.style.display = 'none';
+    emptyDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    paginationDiv.style.display = 'none';
+
     try {
-        loadingDiv.style.display = 'block';
-        statsDiv.style.display = 'none';
-        tableDiv.style.display = 'none';
-        emptyDiv.style.display = 'none';
-        paginationDiv.style.display = 'none';
-        
-        // Get search and filter parameters
-        const search = document.getElementById('search-input').value;
-        const status = document.getElementById('status-filter').value;
-        
         const params = new URLSearchParams();
+        const search = document.getElementById('search-input').value.trim();
+        const status = document.getElementById('status-filter').value;
         if (search) params.append('search', search);
-        if (status) params.append('status', status);
-        
-        // Ensure Sanctum CSRF cookie is present for authenticated API requests
-        await ensureCsrfCookie();
-        
-        const result = await SubmissionAPI.loadSubmissions(params.toString());
-        
-        if (!result.success) {
-            throw new Error(result.message || 'Failed to load submissions');
+        if (currentTab) params.append('tab', currentTab);
+        else if (status) params.append('status', status);
+        params.append('page', currentPage);
+
+        await fetch('/sanctum/csrf-cookie', { method: 'GET', credentials: 'same-origin' }).catch(() => {});
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const res = await fetch(`${apiBase}/submissions?${params}`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfMeta ? csrfMeta.getAttribute('content') : '' },
+            credentials: 'same-origin'
+        });
+        const result = await res.json();
+
+        if (!res.ok || (result.success === false)) {
+            throw new Error(result.message || `HTTP ${res.status}`);
         }
-        
-        const submissions = result;
-        
-        // Update stats - calculate these from the data
-        const totalSubmissions = submissions.total || 0;
-        const inProgress = submissions.data ? submissions.data.filter(s => s.status === 'in_progress').length : 0;
-        const completed = submissions.data ? submissions.data.filter(s => s.status === 'completed').length : 0;
-        const reviewed = submissions.data ? submissions.data.filter(s => s.status === 'reviewed').length : 0;
-        
-        document.getElementById('total-submissions').textContent = totalSubmissions;
-        document.getElementById('in-progress-submissions').textContent = inProgress;
-        document.getElementById('completed-submissions').textContent = completed;
-        document.getElementById('reviewed-submissions').textContent = reviewed;
-        
+
+        const data = result;
+        const total = data.total ?? 0;
+        const items = data.data ?? [];
+
+        const meta = result.meta || {};
+        document.getElementById('total-submissions').textContent = total;
+        document.getElementById('in-progress-submissions').textContent = meta.in_progress_count ?? items.filter(s => s.status === 'in_progress').length;
+        document.getElementById('completed-submissions').textContent = meta.completed_count ?? items.filter(s => s.status === 'completed').length;
+        document.getElementById('reviewed-submissions').textContent = meta.reviewed_count ?? items.filter(s => s.status === 'reviewed').length;
+
+        const badge = document.getElementById('tab-to-review-badge');
+        if (meta.to_review_count !== undefined) {
+            badge.textContent = meta.to_review_count;
+            badge.classList.toggle('hidden', meta.to_review_count === 0);
+        }
+
+        tabsDiv.style.display = 'block';
         statsDiv.style.display = 'grid';
-        
-        if (submissions.data && submissions.data.length > 0) {
-            renderSubmissions(submissions.data);
+        filtersDiv.style.display = 'block';
+        loadingDiv.style.display = 'none';
+
+        document.querySelectorAll('.tab-btn').forEach((b, i) => {
+            const isActive = (i === 0 && !currentTab) || (i === 1 && currentTab === 'to_review') || (i === 2 && currentTab === 'done');
+            b.classList.toggle('border-blue-600', isActive);
+            b.classList.toggle('text-blue-600', isActive);
+            b.classList.toggle('border-transparent', !isActive);
+            b.classList.toggle('text-slate-600', !isActive);
+        });
+
+        const statusWrap = document.getElementById('status-filter-wrap');
+        const statusFilterEl = document.getElementById('status-filter');
+        if (statusWrap) statusWrap.style.opacity = currentTab ? '0.6' : '1';
+        if (statusFilterEl) statusFilterEl.disabled = !!currentTab;
+
+        if (items.length > 0) {
+            renderSubmissions(items);
             tableDiv.style.display = 'block';
-            
-            // Render pagination if needed
-            if (submissions.last_page > 1) {
-                renderPagination(submissions);
+            if (data.last_page > 1) {
+                renderPagination(data);
                 paginationDiv.style.display = 'flex';
             }
         } else {
+            const emptyTitle = document.getElementById('empty-state-title');
+            const emptyDesc = document.getElementById('empty-state-desc');
+            if (currentTab === 'to_review') {
+                if (emptyTitle) emptyTitle.textContent = 'Geen inzendingen om te beoordelen';
+                if (emptyDesc) emptyDesc.textContent = 'Alle inzendingen zijn al beoordeeld of er zijn nog geen voltooide inzendingen.';
+            } else if (currentTab === 'done') {
+                if (emptyTitle) emptyTitle.textContent = 'Geen afgeronde inzendingen';
+                if (emptyDesc) emptyDesc.textContent = 'Er zijn nog geen beoordeelde of afgewezen inzendingen.';
+            } else {
+                if (emptyTitle) emptyTitle.textContent = 'Geen inzendingen';
+                if (emptyDesc) emptyDesc.textContent = 'Er zijn geen inzendingen die voldoen aan je filters.';
+            }
             emptyDiv.style.display = 'block';
         }
-        
+    } catch (err) {
+        console.error(err);
         loadingDiv.style.display = 'none';
-        
-    } catch (error) {
-        console.error('Failed to load submissions:', error);
-        loadingDiv.innerHTML = `
-            <div class="text-red-600">
-                <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="mt-2 text-sm">Failed to load submissions</p>
-                <button onclick="loadSubmissions()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Retry
-                </button>
-            </div>
-        `;
+        errorDiv.style.display = 'block';
     }
 }
 
-// Ensure Sanctum CSRF cookie (required for auth:sanctum protected API routes)
-async function ensureCsrfCookie() {
-    try {
-        // This endpoint sets the XSRF-TOKEN cookie used by Laravel Sanctum
-        await fetch('/sanctum/csrf-cookie', {
-            method: 'GET',
-            credentials: 'same-origin'
-        });
-    } catch (e) {
-        // If this fails, the subsequent request will surface the auth error
-        console.warn('Could not fetch csrf-cookie:', e);
-    }
-}
-
-function renderSubmissions(submissions) {
+function renderSubmissions(items) {
     const tbody = document.getElementById('submissions-tbody');
-    
-    const submissionsHtml = submissions.map(submission => `
-        <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                        <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span class="text-sm font-medium text-gray-700">${submission.user ? submission.user.name.charAt(0).toUpperCase() : 'U'}</span>
-                        </div>
+    tbody.innerHTML = items.map(s => {
+        const userName = s.user ? escapeHtml(s.user.name) : 'Onbekend';
+        const userEmail = s.user ? escapeHtml(s.user.email || '') : '';
+        const userInitial = s.user && s.user.name ? s.user.name.charAt(0).toUpperCase() : 'U';
+        const listTitle = s.task_list ? escapeHtml(s.task_list.title) : 'Onbekende lijst';
+        const listDesc = s.task_list && s.task_list.description ? escapeHtml(s.task_list.description) : '';
+        const statusColor = { in_progress: 'bg-amber-100 text-amber-800', completed: 'bg-emerald-100 text-emerald-800', reviewed: 'bg-violet-100 text-violet-800', rejected: 'bg-red-100 text-red-800' }[s.status] || 'bg-slate-100 text-slate-800';
+        const statusText = { in_progress: 'Bezig', completed: 'Afgerond', reviewed: 'Beoordeeld', rejected: 'Afgewezen' }[s.status] || s.status;
+        const progress = s.progress_percentage ?? (s.submission_tasks && s.submission_tasks.length ? Math.round((s.submission_tasks.filter(t => t.status === 'completed').length / s.submission_tasks.length) * 100) : 0);
+        const submitted = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('nl-NL', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+        const viewUrl = "{{ url('admin/submissions') }}/" + s.id;
+        const reviewUrl = "{{ url('admin/submissions') }}/" + s.id;
+        return `
+        <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-4 sm:px-6 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                        <span class="text-sm font-semibold text-slate-700">${userInitial}</span>
                     </div>
-                    <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">${submission.user ? submission.user.name : 'Unknown User'}</div>
-                        <div class="text-sm text-gray-500">${submission.user ? submission.user.email : ''}</div>
+                    <div class="min-w-0">
+                        <div class="text-sm font-medium text-slate-900 truncate">${userName}</div>
+                        ${userEmail ? `<div class="text-xs text-slate-500 truncate">${userEmail}</div>` : ''}
                     </div>
                 </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">${submission.task_list ? submission.task_list.title : 'Unknown List'}</div>
-                <div class="text-sm text-gray-500">${submission.task_list ? submission.task_list.description : ''}</div>
+            <td class="px-4 sm:px-6 py-4">
+                <div class="min-w-0 max-w-[200px]">
+                    <div class="text-sm font-medium text-slate-900 truncate">${listTitle}</div>
+                    ${listDesc ? `<div class="text-xs text-slate-500 truncate">${listDesc}</div>` : ''}
+                </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(submission.status)}">
-                    ${getStatusText(submission.status)}
-                </span>
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${statusColor}">${statusText}</span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                    <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: ${getProgressPercentage(submission)}%"></div>
+            <td class="px-4 sm:px-6 py-4">
+                <div class="flex items-center gap-2 min-w-[80px]">
+                    <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-600 rounded-full transition-all" style="width:${progress}%"></div>
                     </div>
-                    <span class="ml-2 text-sm text-gray-600">${getProgressPercentage(submission)}%</span>
+                    <span class="text-xs font-medium text-slate-600 w-8">${progress}%</span>
                 </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${submission.submitted_at ? formatDate(submission.submitted_at) : '-'}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex items-center justify-end space-x-2">
-                    <a href="/admin/submissions/${submission.id}" class="text-indigo-600 hover:text-indigo-900">View</a>
-                    ${submission.status === 'completed' ? `<button onclick="reviewSubmission(${submission.id})" class="text-green-600 hover:text-green-900">Review</button>` : ''}
+            <td class="px-4 sm:px-6 py-4 text-sm text-slate-500 whitespace-nowrap">${submitted}</td>
+            <td class="px-4 sm:px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2">
+                    <a href="${viewUrl}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium transition-colors">Bekijken</a>
+                    ${s.status === 'completed' ? `<a href="${reviewUrl}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg text-sm font-medium transition-colors">Beoordelen</a>` : ''}
                 </div>
             </td>
-        </tr>
-    `).join('');
-    
-    tbody.innerHTML = submissionsHtml;
+        </tr>`;
+    }).join('');
 }
 
-function renderPagination(submissions) {
-    const paginationDiv = document.getElementById('pagination-container');
-    
-    let paginationHtml = '';
-    
-    if (submissions.prev_page_url) {
-        paginationHtml += `<a href="${submissions.prev_page_url}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
-            Previous
-        </a>`;
+function renderPagination(data) {
+    const div = document.getElementById('pagination-container');
+    const from = data.from ?? 0;
+    const to = data.to ?? 0;
+    const total = data.total ?? 0;
+    const lastPage = data.last_page ?? 1;
+    const current = data.current_page ?? 1;
+
+    let navHtml = '';
+    if (current > 1) {
+        navHtml += `<button type="button" onclick="loadSubmissions(${current - 1})" class="inline-flex items-center gap-1 px-4 py-2 border border-slate-200 rounded-l-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">Vorige</button>`;
     }
-    
-    // Page numbers
-    for (let i = 1; i <= submissions.last_page; i++) {
-        const isCurrent = i === submissions.current_page;
-        paginationHtml += `<a href="?page=${i}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium ${isCurrent ? 'bg-blue-50 text-blue-600 border-blue-500' : 'text-gray-500 bg-white border border-gray-300'} border-t border-b hover:bg-gray-50">
-            ${i}
-        </a>`;
+    const start = Math.max(1, current - 2);
+    const end = Math.min(lastPage, current + 2);
+    for (let i = start; i <= end; i++) {
+        const active = i === current;
+        navHtml += `<button type="button" onclick="loadSubmissions(${i})" class="px-4 py-2 -ml-px text-sm font-medium border border-slate-200 ${active ? 'bg-blue-600 text-white border-blue-600 z-10' : 'text-slate-700 bg-white hover:bg-slate-50'} transition-colors">${i}</button>`;
     }
-    
-    if (submissions.next_page_url) {
-        paginationHtml += `<a href="${submissions.next_page_url}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
-            Next
-        </a>`;
+    if (current < lastPage) {
+        navHtml += `<button type="button" onclick="loadSubmissions(${current + 1})" class="inline-flex items-center gap-1 px-4 py-2 -ml-px border border-slate-200 rounded-r-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">Volgende</button>`;
     }
-    
-    paginationDiv.innerHTML = `
-        <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-700">
-                Showing ${submissions.from} to ${submissions.to} of ${submissions.total} results
-            </div>
-            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                ${paginationHtml}
-            </nav>
-        </div>
+
+    div.innerHTML = `
+        <div class="text-sm text-slate-600">${from} t/m ${to} van ${total} resultaten</div>
+        <nav class="relative z-0 inline-flex rounded-xl shadow-sm overflow-hidden">${navHtml}</nav>
     `;
-}
-
-function getStatusColor(status) {
-    switch (status) {
-        case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-        case 'completed': return 'bg-green-100 text-green-800';
-        case 'reviewed': return 'bg-purple-100 text-purple-800';
-        case 'rejected': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
-}
-
-function getStatusText(status) {
-    switch (status) {
-        case 'in_progress': return 'In Progress';
-        case 'completed': return 'Completed';
-        case 'reviewed': return 'Reviewed';
-        case 'rejected': return 'Rejected';
-        default: return status;
-    }
-}
-
-function getProgressPercentage(submission) {
-    // Use the calculated progress from the API
-    if (submission.progress_percentage !== undefined) {
-        return submission.progress_percentage;
-    }
-    
-    // Fallback calculation
-    if (!submission.submission_tasks || submission.submission_tasks.length === 0) {
-        return 0;
-    }
-    
-    const completedTasks = submission.submission_tasks.filter(task => task.status === 'completed').length;
-    const totalTasks = submission.submission_tasks.length;
-    
-    return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-}
-
-async function reviewSubmission(submissionId) {
-    // This would typically redirect to a review page
-    window.location.href = `/admin/submissions/${submissionId}/review`;
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
 }
 </script>
 @endsection

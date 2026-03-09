@@ -7,10 +7,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\BelongsToCompany;
 
 class TaskList extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToCompany;
 
     protected $table = 'lists';
 
@@ -30,6 +31,7 @@ class TaskList extends Model
         'is_template',
         'is_active',
         'template_id',
+        'company_id',
     ];
 
     protected function casts(): array
@@ -224,6 +226,7 @@ class TaskList extends Model
                     'requires_signature' => $this->requires_signature,
                     'is_active' => true,
                     'created_by' => $this->created_by,
+                    'company_id' => $this->company_id,
                 ]);
             }
         }

@@ -14,8 +14,11 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $companyId = auth()->user()->company_id;
+        
         if ($request->wantsJson()) {
-            $users = User::where('role', 'employee')
+            $users = User::where('company_id', $companyId)
+                ->where('role', 'employee')
                 ->where('is_active', true)
                 ->select('id', 'name', 'department', 'email')
                 ->orderBy('name')
@@ -24,7 +27,7 @@ class UserController extends Controller
             return response()->json(['users' => $users]);
         }
         
-        return view('admin.users.index');
+        return view('admin.users.index-api');
     }
 
     /**
@@ -52,11 +55,12 @@ class UserController extends Controller
 
         $validated['password'] = bcrypt($validated['password']);
         $validated['is_active'] = $request->has('is_active');
+        $validated['company_id'] = auth()->user()->company_id;
 
         $user = User::create($validated);
 
         return redirect()->route('admin.users.index', ['updated' => time()])
-            ->with('success', 'User created successfully.');
+            ->with('success', 'Gebruiker succesvol aangemaakt.');
     }
 
     /**
@@ -64,6 +68,11 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        // Ensure user belongs to same company
+        if ($user->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to user.');
+        }
+        
         $user->load(['submissions.taskList', 'assignments.taskList']);
         
         return view('admin.users.show', compact('user'));
@@ -74,6 +83,11 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        // Ensure user belongs to same company
+        if ($user->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to user.');
+        }
+        
         return view('admin.users.edit', compact('user'));
     }
 
@@ -82,6 +96,11 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        // Ensure user belongs to same company
+        if ($user->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to user.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -103,7 +122,7 @@ class UserController extends Controller
         $user->update($validated);
 
         return redirect()->route('admin.users.show', ['user' => $user->id, 'updated' => time()])
-            ->with('success', 'User updated successfully.');
+            ->with('success', 'Gebruiker succesvol bijgewerkt.');
     }
 
     /**
@@ -111,14 +130,66 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        // Ensure user belongs to same company
+        if ($user->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to user.');
+        }
+        
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index', ['updated' => time()])
-                ->with('error', 'You cannot delete your own account.');
+                ->with('error', 'Je kunt je eigen account niet verwijderen.');
         }
 
-        $user->delete();
+        \DB::beginTransaction();
+        
+        try {
+            // Delete all related records before deleting the user
+            
+            // 1. Delete list assignments
+            \App\Models\ListAssignment::where('user_id', $user->id)->delete();
+            
+            // 2. Delete submissions and their related submission tasks
+            $submissions = \App\Models\Submission::where('user_id', $user->id)->get();
+            foreach ($submissions as $submission) {
+                \App\Models\SubmissionTask::where('submission_id', $submission->id)->delete();
+            }
+            \App\Models\Submission::where('user_id', $user->id)->delete();
+            
+            // 3. Delete submission tasks where user reviewed (reviewed_by)
+            \App\Models\SubmissionTask::where('reviewed_by', $user->id)->update(['reviewed_by' => null]);
+            
+            // 4. Delete notifications
+            \App\Models\Notification::where('user_id', $user->id)->delete();
+            
+            // 5. Delete task assignments
+            \App\Models\TaskAssignment::where('user_id', $user->id)->delete();
+            
+            // 6. Update task lists created_by to null or another admin
+            $replacementAdmin = \App\Models\User::where('company_id', $user->company_id)
+                ->where('role', 'admin')
+                ->where('id', '!=', $user->id)
+                ->first();
+            
+            if ($replacementAdmin) {
+                \App\Models\TaskList::where('created_by', $user->id)
+                    ->update(['created_by' => $replacementAdmin->id]);
+            } else {
+                \App\Models\TaskList::where('created_by', $user->id)
+                    ->update(['created_by' => null]);
+            }
+
+            // Now delete the user
+            $user->delete();
+            
+            \DB::commit();
+            
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->route('admin.users.index', ['updated' => time()])
+                ->with('error', 'Fout bij verwijderen gebruiker: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.users.index', ['updated' => time()])
-            ->with('success', 'User deleted successfully.');
+            ->with('success', 'Gebruiker succesvol verwijderd.');
     }
 }

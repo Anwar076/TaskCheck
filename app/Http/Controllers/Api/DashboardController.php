@@ -19,16 +19,17 @@ class DashboardController extends Controller
     public function adminStats(): JsonResponse
     {
         try {
+            $companyId = auth()->user()->company_id;
             $stats = [
-                'total_users' => User::count(),
-                'active_users' => User::where('is_active', true)->count(),
-                'total_lists' => TaskList::count(),
-                'active_lists' => TaskList::where('is_active', true)->count(),
-                'total_submissions' => Submission::count(),
-                'pending_submissions' => Submission::where('status', 'pending')->count(),
-                'completed_submissions' => Submission::where('status', 'completed')->count(),
-                'total_templates' => TaskTemplate::count(),
-                'active_templates' => TaskTemplate::where('is_active', true)->count(),
+                'total_users' => User::where('company_id', $companyId)->count(),
+                'active_users' => User::where('company_id', $companyId)->where('is_active', true)->count(),
+                'total_lists' => TaskList::where('company_id', $companyId)->count(),
+                'active_lists' => TaskList::where('company_id', $companyId)->where('is_active', true)->count(),
+                'total_submissions' => Submission::where('company_id', $companyId)->count(),
+                'pending_submissions' => Submission::where('company_id', $companyId)->where('status', 'pending')->count(),
+                'completed_submissions' => Submission::where('company_id', $companyId)->where('status', 'completed')->count(),
+                'total_templates' => TaskTemplate::where('company_id', $companyId)->count(),
+                'active_templates' => TaskTemplate::where('company_id', $companyId)->where('is_active', true)->count(),
             ];
 
             return response()->json([
@@ -111,7 +112,9 @@ class DashboardController extends Controller
             $startDate = $request->get('start_date', now()->startOfWeek());
             $endDate = $request->get('end_date', now()->endOfWeek());
 
-            $employees = User::where('role', 'employee')
+            $companyId = auth()->user()->company_id;
+            $employees = User::where('company_id', $companyId)
+                ->where('role', 'employee')
                 ->where('is_active', true)
                 ->get();
 

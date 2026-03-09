@@ -16,6 +16,8 @@ class TemplateTask extends Model
         'is_required',
         'checklist_items',
         'sort_order',
+        'start_time',
+        'end_time',
         'is_active',
         'attachments',
         'validation_rules',

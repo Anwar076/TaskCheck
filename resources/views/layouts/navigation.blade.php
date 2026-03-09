@@ -41,6 +41,11 @@
                     </x-slot>
 
                     <x-slot name="content">
+                        @if(auth()->user()->isAdmin())
+                            <x-dropdown-link :href="route('subscription.show')">
+                                {{ __('Subscription') }}
+                            </x-dropdown-link>
+                        @endif
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
@@ -95,6 +100,11 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                @if(auth()->user()->isAdmin())
+                    <x-responsive-nav-link :href="route('subscription.show')">
+                        {{ __('Subscription') }}
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>

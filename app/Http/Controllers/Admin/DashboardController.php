@@ -14,12 +14,14 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $companyId = auth()->user()->company_id;
+        
         // Enhanced KPI Statistics
         $stats = [
             // Basic counts
-            'total_employees' => User::where('role', 'employee')->count(),
-            'total_admins' => User::where('role', 'admin')->count(),
-            'total_users' => User::count(),
+            'total_employees' => User::where('company_id', $companyId)->where('role', 'employee')->count(),
+            'total_admins' => User::where('company_id', $companyId)->where('role', 'admin')->count(),
+            'total_users' => User::where('company_id', $companyId)->count(),
             'total_lists' => TaskList::count(),
             'active_lists' => TaskList::active()->count(),
             'total_tasks' => \App\Models\Task::count(),
@@ -64,7 +66,8 @@ class DashboardController extends Controller
             ->get();
 
         // Enhanced employee performance stats (last 30 days)
-        $employeeStats = User::where('role', 'employee')
+        $employeeStats = User::where('company_id', $companyId)
+            ->where('role', 'employee')
             ->withCount([
                 'submissions as total_submissions' => function ($query) {
                     $query->where('created_at', '>=', now()->subDays(30));

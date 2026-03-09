@@ -53,4 +53,47 @@ class NotificationController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function createTaskOverdue(Request $request)
+    {
+        $validated = $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'task_title' => 'required|string|max:255',
+            'list_id' => 'nullable|exists:lists,id',
+        ]);
+
+        $user = auth()->user();
+        
+        // Check of taak al completed is (dan hoeft er geen notificatie)
+        $task = \App\Models\Task::findOrFail($validated['task_id']);
+        $submissionTask = \App\Models\SubmissionTask::where('task_id', $validated['task_id'])
+            ->whereHas('submission', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->whereDate('created_at', today());
+            })
+            ->where('status', 'completed')
+            ->first();
+
+        if ($submissionTask) {
+            // Taak is al completed, geen notificatie nodig
+            return response()->json([
+                'success' => false,
+                'message' => 'Taak is al afgerond'
+            ]);
+        }
+
+        // Maak notificatie aan
+        $notification = \App\Models\Notification::createTaskOverdue(
+            $user->id,
+            $validated['task_title'],
+            $validated['task_id'],
+            $validated['list_id'] ?? null
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notificatie aangemaakt',
+            'notification' => $notification
+        ]);
+    }
 }

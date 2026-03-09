@@ -6,8 +6,11 @@ use App\Http\Controllers\Admin\TaskListController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TaskTemplateController;
+use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\SubmissionController;
+use App\Http\Controllers\Employee\SettingsController as EmployeeSettingsController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -77,6 +80,14 @@ Route::get('/documentation', function () {
     return view('documentation');
 })->name('documentation');
 
+// Subscription routes (accessible even without active subscription for choosing plans)
+Route::middleware(['auth'])->prefix('subscription')->name('subscription.')->group(function () {
+    Route::get('/choose-plan', [SubscriptionController::class, 'choosePlan'])->name('choose-plan');
+    Route::get('/', [SubscriptionController::class, 'show'])->name('show');
+    Route::post('/activate', [SubscriptionController::class, 'activate'])->name('activate');
+    Route::post('/cancel', [SubscriptionController::class, 'cancel'])->name('cancel');
+});
+
 // Redirect dashboard based on user role
 Route::get('/dashboard', function () {
     if (auth()->user()->isAdmin()) {
@@ -84,10 +95,10 @@ Route::get('/dashboard', function () {
     } else {
         return redirect()->route('employee.dashboard');
     }
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'subscription'])->name('dashboard');
 
 // Admin Routes
-Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/live-monitoring', [AdminDashboardController::class, 'liveMonitoring'])->name('live-monitoring');
     
@@ -113,6 +124,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Additional admin routes
     Route::post('/lists/{list}/assign', [TaskListController::class, 'assign'])->name('lists.assign');
+    Route::post('/lists/{list}/tasks/reorder', [TaskController::class, 'reorder'])->name('lists.tasks.reorder');
     Route::delete('/assignments/{assignment}', [TaskListController::class, 'removeAssignment'])->name('assignments.destroy');
     Route::get('/submissions/{submission}', [TaskListController::class, 'showSubmission'])->name('submissions.show');
     Route::post('/submissions/{submission}/review', [TaskListController::class, 'reviewSubmission'])->name('submissions.review');
@@ -122,6 +134,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Weekly overview and daily sub-lists
     Route::get('/weekly-overview', [TaskListController::class, 'weeklyOverview'])->name('weekly-overview');
+    Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');
+    Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/lists/{list}/create-daily-sublists', [TaskListController::class, 'createDailySubLists'])->name('lists.create-daily-sublists');
     Route::post('/lists/{list}/create-day-list', [TaskListController::class, 'createDayList'])->name('lists.create-day-list');
     
@@ -135,7 +149,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 });
 
 // Employee Routes
-Route::middleware(['auth', 'verified', 'employee'])->prefix('employee')->name('employee.')->group(function () {
+Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('dashboard');
     Route::get('/lists', [SubmissionController::class, 'index'])->name('lists.index');
     Route::get('/lists/{list}', [SubmissionController::class, 'show'])->name('lists.show');
@@ -149,7 +163,13 @@ Route::middleware(['auth', 'verified', 'employee'])->prefix('employee')->name('e
     Route::get('/notifications', [App\Http\Controllers\Employee\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/mark-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/task-overdue', [App\Http\Controllers\Employee\NotificationController::class, 'createTaskOverdue'])->name('notifications.task-overdue');
     Route::delete('/notifications/{notification}', [App\Http\Controllers\Employee\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Instellingen
+    Route::get('/settings', [EmployeeSettingsController::class, 'edit'])->name('settings.edit');
+    Route::patch('/settings/profile', [EmployeeSettingsController::class, 'updateProfile'])->name('settings.update-profile');
+    Route::put('/settings/password', [EmployeeSettingsController::class, 'updatePassword'])->name('settings.update-password');
 });
 
 Route::middleware('auth')->group(function () {

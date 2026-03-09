@@ -80,21 +80,9 @@ class TaskListController extends Controller
             \DB::beginTransaction();
 
             // Create task list
-            $list = TaskList::create([
-                'title' => $validated['title'],
-                'description' => $validated['description'] ?? null,
-                'parent_list_id' => $validated['parent_list_id'] ?? null,
-                'template_id' => $validated['template_id'] ?? null,
-                'schedule_type' => $validated['schedule_type'],
-                'schedule_config' => $validated['schedule_config'] ?? null,
-                'priority' => $validated['priority'],
-                'due_date' => $validated['due_date'] ?? null,
-                'category' => $validated['category'] ?? null,
-                'requires_signature' => $validated['requires_signature'] ?? false,
-                'is_template' => $validated['is_template'] ?? false,
-                'is_active' => $validated['is_active'] ?? true,
-                'created_by' => auth()->id(),
-            ]);
+            $validated['company_id'] = auth()->user()->company_id;
+            $validated['created_by'] = auth()->id();
+            $list = TaskList::create($validated);
 
             // Copy tasks from template if provided
             if (!empty($validated['template_id'])) {

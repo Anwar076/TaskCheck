@@ -24,10 +24,11 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
     // Users
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'store']);
+    // Place statistics route BEFORE the dynamic /users/{id} route
+    Route::get('/users/statistics', [UserController::class, 'statistics']);
     Route::get('/users/{id}', [UserController::class, 'show']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
-    Route::get('/users/statistics', [UserController::class, 'statistics']);
     
     // Task Lists
     Route::get('/lists', [TaskListController::class, 'index']);

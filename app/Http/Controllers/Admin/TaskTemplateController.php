@@ -65,6 +65,8 @@ class TaskTemplateController extends Controller
             'tasks.*.required_proof_type' => 'required|in:none,photo,video,text,file,any',
             'tasks.*.is_required' => 'boolean',
             'tasks.*.checklist_items' => 'nullable|array',
+            'tasks.*.start_time' => 'nullable|date_format:H:i',
+            'tasks.*.end_time' => 'nullable|date_format:H:i|after:tasks.*.start_time',
         ]);
 
         $template = TaskTemplate::create([
@@ -93,13 +95,15 @@ class TaskTemplateController extends Controller
                 'required_proof_type' => $taskData['required_proof_type'],
                 'is_required' => $taskData['is_required'] ?? true,
                 'checklist_items' => $checklistItems,
+                'start_time' => !empty($taskData['start_time']) ? $taskData['start_time'] : null,
+                'end_time' => !empty($taskData['end_time']) ? $taskData['end_time'] : null,
                 'sort_order' => $index,
                 'is_active' => true,
             ]);
         }
 
         return redirect()->route('admin.templates.index')
-            ->with('success', 'Template created successfully!');
+            ->with('success', 'Sjabloon succesvol aangemaakt!');
     }
 
     /**
@@ -138,6 +142,8 @@ class TaskTemplateController extends Controller
             'tasks.*.required_proof_type' => 'required|in:none,photo,video,text,file,any',
             'tasks.*.is_required' => 'boolean',
             'tasks.*.checklist_items' => 'nullable|array',
+            'tasks.*.start_time' => 'nullable|date_format:H:i',
+            'tasks.*.end_time' => 'nullable|date_format:H:i|after:tasks.*.start_time',
         ]);
 
         // Update template
@@ -174,6 +180,8 @@ class TaskTemplateController extends Controller
                         'required_proof_type' => $taskData['required_proof_type'],
                         'is_required' => $taskData['is_required'] ?? true,
                         'checklist_items' => $checklistItems,
+                        'start_time' => !empty($taskData['start_time']) ? $taskData['start_time'] : null,
+                        'end_time' => !empty($taskData['end_time']) ? $taskData['end_time'] : null,
                         'sort_order' => $index,
                     ]);
             } else {
@@ -186,6 +194,8 @@ class TaskTemplateController extends Controller
                     'required_proof_type' => $taskData['required_proof_type'],
                     'is_required' => $taskData['is_required'] ?? true,
                     'checklist_items' => $checklistItems,
+                    'start_time' => !empty($taskData['start_time']) ? $taskData['start_time'] : null,
+                    'end_time' => !empty($taskData['end_time']) ? $taskData['end_time'] : null,
                     'sort_order' => $index,
                     'is_active' => true,
                 ]);
@@ -204,12 +214,12 @@ class TaskTemplateController extends Controller
         $referer = request()->headers->get('referer');
         if ($referer && strpos($referer, "/admin/templates/{$template->id}") !== false) {
             return redirect()->route('admin.templates.show', $template)
-                ->with('success', 'Template updated successfully!')
+                ->with('success', 'Sjabloon succesvol bijgewerkt!')
                 ->with('template_updated', true);
         }
 
         return redirect()->route('admin.templates.index')
-            ->with('success', 'Template updated successfully!');
+            ->with('success', 'Sjabloon succesvol bijgewerkt!');
     }
 
     /**
@@ -228,12 +238,12 @@ class TaskTemplateController extends Controller
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete template that is being used by existing lists.'
+                    'message' => 'Kan sjabloon niet verwijderen: wordt nog gebruikt door bestaande lijsten.'
                 ], 422);
             }
 
             return redirect()->route('admin.templates.index')
-                ->with('error', 'Cannot delete template that is being used by existing lists.');
+                ->with('error', 'Kan sjabloon niet verwijderen: wordt nog gebruikt door bestaande lijsten.');
         }
 
         if ($listsCount > 0 && $force === 'unlink') {
@@ -258,12 +268,12 @@ class TaskTemplateController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Template deleted successfully!'
+                'message' => 'Sjabloon succesvol verwijderd!'
             ]);
         }
 
         return redirect()->route('admin.templates.index')
-            ->with('success', 'Template deleted successfully!');
+            ->with('success', 'Sjabloon succesvol verwijderd!');
     }
 
     /**
@@ -281,12 +291,12 @@ class TaskTemplateController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Task list created from template successfully!',
+                'message' => 'Takenlijst succesvol aangemaakt uit sjabloon!',
                 'redirect' => route('admin.lists.show', $taskList)
             ]);
         }
 
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Task list created from template successfully!');
+            ->with('success', 'Takenlijst succesvol aangemaakt uit sjabloon!');
     }
 }

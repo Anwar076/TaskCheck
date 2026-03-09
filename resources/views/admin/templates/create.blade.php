@@ -1,298 +1,239 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Create Template')
-
-@section('head')
-<meta name="csrf-token" content="{{ csrf_token() }}">
-@endsection
-
-@section('header')
-<div class="flex items-center justify-between">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Create New Template</h1>
-        <p class="mt-1 text-sm text-gray-600">Create a reusable template for task lists</p>
-    </div>
-    <a href="{{ route('admin.templates.index') }}" 
-       class="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        Back to Templates
-    </a>
-</div>
-@endsection
+@section('page-title', 'Sjabloon aanmaken')
 
 @section('content')
-<div class="p-6">
-    <form method="POST" action="{{ route('admin.templates.store') }}" id="templateForm">
-        @csrf
-        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-        
-        <!-- Template Info -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Template Information</h2>
-            
-            <div class="grid grid-cols-1 gap-6">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
-                    <input type="text" 
-                           id="name" 
-                           name="name" 
-                           required 
-                           value="{{ old('name') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
-                           placeholder="e.g., Daily Cleaning Checklist">
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-                
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
-                    <textarea id="description" 
-                              name="description" 
-                              rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('description') border-red-500 @enderror"
-                              placeholder="Describe what this template is used for...">{{ old('description') }}</textarea>
-                    @error('description')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8">
+
+        {{-- Hero --}}
+        <div class="mb-6 sm:mb-8">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Nieuw sjabloon</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Maak een herbruikbaar sjabloon voor takenlijsten</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.templates.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18.75"/></svg>
+                            Naar sjablonen
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Tasks Section -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-900">Template Tasks</h2>
-                <button type="button" 
-                        onclick="addTask()"
-                        class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Add Task
+
+        <form method="POST" action="{{ route('admin.templates.store') }}" id="templateForm">
+            @csrf
+
+            {{-- Basisgegevens --}}
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+                <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-900">Basisgegevens</h2>
+                    <p class="text-slate-600 text-sm mt-0.5">Naam en beschrijving van het sjabloon</p>
+                </div>
+                <div class="p-4 sm:p-6 space-y-5">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Sjabloonnaam <span class="text-red-500">*</span></label>
+                        <input type="text" id="name" name="name" required value="{{ old('name') }}"
+                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-500 @enderror"
+                            placeholder="Bijv. Dagelijkse schoonmaak-checklist">
+                        @error('name')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
+                        <textarea id="description" name="description" rows="3"
+                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-500 @enderror"
+                            placeholder="Beschrijf waarvoor dit sjabloon gebruikt wordt...">{{ old('description') }}</textarea>
+                        @error('description')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                </div>
+            </div>
+
+            {{-- Taken --}}
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+                <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Sjabloon-taken</h2>
+                        <p class="text-slate-600 text-sm mt-0.5">Voeg de taken toe die in dit sjabloon komen</p>
+                    </div>
+                    <button type="button" onclick="addTask()"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Taak toevoegen
+                    </button>
+                </div>
+                <div class="p-4 sm:p-6">
+                    <div id="tasks-container" class="space-y-4"></div>
+                    @error('tasks')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
+            {{-- Acties --}}
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                <a href="{{ route('admin.templates.index') }}"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-slate-700 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Annuleren
+                </a>
+                <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Sjabloon aanmaken
                 </button>
             </div>
-            
-            <div id="tasks-container" class="space-y-4">
-                <!-- Tasks will be added here dynamically -->
-            </div>
-            
-            @error('tasks')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-        </div>
-        
-        <!-- Actions -->
-        <div class="flex items-center justify-end space-x-3 mt-6">
-            <a href="{{ route('admin.templates.index') }}" 
-               class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                Cancel
-            </a>
-            <button type="submit" 
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                Create Template
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 <script>
 let taskIndex = 0;
+const inputClass = 'block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
 
-// Add initial task if none exist
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('tasks-container').children.length === 0) {
-        addTask();
-    }
-    
-    // Setup form submission to ensure CSRF token is included
-    const form = document.getElementById('templateForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            console.log('Form submitting with CSRF token:', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'));
-        });
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('tasks-container').children.length === 0) addTask();
 });
 
 function addTask() {
+    const i = taskIndex++;
     const container = document.getElementById('tasks-container');
-    const taskHtml = `
-        <div class="task-item bg-gray-50 rounded-lg p-4 border border-gray-200" data-index="${taskIndex}">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-medium text-gray-900">Task ${taskIndex + 1}</h3>
-                <div class="flex items-center space-x-2">
-                    <button type="button" 
-                            onclick="moveTask(${taskIndex}, 'up')"
-                            class="p-1 text-gray-400 hover:text-gray-600"
-                            ${taskIndex === 0 ? 'disabled' : ''}>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                        </svg>
-                    </button>
-                    <button type="button" 
-                            onclick="moveTask(${taskIndex}, 'down')"
-                            class="p-1 text-gray-400 hover:text-gray-600">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
-                    <button type="button" 
-                            onclick="removeTask(${taskIndex})"
-                            class="p-1 text-red-400 hover:text-red-600">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
+    const div = document.createElement('div');
+    div.className = 'task-item bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-100';
+    div.dataset.index = i;
+    div.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-slate-900">Taak <span class="task-num">${i + 1}</span></h3>
+            <div class="flex items-center gap-1">
+                <button type="button" onclick="moveTask(this, 'up')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors" title="Omhoog">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                </button>
+                <button type="button" onclick="moveTask(this, 'down')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors" title="Omlaag">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <button type="button" onclick="removeTask(this)" class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors" title="Verwijderen">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="${labelClass}">Taaktitel <span class="text-red-500">*</span></label>
+                <input type="text" name="tasks[${i}][title]" required class="${inputClass}" placeholder="Bijv. Vloeren dweilen">
+            </div>
+            <div>
+                <label class="${labelClass}">Beschrijving</label>
+                <textarea name="tasks[${i}][description]" rows="2" class="${inputClass}" placeholder="Optionele omschrijving..."></textarea>
+            </div>
+            <div>
+                <label class="${labelClass}">Instructies</label>
+                <textarea name="tasks[${i}][instructions]" rows="2" class="${inputClass}" placeholder="Gedetailleerde instructies..."></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="${labelClass}">Bewijstype</label>
+                    <select name="tasks[${i}][required_proof_type]" required class="${inputClass}">
+                        <option value="none">Geen bewijs vereist</option>
+                        <option value="photo">Foto vereist</option>
+                        <option value="video">Video vereist</option>
+                        <option value="text">Tekstbeschrijving vereist</option>
+                        <option value="file">Bestand uploaden vereist</option>
+                        <option value="any">Elk bewijstype</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="${labelClass}">Verplicht</label>
+                    <select name="tasks[${i}][is_required]" class="${inputClass}">
+                        <option value="1">Verplicht</option>
+                        <option value="0">Optioneel</option>
+                    </select>
                 </div>
             </div>
-            
-            <div class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                    <input type="text" 
-                           name="tasks[${taskIndex}][title]" 
-                           required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Enter task title...">
+                    <label class="${labelClass}">Starttijd</label>
+                    <input type="time" name="tasks[${i}][start_time]" class="${inputClass}">
                 </div>
-                
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
-                    <textarea name="tasks[${taskIndex}][description]" 
-                              rows="2"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Enter task description..."></textarea>
+                    <label class="${labelClass}">Eindtijd</label>
+                    <input type="time" name="tasks[${i}][end_time]" class="${inputClass}">
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Instructions (optional)</label>
-                    <textarea name="tasks[${taskIndex}][instructions]" 
-                              rows="2"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Enter detailed instructions..."></textarea>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Proof Type Required</label>
-                        <select name="tasks[${taskIndex}][required_proof_type]" 
-                                required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="none">No Proof Required</option>
-                            <option value="photo">Photo Required</option>
-                            <option value="video">Video Required</option>
-                            <option value="text">Text Description Required</option>
-                            <option value="file">File Upload Required</option>
-                            <option value="any">Any Proof Type</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Task Required</label>
-                        <select name="tasks[${taskIndex}][is_required]" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="1">Required</option>
-                            <option value="0">Optional</option>
-                        </select>
+            </div>
+            <div>
+                <label class="${labelClass}">Checklist-items</label>
+                <div class="checklist-container space-y-2">
+                    <div class="checklist-item flex gap-2">
+                        <input type="text" name="tasks[${i}][checklist_items][]" class="${inputClass} flex-1" placeholder="Checklist-item...">
+                        <button type="button" onclick="removeChecklistItem(this)" class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Checklist Items (optional)</label>
-                    <div class="checklist-container">
-                        <div class="checklist-item flex items-center space-x-2 mb-2">
-                            <input type="text" 
-                                   name="tasks[${taskIndex}][checklist_items][]" 
-                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   placeholder="Checklist item...">
-                            <button type="button" 
-                                    onclick="removeChecklistItem(this)"
-                                    class="p-1 text-red-400 hover:text-red-600">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <button type="button" 
-                            onclick="addChecklistItem(${taskIndex})"
-                            class="text-sm text-blue-600 hover:text-blue-800">
-                        + Add checklist item
-                    </button>
-                </div>
+                <button type="button" onclick="addChecklistItem(this)" class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    + Checklist-item toevoegen
+                </button>
             </div>
         </div>
     `;
-    
-    container.insertAdjacentHTML('beforeend', taskHtml);
-    taskIndex++;
+    container.appendChild(div);
     updateTaskNumbers();
 }
 
-function removeTask(index) {
-    const taskItem = document.querySelector(`[data-index="${index}"]`);
-    if (taskItem) {
-        taskItem.remove();
-        updateTaskNumbers();
-    }
-    
-    // Ensure at least one task exists
-    if (document.getElementById('tasks-container').children.length === 0) {
-        addTask();
-    }
+function removeTask(btn) {
+    const item = btn.closest('.task-item');
+    item.remove();
+    if (document.getElementById('tasks-container').children.length === 0) addTask();
+    else updateTaskNumbers();
 }
 
-function moveTask(index, direction) {
+function moveTask(btn, dir) {
+    const item = btn.closest('.task-item');
     const container = document.getElementById('tasks-container');
-    const tasks = Array.from(container.children);
-    const currentIndex = tasks.findIndex(task => task.dataset.index == index);
-    
-    if (direction === 'up' && currentIndex > 0) {
-        container.insertBefore(tasks[currentIndex], tasks[currentIndex - 1]);
-    } else if (direction === 'down' && currentIndex < tasks.length - 1) {
-        container.insertBefore(tasks[currentIndex + 1], tasks[currentIndex]);
+    const items = [...container.querySelectorAll('.task-item')];
+    const idx = items.indexOf(item);
+    if (dir === 'up' && idx > 0) {
+        container.insertBefore(item, items[idx - 1]);
+    } else if (dir === 'down' && idx < items.length - 1) {
+        container.insertBefore(items[idx + 1], item);
     }
-    
     updateTaskNumbers();
 }
 
 function updateTaskNumbers() {
     const tasks = document.querySelectorAll('.task-item');
-    tasks.forEach((task, index) => {
-        const title = task.querySelector('h3');
-        title.textContent = `Task ${index + 1}`;
-        
-        // Update move up button state
-        const moveUpBtn = task.querySelector('button[onclick*="up"]');
-        moveUpBtn.disabled = index === 0;
-        moveUpBtn.classList.toggle('opacity-50', index === 0);
+    tasks.forEach((task, i) => {
+        task.querySelector('.task-num').textContent = i + 1;
+        [...task.querySelectorAll('[name^="tasks["]')].forEach(el => {
+            el.name = el.name.replace(/tasks\[\d+\]/, `tasks[${i}]`);
+        });
     });
 }
 
-function addChecklistItem(taskIndex) {
-    const container = document.querySelector(`[data-index="${taskIndex}"] .checklist-container`);
-    const itemHtml = `
-        <div class="checklist-item flex items-center space-x-2 mb-2">
-            <input type="text" 
-                   name="tasks[${taskIndex}][checklist_items][]" 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                   placeholder="Checklist item...">
-            <button type="button" 
-                    onclick="removeChecklistItem(this)"
-                    class="p-1 text-red-400 hover:text-red-600">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
+function addChecklistItem(btn) {
+    const task = btn.closest('.task-item');
+    const tasks = document.querySelectorAll('.task-item');
+    const i = Array.from(tasks).indexOf(task);
+    const container = task.querySelector('.checklist-container');
+    const div = document.createElement('div');
+    div.className = 'checklist-item flex gap-2';
+    div.innerHTML = `
+        <input type="text" name="tasks[${i}][checklist_items][]" class="${inputClass} flex-1" placeholder="Checklist-item...">
+        <button type="button" onclick="removeChecklistItem(this)" class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
     `;
-    container.insertAdjacentHTML('beforeend', itemHtml);
+    container.appendChild(div);
 }
 
-function removeChecklistItem(button) {
-    button.closest('.checklist-item').remove();
+function removeChecklistItem(btn) {
+    btn.closest('.checklist-item').remove();
 }
 </script>
 @endsection

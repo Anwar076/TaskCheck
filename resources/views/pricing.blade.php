@@ -635,11 +635,11 @@
                 // Simulate payment processing
                 const submitBtn = e.target.querySelector('button[type="submit"]');
                 const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Processing...';
+                submitBtn.textContent = 'Verwerken...';
                 submitBtn.disabled = true;
 
                 setTimeout(() => {
-                    alert('Payment successful! Welcome to TaskCheck. You will receive a confirmation email shortly.');
+                    alert('Betaling geslaagd! Welkom bij TaskCheck. Je ontvangt binnenkort een bevestigingsmail.');
                     closePaymentModal();
                     submitBtn.textContent = originalText;
                     submitBtn.disabled = false;

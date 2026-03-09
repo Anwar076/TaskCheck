@@ -16,7 +16,8 @@ class UserController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = User::query();
+            $companyId = auth()->user()->company_id;
+            $query = User::where('company_id', $companyId);
 
             // Search functionality
             if ($request->filled('search')) {
@@ -71,17 +72,10 @@ class UserController extends Controller
 
             \DB::beginTransaction();
 
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => bcrypt($validated['password']),
-                'role' => $validated['role'],
-                'is_active' => $validated['is_active'] ?? true,
-                'department' => $validated['department'] ?? null,
-                'phone' => $validated['phone'] ?? null,
-                'employee_id' => $validated['employee_id'] ?? null,
-                'email_verified_at' => now(),
-            ]);
+            $validated['company_id'] = auth()->user()->company_id;
+            $validated['password'] = bcrypt($validated['password']);
+            $validated['email_verified_at'] = now();
+            $user = User::create($validated);
 
             \DB::commit();
 
@@ -115,6 +109,14 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
 
+            // Ensure user belongs to same company
+            if ($user->company_id !== auth()->user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to user.',
+                ], 403);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $user,
@@ -135,6 +137,14 @@ class UserController extends Controller
     {
         try {
             $user = User::findOrFail($id);
+
+            // Ensure user belongs to same company
+            if ($user->company_id !== auth()->user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to user.',
+                ], 403);
+            }
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -197,9 +207,27 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            // Prevent deleting the last admin
+            // Ensure user belongs to same company
+            if ($user->company_id !== auth()->user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to user.',
+                ], 403);
+            }
+
+            // Prevent deleting yourself
+            if ($user->id === auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You cannot delete your own account.'
+                ], 422);
+            }
+
+            // Prevent deleting the last admin (only count admins from same company)
             if ($user->role === 'admin') {
-                $adminCount = User::where('role', 'admin')->count();
+                $adminCount = User::where('role', 'admin')
+                    ->where('company_id', auth()->user()->company_id)
+                    ->count();
                 if ($adminCount <= 1) {
                     return response()->json([
                         'success' => false,
@@ -210,6 +238,44 @@ class UserController extends Controller
 
             \DB::beginTransaction();
 
+            // Delete all related records before deleting the user
+            
+            // 1. Delete list assignments
+            \App\Models\ListAssignment::where('user_id', $user->id)->delete();
+            
+            // 2. Delete submissions and their related submission tasks
+            $submissions = \App\Models\Submission::where('user_id', $user->id)->get();
+            foreach ($submissions as $submission) {
+                \App\Models\SubmissionTask::where('submission_id', $submission->id)->delete();
+            }
+            \App\Models\Submission::where('user_id', $user->id)->delete();
+            
+            // 3. Delete submission tasks where user reviewed (reviewed_by)
+            \App\Models\SubmissionTask::where('reviewed_by', $user->id)->update(['reviewed_by' => null]);
+            
+            // 4. Delete notifications (has cascade, but delete explicitly for clarity)
+            \App\Models\Notification::where('user_id', $user->id)->delete();
+            
+            // 5. Delete task assignments (has cascade, but delete explicitly for clarity)
+            \App\Models\TaskAssignment::where('user_id', $user->id)->delete();
+            
+            // 6. Update task lists created_by to null or another admin
+            // First, try to find another admin from same company
+            $replacementAdmin = \App\Models\User::where('company_id', $user->company_id)
+                ->where('role', 'admin')
+                ->where('id', '!=', $user->id)
+                ->first();
+            
+            if ($replacementAdmin) {
+                \App\Models\TaskList::where('created_by', $user->id)
+                    ->update(['created_by' => $replacementAdmin->id]);
+            } else {
+                // If no other admin, set to null
+                \App\Models\TaskList::where('created_by', $user->id)
+                    ->update(['created_by' => null]);
+            }
+
+            // Now delete the user
             $user->delete();
 
             \DB::commit();
@@ -234,12 +300,13 @@ class UserController extends Controller
     public function statistics(): JsonResponse
     {
         try {
+            $companyId = auth()->user()->company_id;
             $stats = [
-                'total_users' => User::count(),
-                'admin_users' => User::where('role', 'admin')->count(),
-                'employee_users' => User::where('role', 'employee')->count(),
-                'active_users' => User::where('is_active', true)->count(),
-                'inactive_users' => User::where('is_active', false)->count(),
+                'total_users' => User::where('company_id', $companyId)->count(),
+                'admin_users' => User::where('company_id', $companyId)->where('role', 'admin')->count(),
+                'employee_users' => User::where('company_id', $companyId)->where('role', 'employee')->count(),
+                'active_users' => User::where('company_id', $companyId)->where('is_active', true)->count(),
+                'inactive_users' => User::where('company_id', $companyId)->where('is_active', false)->count(),
             ];
 
             return response()->json([

@@ -27,19 +27,48 @@ class SubmissionController extends Controller
     {
         $user = auth()->user();
         
-        // Get assigned lists using ScheduleService
-        $assignedLists = $this->scheduleService->getScheduledTasksForUser($user);
-        
-        // Apply filters
+        // Get assigned lists using ScheduleService (open/pending lists)
+        $scheduledLists = $this->scheduleService->getScheduledTasksForUser($user);
+        $completedLists = Submission::where('user_id', $user->id)
+            ->whereDate('created_at', today())
+            ->whereIn('status', ['completed', 'reviewed'])
+            ->with('taskList')
+            ->get()
+            ->pluck('taskList')
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        // Status filter: "afgerond" = completed today, "openstaand" = scheduled only
+        if ($request->filled('status') && $request->status === 'afgerond') {
+            $assignedLists = $completedLists;
+        } else {
+            $assignedLists = $scheduledLists;
+        }
+
+        // Categories for dropdown: merge both so all options show
+        $categories = $scheduledLists->merge($completedLists)->pluck('category')->filter()->unique()->sort()->values();
+
+        // Apply priority and category filters
         if ($request->filled('priority')) {
             $assignedLists = $assignedLists->where('priority', $request->priority);
         }
-        
         if ($request->filled('category')) {
             $assignedLists = $assignedLists->where('category', $request->category);
         }
+
+        // Status filter "openstaand": only lists not completed/reviewed
+        if ($request->filled('status') && $request->status === 'openstaand') {
+            $assignedLists = $assignedLists->filter(function ($list) use ($user) {
+                $submission = Submission::where('user_id', $user->id)
+                    ->where('list_id', $list->id)
+                    ->whereDate('created_at', today())
+                    ->first();
+                return !$submission || in_array($submission->status, ['in_progress', 'rejected', 'redo_requested']);
+            })->values();
+        }
         
-        return view('employee.lists.index', compact('assignedLists'));
+        return view('employee.lists.index', compact('assignedLists', 'categories'));
     }
 
     /**
@@ -49,53 +78,27 @@ class SubmissionController extends Controller
     {
         $user = auth()->user();
         
+        // Ensure list belongs to same company
+        if ($list->company_id !== $user->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+        
         // Check if user has access to this list
         if (!$this->userHasAccessToList($user, $list)) {
             abort(403, 'You do not have access to this task list.');
         }
 
-        // Load tasks based on schedule type that supports day filtering
-        if (in_array($list->schedule_type, ['daily', 'weekly', 'custom'])) {
-            // Debug: Log the day filtering check
-            \Log::info('Day filtering enabled list detected', [
-                'list_id' => $list->id,
-                'list_title' => $list->title,
-                'schedule_type' => $list->schedule_type,
-                'schedule_config' => $list->schedule_config
-            ]);
-            
-            // For weekly structure lists, implement smart day filtering
-            $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
-            
-            \Log::info('Today weekday', ['today' => $todayWeekday]);
-            
-            // First, check if there are any tasks specifically for today
-            $specificTasksForToday = $list->tasks()
-                ->where('is_active', true)
-                ->where('weekday', $todayWeekday)
-                ->count();
-                
-            \Log::info('Specific tasks for today', ['count' => $specificTasksForToday, 'day' => $todayWeekday]);
-            
-            // Always show general tasks PLUS any day-specific tasks for today
-            $list->load(['tasks' => function ($query) use ($todayWeekday) {
-                $query->where('is_active', true)
-                      ->where(function ($q) use ($todayWeekday) {
-                          $q->whereNull('weekday')              // General tasks (always show)
-                            ->orWhere('weekday', $todayWeekday); // PLUS tasks for today
-                      });
-            }]);
-            
-            \Log::info('Showing general tasks + specific tasks for today', [
-                'task_count' => $list->tasks->count(),
-                'day' => $todayWeekday
-            ]);
-        } else {
-            // For regular lists, load all active tasks
-            $list->load(['tasks' => function ($query) {
-                $query->where('is_active', true);
-            }]);
-        }
+        // Load tasks with weekday filtering - tasks with weekday should only show on that day
+        $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
+        
+        // Always filter tasks by weekday - only show tasks for today or tasks without weekday (general tasks)
+        $list->load(['tasks' => function ($query) use ($todayWeekday) {
+            $query->where('is_active', true)
+                  ->where(function ($q) use ($todayWeekday) {
+                      $q->whereNull('weekday')      // General tasks (no specific day) - always show
+                        ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
+                  });
+        }]);
         
         // Check if user has already started this list today
         $existingSubmission = Submission::where('user_id', $user->id)
@@ -113,6 +116,11 @@ class SubmissionController extends Controller
     {
         $user = auth()->user();
         
+        // Ensure list belongs to same company
+        if ($list->company_id !== $user->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+        
         // Check if user has access to this list
         if (!$this->userHasAccessToList($user, $list)) {
             abort(403, 'You do not have access to this task list.');
@@ -129,10 +137,16 @@ class SubmissionController extends Controller
                 ->with('info', 'You have already started this list today.');
         }
 
+        // Ensure list belongs to same company
+        if ($list->company_id !== $user->company_id) {
+            abort(403, 'You do not have access to this task list.');
+        }
+
         // Create new submission
         $submission = Submission::create([
             'user_id' => $user->id,
             'list_id' => $list->id,
+            'company_id' => $user->company_id,
             'started_at' => now(),
             'status' => 'in_progress',
             'metadata' => [
@@ -142,29 +156,17 @@ class SubmissionController extends Controller
         ]);
 
         // Create submission tasks for each task in the list
-        // Load tasks with proper filtering for lists that support day filtering
-        if (in_array($list->schedule_type, ['daily', 'weekly', 'custom'])) {
-            // For lists that support day filtering, implement smart day filtering
-            $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
-            
-            // First, check if there are any tasks specifically for today
-            $specificTasksForToday = $list->tasks()
-                ->where('is_active', true)
-                ->where('weekday', $todayWeekday)
-                ->count();
-                
-            // Always include general tasks PLUS any day-specific tasks for today
-            $tasks = $list->tasks()
-                ->where('is_active', true)
-                ->where(function ($query) use ($todayWeekday) {
-                    $query->whereNull('weekday')              // General tasks (always include)
-                          ->orWhere('weekday', $todayWeekday); // PLUS tasks for today
-                })
-                ->get();
-        } else {
-            // For regular lists, include all active tasks
-            $tasks = $list->tasks()->where('is_active', true)->get();
-        }
+        // Load tasks with weekday filtering - tasks with weekday should only show on that day
+        $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
+        
+        // Always filter tasks by weekday - only show tasks for today or tasks without weekday (general tasks)
+        $tasks = $list->tasks()
+            ->where('is_active', true)
+            ->where(function ($query) use ($todayWeekday) {
+                $query->whereNull('weekday')      // General tasks (no specific day) - always show
+                      ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
+            })
+            ->get();
         
         foreach ($tasks as $task) {
             SubmissionTask::create([
@@ -175,7 +177,7 @@ class SubmissionController extends Controller
         }
 
         return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
-            ->with('success', 'Task list started successfully!');
+            ->with('success', 'Takenlijst succesvol gestart!');
     }
 
     /**
@@ -183,12 +185,49 @@ class SubmissionController extends Controller
      */
     public function edit(Submission $submission)
     {
-        // Check if user owns this submission
-        if ($submission->user_id !== auth()->id()) {
+        $user = auth()->user();
+        
+        // Check if user owns this submission and belongs to same company
+        if ($submission->user_id !== $user->id || $submission->company_id !== $user->company_id) {
             abort(403, 'You do not have access to this submission.');
         }
 
     $submission->load(['taskList', 'submissionTasks.task']);
+    
+    // Check if there are tasks in the list that are not yet in the submission
+    // This can happen if tasks were added to the list after the submission was created
+    // or if weekday filtering changed which tasks should be included
+    $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
+    
+    // Get all tasks that should be in this submission (filtered by weekday)
+    $tasksThatShouldBeIncluded = $submission->taskList->tasks()
+        ->where('is_active', true)
+        ->where(function ($query) use ($todayWeekday) {
+            $query->whereNull('weekday')      // General tasks (no specific day) - always show
+                  ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
+        })
+        ->pluck('id');
+    
+    // Get task IDs that are already in the submission
+    $existingTaskIds = $submission->submissionTasks->pluck('task_id');
+    
+    // Find missing task IDs
+    $missingTaskIds = $tasksThatShouldBeIncluded->diff($existingTaskIds);
+    
+    // Add missing tasks to the submission
+    if ($missingTaskIds->count() > 0) {
+        foreach ($missingTaskIds as $taskId) {
+            \App\Models\SubmissionTask::create([
+                'submission_id' => $submission->id,
+                'task_id' => $taskId,
+                'status' => 'pending',
+            ]);
+        }
+        
+        // Reload the submission with the new tasks
+        $submission->load(['taskList', 'submissionTasks.task']);
+    }
+    
     // Laat ALLE taken zien die bij deze submission horen
     return view('employee.submissions.edit', compact('submission'));
     }
@@ -199,8 +238,10 @@ class SubmissionController extends Controller
     public function completeTask(Request $request, Submission $submission, $taskId)
     {
         try {
-            // Check if user owns this submission
-            if ($submission->user_id !== auth()->id()) {
+            $user = auth()->user();
+            
+            // Check if user owns this submission and belongs to same company
+            if ($submission->user_id !== $user->id || $submission->company_id !== $user->company_id) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
@@ -293,6 +334,11 @@ class SubmissionController extends Controller
 
             $submissionTask->update($updateData);
 
+            // Clear company storage cache when new files are uploaded
+            if (!empty($proofFiles)) {
+                $submission->company?->clearStorageCache();
+            }
+
             // Handle AJAX requests
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
@@ -304,7 +350,7 @@ class SubmissionController extends Controller
             }
 
             return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
-                ->with('success', 'Task completed successfully!');
+                ->with('success', 'Taak succesvol afgerond!');
                 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Task completion validation error', [
@@ -350,8 +396,10 @@ class SubmissionController extends Controller
     public function complete(Request $request, Submission $submission)
     {
         try {
-            // Check if user owns this submission
-            if ($submission->user_id !== auth()->id()) {
+            $user = auth()->user();
+            
+            // Check if user owns this submission and belongs to same company
+            if ($submission->user_id !== $user->id || $submission->company_id !== $user->company_id) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
@@ -361,24 +409,37 @@ class SubmissionController extends Controller
                 abort(403, 'You do not have access to this submission.');
             }
 
-            // Check if all required tasks are completed
-            $pendingTasks = $submission->submissionTasks()
-                ->where('status', 'pending')
+            // Check if all required tasks are "done" for submission purposes:
+            // - completed, approved: taak is afgerond
+            // - rejected: manager heeft geweigerd maar NIET om herhaling gevraagd → lijst kan ingediend
+            // - redo_requested: manager vraagt herhaling → employee MOET eerst opnieuw doen
+            // - pending: nog niet voltooid
+            $incompleteRequiredTasks = $submission->submissionTasks()
                 ->whereHas('task', function ($query) {
                     $query->where('is_required', true);
                 })
+                ->whereNotIn('status', ['completed', 'approved', 'rejected'])
                 ->count();
 
-            if ($pendingTasks > 0) {
+            if ($incompleteRequiredTasks > 0) {
+                $message = 'Voltooi eerst alle verplichte taken om de checklist in te dienen. ';
+                $hasRedoRequested = $submission->submissionTasks()
+                    ->whereHas('task', fn($q) => $q->where('is_required', true))
+                    ->where('status', 'redo_requested')
+                    ->exists();
+                if ($hasRedoRequested) {
+                    $message .= 'Voer de taken die opnieuw moeten worden gedaan eerst opnieuw uit.';
+                }
+
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Voltooi eerst alle verplichte taken voordat je de checklist kunt indienen.'
+                        'message' => $message
                     ], 422);
                 }
                 
                 return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
-                    ->with('error', 'Please complete all required tasks before submitting.');
+                    ->with('error', $message);
             }
 
             // Handle digital signature validation with custom messages

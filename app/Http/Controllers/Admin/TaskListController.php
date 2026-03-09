@@ -13,44 +13,45 @@ class TaskListController extends Controller
 {
     public function index(Request $request)
     {
-        // For testing, let's first try a simple approach
-        $lists = TaskList::with(['creator'])->latest()->get();
-        
-        // Debug: Always log what we're doing
-        \Log::info('TaskListController@index called', [
-            'is_ajax' => $request->ajax(),
-            'expects_json' => $request->expectsJson(),
-            'accept_header' => $request->header('Accept'),
-            'lists_count' => $lists->count()
-        ]);
+        $query = TaskList::with(['creator', 'template'])
+            ->withCount('tasks');
 
-        // If this is an AJAX request, return JSON
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'data' => $lists,
-                'total' => $lists->count(),
-                'current_page' => 1,
-                'last_page' => 1,
-                'per_page' => $lists->count(),
-                'from' => 1,
-                'to' => $lists->count()
-            ]);
+        if ($request->filled('search')) {
+            $term = $request->get('search');
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('category', 'like', "%{$term}%");
+            });
         }
 
-        // Otherwise, return the regular view
+        if ($request->has('is_active')) {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $lists = $query->latest()->paginate(12);
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json($lists);
+        }
+
         return view('admin.lists.index-api');
     }
 
     public function create()
     {
-        // Get parent lists for the dropdown
-        $parentLists = TaskList::whereNull('parent_list_id')
+        $companyId = auth()->user()->company_id;
+        
+        // Get parent lists for the dropdown (same company only)
+        $parentLists = TaskList::where('company_id', $companyId)
+            ->whereNull('parent_list_id')
             ->where('is_active', true)
             ->orderBy('title')
             ->get();
 
-        // Get available templates
-        $templates = \App\Models\TaskTemplate::where('is_active', true)
+        // Get available templates (same company only)
+        $templates = \App\Models\TaskTemplate::where('company_id', $companyId)
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
@@ -76,8 +77,9 @@ class TaskListController extends Controller
             'selected_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
         ]);
 
-        // Set creator
+        // Set creator and company
         $validatedData['created_by'] = auth()->id();
+        $validatedData['company_id'] = auth()->user()->company_id;
 
         // Handle improved schedule configuration
         if (in_array($validatedData['schedule_type'], ['daily', 'weekly', 'custom'])) {
@@ -115,6 +117,8 @@ class TaskListController extends Controller
                         'is_required' => $templateTask->is_required,
                         'attachments' => $templateTask->attachments,
                         'validation_rules' => $templateTask->validation_rules,
+                        'start_time' => $templateTask->start_time,
+                        'end_time' => $templateTask->end_time,
                         'order_index' => $templateTask->sort_order,
                         'created_by' => auth()->id(),
                         'weekday' => null, // Tasks can be assigned to specific days later
@@ -124,7 +128,7 @@ class TaskListController extends Controller
         }
 
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Task list created successfully!' . ($validatedData['template_id'] ? ' Tasks from template have been added.' : ''));
+            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($validatedData['template_id'] ? ' Taken uit sjabloon zijn toegevoegd.' : ''));
     }
 
     public function show(TaskList $list)
@@ -132,8 +136,17 @@ class TaskListController extends Controller
         // Explicitly load assignments with user relationships for debugging
         $list->load(['assignments.user', 'tasks', 'submissions']);
         
-        // Get all users for the assignment modal
-        $users = \App\Models\User::orderBy('name')->get();
+        // Get all users for the assignment modal (zelfde bedrijf; bij null company_id alle gebruikers)
+        $companyId = auth()->user()->company_id;
+        $users = \App\Models\User::query()
+            ->when($companyId !== null, fn($q) => $q->where('company_id', $companyId))
+            ->orderBy('name')
+            ->get();
+        
+        // Ensure list belongs to same company
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
         
         // Debug logging
         \Log::info('TaskListController@show - Loading list with assignments', [
@@ -158,6 +171,11 @@ class TaskListController extends Controller
 
     public function edit(TaskList $list)
     {
+        // Ensure list belongs to same company
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+        
         // Get parent lists for the dropdown (exclude current list and its children)
         $parentLists = TaskList::whereNull('parent_list_id')
             ->where('is_active', true)
@@ -170,6 +188,11 @@ class TaskListController extends Controller
 
     public function update(Request $request, TaskList $list)
     {
+        // Ensure list belongs to same company
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+        
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -208,11 +231,16 @@ class TaskListController extends Controller
         $list->update($validatedData);
 
         return redirect()->route('admin.lists.show', $list)
-            ->with('success', 'Task list updated successfully!');
+            ->with('success', 'Takenlijst succesvol bijgewerkt!');
     }
 
     public function destroy(TaskList $list)
     {
+        // Ensure list belongs to same company
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+        
         try {
             \Log::info('Attempting to delete task list', [
                 'list_id' => $list->id,
@@ -277,11 +305,11 @@ class TaskListController extends Controller
             if (request()->ajax() || request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Task list deleted successfully.'
+                    'message' => 'Takenlijst succesvol verwijderd.'
                 ]);
             }
             
-            return redirect()->route('admin.lists.index')->with('success', 'Task list deleted successfully.');
+            return redirect()->route('admin.lists.index')->with('success', 'Takenlijst succesvol verwijderd.');
             
         } catch (\Exception $e) {
             \Log::error('Failed to delete task list', [
@@ -305,6 +333,14 @@ class TaskListController extends Controller
 
     public function assign(Request $request, TaskList $list)
     {
+        // Zorg dat de lijst bij hetzelfde bedrijf hoort
+        if ($list->company_id !== auth()->user()->company_id) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Geen toegang tot deze lijst.'], 403);
+            }
+            abort(403, 'Geen toegang tot deze lijst.');
+        }
+
         try {
             \Log::info('Assignment request received', [
                 'list_id' => $list->id,
@@ -490,7 +526,7 @@ class TaskListController extends Controller
         ]);
 
         return redirect()->back()
-            ->with('success', 'Submission reviewed successfully.');
+            ->with('success', 'Inzending succesvol beoordeeld.');
     }
 
     public function rejectTask(Request $request, \App\Models\SubmissionTask $submissionTask)
@@ -501,16 +537,19 @@ class TaskListController extends Controller
 
         $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
 
+        // Bij afwijzen gaat de hele inzending direct op 'rejected'
+        $submissionTask->submission->update(['status' => 'rejected']);
+
         // Check if it's an AJAX request
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Task rejected successfully. Employee has been notified.',
+                'message' => 'Taak afgewezen. De medewerker is op de hoogte gebracht.',
             ]);
         }
 
         return redirect()->back()
-            ->with('success', 'Task rejected successfully. Employee has been notified.');
+            ->with('success', 'Taak afgewezen. De medewerker is op de hoogte gebracht.');
     }
 
     public function requestRedo(Request $request, \App\Models\SubmissionTask $submissionTask)
@@ -525,12 +564,12 @@ class TaskListController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Redo requested successfully. Employee can now redo this task and has been notified.',
+                'message' => 'Opnieuw doen aangevraagd. De medewerker kan deze taak opnieuw uitvoeren en is op de hoogte gebracht.',
             ]);
         }
 
         return redirect()->back()
-            ->with('success', 'Redo requested successfully. Employee can now redo this task and has been notified.');
+            ->with('success', 'Opnieuw doen aangevraagd. De medewerker kan deze taak opnieuw uitvoeren en is op de hoogte gebracht.');
     }
 
     public function approveTask(Request $request, \App\Models\SubmissionTask $submissionTask)
@@ -539,18 +578,43 @@ class TaskListController extends Controller
             'manager_comment' => 'nullable|string',
         ]);
 
-        $submissionTask->approve(auth()->id(), $validatedData['manager_comment']);
+        $submissionTask->approve(auth()->id(), $validatedData['manager_comment'] ?? null);
+
+        // Als alle taken zijn goedgekeurd, zet de inzending op 'reviewed'
+        $this->updateSubmissionStatusIfAllTasksReviewed($submissionTask->submission);
 
         // Check if it's an AJAX request
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Task approved successfully.',
+                'message' => 'Taak succesvol goedgekeurd.',
             ]);
         }
 
         return redirect()->back()
-            ->with('success', 'Task approved successfully.');
+            ->with('success', 'Taak succesvol goedgekeurd.');
+    }
+
+    /**
+     * Update submission status when all tasks have been reviewed (approved or rejected).
+     * If all approved -> reviewed. If any rejected -> rejected.
+     */
+    protected function updateSubmissionStatusIfAllTasksReviewed(\App\Models\Submission $submission): void
+    {
+        $submission->load('submissionTasks');
+        $tasks = $submission->submissionTasks;
+        if ($tasks->isEmpty()) {
+            return;
+        }
+
+        $reviewedStatuses = ['approved', 'rejected'];
+        $allReviewed = $tasks->every(fn ($t) => in_array($t->status, $reviewedStatuses));
+        if (!$allReviewed) {
+            return;
+        }
+
+        $hasRejected = $tasks->contains('status', 'rejected');
+        $submission->update(['status' => $hasRejected ? 'rejected' : 'reviewed']);
     }
 
     public function weeklyOverview(Request $request)
@@ -560,7 +624,9 @@ class TaskListController extends Controller
         $endDate = $request->get('end_date', now()->endOfWeek()->format('Y-m-d'));
 
         // Get employees with submissions in the date range
-        $employees = \App\Models\User::where('role', 'employee')
+        $companyId = auth()->user()->company_id;
+        $employees = \App\Models\User::where('company_id', $companyId)
+            ->where('role', 'employee')
             ->with(['submissions' => function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate])
                       ->with(['taskList', 'submissionTasks']);
@@ -613,7 +679,7 @@ class TaskListController extends Controller
         // Implementation depends on your specific business logic
         
         return redirect()->back()
-            ->with('success', 'Daily sublists created successfully.');
+            ->with('success', 'Dagelijkse sublijsten succesvol aangemaakt.');
     }
 
     public function createDayList(Request $request, TaskList $list)
@@ -636,6 +702,6 @@ class TaskListController extends Controller
         ]);
 
         return redirect()->route('admin.lists.show', $dayList)
-            ->with('success', 'Day list created successfully.');
+            ->with('success', 'Daglijst succesvol aangemaakt.');
     }
 }

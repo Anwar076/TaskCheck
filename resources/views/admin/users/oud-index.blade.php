@@ -20,10 +20,11 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         @php
-            $totalUsers = \App\Models\User::count();
-            $admins = \App\Models\User::where('role', 'admin')->count();
-            $employees = \App\Models\User::where('role', 'employee')->count();
-            $activeUsers = \App\Models\User::where('is_active', true)->count();
+            $companyId = auth()->user()->company_id ?? null;
+            $totalUsers = $companyId ? \App\Models\User::where('company_id', $companyId)->count() : 0;
+            $admins = $companyId ? \App\Models\User::where('company_id', $companyId)->where('role', 'admin')->count() : 0;
+            $employees = $companyId ? \App\Models\User::where('company_id', $companyId)->where('role', 'employee')->count() : 0;
+            $activeUsers = $companyId ? \App\Models\User::where('company_id', $companyId)->where('is_active', true)->count() : 0;
         @endphp
         
         <div class="bg-white overflow-hidden shadow rounded-lg">
@@ -122,7 +123,11 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach(\App\Models\User::latest()->get() as $user)
+                    @php
+                        $companyId = auth()->user()->company_id ?? null;
+                        $users = $companyId ? \App\Models\User::where('company_id', $companyId)->latest()->get() : collect();
+                    @endphp
+                    @foreach($users as $user)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">

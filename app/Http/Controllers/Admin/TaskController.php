@@ -38,6 +38,8 @@ class TaskController extends Controller
             'is_required' => 'boolean',
             'requires_signature' => 'boolean',
             'order_index' => 'nullable|integer|min:1',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
             'target_list_id' => 'nullable|exists:lists,id', // For weekday specific creation
             'weekdays' => 'nullable|array', // For weekly structure
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
@@ -55,6 +57,8 @@ class TaskController extends Controller
         $validated['is_required'] = $request->has('is_required');
         $validated['requires_signature'] = $request->has('requires_signature');
         $validated['order_index'] = $validated['order_index'] ?? ($targetList->tasks()->max('order_index') + 1);
+        $validated['start_time'] = !empty($validated['start_time']) ? $validated['start_time'] : null;
+        $validated['end_time'] = !empty($validated['end_time']) ? $validated['end_time'] : null;
         
         // Clean up checklist items (remove empty items)
         if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {
@@ -85,9 +89,10 @@ class TaskController extends Controller
                 $createdTasks[] = Task::create($taskData);
             }
             
-            $daysList = implode(', ', array_map('ucfirst', $weekdays));
+            $dayLabels = ['monday'=>'Maandag','tuesday'=>'Dinsdag','wednesday'=>'Woensdag','thursday'=>'Donderdag','friday'=>'Vrijdag','saturday'=>'Zaterdag','sunday'=>'Zondag'];
+            $daysList = implode(', ', array_map(fn($d) => $dayLabels[$d] ?? ucfirst($d), $weekdays));
             return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-                ->with('success', "Task '{$validated['title']}' created successfully for specific days: {$daysList}. This task will ONLY appear on these selected days.");
+                ->with('success', "Taak '{$validated['title']}' is aangemaakt voor: {$daysList}. Deze taak verschijnt ALLEEN op deze geselecteerde dagen.");
         } else {
             // Single task creation (general task available every day the list is active)
             $validated['created_by'] = auth()->id();
@@ -103,7 +108,7 @@ class TaskController extends Controller
             $task = Task::create($validated);
             
             return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-                ->with('success', "General task '{$validated['title']}' added successfully. This task will appear EVERY day this list is active (because no specific days were selected).");
+                ->with('success', "Algemene taak '{$validated['title']}' is toegevoegd. Deze taak verschijnt ELKE dag dat deze lijst actief is (geen specifieke dagen geselecteerd).");
         }
     }
 
@@ -128,6 +133,8 @@ class TaskController extends Controller
             'is_required' => 'boolean',
             'requires_signature' => 'boolean',
             'order_index' => 'nullable|integer|min:1',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
             'weekdays' => 'nullable|array', // For weekly structure
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'checklist_items' => 'nullable|array',
@@ -136,6 +143,8 @@ class TaskController extends Controller
 
         $validated['is_required'] = $request->has('is_required');
         $validated['requires_signature'] = $request->has('requires_signature');
+        $validated['start_time'] = !empty($validated['start_time']) ? $validated['start_time'] : null;
+        $validated['end_time'] = !empty($validated['end_time']) ? $validated['end_time'] : null;
 
         // Clean up checklist items (remove empty items)
         if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {
@@ -156,7 +165,6 @@ class TaskController extends Controller
             // Note: If multiple days are selected, only the first one is used for updates
             // For multiple days, users should create separate tasks
             $validated['weekday'] = $weekdays[0];
-            $validated['order'] = $validated['order_index']; // Use order_index as order
         } else {
             // Clear weekday if no days selected (general task)
             $validated['weekday'] = null;
@@ -165,10 +173,56 @@ class TaskController extends Controller
         // Remove weekdays from validated data as it's not a Task field
         unset($validated['weekdays']);
 
+        // Order/position is managed via drag-and-drop in the list view, not in the form
+        unset($validated['order_index']);
+
         $task->update($validated);
 
         return redirect()->route('admin.lists.show', ['list' => $task->taskList->id, 'updated' => time()])
-            ->with('success', 'Task updated successfully.');
+            ->with('success', 'Taak succesvol bijgewerkt.');
+    }
+
+    /**
+     * Reorder tasks via drag-and-drop.
+     */
+    public function reorder(Request $request, TaskList $list)
+    {
+        $validated = $request->validate([
+            'tasks' => 'required|array',
+            'tasks.*.id' => 'required|exists:tasks,id',
+            'tasks.*.order_index' => 'required|integer|min:0',
+        ]);
+
+        \DB::beginTransaction();
+        try {
+            foreach ($validated['tasks'] as $taskData) {
+                $updated = Task::where('id', $taskData['id'])
+                    ->where('list_id', $list->id)
+                    ->update([
+                        'order_index' => $taskData['order_index'],
+                        'order' => $taskData['order_index'], // TaskList orders by order first, then order_index
+                    ]);
+                if ($updated === 0) {
+                    \DB::rollBack();
+                    if ($request->expectsJson()) {
+                        return response()->json(['success' => false, 'message' => 'Taak niet gevonden of hoort niet bij deze lijst'], 422);
+                    }
+                    return redirect()->back()->with('error', 'Fout: taak niet gevonden bij deze lijst');
+                }
+            }
+            \DB::commit();
+
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Volgorde opgeslagen']);
+            }
+            return redirect()->route('admin.lists.show', $list)->with('success', 'Volgorde opgeslagen');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Fout bij opslaan'], 500);
+            }
+            return redirect()->route('admin.lists.show', $list)->with('error', 'Fout bij opslaan volgorde');
+        }
     }
 
     /**
@@ -185,6 +239,6 @@ class TaskController extends Controller
         $task->delete();
 
         return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-            ->with('success', 'Task deleted successfully.');
+            ->with('success', 'Taak succesvol verwijderd.');
     }
 }

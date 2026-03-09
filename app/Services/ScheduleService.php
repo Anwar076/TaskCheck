@@ -30,10 +30,11 @@ class ScheduleService
                 
                 // Check if it's weekend and we should show all sublists
                 if (in_array($today, ['saturday', 'sunday'])) {
-                    // On weekends, show all weekday sublists for cleaning lists
+                    // On weekends, show all weekday sublists for cleaning lists (same company only)
                     $weekdaySubLists = $taskList->subLists()
                         ->whereIn('weekday', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
                         ->where('is_active', true)
+                        ->where('company_id', $user->company_id)
                         ->get();
                     
                     foreach ($weekdaySubLists as $subList) {
@@ -42,10 +43,11 @@ class ScheduleService
                         }
                     }
                 } else {
-                    // On weekdays, show only today's sublist
+                    // On weekdays, show only today's sublist (same company only)
                     $todaySubList = $taskList->subLists()
                         ->where('weekday', $today)
                         ->where('is_active', true)
+                        ->where('company_id', $user->company_id)
                         ->first();
                     
                     if ($todaySubList && !$this->isTaskListCompletedOnDate($todaySubList, $user, $date)) {
@@ -69,33 +71,38 @@ class ScheduleService
     /**
      * Get all assignments for a user
      */
-    private function getUserAssignments($user, $date)
+private function getUserAssignments($user, $date)
     {
-        // Direct assignments
+        $companyId = $user->company_id;
+        
+        // Direct assignments - only from same company
         $directAssignments = ListAssignment::with(['taskList'])
             ->where('user_id', $user->id)
             ->where('assigned_date', '<=', $date)
             ->where('is_active', true)
-            ->whereHas('taskList', function ($query) {
-                $query->where('is_active', true);
+            ->whereHas('taskList', function ($query) use ($companyId) {
+                $query->where('is_active', true)
+                      ->where('company_id', $companyId);
             });
 
-        // Department assignments
+        // Department assignments - only from same company
         $departmentAssignments = ListAssignment::with(['taskList'])
             ->where('department', $user->department)
             ->where('assigned_date', '<=', $date)
             ->where('is_active', true)
-            ->whereHas('taskList', function ($query) {
-                $query->where('is_active', true);
+            ->whereHas('taskList', function ($query) use ($companyId) {
+                $query->where('is_active', true)
+                      ->where('company_id', $companyId);
             });
 
-        // Role assignments
+        // Role assignments - only from same company
         $roleAssignments = ListAssignment::with(['taskList'])
             ->where('role', $user->role)
             ->where('assigned_date', '<=', $date)
             ->where('is_active', true)
-            ->whereHas('taskList', function ($query) {
-                $query->where('is_active', true);
+            ->whereHas('taskList', function ($query) use ($companyId) {
+                $query->where('is_active', true)
+                      ->where('company_id', $companyId);
             });
 
         return $directAssignments->get()

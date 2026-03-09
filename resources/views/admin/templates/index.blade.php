@@ -1,171 +1,124 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Templates')
-
-@section('header')
-<div class="flex items-center justify-between">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Task Templates</h1>
-        <p class="mt-1 text-sm text-gray-600">Create and manage task templates for quick list creation</p>
-    </div>
-    <a href="{{ route('admin.templates.create') }}" 
-       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        New Template
-    </a>
-</div>
-@endsection
+@section('page-title', 'Sjablonen')
 
 @section('content')
-<div class="p-6">
-    <!-- Loading state -->
-    <div id="loading-templates" class="text-center py-12" style="display: none;">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p class="mt-2 text-sm text-gray-600">Loading templates...</p>
-    </div>
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
 
-    <!-- Error state -->
-    <div id="error-templates" class="text-center py-12" style="display: none;">
-        <div class="text-red-600 mb-4">
-            <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+        {{-- Hero --}}
+        <div class="mb-6 sm:mb-8">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Takenlijst-sjablonen</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Maak en beheer sjablonen voor snelle aanmaak van takenlijsten</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.templates.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors shadow-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            Nieuw sjabloon
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <h3 class="text-sm font-medium text-gray-900">Failed to load templates</h3>
-        <p class="mt-1 text-sm text-gray-500">Please try refreshing the page.</p>
-        <button onclick="loadTemplates()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Retry
-        </button>
-    </div>
 
-    <!-- Templates content -->
-    <div id="templates-content">
-        <!-- Content will be loaded here -->
+        {{-- Laden --}}
+        <div id="loading-templates" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
+            <p class="mt-3 text-sm text-slate-600">Sjablonen laden...</p>
+        </div>
+
+        {{-- Fout --}}
+        <div id="error-templates" class="bg-white rounded-xl shadow-sm border border-slate-100 p-8 sm:p-10 text-center" style="display: none;">
+            <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="font-semibold text-slate-900">Kon sjablonen niet laden</h3>
+            <p class="mt-1 text-sm text-slate-500">Vernieuw de pagina of probeer het opnieuw.</p>
+            <button type="button" onclick="loadTemplates()" class="mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                Opnieuw proberen
+            </button>
+        </div>
+
+        {{-- Inhoud --}}
+        <div id="templates-content"></div>
     </div>
 </div>
 
-<!-- Create List Modal -->
-<div id="createListModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Create Task List from Template</h3>
-            <form id="createListForm" method="POST">
-                @csrf
-                <div class="mb-4">
-                    <label for="list_title" class="block text-sm font-medium text-gray-700 mb-2">List Title</label>
-                    <input type="text" 
-                           id="list_title" 
-                           name="title" 
-                           required 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div class="mb-4">
-                    <label for="list_description" class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
-                    <textarea id="list_description" 
-                              name="description" 
-                              rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" 
-                            onclick="closeCreateListModal()" 
-                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            id="createListBtn"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                        Create List
-                    </button>
-                </div>
-            </form>
+{{-- Modal: Lijst aanmaken --}}
+<div id="createListModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-start justify-center py-8 px-4">
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-slate-900">Lijst aanmaken van sjabloon</h3>
+            <button type="button" onclick="closeCreateListModal()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
+        <form id="createListForm" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label for="list_title" class="block text-sm font-medium text-slate-700 mb-1.5">Lijsttitel <span class="text-red-500">*</span></label>
+                <input type="text" id="list_title" name="title" required placeholder="bv. Dagelijkse schoonmaak"
+                    class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="mb-6">
+                <label for="list_description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving (optioneel)</label>
+                <textarea id="list_description" name="description" rows="3" placeholder="Korte omschrijving van de lijst"
+                    class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeCreateListModal()" class="px-4 py-2.5 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-medium transition-colors">
+                    Annuleren
+                </button>
+                <button type="submit" id="createListBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Lijst aanmaken
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
 let isLoading = false;
 
-// Load templates on page initialization
-document.addEventListener('DOMContentLoaded', function() {
-    loadTemplates();
-});
-
-// Handle page visibility changes (when user navigates back to tab)
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        loadTemplates();
-    }
-});
-
-// Handle page show event (when navigating back with browser buttons)
-window.addEventListener('pageshow', function(event) {
-    // Force reload if page was loaded from cache
-    if (event.persisted) {
-        loadTemplates();
-    }
-});
+document.addEventListener('DOMContentLoaded', loadTemplates);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) loadTemplates(); });
+window.addEventListener('pageshow', (e) => { if (e.persisted) loadTemplates(); });
 
 async function loadTemplates() {
-    // Prevent multiple simultaneous requests
-    if (isLoading) {
-        console.log('Templates already loading, skipping...');
-        return;
-    }
-    
+    if (isLoading) return;
     isLoading = true;
-    
     const loadingDiv = document.getElementById('loading-templates');
-    const errorDiv = document.getElementById('error-templates'); 
+    const errorDiv = document.getElementById('error-templates');
     const contentDiv = document.getElementById('templates-content');
-    
-    // Show loading state
     loadingDiv.style.display = 'block';
     errorDiv.style.display = 'none';
     contentDiv.style.display = 'none';
-    
+    contentDiv.innerHTML = '';
     try {
-        console.log('Loading templates...');
-        
-        // Add cache-busting parameter and proper headers
-        const timestamp = Date.now();
-        const response = await fetch(`/admin/templates?_=${timestamp}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            }
+        const res = await fetch(`/admin/templates?_=${Date.now()}`, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('Templates loaded successfully:', data);
-        
-        // Hide loading and show content
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
         loadingDiv.style.display = 'none';
-        errorDiv.style.display = 'none';
         contentDiv.style.display = 'block';
-        
-        // Render the templates
         renderTemplates(data.data || []);
-        
-    } catch (error) {
-        console.error('Failed to load templates:', error);
-        
-        // Show error state
+    } catch (err) {
+        console.error(err);
         loadingDiv.style.display = 'none';
         errorDiv.style.display = 'block';
-        contentDiv.style.display = 'none';
-        
     } finally {
         isLoading = false;
     }
@@ -173,89 +126,73 @@ async function loadTemplates() {
 
 function renderTemplates(templates) {
     const contentDiv = document.getElementById('templates-content');
-    
     if (!templates || templates.length === 0) {
-        // Empty state
         contentDiv.innerHTML = `
-            <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No templates</h3>
-                <p class="mt-1 text-sm text-gray-500">Get started by creating your first task template.</p>
-                <div class="mt-6">
-                    <a href="{{ route('admin.templates.create') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        New Template
-                    </a>
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-12 text-center">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                 </div>
+                <h3 class="text-lg font-semibold text-slate-900">Geen sjablonen</h3>
+                <p class="mt-2 text-sm text-slate-500 max-w-sm mx-auto">Maak je eerste sjabloon om snel takenlijsten aan te maken.</p>
+                <a href="{{ route('admin.templates.create') }}" class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Nieuw sjabloon
+                </a>
             </div>
         `;
         return;
     }
-    
-    // Templates grid
-    const templatesHtml = `
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            ${templates.map(template => `
-                <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(template.name)}</h3>
-                            ${template.description ? `<p class="mt-1 text-sm text-gray-600">${escapeHtml(template.description.length > 100 ? template.description.substring(0, 100) + '...' : template.description)}</p>` : ''}
-                            <div class="mt-3 flex items-center text-sm text-gray-500">
-                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                                </svg>
-                                ${template.template_tasks ? template.template_tasks.length : 0} ${template.template_tasks && template.template_tasks.length === 1 ? 'task' : 'tasks'}
+    contentDiv.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            ${templates.map(t => {
+                const taskCount = t.template_tasks ? t.template_tasks.length : 0;
+                const listCount = t.task_lists ? t.task_lists.length : 0;
+                const desc = t.description ? (t.description.length > 80 ? t.description.substring(0, 80) + '…' : t.description) : '';
+                return `
+                <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all overflow-hidden">
+                    <a href="/admin/templates/${t.id}" class="block p-5 sm:p-6">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-slate-900 truncate">${escapeHtml(t.name)}</h3>
+                                ${desc ? `<p class="mt-1 text-sm text-slate-600 line-clamp-2">${escapeHtml(desc)}</p>` : ''}
                             </div>
-                            <div class="mt-2 flex items-center text-sm text-gray-500">
-                                <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Used in ${template.task_lists ? template.task_lists.length : 0} ${template.task_lists && template.task_lists.length === 1 ? 'list' : 'lists'}
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${template.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${template.is_active ? 'Active' : 'Inactive'}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 ${t.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                                ${t.is_active ? 'Actief' : 'Inactief'}
                             </span>
                         </div>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between">
-                        <div class="flex space-x-2">
-                            <a href="/admin/templates/${template.id}" 
-                               class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
-                                View
-                            </a>
-                            <a href="/admin/templates/${template.id}/edit" 
-                               class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors">
-                                Edit
-                            </a>
+                        <div class="mt-4 flex items-center gap-4 text-sm text-slate-500">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
+                                ${taskCount} taak${taskCount !== 1 ? 'en' : ''}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                                ${listCount} lijst${listCount !== 1 ? 'en' : ''}
+                            </span>
                         </div>
-                        
-                        <div class="flex space-x-2">
-                            <button onclick="createListFromTemplate(${template.id})" 
-                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-md transition-colors">
-                                Create List
-                            </button>
-                            
-                            <button onclick="deleteTemplate(${template.id})" 
-                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md transition-colors">
-                                Delete
-                            </button>
-                        </div>
+                    </a>
+                    <div class="px-5 sm:px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-2">
+                        <a href="/admin/templates/${t.id}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Bekijken
+                        </a>
+                        <a href="/admin/templates/${t.id}/edit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                            Bewerken
+                        </a>
+                        <button type="button" onclick="event.preventDefault();event.stopPropagation();createListFromTemplate(${t.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg text-sm font-medium transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            Lijst maken
+                        </button>
+                        <button type="button" onclick="event.preventDefault();event.stopPropagation();deleteTemplate(${t.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors ml-auto">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                            Verwijderen
+                        </button>
                     </div>
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>
     `;
-    
-    contentDiv.innerHTML = templatesHtml;
 }
 
 function escapeHtml(text) {
@@ -266,79 +203,44 @@ function escapeHtml(text) {
 }
 
 async function deleteTemplate(templateId) {
-    if (!confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
-        return;
-    }
-    
+    if (!confirm('Weet je zeker dat je dit sjabloon wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) return;
     try {
-        const response = await fetch(`/admin/templates/${templateId}`, {
+        const res = await fetch(`/admin/templates/${templateId}`, {
             method: 'DELETE',
             credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            }
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' }
         });
-
-        if (!response.ok) {
-            // Try to extract JSON error message if present
+        if (!res.ok) {
             let body = null;
-            try { body = await response.json(); } catch(e) { body = null; }
-
-            // If template is used by lists, offer to unlink and delete
-            if (response.status === 422 && body && body.message && body.message.includes('being used')) {
-                if (confirm('This template is used by existing lists. Do you want to unlink it from those lists and delete the template?')) {
-                    // Retry with force=unlink
-                    const resp2 = await fetch(`/admin/templates/${templateId}?force=unlink`, {
+            try { body = await res.json(); } catch(e) {}
+            if (res.status === 422 && body?.message?.includes('being used')) {
+                if (confirm('Dit sjabloon wordt gebruikt door bestaande lijsten. Wil je het ontkoppelen en het sjabloon verwijderen?')) {
+                    const r2 = await fetch(`/admin/templates/${templateId}?force=unlink`, {
                         method: 'DELETE',
                         credentials: 'same-origin',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        }
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' }
                     });
-
-                    if (!resp2.ok) {
-                        let msg2 = `HTTP ${resp2.status}: ${resp2.statusText}`;
-                        try { const b2 = await resp2.json(); if (b2 && b2.message) msg2 = b2.message; } catch(e) {}
-                        throw new Error(msg2);
-                    }
-
+                    if (!r2.ok) throw new Error((await r2.json().catch(() => ({}))).message || 'Verwijderen mislukt');
                     await loadTemplates();
-                    return;
                 }
-                // If user cancelled, just return
                 return;
             }
-
-            let msg = `HTTP ${response.status}: ${response.statusText}`;
-            if (body && body.message) msg = body.message;
-            throw new Error(msg);
+            throw new Error(body?.message || `HTTP ${res.status}`);
         }
-
-        // Reload templates after successful deletion
         await loadTemplates();
-
-    } catch (error) {
-        console.error('Failed to delete template:', error);
-        // Provide a more actionable message for CSRF/session issues
-        if (error.message && error.message.includes('419')) {
-            alert('Session expired or CSRF token mismatch. Please refresh the page and try again.');
+    } catch (err) {
+        if (err.message?.includes('419')) {
+            alert('Sessie verlopen. Vernieuw de pagina en probeer opnieuw.');
         } else {
-            alert(error.message || 'Failed to delete template. Please try again.');
+            alert(err.message || 'Verwijderen mislukt. Probeer opnieuw.');
         }
     }
 }
 
 function createListFromTemplate(templateId) {
-    const modal = document.getElementById('createListModal');
-    const form = document.getElementById('createListForm');
-    
-    form.action = `/admin/templates/${templateId}/create-list`;
-    form.reset(); // Clear previous values
-    modal.classList.remove('hidden');
+    document.getElementById('createListForm').action = `/admin/templates/${templateId}/create-list`;
+    document.getElementById('createListForm').reset();
+    document.getElementById('createListModal').classList.remove('hidden');
 }
 
 function closeCreateListModal() {
@@ -346,62 +248,35 @@ function closeCreateListModal() {
     document.getElementById('createListForm').reset();
 }
 
-// Handle create list form submission
 document.getElementById('createListForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
     const form = this;
-    const submitBtn = document.getElementById('createListBtn');
-    const formData = new FormData(form);
-    const originalText = submitBtn.textContent;
-    
-    // Show loading state
-    submitBtn.textContent = 'Creating...';
-    submitBtn.disabled = true;
-    
+    const btn = document.getElementById('createListBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span> Bezig…';
+    btn.disabled = true;
     try {
-        const response = await fetch(form.action, {
+        const res = await fetch(form.action, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: formData
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' },
+            body: new FormData(form)
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
             closeCreateListModal();
-            // Redirect to the new list if provided
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            }
+            if (data.redirect) window.location.href = data.redirect;
         } else {
-            alert(data.message || 'Failed to create list from template');
+            alert(data.message || 'Lijst aanmaken mislukt. Probeer opnieuw.');
         }
-        
-    } catch (error) {
-        console.error('Failed to create list from template:', error);
-        alert('Failed to create list from template. Please try again.');
-        
+    } catch (err) {
+        alert('Er is iets misgegaan. Probeer opnieuw.');
     } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
+        btn.innerHTML = orig;
+        btn.disabled = false;
     }
 });
 
-// Close modal when clicking outside
-document.addEventListener('click', function(e) {
-    const modal = document.getElementById('createListModal');
-    if (e.target === modal) {
-        closeCreateListModal();
-    }
-});
+document.addEventListener('click', e => { if (e.target.id === 'createListModal') closeCreateListModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCreateListModal(); });
 </script>
 @endsection

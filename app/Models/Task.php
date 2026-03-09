@@ -23,6 +23,8 @@ class Task extends Model
         'checklist_items',
         'requires_signature',
         'weekday',
+        'start_time',
+        'end_time',
         'created_by',
     ];
 

@@ -122,7 +122,8 @@ class SubmissionTask extends Model
         Notification::createRedoRequested(
             $this->submission->user_id,
             $this->task->title,
-            $this->submission_id
+            $this->submission_id,
+            $reason
         );
     }
 

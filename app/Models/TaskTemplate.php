@@ -5,13 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use App\Traits\BelongsToCompany;
 
 class TaskTemplate extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'name',
         'description',
         'is_active',
+        'company_id',
     ];
 
     protected $casts = [
@@ -44,6 +48,7 @@ class TaskTemplate extends Model
             'description' => $listData['description'] ?? null,
             'template_id' => $this->id,
             'is_active' => $listData['is_active'] ?? true,
+            'company_id' => $this->company_id ?? (auth()->check() ? auth()->user()->company_id : null),
         ]);
 
         // Copy all template tasks to the new list
@@ -58,6 +63,8 @@ class TaskTemplate extends Model
                 'is_required' => $templateTask->is_required,
                 'attachments' => $templateTask->attachments,
                 'validation_rules' => $templateTask->validation_rules,
+                'start_time' => $templateTask->start_time,
+                'end_time' => $templateTask->end_time,
                 'order_index' => $templateTask->sort_order,
                 'created_by' => auth()->id(), // Add created_by field
             ]);
@@ -111,6 +118,8 @@ class TaskTemplate extends Model
                         'checklist_items' => $tt->checklist_items,
                         'attachments' => $tt->attachments,
                         'validation_rules' => $tt->validation_rules,
+                        'start_time' => $tt->start_time,
+                        'end_time' => $tt->end_time,
                         'order_index' => $tt->sort_order,
                     ];
 

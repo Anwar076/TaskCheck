@@ -6,8 +6,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
             </svg>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
-        <p class="text-gray-600">Join TaskCheck and start managing your tasks</p>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Account Aanmaken</h1>
+        <p class="text-gray-600">Start uw 30-dagen gratis proefperiode. Geen creditcard vereist.</p>
     </div>
 
     <!-- Registration Form -->
@@ -15,10 +15,35 @@
         <form method="POST" action="{{ route('register') }}" class="space-y-6">
             @csrf
 
+            <!-- Company Name -->
+            <div>
+                <label for="company_name" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Bedrijfsnaam
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <input id="company_name" 
+                           type="text" 
+                           name="company_name" 
+                           value="{{ old('company_name') }}" 
+                           required 
+                           autofocus 
+                           class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('company_name') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
+                           placeholder="Voer uw bedrijfsnaam in">
+                </div>
+                @error('company_name')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <!-- Name -->
             <div>
                 <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Full Name
+                    Volledige Naam
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -31,10 +56,9 @@
                            name="name" 
                            value="{{ old('name') }}" 
                            required 
-                           autofocus 
                            autocomplete="name"
                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('name') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Enter your full name">
+                           placeholder="Voer uw volledige naam in">
                 </div>
                 @error('name')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -44,7 +68,7 @@
             <!-- Email Address -->
             <div>
                 <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address
+                    E-mailadres
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -59,7 +83,7 @@
                            required 
                            autocomplete="username"
                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('email') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Enter your email">
+                           placeholder="Voer uw e-mailadres in">
                 </div>
                 @error('email')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -69,7 +93,7 @@
             <!-- Password -->
             <div>
                 <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Password
+                    Wachtwoord
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -83,7 +107,7 @@
                            required 
                            autocomplete="new-password"
                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('password') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Create a password">
+                           placeholder="Maak een wachtwoord">
                 </div>
                 @error('password')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -93,7 +117,7 @@
             <!-- Confirm Password -->
             <div>
                 <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Confirm Password
+                    Bevestig Wachtwoord
                 </label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -107,7 +131,7 @@
                            required 
                            autocomplete="new-password"
                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('password_confirmation') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Confirm your password">
+                           placeholder="Bevestig uw wachtwoord">
                 </div>
                 @error('password_confirmation')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -121,7 +145,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg>
-                    Create Account
+                    Account Aanmaken
                 </button>
             </div>
         </form>
@@ -129,9 +153,9 @@
         <!-- Login Link -->
         <div class="mt-6 text-center">
             <p class="text-sm text-gray-600">
-                Already have an account? 
+                Heeft u al een account? 
                 <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                    Sign in here
+                    Log hier in
                 </a>
             </p>
         </div>
