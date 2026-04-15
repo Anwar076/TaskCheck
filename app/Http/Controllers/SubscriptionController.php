@@ -365,6 +365,18 @@ class SubscriptionController extends Controller
                     ]);
                 }
             } catch (\Throwable $e) {
+                $message = strtolower($e->getMessage());
+                if (
+                    str_contains($message, 'wrong mode is used')
+                    || (str_contains($message, 'mollie api fout (404)') && str_contains($message, 'payment'))
+                ) {
+                    // Existing payment was created with another API mode (test/live).
+                    // Clear stale references so a fresh checkout can be started.
+                    $company->update([
+                        'mollie_payment_id' => null,
+                        'pending_subscription_plan' => null,
+                    ]);
+                }
                 report($e);
             }
         }
