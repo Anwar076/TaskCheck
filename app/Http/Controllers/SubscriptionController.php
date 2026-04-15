@@ -160,6 +160,35 @@ class SubscriptionController extends Controller
 
     public function paymentReturn(): RedirectResponse
     {
+        $company = Auth::user()->company;
+        if (!$company) {
+            return redirect()->route('subscription.choose-plan');
+        }
+
+        if (!$company->mollie_payment_id) {
+            if ($company->hasActiveSubscription()) {
+                return redirect()->route('subscription.show')
+                    ->with('success', 'Je betaling is bevestigd. Je abonnement is actief.');
+            }
+
+            return redirect()->route('subscription.show')
+                ->with('success', 'Betaling gestart. Zodra Mollie bevestigt, wordt je abonnement actief.');
+        }
+
+        try {
+            $payment = $this->mollieService->getPayment($company->mollie_payment_id);
+            $status = $payment['status'] ?? null;
+
+            if ($status === 'paid') {
+                $this->finalizePaidPayment($company, $payment);
+
+                return redirect()->route('subscription.show')
+                    ->with('success', 'Betaling bevestigd. Je abonnement is nu actief.');
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return redirect()->route('subscription.show')
             ->with('success', 'Betaling gestart. Zodra Mollie bevestigt, wordt je abonnement actief.');
     }
@@ -181,31 +210,7 @@ class SubscriptionController extends Controller
             $status = $payment['status'] ?? null;
 
             if ($status === 'paid') {
-                $plan = $company->pending_subscription_plan ?: data_get($payment, 'metadata.plan');
-                if (!$plan || !isset(Company::PLANS[$plan])) {
-                    return response('invalid plan', 422);
-                }
-
-                $subscription = $this->mollieService->createSubscription($company->mollie_customer_id, [
-                    'amount' => [
-                        'currency' => 'EUR',
-                        'value' => number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', ''),
-                    ],
-                    'interval' => '1 month',
-                    'description' => "TaskCheck {$plan} abonnement",
-                    'webhookUrl' => $this->resolveWebhookUrl(),
-                    'metadata' => [
-                        'company_id' => $company->id,
-                        'plan' => $plan,
-                    ],
-                ]);
-
-                $company->activateSubscription($plan);
-                $company->update([
-                    'mollie_subscription_id' => $subscription['id'] ?? null,
-                    'mollie_payment_id' => null,
-                    'pending_subscription_plan' => null,
-                ]);
+                $this->finalizePaidPayment($company, $payment);
             }
         } catch (\Throwable $e) {
             report($e);
@@ -232,6 +237,45 @@ class SubscriptionController extends Controller
         }
 
         return $defaultWebhook;
+    }
+
+    private function finalizePaidPayment(Company $company, array $payment): void
+    {
+        $plan = $company->pending_subscription_plan ?: data_get($payment, 'metadata.plan');
+        if (!$plan || !isset(Company::PLANS[$plan])) {
+            throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
+        }
+
+        $company->activateSubscription($plan);
+
+        $updateData = [
+            'mollie_payment_id' => null,
+            'pending_subscription_plan' => null,
+        ];
+
+        if ($company->mollie_customer_id && !$company->mollie_subscription_id) {
+            try {
+                $subscription = $this->mollieService->createSubscription($company->mollie_customer_id, [
+                    'amount' => [
+                        'currency' => 'EUR',
+                        'value' => number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', ''),
+                    ],
+                    'interval' => '1 month',
+                    'description' => "TaskCheck {$plan} abonnement",
+                    'webhookUrl' => $this->resolveWebhookUrl(),
+                    'metadata' => [
+                        'company_id' => $company->id,
+                        'plan' => $plan,
+                    ],
+                ]);
+
+                $updateData['mollie_subscription_id'] = $subscription['id'] ?? null;
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $company->update($updateData);
     }
 }
 
