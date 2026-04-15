@@ -136,43 +136,11 @@ class SubscriptionController extends Controller
                 ],
             ];
 
-            try {
-                $payment = $this->mollieService->createFirstPayment($paymentPayload);
-            } catch (RuntimeException $e) {
-                $message = strtolower($e->getMessage());
-                $recurringMethodError =
-                    str_contains($message, 'does not accept recurring payments')
-                    || str_contains($message, 'does not support recurring');
-
-                if ($recurringMethodError) {
-                    // Fallback: let Mollie choose an allowed method for recurring setup.
-                    unset($paymentPayload['method']);
-                    $payment = $this->mollieService->createFirstPayment($paymentPayload);
-                } elseif (
-                    str_contains($message, 'customer')
-                    && (
-                        str_contains($message, 'not found')
-                        || str_contains($message, 'wrong mode')
-                        || str_contains($message, 'resource does not exist')
-                    )
-                ) {
-                    // Existing customer id can be from another mode (test/live). Recreate customer and retry once.
-                    $customer = $this->mollieService->createCustomer(
-                        $company->name,
-                        Auth::user()->email
-                    );
-                    $newCustomerId = (string) ($customer['id'] ?? '');
-                    if ($newCustomerId === '') {
-                        throw new RuntimeException('Kon geen nieuwe Mollie klant aanmaken.');
-                    }
-
-                    $company->update(['mollie_customer_id' => $newCustomerId]);
-                    $paymentPayload['customerId'] = $newCustomerId;
-                    $payment = $this->mollieService->createFirstPayment($paymentPayload);
-                } else {
-                    throw $e;
-                }
-            }
+            $payment = $this->createFirstPaymentWithFallback(
+                $company,
+                $paymentPayload,
+                (string) Auth::user()->email
+            );
 
             $checkoutUrl = data_get($payment, '_links.checkout.href');
             $paymentId = trim((string) ($payment['id'] ?? ''));
@@ -186,6 +154,7 @@ class SubscriptionController extends Controller
                 'mollie_payment_id' => $paymentId,
             ]);
         } catch (\Throwable $e) {
+            report($e);
             return redirect()->route('subscription.choose-plan')
                 ->with('error', 'Mollie checkout kon niet worden gestart: '.$e->getMessage());
         }
@@ -323,6 +292,58 @@ class SubscriptionController extends Controller
         }
 
         return $defaultWebhook;
+    }
+
+    private function createFirstPaymentWithFallback(Company $company, array $paymentPayload, string $billingEmail): array
+    {
+        $payloadWithoutMethod = $paymentPayload;
+        unset($payloadWithoutMethod['method']);
+
+        $attempts = [$paymentPayload, $payloadWithoutMethod];
+        $lastException = null;
+
+        foreach ($attempts as $attemptPayload) {
+            try {
+                return $this->mollieService->createFirstPayment($attemptPayload);
+            } catch (RuntimeException $e) {
+                $lastException = $e;
+                $message = strtolower($e->getMessage());
+
+                $customerModeMismatch =
+                    str_contains($message, 'customer')
+                    && (
+                        str_contains($message, 'not found')
+                        || str_contains($message, 'wrong mode')
+                        || str_contains($message, 'resource does not exist')
+                    );
+
+                if ($customerModeMismatch) {
+                    $customer = $this->mollieService->createCustomer($company->name, $billingEmail);
+                    $newCustomerId = trim((string) ($customer['id'] ?? ''));
+                    if ($newCustomerId === '') {
+                        throw new RuntimeException('Kon geen nieuwe Mollie klant aanmaken.');
+                    }
+
+                    $company->update(['mollie_customer_id' => $newCustomerId]);
+
+                    // Retry both variants once with the new customer id.
+                    $retryWithMethod = $paymentPayload;
+                    $retryWithMethod['customerId'] = $newCustomerId;
+                    $retryWithoutMethod = $retryWithMethod;
+                    unset($retryWithoutMethod['method']);
+
+                    foreach ([$retryWithMethod, $retryWithoutMethod] as $retryPayload) {
+                        try {
+                            return $this->mollieService->createFirstPayment($retryPayload);
+                        } catch (RuntimeException $retryException) {
+                            $lastException = $retryException;
+                        }
+                    }
+                }
+            }
+        }
+
+        throw $lastException ?? new RuntimeException('Mollie checkout kon niet worden gestart.');
     }
 
     private function finalizePaidPayment(Company $company, array $payment): void
