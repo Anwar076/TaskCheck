@@ -94,6 +94,7 @@ class SubscriptionController extends Controller
                     'value' => $amountValue,
                 ],
                 'description' => "TaskCheck {$plan['name']} abonnement",
+                'method' => 'ideal',
                 'redirectUrl' => route('subscription.payment-return'),
                 'webhookUrl' => $webhookUrl,
                 'sequenceType' => 'first',

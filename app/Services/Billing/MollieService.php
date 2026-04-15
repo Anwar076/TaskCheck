@@ -39,7 +39,13 @@ class MollieService
 
     private function request(string $method, string $endpoint, array $payload = []): array
     {
-        $apiKey = (string) config('services.mollie.key');
+        $apiKey = trim((string) config('services.mollie.key'));
+
+        // Defensive normalization: users sometimes paste the full header value.
+        if (str_starts_with(strtolower($apiKey), 'bearer ')) {
+            $apiKey = trim(substr($apiKey, 7));
+        }
+
         if ($apiKey === '') {
             throw new RuntimeException('Mollie API key ontbreekt. Zet MOLLIE_API_KEY in je .env.');
         }
