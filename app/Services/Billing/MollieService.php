@@ -24,7 +24,25 @@ class MollieService
 
     public function getPayment(string $paymentId): array
     {
-        return $this->request('get', "/payments/{$paymentId}");
+        $paymentId = trim($paymentId);
+        if ($paymentId === '') {
+            throw new RuntimeException('Lege Mollie payment-id ontvangen.');
+        }
+
+        return $this->request('get', '/payments/'.rawurlencode($paymentId));
+    }
+
+    public function getRecentCustomerPayments(string $customerId, int $limit = 10): array
+    {
+        $customerId = trim($customerId);
+        if ($customerId === '') {
+            return [];
+        }
+
+        $response = $this->request('get', '/customers/'.rawurlencode($customerId).'/payments?limit='.$limit);
+        $payments = $response['_embedded']['payments'] ?? [];
+
+        return is_array($payments) ? $payments : [];
     }
 
     public function createSubscription(string $customerId, array $payload): array
@@ -58,11 +76,12 @@ class MollieService
             ]);
 
         if ($response->failed()) {
+            $statusCode = $response->status();
             $message = $response->json('detail')
                 ?? $response->json('title')
                 ?? $response->body();
 
-            throw new RuntimeException('Mollie API fout: '.$message);
+            throw new RuntimeException("Mollie API fout ({$statusCode}): ".$message);
         }
 
         return $response->json();

@@ -23,6 +23,10 @@ class SubscriptionController extends Controller
     public function choosePlan(): View
     {
         $company = Auth::user()->company;
+        if ($company) {
+            $this->syncPendingPaymentStatus($company);
+            $company->refresh();
+        }
         $trialDaysRemaining = $company ? $company->trialDaysRemaining() : 0;
         $currentPlan = $company ? $company->subscription_plan : null;
         $trialExpired = $company ? $company->trialExpired() : false;
@@ -46,6 +50,9 @@ class SubscriptionController extends Controller
         if (!$company) {
             return redirect()->route('subscription.choose-plan');
         }
+
+        $this->syncPendingPaymentStatus($company);
+        $company->refresh();
 
         return view('subscription.show', [
             'company' => $company,
@@ -107,9 +114,9 @@ class SubscriptionController extends Controller
             ]);
 
             $checkoutUrl = data_get($payment, '_links.checkout.href');
-            $paymentId = $payment['id'] ?? null;
+            $paymentId = trim((string) ($payment['id'] ?? ''));
 
-            if (!$checkoutUrl || !$paymentId) {
+            if (!$checkoutUrl || $paymentId === '') {
                 throw new RuntimeException('Checkout URL of payment-id ontbreekt in Mollie response.');
             }
 
@@ -165,12 +172,15 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.choose-plan');
         }
 
-        if (!$company->mollie_payment_id) {
-            if ($company->hasActiveSubscription()) {
-                return redirect()->route('subscription.show')
-                    ->with('success', 'Je betaling is bevestigd. Je abonnement is actief.');
-            }
+        $this->syncPendingPaymentStatus($company);
+        $company->refresh();
 
+        if ($company->hasActiveSubscription()) {
+            return redirect()->route('subscription.show')
+                ->with('success', 'Betaling bevestigd. Je abonnement is nu actief.');
+        }
+
+        if (!$company->mollie_payment_id) {
             return redirect()->route('subscription.show')
                 ->with('success', 'Betaling gestart. Zodra Mollie bevestigt, wordt je abonnement actief.');
         }
@@ -195,19 +205,26 @@ class SubscriptionController extends Controller
 
     public function mollieWebhook(Request $request)
     {
-        $paymentId = (string) $request->input('id', '');
+        $paymentId = trim((string) $request->input('id', ''));
         if ($paymentId === '') {
             return response('missing id', 400);
-        }
-
-        $company = Company::where('mollie_payment_id', $paymentId)->first();
-        if (!$company) {
-            return response('ok', 200);
         }
 
         try {
             $payment = $this->mollieService->getPayment($paymentId);
             $status = $payment['status'] ?? null;
+
+            $company = Company::where('mollie_payment_id', $paymentId)->first();
+            if (!$company) {
+                $companyId = (int) data_get($payment, 'metadata.company_id', 0);
+                if ($companyId > 0) {
+                    $company = Company::find($companyId);
+                }
+            }
+
+            if (!$company) {
+                return response('ok', 200);
+            }
 
             if ($status === 'paid') {
                 $this->finalizePaidPayment($company, $payment);
@@ -241,7 +258,7 @@ class SubscriptionController extends Controller
 
     private function finalizePaidPayment(Company $company, array $payment): void
     {
-        $plan = $company->pending_subscription_plan ?: data_get($payment, 'metadata.plan');
+        $plan = $this->resolvePlanFromPayment($company, $payment);
         if (!$plan || !isset(Company::PLANS[$plan])) {
             throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
         }
@@ -276,6 +293,77 @@ class SubscriptionController extends Controller
         }
 
         $company->update($updateData);
+    }
+
+    private function resolvePlanFromPayment(Company $company, array $payment): ?string
+    {
+        $candidatePlan = $company->pending_subscription_plan ?: data_get($payment, 'metadata.plan');
+        if (is_string($candidatePlan) && isset(Company::PLANS[$candidatePlan])) {
+            return $candidatePlan;
+        }
+
+        $paidAmount = (string) data_get($payment, 'amount.value', '');
+        if ($paidAmount !== '') {
+            foreach (Company::PLANS as $planKey => $planConfig) {
+                if ($planKey === 'custom') {
+                    continue;
+                }
+
+                $expectedAmount = number_format((float) ($planConfig['price_monthly'] ?? 0), 2, '.', '');
+                if ($expectedAmount === $paidAmount) {
+                    return $planKey;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function syncPendingPaymentStatus(Company $company): void
+    {
+        if ($company->hasActiveSubscription()) {
+            return;
+        }
+
+        if ($company->mollie_payment_id) {
+            try {
+                $payment = $this->mollieService->getPayment((string) $company->mollie_payment_id);
+                $status = $payment['status'] ?? null;
+
+                if ($status === 'paid') {
+                    $this->finalizePaidPayment($company, $payment);
+                    return;
+                }
+
+                if (in_array($status, ['failed', 'canceled', 'expired'], true)) {
+                    $company->update([
+                        'mollie_payment_id' => null,
+                        'pending_subscription_plan' => null,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        if (!$company->mollie_customer_id) {
+            return;
+        }
+
+        try {
+            $payments = $this->mollieService->getRecentCustomerPayments($company->mollie_customer_id, 10);
+            $paidPayment = collect($payments)->first(function (array $payment) {
+                return ($payment['status'] ?? null) === 'paid';
+            });
+
+            if (!$paidPayment) {
+                return;
+            }
+
+            $this->finalizePaidPayment($company, $paidPayment);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }
 
