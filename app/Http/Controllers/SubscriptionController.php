@@ -118,7 +118,7 @@ class SubscriptionController extends Controller
                 ]);
             }
 
-            $payment = $this->mollieService->createFirstPayment([
+            $paymentPayload = [
                 'amount' => [
                     'currency' => 'EUR',
                     'value' => $amountValue,
@@ -134,7 +134,24 @@ class SubscriptionController extends Controller
                     'plan' => $request->plan,
                     'interval' => '1 month',
                 ],
-            ]);
+            ];
+
+            try {
+                $payment = $this->mollieService->createFirstPayment($paymentPayload);
+            } catch (RuntimeException $e) {
+                $message = strtolower($e->getMessage());
+                $recurringMethodError =
+                    str_contains($message, 'does not accept recurring payments')
+                    || str_contains($message, 'does not support recurring');
+
+                if (!$recurringMethodError) {
+                    throw $e;
+                }
+
+                // Fallback: let Mollie choose an allowed method for recurring setup.
+                unset($paymentPayload['method']);
+                $payment = $this->mollieService->createFirstPayment($paymentPayload);
+            }
 
             $checkoutUrl = data_get($payment, '_links.checkout.href');
             $paymentId = trim((string) ($payment['id'] ?? ''));
