@@ -68,12 +68,20 @@ class MollieService
             throw new RuntimeException('Mollie API key ontbreekt. Zet MOLLIE_API_KEY in je .env.');
         }
 
-        $response = Http::withToken($apiKey)
-            ->acceptJson()
-            ->asJson()
-            ->send($method, self::API_BASE.$endpoint, [
-                'json' => $payload,
-            ]);
+        $http = Http::withToken($apiKey)->acceptJson();
+
+        $options = [];
+        $normalizedMethod = strtolower($method);
+        if (in_array($normalizedMethod, ['get', 'delete'], true)) {
+            if (!empty($payload)) {
+                $options['query'] = $payload;
+            }
+        } else {
+            $http = $http->asJson();
+            $options['json'] = $payload;
+        }
+
+        $response = $http->send($normalizedMethod, self::API_BASE.$endpoint, $options);
 
         if ($response->failed()) {
             $statusCode = $response->status();
