@@ -50,6 +50,17 @@ class MollieService
         return $this->request('post', "/customers/{$customerId}/subscriptions", $payload);
     }
 
+    public function getSubscription(string $customerId, string $subscriptionId): array
+    {
+        $customerId = trim($customerId);
+        $subscriptionId = trim($subscriptionId);
+        if ($customerId === '' || $subscriptionId === '') {
+            throw new RuntimeException('Lege Mollie customer-id of subscription-id ontvangen.');
+        }
+
+        return $this->request('get', '/customers/'.rawurlencode($customerId).'/subscriptions/'.rawurlencode($subscriptionId));
+    }
+
     public function cancelSubscription(string $customerId, string $subscriptionId): void
     {
         $this->request('delete', "/customers/{$customerId}/subscriptions/{$subscriptionId}");

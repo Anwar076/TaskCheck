@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Services\Billing\MollieService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use RuntimeException;
@@ -54,9 +55,31 @@ class SubscriptionController extends Controller
         $this->syncPendingPaymentStatus($company);
         $company->refresh();
 
+        $nextBillingDate = null;
+        $daysUntilNextBilling = null;
+
+        if ($company->hasActiveSubscription() && $company->mollie_customer_id && $company->mollie_subscription_id) {
+            try {
+                $subscription = $this->mollieService->getSubscription(
+                    (string) $company->mollie_customer_id,
+                    (string) $company->mollie_subscription_id
+                );
+
+                $nextPaymentDate = (string) ($subscription['nextPaymentDate'] ?? '');
+                if ($nextPaymentDate !== '') {
+                    $nextBillingDate = Carbon::parse($nextPaymentDate)->startOfDay();
+                    $daysUntilNextBilling = max(0, now()->startOfDay()->diffInDays($nextBillingDate, false));
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
         return view('subscription.show', [
             'company' => $company,
             'planDetails' => $company->getPlanDetails(),
+            'nextBillingDate' => $nextBillingDate,
+            'daysUntilNextBilling' => $daysUntilNextBilling,
         ]);
     }
 

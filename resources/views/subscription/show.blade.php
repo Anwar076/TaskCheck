@@ -78,6 +78,17 @@
                                         <p class="text-2xl font-bold text-blue-600">{{ $planDetails['name'] }}</p>
                                         <p class="text-slate-600">€{{ number_format($planDetails['price_monthly'], 2, ',', '.') }}/maand</p>
                                     @endif
+                                    @if(!is_null($daysUntilNextBilling))
+                                        <p class="text-slate-600">
+                                            <span class="font-medium">Nieuwe facturatie over:</span>
+                                            {{ $daysUntilNextBilling }} {{ $daysUntilNextBilling === 1 ? 'dag' : 'dagen' }}
+                                        </p>
+                                    @elseif(!is_null($nextBillingDate))
+                                        <p class="text-slate-600">
+                                            <span class="font-medium">Volgende facturatie:</span>
+                                            {{ $nextBillingDate->format('d M Y') }}
+                                        </p>
+                                    @endif
                                     @if($company->subscription_ends_at)
                                         <p class="text-slate-600"><span class="font-medium">Verlengt op:</span> {{ $company->subscription_ends_at->format('d M Y') }}</p>
                                     @endif
