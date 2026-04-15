@@ -127,8 +127,8 @@ class SubscriptionController extends Controller
                 'method' => 'ideal',
                 'redirectUrl' => route('subscription.payment-return'),
                 'webhookUrl' => $webhookUrl,
-                'sequenceType' => 'first',
-                'customerId' => $company->mollie_customer_id,
+                // 'sequenceType' => 'first',
+                // 'customerId' => $company->mollie_customer_id,
                 'metadata' => [
                     'company_id' => $company->id,
                     'plan' => $request->plan,
