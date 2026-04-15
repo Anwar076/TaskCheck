@@ -144,13 +144,34 @@ class SubscriptionController extends Controller
                     str_contains($message, 'does not accept recurring payments')
                     || str_contains($message, 'does not support recurring');
 
-                if (!$recurringMethodError) {
+                if ($recurringMethodError) {
+                    // Fallback: let Mollie choose an allowed method for recurring setup.
+                    unset($paymentPayload['method']);
+                    $payment = $this->mollieService->createFirstPayment($paymentPayload);
+                } elseif (
+                    str_contains($message, 'customer')
+                    && (
+                        str_contains($message, 'not found')
+                        || str_contains($message, 'wrong mode')
+                        || str_contains($message, 'resource does not exist')
+                    )
+                ) {
+                    // Existing customer id can be from another mode (test/live). Recreate customer and retry once.
+                    $customer = $this->mollieService->createCustomer(
+                        $company->name,
+                        Auth::user()->email
+                    );
+                    $newCustomerId = (string) ($customer['id'] ?? '');
+                    if ($newCustomerId === '') {
+                        throw new RuntimeException('Kon geen nieuwe Mollie klant aanmaken.');
+                    }
+
+                    $company->update(['mollie_customer_id' => $newCustomerId]);
+                    $paymentPayload['customerId'] = $newCustomerId;
+                    $payment = $this->mollieService->createFirstPayment($paymentPayload);
+                } else {
                     throw $e;
                 }
-
-                // Fallback: let Mollie choose an allowed method for recurring setup.
-                unset($paymentPayload['method']);
-                $payment = $this->mollieService->createFirstPayment($paymentPayload);
             }
 
             $checkoutUrl = data_get($payment, '_links.checkout.href');
@@ -270,6 +291,14 @@ class SubscriptionController extends Controller
                 $this->finalizePaidPayment($company, $payment);
             }
         } catch (\Throwable $e) {
+            $message = strtolower($e->getMessage());
+            if (
+                str_contains($message, 'wrong mode is used')
+                || (str_contains($message, 'mollie api fout (404)') && str_contains($message, 'payment'))
+            ) {
+                // Ignore stale webhook events from another mode (test/live) so webhook endpoint stays healthy.
+                return response('ok', 200);
+            }
             report($e);
             return response('error', 500);
         }
