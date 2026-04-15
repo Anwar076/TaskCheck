@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\CompanySettingsController;
+use App\Services\Ai\SubmissionReviewService;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\SubmissionController;
 use App\Http\Controllers\Employee\SettingsController as EmployeeSettingsController;
@@ -25,7 +26,7 @@ Route::get('/refresh-csrf', function () {
 
 // Public pages (only for web browsers)
 Route::get('/features', function () {
-    return view('features');
+    return redirect()->route('welcome');
 })->name('features');
 
 Route::get('/pricing', function () {
@@ -81,9 +82,12 @@ Route::get('/documentation', function () {
 })->name('documentation');
 
 // Subscription routes (accessible even without active subscription for choosing plans)
+Route::post('/subscription/mollie/webhook', [SubscriptionController::class, 'mollieWebhook'])->name('subscription.mollie.webhook');
+
 Route::middleware(['auth'])->prefix('subscription')->name('subscription.')->group(function () {
     Route::get('/choose-plan', [SubscriptionController::class, 'choosePlan'])->name('choose-plan');
     Route::get('/', [SubscriptionController::class, 'show'])->name('show');
+    Route::get('/payment-return', [SubscriptionController::class, 'paymentReturn'])->name('payment-return');
     Route::post('/activate', [SubscriptionController::class, 'activate'])->name('activate');
     Route::post('/cancel', [SubscriptionController::class, 'cancel'])->name('cancel');
 });
@@ -113,6 +117,11 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
         return view('admin.submissions.index-api');
     })->name('submissions.index');
     
+    // AI import routes must come before resource route with {list}
+    Route::get('/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('lists.ai-import');
+    Route::post('/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
+    Route::post('/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('lists.ai-import.store');
+
     // Regular routes for create/edit/show
     Route::resource('lists', TaskListController::class)->except(['index']);
     Route::resource('lists.tasks', TaskController::class)->shallow();
@@ -128,6 +137,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
     Route::delete('/assignments/{assignment}', [TaskListController::class, 'removeAssignment'])->name('assignments.destroy');
     Route::get('/submissions/{submission}', [TaskListController::class, 'showSubmission'])->name('submissions.show');
     Route::post('/submissions/{submission}/review', [TaskListController::class, 'reviewSubmission'])->name('submissions.review');
+    Route::post('/submissions/{submission}/ai-review', [TaskListController::class, 'aiReviewSubmission'])->name('submissions.ai-review');
     Route::post('/submission-tasks/{submissionTask}/approve', [TaskListController::class, 'approveTask'])->name('submission-tasks.approve');
     Route::post('/submission-tasks/{submissionTask}/reject', [TaskListController::class, 'rejectTask'])->name('submission-tasks.reject');
     Route::post('/submission-tasks/{submissionTask}/redo', [TaskListController::class, 'requestRedo'])->name('submission-tasks.redo');
@@ -138,6 +148,8 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/lists/{list}/create-daily-sublists', [TaskListController::class, 'createDailySubLists'])->name('lists.create-daily-sublists');
     Route::post('/lists/{list}/create-day-list', [TaskListController::class, 'createDayList'])->name('lists.create-day-list');
+    Route::post('/tasks/ai-suggest', [TaskController::class, 'aiSuggest'])->name('tasks.ai-suggest');
+    Route::post('/lists/ai-generate', [TaskListController::class, 'aiGenerate'])->name('lists.ai-generate');
     
     // Template routes
     Route::post('/templates/{template}/create-list', [TaskTemplateController::class, 'createFromTemplate'])->name('templates.create-list');

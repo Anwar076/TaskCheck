@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -35,7 +37,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('admin.users.create');
+        return view('admin.users.create', [
+            'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
+        ]);
     }
 
     /**
@@ -52,6 +56,11 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'is_active' => 'boolean',
         ]);
+
+        $this->ensureRoleLimitNotExceeded(
+            auth()->user()->company,
+            $validated['role']
+        );
 
         $validated['password'] = bcrypt($validated['password']);
         $validated['is_active'] = $request->has('is_active');
@@ -88,7 +97,10 @@ class UserController extends Controller
             abort(403, 'Unauthorized access to user.');
         }
         
-        return view('admin.users.edit', compact('user'));
+        return view('admin.users.edit', [
+            'user' => $user,
+            'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
+        ]);
     }
 
     /**
@@ -110,6 +122,13 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'is_active' => 'boolean',
         ]);
+
+        if ($validated['role'] !== $user->role) {
+            $this->ensureRoleLimitNotExceeded(
+                auth()->user()->company,
+                $validated['role']
+            );
+        }
 
         if (!empty($validated['password'])) {
             $validated['password'] = bcrypt($validated['password']);
@@ -191,5 +210,69 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index', ['updated' => time()])
             ->with('success', 'Gebruiker succesvol verwijderd.');
+    }
+
+    private function ensureRoleLimitNotExceeded(?Company $company, string $targetRole): void
+    {
+        if (!$company || !in_array($targetRole, ['admin', 'employee'], true)) {
+            return;
+        }
+
+        $planLimits = [
+            'starter' => ['admin' => 1, 'employee' => 5],
+            'professional' => ['admin' => 2, 'employee' => 10],
+            'enterprise' => ['admin' => 5, 'employee' => 20],
+        ];
+
+        $planKey = $company->subscription_plan ?: 'starter';
+        $limits = $planLimits[$planKey] ?? $planLimits['starter'];
+        $roleLimit = $limits[$targetRole] ?? null;
+
+        if ($roleLimit === null) {
+            return;
+        }
+
+        $currentCount = User::where('company_id', $company->id)
+            ->where('role', $targetRole)
+            ->count();
+
+        if ($currentCount >= $roleLimit) {
+            $roleLabel = $targetRole === 'admin' ? 'admin' : 'medewerker';
+            throw ValidationException::withMessages([
+                'role' => "Limiet bereikt: maximaal {$roleLimit} {$roleLabel} account(s) voor het {$planKey} plan.",
+            ]);
+        }
+    }
+
+    private function getRoleLimitsAndUsage(?Company $company): array
+    {
+        $planLimits = [
+            'starter' => ['admin' => 1, 'employee' => 5],
+            'professional' => ['admin' => 2, 'employee' => 10],
+            'enterprise' => ['admin' => 5, 'employee' => 20],
+        ];
+
+        $planKey = $company?->subscription_plan ?: 'starter';
+        $limits = $planLimits[$planKey] ?? $planLimits['starter'];
+
+        if (!$company) {
+            return [
+                'plan' => $planKey,
+                'admin' => ['current' => 0, 'max' => $limits['admin']],
+                'employee' => ['current' => 0, 'max' => $limits['employee']],
+            ];
+        }
+
+        return [
+            'plan' => $planKey,
+            'admin' => [
+                'current' => User::where('company_id', $company->id)->where('role', 'admin')->count(),
+                'max' => $limits['admin'],
+            ],
+            'employee' => [
+                'current' => User::where('company_id', $company->id)->where('role', 'employee')->count(),
+                'max' => $limits['employee'],
+            ],
+        ];
     }
 }

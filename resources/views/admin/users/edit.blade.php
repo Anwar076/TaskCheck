@@ -48,6 +48,14 @@
                     <p class="text-slate-600 text-sm mt-0.5">Naam en e-mailadres van de gebruiker</p>
                 </div>
                 <div class="p-4 sm:p-6 space-y-5">
+                    <div class="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm">
+                        <p class="font-semibold text-blue-900">Huidige planlimieten ({{ ucfirst($roleLimits['plan']) }})</p>
+                        <div class="mt-1 text-blue-800 space-y-1">
+                            <p>Admins: {{ $roleLimits['admin']['current'] }} / {{ $roleLimits['admin']['max'] }}</p>
+                            <p>Medewerkers: {{ $roleLimits['employee']['current'] }} / {{ $roleLimits['employee']['max'] }}</p>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                             <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Volledige naam <span class="text-red-500">*</span></label>

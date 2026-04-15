@@ -1,420 +1,497 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <title>{{ config('app.name', 'TaskCheck') }}</title>
+    @php
+        $seoTitle = 'TaskCheck - Slimme checklists en taakbeheer voor operationele teams';
+        $seoDescription = 'TaskCheck helpt teams met slimme checklists, bewijs per taak, realtime voortgang en AI-ondersteuning. Start 30 dagen gratis.';
+        $seoUrl = route('welcome');
+        $seoImage = asset('icons/icon-512x512.png');
+    @endphp
+    <title>{{ $seoTitle }}</title>
     @include('components.head')
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <link rel="canonical" href="{{ $seoUrl }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="nl_NL">
+    <meta property="og:site_name" content="TaskCheck">
+    <meta property="og:title" content="{{ $seoTitle }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:url" content="{{ $seoUrl }}">
+    <meta property="og:image" content="{{ $seoImage }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
+
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "SoftwareApplication",
+            "name": "TaskCheck",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "url": "{{ $seoUrl }}",
+            "description": "{{ $seoDescription }}",
+            "offers": {
+                "@@type": "Offer",
+                "price": "29",
+                "priceCurrency": "EUR"
+            }
+        }
+    </script>
+    <style>
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-14px); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: .55; }
+            50% { opacity: .9; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .float-soft {
+            animation: floatY 7s ease-in-out infinite;
+        }
+
+        .float-soft-delayed {
+            animation: floatY 8.5s ease-in-out infinite;
+            animation-delay: 1.8s;
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+
+        .play-card {
+            transition: transform .25s ease, box-shadow .25s ease;
+            will-change: transform;
+        }
+
+        .play-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 20px 35px -24px rgba(37, 99, 235, .45);
+        }
+
+        .cta-btn {
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px -18px rgba(37, 99, 235, .55);
+            filter: saturate(1.05);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity .55s ease, transform .55s ease;
+        }
+
+        .reveal.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-pill {
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+        }
+
+        .feature-pill::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, rgba(255,255,255,0) 20%, rgba(255,255,255,.5) 45%, rgba(255,255,255,0) 70%);
+            transform: translateX(-130%);
+            transition: transform .55s ease;
+            pointer-events: none;
+        }
+
+        .feature-pill:hover::after {
+            transform: translateX(130%);
+        }
+
+        .feature-pill.active {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px -22px rgba(37, 99, 235, .5);
+        }
+
+        .feature-pill.active .feature-pill-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .feature-panel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            border: 1px solid rgba(147, 197, 253, .45);
+            background: linear-gradient(120deg, rgba(255,255,255,.92), rgba(239,246,255,.85), rgba(238,242,255,.88));
+            box-shadow: 0 20px 40px -30px rgba(37, 99, 235, .35);
+        }
+
+        .feature-panel::before {
+            content: "";
+            position: absolute;
+            width: 12rem;
+            height: 12rem;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(125,211,252,.34) 0%, rgba(125,211,252,0) 70%);
+            top: -4rem;
+            right: -3rem;
+            pointer-events: none;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen font-sans text-gray-900">
+<body class="bg-gradient-to-br from-sky-50 via-indigo-50 to-fuchsia-50 text-slate-900 min-h-screen font-sans">
 
     @include('components.header')
 
-    <!-- Hero -->
-    <section class="pt-32 pb-20 text-center relative overflow-hidden">
-        <!-- Floating shapes -->
-        <div class="absolute top-10 -left-20 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl float"></div>
-        <div class="absolute bottom-10 -right-20 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl float" style="animation-delay:3s;"></div>
+    <section class="relative overflow-hidden pt-28 pb-20">
+        <div class="absolute -top-40 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-cyan-300/30 blur-3xl float-soft pulse-glow"></div>
+        <div class="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-pink-300/30 blur-3xl float-soft-delayed pulse-glow"></div>
+        <div class="relative max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="reveal">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-200 bg-white/80 text-xs text-slate-700 mb-5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        Slimme checklists voor operationele teams
+                    </div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-xs text-emerald-700 mb-5 ml-2">
+                        <span class="text-emerald-600">🎉</span>
+                        Probeer gratis voor 1 maand
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.14] sm:leading-[1.1] lg:leading-[1.08] tracking-tight text-slate-900">
+                        Maak dagelijkse operatie
+                        <span class="block mt-1 sm:mt-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-pink-600">
+                            zichtbaar en beheersbaar
+                        </span>
+                    </h1>
+                    <p class="mt-6 text-slate-700 text-lg max-w-xl">
+                        TaskCheck helpt teams dagelijks beter uitvoeren: duidelijke taken, verplicht bewijs, snelle review en AI-ondersteuning in een simpele workflow.
+                    </p>
+                    <div class="mt-6 grid sm:grid-cols-2 gap-3 max-w-2xl text-sm text-slate-700">
+                        <div class="group inline-flex items-center gap-3 rounded-xl border border-blue-100/90 bg-white/90 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+                            <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 7a2 2 0 0 1 2-2h2l1-1h6l1 1h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/>
+                                </svg>
+                            </span>
+                            <span><strong class="font-semibold text-slate-900">Bewijs per taak</strong><span class="block text-slate-600">Foto, video, tekst of handtekening</span></span>
+                        </div>
+                        <div class="group inline-flex items-center gap-3 rounded-xl border border-emerald-100/90 bg-white/90 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md">
+                            <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M13 2 5 14h6l-1 8 9-13h-6l1-7Z" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span><strong class="font-semibold text-slate-900">Realtime overzicht</strong><span class="block text-slate-600">Live voortgang voor managers en teams</span></span>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        @auth
+                            <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">
+                                Naar dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="cta-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">
+                                Probeer 1 maand gratis
+                            </a>
+                        @endauth
+                        <a href="{{ route('pricing') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-slate-700 font-semibold transition">
+                            Bekijk prijzen
+                        </a>
+                    </div>
+                    <div class="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl">
+                        <div class="play-card rounded-xl border border-blue-100 bg-white/90 p-4 shadow-sm">
+                            <p class="text-2xl font-bold text-blue-600" id="live-users">1,247</p>
+                            <p class="text-xs text-slate-500 mt-1">Actieve gebruikers</p>
+                        </div>
+                        <div class="play-card rounded-xl border border-emerald-100 bg-white/90 p-4 shadow-sm">
+                            <p class="text-2xl font-bold text-emerald-600" id="live-tasks">15,892</p>
+                            <p class="text-xs text-slate-500 mt-1">Taken afgerond</p>
+                        </div>
+                        <div class="play-card rounded-xl border border-indigo-100 bg-white/90 p-4 shadow-sm">
+                            <p class="text-2xl font-bold text-indigo-600" id="live-teams">342</p>
+                            <p class="text-xs text-slate-500 mt-1">Teams actief</p>
+                        </div>
+                        <div class="play-card rounded-xl border border-amber-100 bg-white/90 p-4 shadow-sm">
+                            <p class="text-2xl font-bold text-amber-600" id="live-hours">2,847</p>
+                            <p class="text-xs text-slate-500 mt-1">Uren bespaard</p>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="max-w-5xl mx-auto px-4">
-            <h1 class="text-4xl sm:text-6xl font-extrabold leading-tight fade-up">
-                Welkom bij <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">TaskCheck</span>
-            </h1>
-            <p class="mt-6 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto fade-up" style="animation-delay:0.3s;">
-                Het ultieme taakbeheer platform voor moderne teams. Stroomijn workflows, verhoog productiviteit, en bereik je doelen met krachtige samenwerkingstools.
-            </p>
-            
-            <!-- Live Stats -->
-            <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto fade-up" style="animation-delay:0.6s;">
-                <div class="bg-white/70 backdrop-blur-md rounded-xl p-4 shadow-lg">
-                    <div class="text-2xl font-bold text-blue-600" id="live-users">1,247</div>
-                    <div class="text-sm text-gray-600">Actieve Gebruikers</div>
-                </div>
-                <div class="bg-white/70 backdrop-blur-md rounded-xl p-4 shadow-lg">
-                    <div class="text-2xl font-bold text-green-600" id="live-tasks">15,892</div>
-                    <div class="text-sm text-gray-600">Afgeronde Taken</div>
-                </div>
-                <div class="bg-white/70 backdrop-blur-md rounded-xl p-4 shadow-lg">
-                    <div class="text-2xl font-bold text-purple-600" id="live-teams">342</div>
-                    <div class="text-sm text-gray-600">Teams in Gebruik</div>
-                </div>
-                <div class="bg-white/70 backdrop-blur-md rounded-xl p-4 shadow-lg">
-                    <div class="text-2xl font-bold text-orange-600" id="live-hours">2,847</div>
-                    <div class="text-sm text-gray-600">Uren Bespaard</div>
-                </div>
-            </div>
-            
-            <!-- PWA Install Section -->
-            <div class="mt-12 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 fade-up" style="animation-delay:0.9s;">
-                <div class="text-center">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">📱 Installeer TaskCheck App</h3>
-                    <p class="text-gray-600 mb-4">Krijg snelle toegang met onze mobiele app. Werkt op alle apparaten!</p>
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                        <button id="install-hero-button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
-                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            App Installeren
+                <div class="reveal rounded-2xl border border-blue-100 bg-white/90 p-6 shadow-xl">
+                    <h2 class="text-xl font-semibold text-slate-900">Live operationeel overzicht</h2>
+                    <p class="text-sm text-slate-600 mt-1">Eenzelfde platform voor manager en werkvloer.</p>
+                    <div class="mt-5 space-y-3 text-sm">
+                        <div class="play-card rounded-xl bg-blue-50 border border-blue-100 p-4">
+                            <div class="flex items-center justify-between">
+                                <p class="font-semibold text-slate-900">Vandaag open taken</p>
+                                <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">24</span>
+                            </div>
+                            <p class="text-slate-600 mt-1">Automatisch gegroepeerd per team en locatie.</p>
+                        </div>
+                        <div class="play-card rounded-xl bg-indigo-50 border border-indigo-100 p-4">
+                            <div class="flex items-center justify-between">
+                                <p class="font-semibold text-slate-900">Bewijs ontbreekt</p>
+                                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">5</span>
+                            </div>
+                            <p class="text-slate-600 mt-1">Direct zichtbaar welke taken nagekeken moeten worden.</p>
+                        </div>
+                        <div class="play-card rounded-xl bg-fuchsia-50 border border-fuchsia-100 p-4">
+                            <div class="flex items-center justify-between">
+                                <p class="font-semibold text-slate-900">AI import actief</p>
+                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">Aan</span>
+                            </div>
+                            <p class="text-slate-600 mt-1">Upload PDF/Excel/foto en genereer lijsten in seconden.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+                        <p class="text-sm text-blue-800 font-medium">Installeer als app op mobiel of desktop</p>
+                        <p class="text-xs text-blue-700 mt-1">Gebruik TaskCheck zonder browserbalk voor sneller werken op de werkvloer.</p>
+                        <button id="install-hero-button" class="mt-3 w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold transition">
+                            App installeren
                         </button>
-                        <div class="text-sm text-gray-500 flex items-center justify-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Werkt op iPhone, Android, Desktop & iPad
-                        </div>
-                    </div>
-                    
-                    <!-- Mobile-specific instructions -->
-                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div class="text-sm text-yellow-800">
-                            <strong>📱 Op Mobiel:</strong> Dit maakt een <strong>echte app</strong> zonder de browser adresbalk - net als een native app!
-                        </div>
-                        <div class="mt-2 text-xs text-yellow-700">
-                            <strong>⚠️ Belangrijk:</strong> Gebruik Safari op iPhone of Chrome op Android. Als je "Maak een snelle link" ziet, gebruik je de verkeerde browser!
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features -->
-    <section class="max-w-7xl mx-auto px-6 py-20">
-        <div class="text-center mb-16 fade-up">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Krachtige Functies voor Moderne Teams</h2>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Alles wat je nodig hebt om taken te beheren, effectief samen te werken, en je doelen te bereiken.</p>
-        </div>
-        
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.2s;">
-                <div class="w-16 h-16 mb-6 flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Slim Taakbeheer</h3>
-                <p class="text-gray-600">Maak, wijs toe, en volg taken met intelligente prioritering en deadlinebeheer.</p>
+    <section class="max-w-7xl mx-auto px-6 py-8 reveal">
+        <div class="grid md:grid-cols-3 gap-4">
+            <div class="play-card rounded-2xl border border-blue-100 bg-white/85 p-5">
+                <p class="text-xs font-semibold text-blue-700">Stap 1</p>
+                <h3 class="font-semibold text-slate-900 mt-1">Bouw of importeer je lijst</h3>
+                <p class="text-sm text-slate-600 mt-1.5">Start handmatig of gebruik AI-import vanuit document/foto.</p>
             </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.4s;">
-                <div class="w-16 h-16 mb-6 flex items-center justify-center bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Teamsamenwerking</h3>
-                <p class="text-gray-600">Werk naadloos samen met real-time updates, opmerkingen, en bestandsdeling.</p>
+            <div class="play-card rounded-2xl border border-indigo-100 bg-white/85 p-5">
+                <p class="text-xs font-semibold text-indigo-700">Stap 2</p>
+                <h3 class="font-semibold text-slate-900 mt-1">Wijs toe aan teams</h3>
+                <p class="text-sm text-slate-600 mt-1.5">Geef per taak bewijsregels, verplichte checks en planning mee.</p>
             </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.6s;">
-                <div class="w-16 h-16 mb-6 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Geavanceerde Analytics</h3>
-                <p class="text-gray-600">Krijg inzicht in teamprestaties met gedetailleerde rapporten en productiviteitsstatistieken.</p>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.8s;">
-                <div class="w-16 h-16 mb-6 flex items-center justify-center bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Tijdregistratie</h3>
-                <p class="text-gray-600">Bewaak bestede tijd op taken en projecten met ingebouwde tijdregistratietools.</p>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:1.0s;">
-                <div class="w-16 h-16 mb-6 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-xl shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-6H4v6zM4 13h6V7H4v6zM4 5h6V1H4v4zM10 3h4v4h-4V3z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Aangepaste Workflows</h3>
-                <p class="text-gray-600">Creëer aangepaste workflows en automatiseringsregels om je processen te stroomlijnen.</p>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:1.2s;">
-                <div class="w-16 h-16 mb-6 flex items-center justify-center bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Veilig & Betrouwbaar</h3>
-                <p class="text-gray-600">Enterprise-niveau beveiliging met 99.9% uptime garantie en dataversleuteling.</p>
+            <div class="play-card rounded-2xl border border-fuchsia-100 bg-white/85 p-5">
+                <p class="text-xs font-semibold text-fuchsia-700">Stap 3</p>
+                <h3 class="font-semibold text-slate-900 mt-1">Monitor en verbeter</h3>
+                <p class="text-sm text-slate-600 mt-1.5">Volg voortgang live en stuur bij op kwaliteit en snelheid.</p>
             </div>
         </div>
     </section>
 
-    <!-- Pricing -->
-    <section class="max-w-7xl mx-auto px-6 py-20">
-        <div class="text-center mb-16 fade-up">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Kies Jouw Perfecte Plan</h2>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Flexibele prijsopties passend bij teams van alle groottes. Start gratis en schaal mee terwijl je groeit.</p>
-        </div>
-        
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Starter Plan -->
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 relative fade-up" style="animation-delay:0.2s;">
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Starter</h3>
-                    <div class="text-4xl font-bold text-blue-600 mb-4">€29<span class="text-lg text-gray-500">/maand</span></div>
-                    <p class="text-gray-600 mb-6">Perfect voor kleine teams die beginnen</p>
-                </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        1 Beheerder Account
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        5 Medewerker Accounts
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Basis Taakbeheer
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Email Ondersteuning
-                    </li>
-                </ul>
-                <button class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                    Begin Nu
-                </button>
+    <section class="max-w-7xl mx-auto px-6 py-4 reveal">
+        <div class="grid lg:grid-cols-3 gap-4">
+            <div class="rounded-2xl border border-indigo-100 bg-white/85 p-5">
+                <p class="text-xs font-semibold text-indigo-700">Voor operationeel management</p>
+                <p class="text-sm text-slate-600 mt-1">Krijg direct zicht op open taken, ontbrekend bewijs en kwaliteitsafwijkingen per locatie.</p>
             </div>
-            
-            <!-- Professional Plan -->
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 relative border-2 border-blue-500 fade-up" style="animation-delay:0.4s;">
-                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">Meest Populair</span>
-                </div>
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Professioneel</h3>
-                    <div class="text-4xl font-bold text-blue-600 mb-4">€79<span class="text-lg text-gray-500">/maand</span></div>
-                    <p class="text-gray-600 mb-6">Ideaal voor groeiende teams</p>
-                </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        2 Beheerder Accounts
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        10 Medewerker Accounts
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Geavanceerde Analytics
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Prioriteitsondersteuning
-                    </li>
-                </ul>
-                <button class="w-full btn-gradient text-white py-3 rounded-lg font-semibold">
-                    Begin Nu
-                </button>
+            <div class="rounded-2xl border border-emerald-100 bg-white/85 p-5">
+                <p class="text-xs font-semibold text-emerald-700">Voor teams op de werkvloer</p>
+                <p class="text-sm text-slate-600 mt-1">Werk met duidelijke instructies en lever snel bewijs aan via mobiel of desktop.</p>
             </div>
-            
-            <!-- Enterprise Plan -->
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 relative fade-up" style="animation-delay:0.6s;">
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                    <div class="text-4xl font-bold text-blue-600 mb-4">€149<span class="text-lg text-gray-500">/maand</span></div>
-                    <p class="text-gray-600 mb-6">Voor grote organisaties</p>
-                </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        5 Beheerder Accounts
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        20 Medewerker Accounts
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Aangepaste Workflows
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        24/7 Telefoonondersteuning
-                    </li>
-                </ul>
-                <button class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                    Begin Nu
-                </button>
-            </div>
-            
-            <!-- Custom Plan -->
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 relative fade-up" style="animation-delay:0.8s;">
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Aangepast</h3>
-                    <div class="text-4xl font-bold text-blue-600 mb-4">Aangepast<span class="text-lg text-gray-500">/maand</span></div>
-                    <p class="text-gray-600 mb-6">Op maat gemaakt voor jouw behoeften</p>
-                </div>
-                <ul class="space-y-3 mb-8">
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Onbeperkt Beheerders
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Onbeperkt Medewerkers
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        White-label Oplossing
-                    </li>
-                    <li class="flex items-center text-gray-600">
-                        <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        Toegewijde Manager
-                    </li>
-                </ul>
-                <button class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                    Contact Verkoop
-                </button>
+            <div class="rounded-2xl border border-fuchsia-100 bg-white/85 p-5">
+                <p class="text-xs font-semibold text-fuchsia-700">Voor groei en standaardisatie</p>
+                <p class="text-sm text-slate-600 mt-1">Gebruik AI-import en templates om processen sneller op te zetten en gelijk te houden.</p>
             </div>
         </div>
     </section>
 
-    <!-- CTA -->
-    <section class="text-center py-20 fade-up" style="animation-delay:1s;">
-        @auth
-            <a href="{{ url('/dashboard') }}" class="btn-gradient text-white px-10 py-4 rounded-full font-semibold text-lg inline-flex items-center">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                </svg>
-                Ga naar Dashboard
+    <section class="max-w-7xl mx-auto px-6 py-16 reveal">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl sm:text-4xl font-bold text-slate-900">Waarom TaskCheck werkt in de praktijk</h2>
+            <p class="mt-3 text-slate-600 max-w-2xl mx-auto">Ontworpen voor echte operationele flows: eenvoudig voor medewerkers, krachtig voor management.</p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="play-card rounded-2xl border border-blue-100 bg-white/90 p-6 shadow-sm">
+                <h3 class="font-semibold text-slate-900">Slim lijstbeheer</h3>
+                <p class="text-sm text-slate-600 mt-2">Bouw checklists per team, locatie of dag met duidelijke prioriteiten en planning.</p>
+            </div>
+            <div class="play-card rounded-2xl border border-emerald-100 bg-white/90 p-6 shadow-sm">
+                <h3 class="font-semibold text-slate-900">Bewijs & validatie</h3>
+                <p class="text-sm text-slate-600 mt-2">Stel per taak bewijs in: foto, video, tekst, bestand of handtekening.</p>
+            </div>
+            <div class="play-card rounded-2xl border border-fuchsia-100 bg-white/90 p-6 shadow-sm">
+                <h3 class="font-semibold text-slate-900">AI lijst import</h3>
+                <p class="text-sm text-slate-600 mt-2">Upload PDF, Excel, Word of foto en laat AI direct werkbare lijsten voorstellen.</p>
+            </div>
+            <div class="play-card rounded-2xl border border-indigo-100 bg-white/90 p-6 shadow-sm">
+                <h3 class="font-semibold text-slate-900">Realtime monitoring</h3>
+                <p class="text-sm text-slate-600 mt-2">Zie direct wat klaar is, wat achterloopt en waar actie nodig is.</p>
+            </div>
+            <div class="play-card rounded-2xl border border-amber-100 bg-white/90 p-6 shadow-sm">
+                <h3 class="font-semibold text-slate-900">Teamgericht werken</h3>
+                <p class="text-sm text-slate-600 mt-2">Wijs taken toe per medewerker of afdeling met duidelijke opvolging.</p>
+            </div>
+            <div class="play-card rounded-2xl border border-cyan-100 bg-white/90 p-6 shadow-sm">
+                <h3 class="font-semibold text-slate-900">Betrouwbaar en schaalbaar</h3>
+                <p class="text-sm text-slate-600 mt-2">Gebouwd voor dagelijks gebruik in professionele operationele omgevingen.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-6 py-10 reveal">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl sm:text-4xl font-bold text-slate-900">Alle functies op een plek</h2>
+            <p class="mt-3 text-slate-600 max-w-2xl mx-auto">Van taakbeheer tot automatisering: kies een categorie en bekijk wat TaskCheck direct voor je team oplost.</p>
+        </div>
+
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/85 px-4 py-2 text-sm text-indigo-700 font-medium">
+            <span>👆</span>
+            Klik op een categorie om de details te zien
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <button class="home-feature-category feature-pill bg-white/90 border border-blue-100 rounded-xl p-4 text-left" data-category="management">
+                <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 text-blue-700 mb-2">
+                    <span>✅</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="font-semibold text-slate-900">Taakbeheer</h3>
+                    <span class="feature-pill-arrow text-blue-500 text-xs opacity-40 -translate-x-1 transition">Bekijk</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Lijsten, bewijs, prioriteiten</p>
+            </button>
+            <button class="home-feature-category feature-pill bg-white/90 border border-emerald-100 rounded-xl p-4 text-left" data-category="collaboration">
+                <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 mb-2">
+                    <span>🤝</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="font-semibold text-slate-900">Samenwerking</h3>
+                    <span class="feature-pill-arrow text-emerald-500 text-xs opacity-40 -translate-x-1 transition">Bekijk</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Teams, rollen, feedback</p>
+            </button>
+            <button class="home-feature-category feature-pill bg-white/90 border border-fuchsia-100 rounded-xl p-4 text-left" data-category="analytics">
+                <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-fuchsia-100 text-fuchsia-700 mb-2">
+                    <span>📊</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="font-semibold text-slate-900">Analytics</h3>
+                    <span class="feature-pill-arrow text-fuchsia-500 text-xs opacity-40 -translate-x-1 transition">Bekijk</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Inzicht, trends, rapportages</p>
+            </button>
+            <button class="home-feature-category feature-pill bg-white/90 border border-amber-100 rounded-xl p-4 text-left" data-category="automation">
+                <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-700 mb-2">
+                    <span>⚡</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="font-semibold text-slate-900">Automatisering</h3>
+                    <span class="feature-pill-arrow text-amber-500 text-xs opacity-40 -translate-x-1 transition">Bekijk</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Workflows en meldingen</p>
+            </button>
+        </div>
+
+        <div id="home-features-container" class="feature-panel p-5 sm:p-6">
+            <div class="mb-4 inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-white/80 px-3 py-2 text-sm text-slate-700">
+                <span class="text-slate-500">Geselecteerd:</span>
+                <span id="home-feature-active-label" class="font-semibold text-blue-700">Taakbeheer</span>
+            </div>
+            <div class="home-feature-section" data-category="management">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="play-card rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Slimme taakaanmaak</h3>
+                        <p class="text-sm text-slate-600 mt-2">Maak taken met duidelijke omschrijving, planning, bewijs-type, checklist-items en validatieregels.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-indigo-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Lijsten en templates</h3>
+                        <p class="text-sm text-slate-600 mt-2">Herbruikbare structuren voor dagelijkse, wekelijkse en locatiegebonden workflows.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-cyan-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Duidelijke prioriteit</h3>
+                        <p class="text-sm text-slate-600 mt-2">Sorteer op urgentie en volgorde zodat teams altijd weten wat eerst moet gebeuren.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-feature-section hidden" data-category="collaboration">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="play-card rounded-2xl border border-emerald-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Team workspaces</h3>
+                        <p class="text-sm text-slate-600 mt-2">Houd teams, locaties en verantwoordelijkheden overzichtelijk gescheiden.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Review en feedback</h3>
+                        <p class="text-sm text-slate-600 mt-2">Geef snel terugkoppeling op bewijs, keur goed of vraag gericht heruitvoering aan.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-fuchsia-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Rollen en rechten</h3>
+                        <p class="text-sm text-slate-600 mt-2">Admin en medewerkers werken elk in een duidelijke en veilige omgeving.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-feature-section hidden" data-category="analytics">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="play-card rounded-2xl border border-fuchsia-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Realtime dashboards</h3>
+                        <p class="text-sm text-slate-600 mt-2">Volg live wat afgerond is, achterloopt of extra aandacht nodig heeft.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-indigo-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Rapportages per team</h3>
+                        <p class="text-sm text-slate-600 mt-2">Krijg inzicht in kwaliteit, doorlooptijd en productiviteit per medewerker en afdeling.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-amber-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Trendanalyse</h3>
+                        <p class="text-sm text-slate-600 mt-2">Gebruik historische data om processen slimmer te plannen en te verbeteren.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-feature-section hidden" data-category="automation">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="play-card rounded-2xl border border-amber-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Slimme meldingen</h3>
+                        <p class="text-sm text-slate-600 mt-2">Ontvang automatische alerts bij deadlines, ontbrekend bewijs, afkeur of afwijkingen.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">Workflow triggers</h3>
+                        <p class="text-sm text-slate-600 mt-2">Activeer vervolgacties op basis van status, planning of teamregels.</p>
+                    </div>
+                    <div class="play-card rounded-2xl border border-emerald-100 bg-white/95 p-5 shadow-sm">
+                        <h3 class="font-semibold text-slate-900">AI import flows</h3>
+                        <p class="text-sm text-slate-600 mt-2">Upload PDF, Excel, Word of foto en zet bronmateriaal direct om naar werkbare lijsten.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-slate-700 font-semibold transition">
+                Probeer 30 dagen gratis
             </a>
-        @else
-            <a href="{{ route('login') }}" class="btn-gradient text-white px-10 py-4 rounded-full font-semibold text-lg inline-flex items-center">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14"></path>
-                </svg>
-                Begin Nu
-            </a>
-        @endauth
-        <p class="mt-6 text-gray-600">Een account nodig? Neem contact op: <a href="mailto:admin@taskcheck.com" class="text-primary-600 font-medium hover:underline">admin@taskcheck.com</a></p>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="max-w-7xl mx-auto px-6 py-20">
-        <div class="text-center mb-16 fade-up">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Wat Onze Klanten Zeggen</h2>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Sluit je aan bij duizenden teams die TaskCheck vertrouwen voor hun workflow management.</p>
-        </div>
-        
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.2s;">
-                <div class="flex items-center mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                        SM
-                    </div>
-                    <div class="ml-4">
-                        <h4 class="font-semibold text-gray-900">Sarah Mitchell</h4>
-                        <p class="text-sm text-gray-600">CEO, TechStart Inc.</p>
-                    </div>
-                </div>
-                <p class="text-gray-600 italic">"TaskCheck heeft een revolutie teweeggebracht in hoe ons team projecten beheert. De interface is intuïtief en de analytics helpen ons op koers te blijven."</p>
-                <div class="flex text-yellow-400 mt-4">
-                    ★★★★★
-                </div>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.4s;">
-                <div class="flex items-center mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold">
-                        MJ
-                    </div>
-                    <div class="ml-4">
-                        <h4 class="font-semibold text-gray-900">Michael Johnson</h4>
-                        <p class="text-sm text-gray-600">Projectmanager, DesignCo</p>
-                    </div>
-                </div>
-                <p class="text-gray-600 italic">"De real-time samenwerkingsfuncties zijn baanbrekend. Onze teamproductiviteit is met 40% gestegen sinds we TaskCheck gebruiken."</p>
-                <div class="flex text-yellow-400 mt-4">
-                    ★★★★★
-                </div>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-8 fade-up" style="animation-delay:0.6s;">
-                <div class="flex items-center mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold">
-                        AL
-                    </div>
-                    <div class="ml-4">
-                        <h4 class="font-semibold text-gray-900">Anna Lee</h4>
-                        <p class="text-sm text-gray-600">Operations Directeur, GrowthCorp</p>
-                    </div>
-                </div>
-                <p class="text-gray-600 italic">"De aangepaste workflows en automatisering hebben ons talloze uren bespaard. TaskCheck schaalt perfect mee met ons groeiende team."</p>
-                <div class="flex text-yellow-400 mt-4">
-                    ★★★★★
-                </div>
-            </div>
         </div>
     </section>
 
-    <!-- FAQ -->
-    <section class="max-w-4xl mx-auto px-6 py-20">
-        <div class="text-center mb-16 fade-up">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Veelgestelde Vragen</h2>
-            <p class="text-lg text-gray-600">Alles wat je moet weten over TaskCheck</p>
-        </div>
-        
-        <div class="space-y-6">
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-6 fade-up" style="animation-delay:0.2s;">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Hoe werkt de prijsstelling?</h3>
-                <p class="text-gray-600">Onze prijzen zijn gebaseerd op het aantal beheerder- en medewerker accounts. Je kunt je plan op elk moment upgraden of downgraden.</p>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-6 fade-up" style="animation-delay:0.4s;">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Is er een gratis proefperiode?</h3>
-                <p class="text-gray-600">Ja! We bieden een 14-daagse gratis proefperiode voor alle plannen. Geen creditcard nodig om te beginnen.</p>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-6 fade-up" style="animation-delay:0.6s;">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Kan ik mijn abonnement aanpassen?</h3>
-                <p class="text-gray-600">Absoluut! Ons Aangepaste plan stelt je in staat om een abonnement te maken dat is afgestemd op jouw specifieke behoeften met onbeperkte gebruikers en aangepaste functies.</p>
-            </div>
-            
-            <div class="card-hover bg-white/70 backdrop-blur-md rounded-2xl p-6 fade-up" style="animation-delay:0.8s;">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Welke ondersteuning bieden jullie?</h3>
-                <p class="text-gray-600">We bieden emailondersteuning voor alle plannen, prioriteitsondersteuning voor Professioneel, en 24/7 telefoonondersteuning voor Enterprise en Aangepaste plannen.</p>
+    <section class="max-w-7xl mx-auto px-6 py-16 reveal">
+        <div class="rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50 via-indigo-50 to-fuchsia-50 p-8 sm:p-10 shadow-sm">
+            <div class="grid lg:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900">Klaar om je operationele kwaliteit te verhogen?</h2>
+                    <p class="text-slate-700 mt-3">Werk met duidelijke taken, meetbare voortgang en minder discussie over uitvoering. Start direct met Home, Prijzen en Contact.</p>
+                </div>
+                <div class="flex flex-wrap gap-3 lg:justify-end">
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">Open dashboard</a>
+                    @else
+                        <a href="{{ route('login') }}" class="cta-btn inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">Probeer 1 maand gratis</a>
+                    @endauth
+                    <a href="mailto:admin@taskcheck.com" class="inline-flex items-center px-6 py-3 rounded-xl border border-indigo-200 bg-white text-slate-700 font-semibold hover:bg-indigo-50 transition">Contact sales</a>
+                </div>
             </div>
         </div>
     </section>
@@ -479,6 +556,53 @@
                 if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
                     mobileMenu.classList.add('hidden');
                 }
+            });
+
+            // Scroll reveal
+            const revealEls = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.16 });
+            revealEls.forEach(el => observer.observe(el));
+
+            const homeFeatureButtons = document.querySelectorAll('.home-feature-category');
+            const homeFeatureSections = document.querySelectorAll('.home-feature-section');
+            const firstFeatureButton = homeFeatureButtons[0];
+            const featureActiveLabel = document.getElementById('home-feature-active-label');
+
+            if (firstFeatureButton) {
+                firstFeatureButton.classList.add('active', 'ring-2', 'ring-blue-500', 'bg-blue-50');
+            }
+
+            homeFeatureButtons.forEach((button) => {
+                button.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    const label = this.querySelector('h3');
+
+                    homeFeatureButtons.forEach((btn) => {
+                        btn.classList.remove('active', 'ring-2', 'ring-blue-500', 'bg-blue-50');
+                    });
+
+                    this.classList.add('active', 'ring-2', 'ring-blue-500', 'bg-blue-50');
+
+                    homeFeatureSections.forEach((section) => {
+                        section.classList.add('hidden');
+                    });
+
+                    const target = document.querySelector(`#home-features-container .home-feature-section[data-category="${category}"]`);
+                    if (target) {
+                        target.classList.remove('hidden');
+                    }
+
+                    if (featureActiveLabel && label) {
+                        featureActiveLabel.textContent = label.textContent.trim();
+                    }
+                });
             });
         });
 

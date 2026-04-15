@@ -63,22 +63,35 @@
                     </div>
                     
                     <div class="space-y-8">
-                        <!-- Title Field -->
+                        <!-- Title Field + AI helper -->
                         <div class="group">
-                            <label for="title" class="block text-sm font-semibold text-slate-900 mb-3 flex items-center">
-                                <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                                Taaktitel
-                            </label>
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <label for="title" class="block text-sm font-semibold text-slate-900 flex items-center">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                                    Taaktitel
+                                </label>
+                                <button type="button"
+                                        id="ai-suggest-button"
+                                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm hover:shadow-md hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.18 3.63a1 1 0 00.95.69h3.813c.969 0 1.371 1.24.588 1.81l-3.084 2.24a1 1 0 00-.364 1.118l1.18 3.63c.3.921-.755 1.688-1.54 1.118l-3.084-2.24a1 1 0 00-1.176 0l-3.084 2.24c-.784.57-1.838-.197-1.539-1.118l1.18-3.63a1 1 0 00-.364-1.118L2.518 9.057c-.783-.57-.38-1.81.588-1.81h3.813a1 1 0 00.95-.69l1.18-3.63z"/>
+                                    </svg>
+                                    <span>AI-voorstel</span>
+                                </button>
+                            </div>
                             <div class="relative">
                                 <input type="text" name="title" id="title" required 
                                        class="block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 group-hover:border-slate-300 group-hover:shadow-md" 
                                        value="{{ old('title') }}" placeholder="bijv. Alle prullenbakken legen">
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
                                 </div>
                             </div>
+                            <p class="mt-2 text-xs text-slate-500">
+                                Gebruik de <span class="font-semibold">AI-voorstel</span> knop om automatisch omschrijving, instructies en checklist-items te laten invullen op basis van de titel.
+                            </p>
                             @error('title')
                                 <p class="mt-2 text-sm text-red-600 flex items-center">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -547,8 +560,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let checklistItemCount = 0;
     const checklistContainer = document.getElementById('checklist-container');
     const addChecklistBtn = document.getElementById('add-checklist-item');
-    
-        function createChecklistItem(value = '') {
+
+    function createChecklistItem(value = '') {
         checklistItemCount++;
         const itemId = `checklist-item-${checklistItemCount}`;
         
@@ -626,5 +639,93 @@ document.addEventListener('DOMContentLoaded', function() {
             createChecklistItem(@json($item));
         @endforeach
     @endif
+
+    // AI suggest functionality
+    const aiButton = document.getElementById('ai-suggest-button');
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    const instructionsInput = document.getElementById('instructions');
+
+    if (aiButton && titleInput && descriptionInput && instructionsInput) {
+        aiButton.addEventListener('click', async function () {
+            const title = titleInput.value.trim();
+            if (!title) {
+                alert('Vul eerst een taaktitel in voordat je AI gebruikt.');
+                titleInput.focus();
+                return;
+            }
+
+            aiButton.disabled = true;
+            aiButton.classList.add('opacity-70', 'cursor-wait');
+            const originalText = aiButton.querySelector('span');
+            const originalLabel = originalText ? originalText.textContent : '';
+            if (originalText) {
+                originalText.textContent = 'AI is bezig...';
+            }
+
+            try {
+                const response = await fetch('{{ route('admin.tasks.ai-suggest') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        context: descriptionInput.value || '',
+                    }),
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('AI error response:', text);
+                    alert('AI kon geen voorstel maken. Probeer het later opnieuw.');
+                    return;
+                }
+
+                const result = await response.json();
+                if (!result.success || !result.data) {
+                    alert(result.message || 'AI kon geen bruikbaar voorstel maken.');
+                    return;
+                }
+
+                const data = result.data;
+
+                if (data.description && !descriptionInput.value) {
+                    descriptionInput.value = data.description;
+                }
+                if (data.instructions) {
+                    instructionsInput.value = data.instructions;
+                }
+
+                if (Array.isArray(data.checklist_items) && data.checklist_items.length > 0) {
+                    const items = document.querySelectorAll('.checklist-item');
+                    if (items.length === 0 && checklistContainer) {
+                        const emptyMessage = document.getElementById('empty-checklist-message');
+                        if (emptyMessage) {
+                            emptyMessage.style.display = 'none';
+                        }
+                    }
+
+                    data.checklist_items.forEach((item) => {
+                        if (typeof item === 'string' && item.trim() !== '') {
+                            createChecklistItem(item.trim());
+                        }
+                    });
+                }
+
+            } catch (e) {
+                console.error('AI suggest exception', e);
+                alert('Er ging iets mis bij het aanroepen van de AI.');
+            } finally {
+                aiButton.disabled = false;
+                aiButton.classList.remove('opacity-70', 'cursor-wait');
+                if (originalText) {
+                    originalText.textContent = originalLabel || 'AI-voorstel';
+                }
+            }
+        });
+    }
 });
 </script>

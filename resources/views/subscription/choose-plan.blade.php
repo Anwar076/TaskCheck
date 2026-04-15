@@ -3,6 +3,30 @@
 @section('page-title', 'Plan Kiezen')
 
 @section('content')
+@php
+    $planFeatures = [
+        'starter' => [
+            '1 admin account',
+            '5 medewerker accounts',
+            'Basis taakbeheer',
+        ],
+        'professional' => [
+            'Alles van Starter',
+            '2 admin accounts',
+            '10 employee accounts',
+            'Advanced analytics',
+            'Priority support',
+            'AI',
+        ],
+        'enterprise' => [
+            'Alles van Professional',
+            '5 admin accounts',
+            '20 employee accounts',
+            'Priority support',
+            'AI',
+        ],
+    ];
+@endphp
 <div class="py-6 sm:py-8 lg:py-10">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             @if(session('success'))
@@ -119,22 +143,16 @@
                                     </div>
 
                                     <ul class="space-y-4 mb-8 flex-1">
-                                        <li class="flex items-center gap-3">
-                                            <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                                <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </div>
-                                            <span class="text-slate-600">{{ $plan['max_users'] == -1 ? 'Onbeperkt' : $plan['max_users'] }} gebruikers</span>
-                                        </li>
-                                        <li class="flex items-center gap-3">
-                                            <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                                <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </div>
-                                            <span class="text-slate-600">{{ $plan['max_storage_gb'] == -1 ? 'Onbeperkte' : $plan['max_storage_gb'] . ' GB' }} opslag</span>
-                                        </li>
+                                        @foreach($planFeatures[$planKey] ?? [] as $feature)
+                                            <li class="flex items-center gap-3">
+                                                <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-slate-600">{{ $feature }}</span>
+                                            </li>
+                                        @endforeach
                                     </ul>
 
                                     <form action="{{ route('subscription.activate') }}" method="POST">
@@ -159,7 +177,7 @@
                             <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Alle plannen bevatten 30 dagen gratis proefperiode. Geen creditcard vereist.
+                            Alle plannen bevatten 30 dagen gratis proefperiode. Betaling verloopt veilig via Mollie.
                         </p>
                     </div>
                 </div>

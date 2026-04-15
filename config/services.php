@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
+    ],
+
+    'mollie' => [
+        'key' => env('MOLLIE_API_KEY'),
+        'webhook_url' => env('MOLLIE_WEBHOOK_URL'),
+    ],
+
 ];

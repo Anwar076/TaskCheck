@@ -8,6 +8,8 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\TaskAssignment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
 
 class TaskController extends Controller
 {
@@ -240,5 +242,95 @@ class TaskController extends Controller
 
         return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
             ->with('success', 'Taak succesvol verwijderd.');
+    }
+
+    public function aiSuggest(Request $request)
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'context' => 'nullable|string|max:2000',
+        ]);
+
+        $apiKey = Config::get('services.openai.key');
+        $model = Config::get('services.openai.model', 'gpt-4.1-mini');
+
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI is niet geconfigureerd (OPENAI_API_KEY ontbreekt).',
+            ], 422);
+        }
+
+        $systemPrompt = <<<'PROMPT'
+Je bent een Nederlandse assistent die helpt bij het definiëren van taken voor een checklist-/inspectiesysteem.
+
+Je taak:
+- Je krijgt een taaktitel en eventueel wat context.
+- Schrijf een korte, duidelijke omschrijving (1-3 zinnen) in het Nederlands.
+- Schrijf daarna concrete, genummerde stap-voor-stap instructies (minimaal 3, maximaal 8 stappen).
+- Stel 5-10 checklist-items voor als korte bullets die ja/nee gecontroleerd kunnen worden.
+
+Geef je ANTWOORD ALLEEN als JSON in dit formaat:
+{
+  "description": "korte omschrijving",
+  "instructions": "1. stap\n2. stap\n3. stap...",
+  "checklist_items": ["item 1", "item 2", "..."]
+}
+
+Schrijf alles in duidelijk, praktisch Nederlands. Vermijd overbodige uitleg.
+PROMPT;
+
+        $userPrompt = [
+            'title' => $data['title'],
+            'context' => $data['context'] ?? '',
+        ];
+
+        try {
+            $response = Http::withToken($apiKey)
+                ->timeout(20)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => $model,
+                    'response_format' => ['type' => 'json_object'],
+                    'messages' => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user', 'content' => 'Genereer voorstel voor deze taak: ' . json_encode($userPrompt, JSON_UNESCAPED_UNICODE)],
+                    ],
+                ]);
+
+            if (!$response->ok()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI-verzoek mislukt: ' . $response->body(),
+                ], 500);
+            }
+
+            $content = $response->json('choices.0.message.content');
+            $decoded = is_string($content) ? json_decode($content, true) : null;
+
+            if (!is_array($decoded)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ongeldig AI-antwoord ontvangen.',
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'description' => $decoded['description'] ?? '',
+                    'instructions' => $decoded['instructions'] ?? '',
+                    'checklist_items' => $decoded['checklist_items'] ?? [],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('AI task suggest failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'AI-verzoek is mislukt: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

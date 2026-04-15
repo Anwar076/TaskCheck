@@ -8,6 +8,7 @@ use App\Models\ListAssignment;
 use App\Models\Submission;
 use App\Models\SubmissionTask;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 
 class TaskListController extends Controller
 {
@@ -127,8 +128,50 @@ class TaskListController extends Controller
             }
         }
 
+        // If AI-taken zijn meegestuurd, maak daar meteen echte taken van
+        $aiTasksRaw = $request->input('ai_tasks');
+        if ($aiTasksRaw) {
+            $decoded = json_decode($aiTasksRaw, true);
+            if (is_array($decoded)) {
+                $orderBase = \App\Models\Task::where('list_id', $taskList->id)->max('order_index') ?? 0;
+                $order = $orderBase + 1;
+
+                foreach ($decoded as $taskData) {
+                    if (!is_array($taskData)) {
+                        continue;
+                    }
+                    $title = isset($taskData['title']) ? trim((string) $taskData['title']) : '';
+                    if ($title === '') {
+                        continue;
+                    }
+                    $description = isset($taskData['description']) ? trim((string) $taskData['description']) : null;
+
+                    \App\Models\Task::create([
+                        'list_id' => $taskList->id,
+                        'title' => $title,
+                        'description' => $description,
+                        'instructions' => null,
+                        'checklist_items' => null,
+                        'required_proof_type' => 'none',
+                        'is_required' => false,
+                        'attachments' => [],
+                        'validation_rules' => [],
+                        'start_time' => null,
+                        'end_time' => null,
+                        'order_index' => $order,
+                        'order' => $order,
+                        'created_by' => auth()->id(),
+                        'weekday' => null,
+                        'requires_signature' => false,
+                    ]);
+
+                    $order++;
+                }
+            }
+        }
+
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($validatedData['template_id'] ? ' Taken uit sjabloon zijn toegevoegd.' : ''));
+            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($validatedData['template_id'] ? ' Taken uit sjabloon zijn toegevoegd.' : '') . ($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
     }
 
     public function show(TaskList $list)
@@ -232,6 +275,605 @@ class TaskListController extends Controller
 
         return redirect()->route('admin.lists.show', $list)
             ->with('success', 'Takenlijst succesvol bijgewerkt!');
+    }
+
+    public function aiGenerate(Request $request)
+    {
+        $validated = $request->validate([
+            'prompt' => 'nullable|string|max:2000',
+            'source_file' => 'nullable|file|max:8192|mimes:jpg,jpeg,png,webp,pdf',
+        ]);
+
+        $apiKey = Config::get('services.openai.key');
+        $model = Config::get('services.openai.model', 'gpt-4.1-mini');
+
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI is niet geconfigureerd (OPENAI_API_KEY ontbreekt).',
+            ], 422);
+        }
+
+        $hasPrompt = !empty($validated['prompt']);
+        $hasFile = $request->hasFile('source_file');
+
+        if (!$hasPrompt && !$hasFile) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geef een korte beschrijving of upload een bestand.',
+            ], 422);
+        }
+
+        $fileUrl = null;
+        $fileType = null;
+
+        if ($hasFile) {
+            $file = $request->file('source_file');
+            $fileType = strtolower($file->getClientOriginalExtension());
+
+            // Voor nu ondersteunen we alleen echte afbeeldingen voor AI-visie
+            if (!in_array($fileType, ['jpg', 'jpeg', 'png', 'webp'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Alleen afbeeldingsbestanden (jpg, jpeg, png, webp) worden momenteel ondersteund voor AI-lijstbouw. PDF/Word volgt later.',
+                ], 422);
+            }
+
+            // In een lokale ontwikkelomgeving (127.0.0.1 / localhost) kan OpenAI deze URL niet bereiken.
+            // Daarom blokkeren we fotogebruik lokaal en vragen we om alleen tekst te gebruiken.
+            $appUrl = config('app.url');
+            if ($appUrl && (str_contains($appUrl, '127.0.0.1') || str_contains($appUrl, 'localhost'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Foto-gebaseerde AI lijstbouw werkt niet in de lokale omgeving. Gebruik hier een tekstbeschrijving; in productie met een publiek bereikbare URL kan de foto wel worden gelezen.',
+                ], 422);
+            }
+
+            $path = $file->store('ai-list-sources', 'public');
+            $fileUrl = asset('storage/' . $path);
+        }
+
+        $systemPrompt = <<<'PROMPT'
+Je bent een Nederlandse assistent die op basis van een korte beschrijving of een foto van een papieren checklist een digitale takenlijst maakt.
+
+Je taak:
+- Bedenk een heldere titel voor de lijst.
+- Schrijf een korte beschrijving (1-3 zinnen) in het Nederlands.
+- Bedenk een korte categorie (bijv. "Schoonmaak", "Veiligheid", "Keuken", "Kantoor").
+- Haal uit de tekst/foto de afzonderlijke taken en maak daarvan een reeks concrete taken.
+- Per taak: geef een korte titel en optionele korte toelichting.
+
+Geef je ANTWOORD ALLEEN als JSON in dit formaat:
+{
+  "title": "lijsttitel",
+  "description": "korte beschrijving",
+  "category": "categorie of leeg",
+  "tasks": [
+    {
+      "title": "taaktitel",
+      "description": "optionele korte toelichting of leeg"
+    }
+  ]
+}
+
+Maak maximaal 25 taken. Schrijf alles in duidelijk, praktisch Nederlands.
+PROMPT;
+
+        $userParts = [];
+        if ($hasPrompt) {
+            $userParts[] = "Beschrijving van de lijst:\n" . $validated['prompt'];
+        }
+        if ($hasFile && $fileUrl) {
+            $userParts[] = "Gebruik ook de informatie van de meegestuurde foto van een checklist.";
+        }
+
+        $messages = [
+            ['role' => 'system', 'content' => $systemPrompt],
+        ];
+
+        if ($hasFile && $fileUrl) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => implode("\n\n", $userParts),
+                    ],
+                    [
+                        'type' => 'image_url',
+                        'image_url' => [
+                            'url' => $fileUrl,
+                        ],
+                    ],
+                ],
+            ];
+        } else {
+            $messages[] = [
+                'role' => 'user',
+                'content' => implode("\n\n", $userParts),
+            ];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
+                ->timeout(30)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => $model,
+                    'response_format' => ['type' => 'json_object'],
+                    'messages' => $messages,
+                ]);
+
+            if (!$response->ok()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI-verzoek mislukt: ' . $response->body(),
+                ], 500);
+            }
+
+            $content = $response->json('choices.0.message.content');
+            $decoded = is_string($content) ? json_decode($content, true) : null;
+
+            if (!is_array($decoded)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ongeldig AI-antwoord ontvangen.',
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'title' => $decoded['title'] ?? '',
+                    'description' => $decoded['description'] ?? '',
+                    'category' => $decoded['category'] ?? '',
+                    'tasks' => $decoded['tasks'] ?? [],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('AI list generate failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'AI-verzoek is mislukt: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function aiImportPage()
+    {
+        return view('admin.lists.ai-import');
+    }
+
+    public function aiImportGenerate(Request $request)
+    {
+        $validated = $request->validate([
+            'prompt' => 'nullable|string|max:4000',
+            'source_file' => 'nullable|file|max:12288|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp',
+        ]);
+
+        $apiKey = Config::get('services.openai.key');
+        $model = Config::get('services.openai.model', 'gpt-4.1-mini');
+
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI is niet geconfigureerd (OPENAI_API_KEY ontbreekt).',
+            ], 422);
+        }
+
+        $prompt = trim((string) ($validated['prompt'] ?? ''));
+        $file = $request->file('source_file');
+        if ($prompt === '' && !$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geef een beschrijving of upload een bestand.',
+            ], 422);
+        }
+
+        $messages = [];
+        $messages[] = [
+            'role' => 'system',
+            'content' => <<<'PROMPT'
+Je bent een Nederlandse assistent die documenten omzet naar bruikbare takenlijsten.
+
+Lees de aangeleverde tekst en/of afbeelding en maak 1 of meerdere praktische lijsten.
+Output ALLEEN JSON in exact dit formaat:
+{
+  "lists": [
+    {
+      "title": "string",
+      "description": "string",
+      "category": "string",
+      "priority": "low|medium|high|urgent",
+      "schedule_type": "once|daily|weekly|monthly|custom",
+      "tasks": [
+        {
+          "title": "string",
+          "description": "string",
+          "required_proof_type": "none|photo|video|text|file|any",
+          "is_required": true,
+          "requires_signature": false,
+          "checklist_items": ["string", "string"]
+        }
+      ]
+    }
+  ]
+}
+
+Regels:
+- Max 10 lijsten.
+- Max 40 taken per lijst.
+- Kort en praktisch Nederlands.
+- Als info ontbreekt: kies veilige defaults (priority medium, schedule_type once).
+- Kies per taak logisch bewijs type:
+  - photo voor zichtbaar resultaat (bv schoonmaak, controle op uiterlijk),
+  - text voor korte toelichting/waarden,
+  - file voor document-bewijs,
+  - none als geen bewijs nodig is.
+- Zet is_required op true voor kritieke taken.
+- Zet requires_signature op true voor taken met expliciete bevestiging/akkoord.
+- Gebruik checklist_items wanneer subcontroles logisch zijn (2-8 items).
+PROMPT,
+        ];
+
+        $userParts = [];
+        if ($prompt !== '') {
+            $userParts[] = "Extra context van gebruiker:\n" . $prompt;
+        }
+
+        $content = [];
+        if (!empty($userParts)) {
+            $content[] = [
+                'type' => 'text',
+                'text' => implode("\n\n", $userParts),
+            ];
+        }
+
+        if ($file) {
+            $ext = strtolower($file->getClientOriginalExtension());
+            $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp']);
+
+            if ($isImage) {
+                $bytes = file_get_contents($file->getRealPath());
+                $mime = $file->getMimeType() ?: 'image/png';
+                $content[] = [
+                    'type' => 'image_url',
+                    'image_url' => [
+                        'url' => 'data:' . $mime . ';base64,' . base64_encode($bytes),
+                    ],
+                ];
+                $content[] = [
+                    'type' => 'text',
+                    'text' => 'Gebruik de afbeelding om checklistpunten/taken te herkennen en zet die om naar digitale lijsten.',
+                ];
+            } else {
+                $extractedText = $this->extractImportSourceText($file);
+                if (trim($extractedText) === '') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kon onvoldoende tekst uit dit bestand halen. Probeer een duidelijkere PDF/DOCX/XLSX of voeg extra context toe.',
+                    ], 422);
+                }
+                $content[] = [
+                    'type' => 'text',
+                    'text' => "Geextraheerde documenttekst (ingekort):\n" . mb_substr($extractedText, 0, 12000),
+                ];
+            }
+        }
+
+        if (empty($content)) {
+            $content[] = ['type' => 'text', 'text' => 'Maak een algemene takenlijst op basis van de context.'];
+        }
+
+        $messages[] = [
+            'role' => 'user',
+            'content' => $content,
+        ];
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
+                ->timeout(45)
+                ->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => $model,
+                    'response_format' => ['type' => 'json_object'],
+                    'messages' => $messages,
+                ]);
+
+            if (!$response->ok()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI-verzoek mislukt: ' . $response->body(),
+                ], 500);
+            }
+
+            $contentText = $response->json('choices.0.message.content');
+            $decoded = is_string($contentText) ? json_decode($contentText, true) : null;
+
+            if (!is_array($decoded) || !isset($decoded['lists']) || !is_array($decoded['lists'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI gaf geen geldig lijst-formaat terug.',
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'lists' => $this->normalizeAiImportLists($decoded['lists']),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('AI import generate failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'AI-import is mislukt: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function aiImportStore(Request $request)
+    {
+        $validated = $request->validate([
+            'import_payload' => 'required|string',
+            'selected_indices' => 'required|array|min:1',
+            'selected_indices.*' => 'integer|min:0',
+        ]);
+
+        $payload = json_decode($validated['import_payload'], true);
+        if (!is_array($payload) || !isset($payload['lists']) || !is_array($payload['lists'])) {
+            return redirect()->back()->with('error', 'Ongeldige import-payload.');
+        }
+
+        $allowedPriority = ['low', 'medium', 'high', 'urgent'];
+        $allowedSchedule = ['once', 'daily', 'weekly', 'monthly', 'custom'];
+        $allowedProofTypes = ['none', 'photo', 'video', 'text', 'file', 'any'];
+
+        $createdLists = 0;
+        $createdTasks = 0;
+
+        foreach ($validated['selected_indices'] as $idx) {
+            if (!isset($payload['lists'][$idx]) || !is_array($payload['lists'][$idx])) {
+                continue;
+            }
+            $item = $payload['lists'][$idx];
+            $title = trim((string) ($item['title'] ?? ''));
+            if ($title === '') {
+                continue;
+            }
+
+            $priority = in_array($item['priority'] ?? 'medium', $allowedPriority) ? $item['priority'] : 'medium';
+            $scheduleType = in_array($item['schedule_type'] ?? 'once', $allowedSchedule) ? $item['schedule_type'] : 'once';
+
+            $list = TaskList::create([
+                'title' => $title,
+                'description' => trim((string) ($item['description'] ?? '')) ?: null,
+                'category' => trim((string) ($item['category'] ?? '')) ?: null,
+                'priority' => $priority,
+                'schedule_type' => $scheduleType,
+                'due_date' => null,
+                'parent_list_id' => null,
+                'requires_signature' => false,
+                'is_template' => false,
+                'is_active' => true,
+                'schedule_config' => null,
+                'created_by' => auth()->id(),
+                'company_id' => auth()->user()->company_id,
+            ]);
+            $createdLists++;
+
+            $tasks = is_array($item['tasks'] ?? null) ? $item['tasks'] : [];
+            $order = 1;
+            foreach ($tasks as $taskItem) {
+                if (!is_array($taskItem)) {
+                    continue;
+                }
+                $taskTitle = trim((string) ($taskItem['title'] ?? ''));
+                if ($taskTitle === '') {
+                    continue;
+                }
+
+                \App\Models\Task::create([
+                    'list_id' => $list->id,
+                    'title' => $taskTitle,
+                    'description' => trim((string) ($taskItem['description'] ?? '')) ?: null,
+                    'instructions' => null,
+                    'checklist_items' => $this->normalizeChecklistItems($taskItem['checklist_items'] ?? null),
+                    'required_proof_type' => in_array(($taskItem['required_proof_type'] ?? 'none'), $allowedProofTypes) ? $taskItem['required_proof_type'] : 'none',
+                    'is_required' => (bool) ($taskItem['is_required'] ?? false),
+                    'attachments' => [],
+                    'validation_rules' => [],
+                    'start_time' => null,
+                    'end_time' => null,
+                    'order_index' => $order,
+                    'order' => $order,
+                    'created_by' => auth()->id(),
+                    'weekday' => null,
+                    'requires_signature' => (bool) ($taskItem['requires_signature'] ?? false),
+                ]);
+                $order++;
+                $createdTasks++;
+            }
+        }
+
+        return redirect()->route('admin.lists.index')
+            ->with('success', "AI-import voltooid: {$createdLists} lijst(en) en {$createdTasks} taak/taken aangemaakt.");
+    }
+
+    private function extractImportSourceText(\Illuminate\Http\UploadedFile $file): string
+    {
+        $ext = strtolower($file->getClientOriginalExtension());
+        $path = $file->getRealPath();
+        if (!$path) {
+            return '';
+        }
+
+        if ($ext === 'pdf') {
+            return $this->extractPdfTextFallback($path);
+        }
+        if ($ext === 'docx') {
+            return $this->extractDocxText($path);
+        }
+        if (in_array($ext, ['xlsx', 'xls'])) {
+            return $this->extractXlsxText($path);
+        }
+        if ($ext === 'doc') {
+            return '';
+        }
+
+        return (string) file_get_contents($path);
+    }
+
+    private function normalizeAiImportLists(array $lists): array
+    {
+        $allowedPriority = ['low', 'medium', 'high', 'urgent'];
+        $allowedSchedule = ['once', 'daily', 'weekly', 'monthly', 'custom'];
+        $allowedProofTypes = ['none', 'photo', 'video', 'text', 'file', 'any'];
+
+        $normalized = [];
+        foreach ($lists as $list) {
+            if (!is_array($list)) {
+                continue;
+            }
+
+            $tasks = [];
+            foreach (($list['tasks'] ?? []) as $task) {
+                if (!is_array($task)) {
+                    continue;
+                }
+                $title = trim((string) ($task['title'] ?? ''));
+                if ($title === '') {
+                    continue;
+                }
+                $tasks[] = [
+                    'title' => $title,
+                    'description' => trim((string) ($task['description'] ?? '')),
+                    'required_proof_type' => in_array(($task['required_proof_type'] ?? 'none'), $allowedProofTypes) ? $task['required_proof_type'] : 'none',
+                    'is_required' => (bool) ($task['is_required'] ?? false),
+                    'requires_signature' => (bool) ($task['requires_signature'] ?? false),
+                    'checklist_items' => $this->normalizeChecklistItems($task['checklist_items'] ?? null) ?? [],
+                ];
+            }
+
+            $normalized[] = [
+                'title' => trim((string) ($list['title'] ?? '')) ?: 'Nieuwe AI lijst',
+                'description' => trim((string) ($list['description'] ?? '')),
+                'category' => trim((string) ($list['category'] ?? '')),
+                'priority' => in_array(($list['priority'] ?? 'medium'), $allowedPriority) ? $list['priority'] : 'medium',
+                'schedule_type' => in_array(($list['schedule_type'] ?? 'once'), $allowedSchedule) ? $list['schedule_type'] : 'once',
+                'tasks' => $tasks,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeChecklistItems($items): ?array
+    {
+        if (!is_array($items)) {
+            return null;
+        }
+
+        $clean = [];
+        foreach ($items as $item) {
+            $value = trim((string) $item);
+            if ($value !== '') {
+                $clean[] = $value;
+            }
+        }
+
+        return empty($clean) ? null : array_values($clean);
+    }
+
+    private function extractPdfTextFallback(string $path): string
+    {
+        $content = (string) file_get_contents($path);
+        preg_match_all('/\(([^)]{2,200})\)/', $content, $matches);
+        $chunks = $matches[1] ?? [];
+        $text = implode(' ', $chunks);
+        $text = preg_replace('/\s+/', ' ', (string) $text);
+        return trim((string) $text);
+    }
+
+    private function extractDocxText(string $path): string
+    {
+        if (!class_exists(\ZipArchive::class)) {
+            return '';
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return '';
+        }
+
+        $xml = (string) $zip->getFromName('word/document.xml');
+        $zip->close();
+        if ($xml === '') {
+            return '';
+        }
+
+        $text = strip_tags(str_replace('</w:p>', "\n", $xml));
+        $text = preg_replace('/\s+/', ' ', (string) $text);
+        return trim((string) $text);
+    }
+
+    private function extractXlsxText(string $path): string
+    {
+        if (!class_exists(\ZipArchive::class)) {
+            return '';
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return '';
+        }
+
+        $sharedStringsXml = (string) $zip->getFromName('xl/sharedStrings.xml');
+        $sharedStrings = [];
+        if ($sharedStringsXml !== '') {
+            $sx = @simplexml_load_string($sharedStringsXml);
+            if ($sx && isset($sx->si)) {
+                foreach ($sx->si as $item) {
+                    $sharedStrings[] = trim((string) $item->t);
+                }
+            }
+        }
+
+        $textParts = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $sheetXml = (string) $zip->getFromName("xl/worksheets/sheet{$i}.xml");
+            if ($sheetXml === '') {
+                continue;
+            }
+            $sheet = @simplexml_load_string($sheetXml);
+            if (!$sheet || !isset($sheet->sheetData->row)) {
+                continue;
+            }
+            foreach ($sheet->sheetData->row as $row) {
+                foreach ($row->c as $cell) {
+                    $type = (string) ($cell['t'] ?? '');
+                    $raw = (string) ($cell->v ?? '');
+                    if ($raw === '') {
+                        continue;
+                    }
+                    if ($type === 's') {
+                        $idx = (int) $raw;
+                        $textParts[] = $sharedStrings[$idx] ?? '';
+                    } else {
+                        $textParts[] = $raw;
+                    }
+                }
+            }
+        }
+
+        $zip->close();
+        $text = implode("\n", array_filter($textParts));
+        $text = preg_replace('/\s+/', ' ', (string) $text);
+        return trim((string) $text);
     }
 
     public function destroy(TaskList $list)
@@ -509,6 +1151,41 @@ class TaskListController extends Controller
         $submission->load(['user', 'taskList', 'submissionTasks.task']);
         
         return view('admin.submissions.show', compact('submission'));
+    }
+
+    public function aiReviewSubmission(Request $request, \App\Models\Submission $submission, \App\Services\Ai\SubmissionReviewService $ai)
+    {
+        try {
+            if (!$ai->isEnabled()) {
+                return redirect()->back()
+                    ->with('error', 'AI-review is niet geconfigureerd. Voeg een OPENAI_API_KEY toe aan je .env bestand.');
+            }
+
+            $review = $ai->review($submission);
+
+            $metadata = $submission->metadata ?? [];
+            $metadata['ai_review'] = [
+                'overall_status' => $review['overall_status'],
+                'summary' => $review['summary'],
+                'missing_required_tasks' => $review['missing_required_tasks'],
+                'notes' => $review['notes'],
+                'model' => $review['_model'] ?? null,
+                'ran_at' => now()->toIso8601String(),
+            ];
+
+            $submission->update(['metadata' => $metadata]);
+
+            return redirect()->back()
+                ->with('success', 'AI-review is uitgevoerd.');
+        } catch (\Throwable $e) {
+            \Log::error('AI submission review failed', [
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'AI-review is mislukt: ' . $e->getMessage());
+        }
     }
 
     public function reviewSubmission(Request $request, \App\Models\Submission $submission)

@@ -26,6 +26,12 @@
                             </svg>
                             Terug naar overzicht
                         </a>
+                        <a href="{{ route('admin.lists.ai-import') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                            AI Importer
+                        </a>
                     </div>
                 </div>
             </div>
@@ -34,34 +40,88 @@
         <form method="POST" action="{{ route('admin.lists.store') }}">
             @csrf
 
-            {{-- Basisgegevens --}}
+            {{-- Basisgegevens + AI lijstbouwer --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
-                <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
-                    <h2 class="text-lg font-bold text-slate-900">Basisgegevens</h2>
-                    <p class="text-slate-600 text-sm mt-0.5">Titel en beschrijving van de takenlijst</p>
-                </div>
-                <div class="p-4 sm:p-6 space-y-5">
+                <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
-                        <input type="text" name="title" id="title" required
-                               class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               value="{{ old('title') }}"
-                               placeholder="Bijv. Dagelijkse kantoorcontrole">
-                        @error('title')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <h2 class="text-lg font-bold text-slate-900">Basisgegevens</h2>
+                        <p class="text-slate-600 text-sm mt-0.5">Titel en beschrijving van de takenlijst</p>
                     </div>
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
-                        <textarea name="description" id="description" rows="3"
-                                  class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  placeholder="Beschrijf waarvoor deze takenlijst dient...">{{ old('description') }}</textarea>
-                        @error('description')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                    <!-- <div class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-semibold">AI</span>
+                        <span class="text-xs text-slate-700 font-medium">Lijst laten bedenken met AI</span>
+                    </div> -->
+                </div>
+                <div class="p-4 sm:p-6 space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-4">
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
+                                <input type="text" name="title" id="title" required
+                                       class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       value="{{ old('title') }}"
+                                       placeholder="Bijv. Dagelijkse keukencontrole">
+                                @error('title')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
+                                <textarea name="description" id="description" rows="3"
+                                          class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                          placeholder="Beschrijf waarvoor deze takenlijst dient...">{{ old('description') }}</textarea>
+                                @error('description')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="category" class="block text-sm font-medium text-slate-700 mb-1.5">Categorie</label>
+                                <input type="text" name="category" id="category"
+                                       class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       value="{{ old('category') }}"
+                                       placeholder="Bijv. Schoonmaak, Veiligheid">
+                                @error('category')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <!-- <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">AI lijstbouwer</label>
+                                <p class="text-xs text-slate-500 mb-2">
+                                    Typ kort wat voor lijst je nodig hebt of upload een foto van een papieren checklist. De AI stelt een lijst en taken voor.
+                                </p>
+                                <textarea id="ai-list-prompt" rows="3"
+                                          class="block w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                          placeholder="Bijv. Dagelijkse schoonmaaklijst voor de restaurantkeuken, inclusief ramen, vloeren en werkbladen."></textarea>
+                            </div>
+                            <div class="space-y-1">
+                                <label for="ai-source-file" class="block text-xs font-medium text-slate-700">Foto van checklist (optioneel)</label>
+                                <input type="file"
+                                       id="ai-source-file"
+                                       accept="image/jpeg,image/png,image/webp,application/pdf"
+                                       class="block w-full text-xs text-slate-600 file:text-xs file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <p class="text-[11px] text-slate-400 mt-0.5">Ondersteund: foto (jpg, png, webp). PDF/Word volgt later.</p>
+                            </div>
+                            <button type="button"
+                                    id="ai-generate-list-button"
+                                    class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                                <span>AI lijstvoorstel maken</span>
+                            </button>
+                            <div id="ai-tasks-preview" class="hidden mt-2 border border-dashed border-slate-200 rounded-xl p-2.5 bg-slate-50/60 max-h-48 overflow-auto">
+                                <p class="text-[11px] font-semibold text-slate-700 mb-1.5">Voorgestelde taken (alleen ter inspiratie, worden niet automatisch aangemaakt):</p>
+                                <ul id="ai-tasks-preview-list" class="space-y-1 text-[11px] text-slate-700"></ul>
+                            </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
+
+            {{-- Hidden field to carry AI-taken mee naar backend --}}
+            <input type="hidden" name="ai_tasks" id="ai-tasks-json" value="">
 
             {{-- Sjabloon --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
@@ -94,16 +154,6 @@
                 </div>
                 <div class="p-4 sm:p-6 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <label for="category" class="block text-sm font-medium text-slate-700 mb-1.5">Categorie</label>
-                            <input type="text" name="category" id="category"
-                                   class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   value="{{ old('category') }}"
-                                   placeholder="Bijv. Schoonmaak, Veiligheid">
-                            @error('category')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
                         <div>
                             <label for="priority" class="block text-sm font-medium text-slate-700 mb-1.5">Prioriteit <span class="text-red-500">*</span></label>
                             <select name="priority" id="priority" required
@@ -348,6 +398,121 @@ function toggleCustomType() {
 
 document.addEventListener('DOMContentLoaded', function() {
     toggleScheduleConfig();
+
+    const aiButton = document.getElementById('ai-generate-list-button');
+    const aiPrompt = document.getElementById('ai-list-prompt');
+    const aiFileInput = document.getElementById('ai-source-file');
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    const categoryInput = document.getElementById('category');
+    const tasksPreview = document.getElementById('ai-tasks-preview');
+    const tasksPreviewList = document.getElementById('ai-tasks-preview-list');
+    const aiTasksJsonInput = document.getElementById('ai-tasks-json');
+
+    if (aiButton) {
+        aiButton.addEventListener('click', async function () {
+            const prompt = aiPrompt ? aiPrompt.value.trim() : '';
+            const file = aiFileInput && aiFileInput.files.length > 0 ? aiFileInput.files[0] : null;
+
+            if (!prompt && !file) {
+                alert('Typ een korte beschrijving of kies een bestand voor de AI.');
+                if (aiPrompt) aiPrompt.focus();
+                return;
+            }
+
+            const formData = new FormData();
+            if (prompt) formData.append('prompt', prompt);
+            if (file) formData.append('source_file', file);
+
+            aiButton.disabled = true;
+            aiButton.classList.add('opacity-70', 'cursor-wait');
+            const span = aiButton.querySelector('span');
+            const originalLabel = span ? span.textContent : '';
+            if (span) span.textContent = 'AI is bezig...';
+
+            try {
+                const response = await fetch('{{ route('admin.lists.ai-generate') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: formData,
+                });
+
+                let result = null;
+                try {
+                    result = await response.json();
+                } catch (parseError) {
+                    console.error('AI lijst parse error', parseError);
+                }
+
+                if (!response.ok) {
+                    console.error('AI lijst response', response, result);
+
+                    // Toon server-boodschap als die er is
+                    if (result && typeof result.message === 'string') {
+                        alert(result.message);
+                        return;
+                    }
+
+                    // Laravel validation errors (422) hebben vaak errors-object
+                    if (result && result.errors) {
+                        const firstField = Object.keys(result.errors)[0];
+                        const firstMsg = result.errors[firstField][0] || null;
+                        if (firstMsg) {
+                            alert(firstMsg);
+                            return;
+                        }
+                    }
+
+                    alert('AI kon geen lijstvoorstel maken. Probeer het later opnieuw.');
+                    return;
+                }
+
+                if (!result || !result.success) {
+                    alert((result && result.message) || 'AI kon geen lijstvoorstel maken.');
+                    return;
+                }
+
+                const data = result.data || {};
+
+                if (data.title && !titleInput.value) {
+                    titleInput.value = data.title;
+                }
+                if (data.description && !descriptionInput.value) {
+                    descriptionInput.value = data.description;
+                }
+                if (data.category && !categoryInput.value) {
+                    categoryInput.value = data.category;
+                }
+
+                if (Array.isArray(data.tasks) && data.tasks.length > 0 && tasksPreview && tasksPreviewList) {
+                    // Sla de ruwe taken op in verborgen veld zodat backend ze kan aanmaken
+                    if (aiTasksJsonInput) {
+                        aiTasksJsonInput.value = JSON.stringify(data.tasks);
+                    }
+
+                    tasksPreviewList.innerHTML = '';
+                    data.tasks.forEach((task, index) => {
+                        const li = document.createElement('li');
+                        const title = typeof task.title === 'string' ? task.title : '';
+                        const desc = typeof task.description === 'string' ? task.description : '';
+                        li.textContent = `${index + 1}. ${title}${desc ? ' — ' + desc : ''}`;
+                        tasksPreviewList.appendChild(li);
+                    });
+                    tasksPreview.classList.remove('hidden');
+                }
+
+            } catch (e) {
+                console.error('AI list generate exception', e);
+                alert('Er ging iets mis bij het aanroepen van de AI.');
+            } finally {
+                aiButton.disabled = false;
+                aiButton.classList.remove('opacity-70', 'cursor-wait');
+                if (span) span.textContent = originalLabel || 'AI lijstvoorstel maken';
+            }
+        });
+    }
 });
 </script>
 @endsection

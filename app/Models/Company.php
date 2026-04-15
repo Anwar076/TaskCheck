@@ -20,9 +20,13 @@ class Company extends Model
         'website',
         'description',
         'subscription_plan',
+        'pending_subscription_plan',
         'subscription_status',
         'trial_ends_at',
         'subscription_ends_at',
+        'mollie_customer_id',
+        'mollie_subscription_id',
+        'mollie_payment_id',
         'max_users',
         'max_storage_gb',
         'is_active',
@@ -40,21 +44,21 @@ class Company extends Model
             'name' => 'Starter',
             'price_monthly' => 29,
             'price_annual' => 23, // 20% discount
-            'max_users' => 5,
+            'max_users' => 6, // 1 admin + 5 medewerkers
             'max_storage_gb' => 5,
         ],
         'professional' => [
             'name' => 'Professional',
             'price_monthly' => 79,
             'price_annual' => 63,
-            'max_users' => 10,
+            'max_users' => 12, // 2 admins + 10 medewerkers
             'max_storage_gb' => 50,
         ],
         'enterprise' => [
             'name' => 'Enterprise',
             'price_monthly' => 149,
             'price_annual' => 119,
-            'max_users' => 20,
+            'max_users' => 25, // 5 admins + 20 medewerkers
             'max_storage_gb' => -1, // Unlimited
         ],
         'custom' => [

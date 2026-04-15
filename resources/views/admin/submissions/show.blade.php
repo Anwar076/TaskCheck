@@ -93,6 +93,118 @@
             </div>
         </div>
 
+        @php
+            $aiReview = $submission->metadata['ai_review'] ?? null;
+            $taskReviewsById = [];
+            if ($aiReview && !empty($aiReview['task_reviews']) && is_array($aiReview['task_reviews'])) {
+                foreach ($aiReview['task_reviews'] as $tr) {
+                    if (isset($tr['task_id'])) {
+                        $taskReviewsById[$tr['task_id']] = $tr;
+                    }
+                }
+            }
+        @endphp
+
+        {{--
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h3.586a1 1 0 01.707.293L13.414 6H17a2 2 0 012 2v10a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-semibold text-slate-900">AI-controle</h2>
+                        <p class="text-sm text-slate-600 mt-0.5">
+                            Laat AI een snelle kwaliteitscontrole doen op deze inzending.
+                        </p>
+                        @if($aiReview)
+                            <div class="mt-3 rounded-xl border px-3 py-2 inline-flex items-center gap-2 text-xs
+                                @if($aiReview['overall_status'] === 'ok') bg-emerald-50 border-emerald-200 text-emerald-800
+                                @elseif($aiReview['overall_status'] === 'waarschuwing') bg-amber-50 border-amber-200 text-amber-800
+                                @else bg-red-50 border-red-200 text-red-800 @endif">
+                                <span class="w-1.5 h-1.5 rounded-full
+                                    @if($aiReview['overall_status'] === 'ok') bg-emerald-500
+                                    @elseif($aiReview['overall_status'] === 'waarschuwing') bg-amber-500
+                                    @else bg-red-500 @endif"></span>
+                                <span class="font-semibold">
+                                    @if($aiReview['overall_status'] === 'ok')
+                                        Geen opvallende problemen gevonden
+                                    @elseif($aiReview['overall_status'] === 'waarschuwing')
+                                        Let op: mogelijke aandachtspunten
+                                    @else
+                                        Controle aanbevolen
+                                    @endif
+                                </span>
+                                <span class="text-slate-500 text-[11px]">
+                                    ({{ \Carbon\Carbon::parse($aiReview['ran_at'] ?? $submission->updated_at)->diffForHumans() }})
+                                </span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ route('admin.submissions.ai-review', $submission) }}" class="flex-shrink-0">
+                    @csrf
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
+                            {{ $aiReview ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-emerald-600 text-white hover:bg-emerald-700' }}
+                            shadow-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 4H6a2 2 0 00-2 2v7m2 5h11a2 2 0 002-2v-5M7 20l-3-3m0 0l3-3m-3 3h10m4-9l3-3m0 0l-3-3m3 3H11" />
+                        </svg>
+                        {{ $aiReview ? 'AI-review opnieuw uitvoeren' : 'AI-review uitvoeren' }}
+                    </button>
+                </form>
+            </div>
+
+            @if($aiReview)
+                <div class="mt-4 grid md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-1.5">Samenvatting</h3>
+                        <p class="text-sm text-slate-700 leading-relaxed">
+                            {{ $aiReview['summary'] ?? 'Geen samenvatting beschikbaar.' }}
+                        </p>
+                    </div>
+                    <div>
+                        @if(!empty($aiReview['missing_required_tasks']))
+                            <h3 class="text-sm font-semibold text-red-800 mb-1.5">Missende verplichte taken</h3>
+                            <ul class="text-sm text-red-800 space-y-1.5">
+                                @foreach($aiReview['missing_required_tasks'] as $item)
+                                    <li class="flex items-start gap-1.5">
+                                        <span class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                        <span>
+                                            <span class="font-semibold">{{ $item['task_title'] ?? 'Taak' }}:</span>
+                                            <span>{{ $item['reason'] ?? '' }}</span>
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <h3 class="text-sm font-semibold text-slate-900 mb-1.5">Verplichte taken</h3>
+                            <p class="text-sm text-slate-600">AI heeft geen ontbrekende verplichte taken gevonden.</p>
+                        @endif
+                    </div>
+                </div>
+
+                @if(!empty($aiReview['notes']))
+                    <div class="mt-4 border-t border-slate-100 pt-4">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-1.5">Opmerkingen van AI</h3>
+                        <ul class="text-sm text-slate-700 space-y-1.5">
+                            @foreach($aiReview['notes'] as $note)
+                                <li class="flex items-start gap-1.5">
+                                    <span class="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                    <span>{{ $note }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            @endif
+        </div>
+        --}}
+
         @if($submission->employee_signature)
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 sm:mb-8">
                 <div class="flex items-start gap-4">
@@ -119,6 +231,11 @@
                     <div>
                         <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Taken beoordelen</h3>
                         <p class="text-sm text-slate-500">{{ $submission->submissionTasks->count() }} taken in totaal</p>
+                        @if(!empty($taskReviewsById))
+                            <p class="text-xs text-slate-400 mt-1">
+                                AI heeft feedback gegeven per taak (zie badges en opmerkingen).
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -129,6 +246,7 @@
                         $taskStatusLabels = ['completed' => 'Afgerond', 'approved' => 'Goedgekeurd', 'rejected' => 'Afgewezen', 'redo_requested' => 'Opnieuw gevraagd', 'pending' => 'Openstaand'];
                         $taskStatusColors = ['completed' => 'bg-amber-100 text-amber-800 border-amber-200', 'approved' => 'bg-emerald-100 text-emerald-800 border-emerald-200', 'rejected' => 'bg-red-100 text-red-800 border-red-200', 'redo_requested' => 'bg-orange-100 text-orange-800 border-orange-200', 'pending' => 'bg-slate-100 text-slate-800 border-slate-200'];
                         $ts = $submissionTask->status;
+                        $aiTask = $taskReviewsById[$submissionTask->task->id] ?? null;
                     @endphp
                     <div class="p-4 sm:p-6 lg:p-8 hover:bg-slate-50/50 transition-colors submission-task" data-submission-task-id="{{ $submissionTask->id }}">
                         <div class="flex flex-col lg:flex-row lg:items-start lg:gap-8">
@@ -152,6 +270,27 @@
                                                 @endif
                                                 {{ $taskStatusLabels[$ts] ?? ucfirst(str_replace('_', ' ', $ts)) }}
                                             </span>
+                                            @if($aiTask)
+                                                @php
+                                                    $aiColor = $aiTask['status'] === 'ok'
+                                                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                                        : ($aiTask['status'] === 'waarschuwing'
+                                                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                                            : 'bg-red-50 text-red-800 border-red-200');
+                                                    $aiLabel = $aiTask['status'] === 'ok'
+                                                        ? 'AI: ok'
+                                                        : ($aiTask['status'] === 'waarschuwing'
+                                                            ? 'AI: waarschuwing'
+                                                            : 'AI: nakijken');
+                                                @endphp
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border {{ $aiColor }}">
+                                                    <span class="w-1.5 h-1.5 rounded-full
+                                                        @if($aiTask['status'] === 'ok') bg-emerald-500
+                                                        @elseif($aiTask['status'] === 'waarschuwing') bg-amber-500
+                                                        @else bg-red-500 @endif"></span>
+                                                    {{ $aiLabel }}
+                                                </span>
+                                            @endif
                                         </div>
                                         @if($submissionTask->task->description)
                                             <p class="text-slate-600 leading-relaxed">{{ $submissionTask->task->description }}</p>
@@ -211,7 +350,7 @@
                                     </div>
                                 @endif
 
-                                @if($submissionTask->proof_text || $submissionTask->proof_files || $submissionTask->digital_signature)
+                                @if($submissionTask->proof_text || $submissionTask->proof_files || $submissionTask->digital_signature || !empty($aiTask['comment'] ?? null) || !empty($aiTask['image_feedback'] ?? null))
                                     <div class="mt-6">
                                         <div class="bg-violet-50 rounded-xl p-5 sm:p-6 border border-violet-100">
                                             <div class="flex items-center gap-3 mb-4">
@@ -220,7 +359,7 @@
                                                 </div>
                                                 <h5 class="text-base font-bold text-violet-900">Bewijs medewerker</h5>
                                             </div>
-                                            @if($submissionTask->proof_text)
+                                                @if($submissionTask->proof_text)
                                                 <div class="mb-4 p-4 bg-white/80 rounded-xl">
                                                     <p class="text-sm font-medium text-violet-900 mb-2">Omschrijving</p>
                                                     <p class="text-slate-700 leading-relaxed">{{ $submissionTask->proof_text }}</p>
@@ -266,6 +405,17 @@
                                                             @endif
                                                         </div>
                                                     @endforeach
+                                                </div>
+                                            @endif
+                                            @if(!empty($aiTask['comment'] ?? null) || !empty($aiTask['image_feedback'] ?? null))
+                                                <div class="mt-4 p-4 bg-slate-900 text-slate-50 rounded-xl border border-slate-800">
+                                                    <p class="text-sm font-semibold mb-1.5">AI-opmerking over deze taak</p>
+                                                    @if(!empty($aiTask['comment'] ?? null))
+                                                        <p class="text-sm mb-1">{{ $aiTask['comment'] }}</p>
+                                                    @endif
+                                                    @if(!empty($aiTask['image_feedback'] ?? null))
+                                                        <p class="text-xs text-slate-300">Over de foto&apos;s: {{ $aiTask['image_feedback'] }}</p>
+                                                    @endif
                                                 </div>
                                             @endif
                                             @if($submissionTask->digital_signature)
