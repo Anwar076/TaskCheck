@@ -72,6 +72,28 @@ Route::get('/integrations', function () {
 Route::get('/blog', function () {
     return view('blog');
 })->name('blog');
+Route::get('/blog/horeca-personeel-controleren-checklist-app', function () {
+    return view('blog.horeca-personeel-controleren-checklist-app');
+})->name('blog.horeca-personeel-controleren-checklist-app');
+Route::get('/blog/beste-checklist-app-voor-schoonmaakbedrijven', function () {
+    return view('blog.beste-checklist-app-voor-schoonmaakbedrijven');
+})->name('blog.beste-checklist-app-voor-schoonmaakbedrijven');
+Route::get('/blog/waarom-bedrijven-stoppen-met-excel-checklists', function () {
+    return view('blog.waarom-bedrijven-stoppen-met-excel-checklists');
+})->name('blog.waarom-bedrijven-stoppen-met-excel-checklists');
+
+Route::get('/horeca-checklist-app', function () {
+    return view('seo.horeca-checklist-app');
+})->name('seo.horeca-checklist-app');
+Route::get('/schoonmaak-checklist-app', function () {
+    return view('seo.schoonmaak-checklist-app');
+})->name('seo.schoonmaak-checklist-app');
+Route::get('/werkcontrole-app', function () {
+    return view('seo.werkcontrole-app');
+})->name('seo.werkcontrole-app');
+Route::get('/takenlijst-personeel', function () {
+    return view('seo.takenlijst-personeel');
+})->name('seo.takenlijst-personeel');
 
 Route::get('/careers', function () {
     return view('careers');

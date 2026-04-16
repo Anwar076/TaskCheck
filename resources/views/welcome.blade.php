@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle = 'TaskCheck - Slimme checklists en taakbeheer voor operationele teams';
-        $seoDescription = 'TaskCheck helpt teams met slimme checklists, bewijs per taak, realtime voortgang en AI-ondersteuning. Start 30 dagen gratis.';
+        $seoTitle = 'Checklist app voor bedrijven, horeca en schoonmaak | TaskCheck';
+        $seoDescription = 'TaskCheck is de checklist app voor bedrijven: takenlijst personeel beheren, werkcontrole uitvoeren en bewijs verzamelen met foto en video. Start 30 dagen gratis.';
         $seoUrl = route('welcome');
         $seoImage = asset('icons/icon-512x512.png');
     @endphp
@@ -25,6 +25,7 @@
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     <meta name="twitter:image" content="{{ $seoImage }}">
+    <meta name="twitter:image:alt" content="TaskCheck checklist app voor bedrijven">
 
     <script type="application/ld+json">
         {
@@ -40,6 +41,48 @@
                 "price": "29",
                 "priceCurrency": "EUR"
             }
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "Organization",
+            "name": "TaskCheck",
+            "url": "{{ $seoUrl }}",
+            "logo": "{{ asset('icons/icon-192x192.png') }}",
+            "sameAs": []
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@@type": "Question",
+                    "name": "Voor welke bedrijven is TaskCheck geschikt?",
+                    "acceptedAnswer": {
+                        "@@type": "Answer",
+                        "text": "TaskCheck is geschikt voor horeca, schoonmaakbedrijven en andere operationele teams die met checklists, takenlijsten en werkcontrole werken."
+                    }
+                },
+                {
+                    "@@type": "Question",
+                    "name": "Kan ik bewijs per taak vastleggen?",
+                    "acceptedAnswer": {
+                        "@@type": "Answer",
+                        "text": "Ja, per taak kun je bewijs verzamelen met foto, video, tekst of handtekening. Zo kun je uitvoering en kwaliteit aantoonbaar maken."
+                    }
+                },
+                {
+                    "@@type": "Question",
+                    "name": "Hoe start ik met TaskCheck?",
+                    "acceptedAnswer": {
+                        "@@type": "Answer",
+                        "text": "Je kunt starten met een proefperiode van 30 dagen. Daarna kies je een abonnement dat past bij je team en bedrijfsgrootte."
+                    }
+                }
+            ]
         }
     </script>
     <style>
@@ -173,13 +216,13 @@
                         Probeer gratis voor 1 maand
                     </div>
                     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.14] sm:leading-[1.1] lg:leading-[1.08] tracking-tight text-slate-900">
-                        Maak dagelijkse operatie
+                        Checklist app voor bedrijven
                         <span class="block mt-1 sm:mt-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-pink-600">
-                            zichtbaar en beheersbaar
+                            met taken, controle en bewijs
                         </span>
                     </h1>
                     <p class="mt-6 text-slate-700 text-lg max-w-xl">
-                        TaskCheck helpt teams dagelijks beter uitvoeren: duidelijke taken, verplicht bewijs, snelle review en AI-ondersteuning in een simpele workflow.
+                        Beheer taken, stuur personeel aan en verzamel bewijs per taak met foto of video. TaskCheck maakt werkcontrole eenvoudig voor horeca, schoonmaak en andere operationele teams.
                     </p>
                     <div class="mt-6 grid sm:grid-cols-2 gap-3 max-w-2xl text-sm text-slate-700">
                         <div class="group inline-flex items-center gap-3 rounded-xl border border-blue-100/90 bg-white/90 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
@@ -309,6 +352,34 @@
         </div>
     </section>
 
+    <section class="max-w-7xl mx-auto px-6 py-10 reveal">
+        <div class="grid md:grid-cols-3 gap-4">
+            <a href="{{ route('seo.horeca-checklist-app') }}" class="rounded-2xl border border-blue-100 bg-white/85 p-5 hover:bg-white transition">
+                <p class="text-xs font-semibold text-blue-700">Horeca</p>
+                <h3 class="mt-1 font-semibold text-slate-900">Restaurant checklist en keukencontrole</h3>
+                <p class="text-sm text-slate-600 mt-1">Standaardiseer opening, service en sluiting met duidelijk bewijs per taak.</p>
+            </a>
+            <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="rounded-2xl border border-emerald-100 bg-white/85 p-5 hover:bg-white transition">
+                <p class="text-xs font-semibold text-emerald-700">Schoonmaak</p>
+                <h3 class="mt-1 font-semibold text-slate-900">Controle per locatie en ronde</h3>
+                <p class="text-sm text-slate-600 mt-1">Werk met vaste lijsten, kwaliteitscontrole en rapportage richting opdrachtgevers.</p>
+            </a>
+            <a href="{{ route('seo.werkcontrole-app') }}" class="rounded-2xl border border-fuchsia-100 bg-white/85 p-5 hover:bg-white transition">
+                <p class="text-xs font-semibold text-fuchsia-700">Alle bedrijven</p>
+                <h3 class="mt-1 font-semibold text-slate-900">Werkcontrole app voor operationele teams</h3>
+                <p class="text-sm text-slate-600 mt-1">Krijg realtime zicht op uitvoering, afwijkingen en teamproductiviteit.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-6 pb-12 reveal">
+        <div class="rounded-2xl border border-blue-100 bg-white/90 p-6 sm:p-8">
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Checklist app voor bedrijven die operationeel willen groeien</h2>
+            <p class="mt-3 text-slate-600">TaskCheck helpt organisaties om takenlijsten voor personeel centraal te beheren en werkcontrole aantoonbaar te maken. Voor horeca teams betekent dit grip op opening, keukencontrole en sluitrondes. Voor schoonmaakbedrijven betekent dit consistente kwaliteitscontrole per locatie met bewijs per taak. Ook andere bedrijven met terugkerende operationele processen gebruiken TaskCheck om fouten te verminderen en productiviteit te verhogen.</p>
+            <p class="mt-3 text-slate-600">Met realtime dashboards zie je direct welke taken zijn afgerond, welke controles ontbreken en waar je moet bijsturen. Daardoor werk je niet langer op onderbuikgevoel, maar op actuele data. Bekijk ook de pagina’s <a href="{{ route('seo.horeca-checklist-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">horeca checklist app</a>, <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">schoonmaak checklist app</a>, <a href="{{ route('seo.werkcontrole-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">werkcontrole app</a> en <a href="{{ route('seo.takenlijst-personeel') }}" class="text-blue-700 font-semibold hover:text-blue-800">takenlijst personeel</a> voor sectorgerichte informatie.</p>
+        </div>
+    </section>
+
     <section class="max-w-7xl mx-auto px-6 py-16 reveal">
         <div class="text-center mb-12">
             <h2 class="text-3xl sm:text-4xl font-bold text-slate-900">Waarom TaskCheck werkt in de praktijk</h2>
@@ -338,6 +409,18 @@
             <div class="play-card rounded-2xl border border-cyan-100 bg-white/90 p-6 shadow-sm">
                 <h3 class="font-semibold text-slate-900">Betrouwbaar en schaalbaar</h3>
                 <p class="text-sm text-slate-600 mt-2">Gebouwd voor dagelijks gebruik in professionele operationele omgevingen.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-6 pb-12 reveal">
+        <div class="rounded-2xl border border-indigo-100 bg-white/90 p-6 sm:p-8">
+            <h2 class="text-2xl font-bold text-slate-900">Lees meer over checklist apps en werkcontrole</h2>
+            <p class="text-slate-600 mt-2">Praktische artikelen voor horeca, schoonmaak en teams die stoppen met Excel.</p>
+            <div class="mt-4 flex flex-wrap gap-3">
+                <a href="{{ route('blog') }}" class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Naar blog</a>
+                <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="inline-flex items-center px-4 py-2 rounded-xl border border-blue-200 text-slate-700 hover:bg-blue-50 transition">Schoonmaak artikel</a>
+                <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="inline-flex items-center px-4 py-2 rounded-xl border border-blue-200 text-slate-700 hover:bg-blue-50 transition">Stoppen met Excel</a>
             </div>
         </div>
     </section>

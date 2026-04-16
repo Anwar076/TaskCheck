@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle = 'Prijzen TaskCheck - Starter, Professional en Enterprise';
-        $seoDescription = 'Bekijk de TaskCheck prijzen: Starter, Professional en Enterprise. Veilige betaling via Mollie en 30 dagen gratis proefperiode.';
+        $seoTitle = 'Prijzen checklist app voor bedrijven en personeel | TaskCheck';
+        $seoDescription = 'Bekijk prijzen voor TaskCheck: checklist app voor bedrijven met takenlijst personeel, werkcontrole app functies en 30 dagen gratis proefperiode.';
         $seoUrl = route('pricing');
         $seoImage = asset('icons/icon-512x512.png');
     @endphp
@@ -25,6 +25,7 @@
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     <meta name="twitter:image" content="{{ $seoImage }}">
+    <meta name="twitter:image:alt" content="TaskCheck prijzen checklist app voor bedrijven">
 
     <script type="application/ld+json">
         {
@@ -57,6 +58,38 @@
                     "price": "149",
                     "priceCurrency": "EUR",
                     "url": "{{ $seoUrl }}"
+                }
+            ]
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@@type": "Question",
+                    "name": "Is TaskCheck geschikt voor horeca en schoonmaakbedrijven?",
+                    "acceptedAnswer": {
+                        "@@type": "Answer",
+                        "text": "Ja. TaskCheck wordt veel gebruikt als horeca checklist app en schoonmaak checklist app voor werkcontrole, takenlijsten en bewijs per taak."
+                    }
+                },
+                {
+                    "@@type": "Question",
+                    "name": "Kan ik eerst gratis starten?",
+                    "acceptedAnswer": {
+                        "@@type": "Answer",
+                        "text": "Ja, je kunt TaskCheck 30 dagen gratis proberen. Daarna kies je het abonnement dat past bij je team."
+                    }
+                },
+                {
+                    "@@type": "Question",
+                    "name": "Kan ik later upgraden of downgraden?",
+                    "acceptedAnswer": {
+                        "@@type": "Answer",
+                        "text": "Ja, je kunt je abonnement aanpassen vanuit de abonnementspagina in je dashboard."
+                    }
                 }
             ]
         }
@@ -179,6 +212,31 @@
             <div class="rounded-2xl border border-indigo-100 bg-white/85 p-5">
                 <h3 class="font-semibold text-slate-900">Flexibel op- en afschalen</h3>
                 <p class="text-sm text-slate-600 mt-1">Je kunt je plan later wijzigen vanuit je abonnementspagina. Zo groeit TaskCheck mee met je team.</p>
+            </div>
+        </div>
+        <div class="max-w-5xl mx-auto px-6 mt-4 grid md:grid-cols-2 gap-4">
+            <a href="{{ route('seo.horeca-checklist-app') }}" class="rounded-2xl border border-blue-100 bg-white/85 p-5 hover:bg-white transition">
+                <h3 class="font-semibold text-slate-900">Voor horeca teams</h3>
+                <p class="text-sm text-slate-600 mt-1">Lees hoe je restaurant checklists en keukencontrole structureert.</p>
+            </a>
+            <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="rounded-2xl border border-emerald-100 bg-white/85 p-5 hover:bg-white transition">
+                <h3 class="font-semibold text-slate-900">Voor schoonmaakbedrijven</h3>
+                <p class="text-sm text-slate-600 mt-1">Bekijk hoe je bewijs en kwaliteitscontrole per locatie inricht.</p>
+            </a>
+        </div>
+    </section>
+
+    <section class="pb-16">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="rounded-2xl border border-slate-200 bg-white/90 p-6 sm:p-8">
+                <h2 class="text-2xl font-bold text-slate-900">Welke checklist app prijs past bij jouw bedrijf?</h2>
+                <p class="mt-3 text-slate-600">Kies Starter als je een compact team hebt en vooral een duidelijke takenlijst personeel wilt. Professional is geschikt voor bedrijven die extra inzicht willen via analytics en meerdere admins. Enterprise is gemaakt voor grotere teams die schaalbare werkcontrole nodig hebben met meer accounts en ondersteuning.</p>
+                <p class="mt-3 text-slate-600">Alle plannen bevatten de kern van TaskCheck: taken beheren, personeel controleren en bewijs verzamelen met foto en video. Daardoor is elk plan direct inzetbaar als checklist app voor bedrijven, zowel in horeca als in schoonmaak en andere operationele sectoren.</p>
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <a href="{{ route('seo.horeca-checklist-app') }}" class="inline-flex items-center px-4 py-2 rounded-xl border border-blue-200 text-slate-700 hover:bg-blue-50 transition">Horeca checklist app</a>
+                    <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="inline-flex items-center px-4 py-2 rounded-xl border border-emerald-200 text-slate-700 hover:bg-emerald-50 transition">Schoonmaak checklist app</a>
+                    <a href="{{ route('blog') }}" class="inline-flex items-center px-4 py-2 rounded-xl border border-indigo-200 text-slate-700 hover:bg-indigo-50 transition">Lees blog</a>
+                </div>
             </div>
         </div>
     </section>

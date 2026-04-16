@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle = 'Contact TaskCheck - Demo, support en sales';
-        $seoDescription = 'Neem contact op met TaskCheck voor demo, support of sales. We reageren meestal binnen 1 werkdag.';
+        $seoTitle = 'Contact over checklist app voor bedrijven | TaskCheck';
+        $seoDescription = 'Contacteer TaskCheck over onze takenlijst personeel en werkcontrole app voor horeca, schoonmaak en andere bedrijven.';
         $seoUrl = route('contact');
         $seoImage = asset('icons/icon-512x512.png');
     @endphp
@@ -178,6 +178,8 @@
                     <div class="mt-2 space-y-1.5 text-sm">
                         <a href="{{ route('pricing') }}" class="block text-blue-600 hover:text-blue-700">Bekijk prijzen</a>
                         <a href="{{ route('login') }}" class="block text-blue-600 hover:text-blue-700">Start 30 dagen gratis</a>
+                        <a href="{{ route('seo.werkcontrole-app') }}" class="block text-blue-600 hover:text-blue-700">Werkcontrole app informatie</a>
+                        <a href="{{ route('blog') }}" class="block text-blue-600 hover:text-blue-700">Lees de blog</a>
                         <!-- <a href="{{ route('help') }}" class="block text-blue-600 hover:text-blue-700">Helpcentrum</a> -->
                     </div>
                 </div>

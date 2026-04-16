@@ -27,7 +27,9 @@
                 <div class="flex flex-col gap-2 text-sm">
                     <a href="{{ route('welcome') }}" class="text-slate-600 hover:text-blue-700 transition">Home</a>
                     <a href="{{ route('pricing') }}" class="text-slate-600 hover:text-blue-700 transition">Prijzen</a>
+                    <a href="{{ route('blog') }}" class="text-slate-600 hover:text-blue-700 transition">Blog</a>
                     <a href="{{ route('contact') }}" class="text-slate-600 hover:text-blue-700 transition">Contact</a>
+                    <a href="{{ route('seo.horeca-checklist-app') }}" class="text-slate-600 hover:text-blue-700 transition">Horeca checklist app</a>
                 </div>
             </div>
 

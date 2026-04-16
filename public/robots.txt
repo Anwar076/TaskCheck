@@ -2,5 +2,3 @@ User-agent: *
 Allow: /
 
 Sitemap: https://taskcheck.nl/sitemap.xml
-User-agent: *
-Disallow:
