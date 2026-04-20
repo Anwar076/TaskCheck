@@ -5,7 +5,7 @@
         $seoTitle = 'Horeca checklist app voor restaurants en keukens | TaskCheck';
         $seoDescription = 'Horeca checklist app voor restaurants: taken beheren, personeel controleren en bewijs verzamelen met foto en video. Start 30 dagen gratis.';
         $seoUrl = route('seo.horeca-checklist-app');
-        $seoImage = asset('icons/taskcheck-logo.png');
+        $seoImage = asset('icons/icon-512x512.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

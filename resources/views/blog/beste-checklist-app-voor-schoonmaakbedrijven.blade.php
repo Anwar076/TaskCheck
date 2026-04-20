@@ -5,7 +5,7 @@
         $seoTitle = 'Beste checklist app voor schoonmaakbedrijven | TaskCheck Blog';
         $seoDescription = 'Ontdek waar de beste checklist app voor schoonmaakbedrijven aan moet voldoen: werkcontrole, bewijs, planning en rapportage.';
         $seoUrl = route('blog.beste-checklist-app-voor-schoonmaakbedrijven');
-        $seoImage = asset('icons/taskcheck-logo.png');
+        $seoImage = asset('icons/icon-512x512.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

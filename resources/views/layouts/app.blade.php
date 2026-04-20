@@ -20,11 +20,12 @@
         <link rel="manifest" href="/manifest.json">
         <link rel="shortcut icon" href="{{ asset('icons/taskcheck-favicon.png') }}" type="image/png">
         <link rel="icon" type="image/png" href="{{ asset('icons/taskcheck-favicon.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/icon-32x32.png') }}">
 
         <!-- Apple Touch Icons -->
         <link rel="apple-touch-icon" href="{{ asset('icons/taskcheck-favicon.png') }}">
-        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('icons/taskcheck-favicon.png') }}">
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/taskcheck-favicon.png') }}">
+        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('icons/icon-152x152.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-192x192.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

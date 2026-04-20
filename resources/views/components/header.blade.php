@@ -6,6 +6,7 @@
                 <img
                     src="{{ asset('icons/taskcheck-logo.png') }}"
                     alt="TaskCheck logo"
+                    onerror="this.onerror=null;this.src='{{ asset('icons/icon-192x192.png') }}';"
                     class="h-9 sm:h-10 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
                 >
             </a>
