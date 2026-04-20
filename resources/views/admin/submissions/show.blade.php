@@ -764,6 +764,23 @@ function updateTaskUIAfterReject(taskId, rejectionReason) {
     reviewBlock.querySelector('.rejection-reason-text').textContent = rejectionReason;
 }
 
+async function parseJsonResponseOrThrow(response, fallbackMessage) {
+    const contentType = response.headers.get('content-type') || '';
+
+    if (!response.ok || !contentType.includes('application/json')) {
+        const bodyPreview = await response.text();
+        console.error('Unexpected response:', response.status, bodyPreview);
+        throw new Error(fallbackMessage);
+    }
+
+    const payload = await response.json();
+    if (!payload || payload.success !== true) {
+        throw new Error(payload?.message || fallbackMessage);
+    }
+
+    return payload;
+}
+
 // Auto handling of forms (AJAX + direct UI update)
 document.addEventListener('DOMContentLoaded', function() {
     // Approve
@@ -788,20 +805,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 }
             })
-            .then(response => {
-                if (response.ok || response.status === 302) {
-                    showNotification('Taak succesvol goedgekeurd!', 'success');
-                    updateTaskUIAfterApprove(taskId, managerComment);
-                } else {
-                    return response.text().then(text => {
-                        console.error('Error response:', text);
-                        throw new Error('Network response was not ok: ' + response.status);
-                    });
-                }
+            .then(response => parseJsonResponseOrThrow(response, 'Goedkeuren mislukt. Controleer je sessie en probeer opnieuw.'))
+            .then(() => {
+                showNotification('Taak succesvol goedgekeurd!', 'success');
+                updateTaskUIAfterApprove(taskId, managerComment);
             })
             .catch(error => {
                 console.error('Fetch error:', error);
-                showNotification('Fout bij goedkeuren. Probeer het opnieuw.', 'error');
+                showNotification(error.message || 'Fout bij goedkeuren. Probeer het opnieuw.', 'error');
                 submitBtn.innerHTML = `
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Taak goedkeuren
@@ -838,20 +849,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 }
             })
-            .then(response => {
-                if (response.ok || response.status === 302) {
-                    showNotification('Taak succesvol afgewezen. De medewerker wordt op de hoogte gesteld.', 'success');
-                    updateTaskUIAfterReject(taskId, rejectionReason);
-                } else {
-                    return response.text().then(text => {
-                        console.error('Reject error response:', text);
-                        throw new Error('Network response was not ok: ' + response.status);
-                    });
-                }
+            .then(response => parseJsonResponseOrThrow(response, 'Afwijzen mislukt. Controleer je sessie en probeer opnieuw.'))
+            .then(() => {
+                showNotification('Taak succesvol afgewezen. De medewerker wordt op de hoogte gesteld.', 'success');
+                updateTaskUIAfterReject(taskId, rejectionReason);
             })
             .catch(error => {
                 console.error('Reject fetch error:', error);
-                showNotification('Error rejecting task. Please try again.', 'error');
+                showNotification(error.message || 'Afwijzen mislukt. Probeer het opnieuw.', 'error');
                 submitBtn.innerHTML = `
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -884,24 +889,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 }
             })
-            .then(response => {
-                if (response.ok || response.status === 302) {
-                    showNotification('Opnieuw-verzoek verzonden. De medewerker kan de taak opnieuw doen.', 'success');
-                    // hier kun je eventueel ook UI updaten naar "Redo Requested"
-                    // Voor nu is het ok om pagina even te reloaden:
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 800);
-                } else {
-                    return response.text().then(text => {
-                        console.error('Redo error response:', text);
-                        throw new Error('Network response was not ok: ' + response.status);
-                    });
-                }
+            .then(response => parseJsonResponseOrThrow(response, 'Opnieuw-verzoek mislukt. Controleer je sessie en probeer opnieuw.'))
+            .then(() => {
+                showNotification('Opnieuw-verzoek verzonden. De medewerker kan de taak opnieuw doen.', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
             })
             .catch(error => {
                 console.error('Redo fetch error:', error);
-                showNotification('Fout bij opnieuw aanvragen. Probeer het opnieuw.', 'error');
+                showNotification(error.message || 'Fout bij opnieuw aanvragen. Probeer het opnieuw.', 'error');
                 submitBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Vraag medewerker om opnieuw`;
                 submitBtn.disabled = false;
             });
