@@ -5,7 +5,7 @@
         $seoTitle = 'Waarom bedrijven stoppen met Excel en overstappen op checklist apps | TaskCheck Blog';
         $seoDescription = 'Ontdek waarom Excel tekortschiet voor takenlijst personeel en waarom bedrijven kiezen voor een checklist app en werkcontrole app.';
         $seoUrl = route('blog.waarom-bedrijven-stoppen-met-excel-checklists');
-        $seoImage = asset('icons/icon-512x512.png');
+        $seoImage = asset('icons/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

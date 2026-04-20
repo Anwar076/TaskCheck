@@ -5,7 +5,7 @@
         $seoTitle = 'Functies TaskCheck - Taakbeheer, analytics en automatisering';
         $seoDescription = 'Ontdek alle TaskCheck functies voor operationele teams: taakbeheer, samenwerking, analytics en automatisering.';
         $seoUrl = route('features');
-        $seoImage = asset('icons/icon-512x512.png');
+        $seoImage = asset('icons/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

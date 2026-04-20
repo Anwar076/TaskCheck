@@ -5,7 +5,7 @@
         $seoTitle = 'Takenlijst personeel app voor bedrijven | TaskCheck';
         $seoDescription = 'Maak een duidelijke takenlijst personeel met bewijs, deadlines en controle. Ideaal voor horeca, schoonmaak en operationele teams.';
         $seoUrl = route('seo.takenlijst-personeel');
-        $seoImage = asset('icons/icon-512x512.png');
+        $seoImage = asset('icons/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

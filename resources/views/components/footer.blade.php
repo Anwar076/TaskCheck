@@ -10,8 +10,7 @@
                     <img
                         src="{{ asset('icons/taskcheck-logo.png') }}"
                         alt="TaskCheck logo"
-                        onerror="this.onerror=null;this.src='{{ asset('icons/icon-192x192.png') }}';"
-                        class="h-12 w-auto shrink-0"
+                        class="h-16 sm:h-20 w-auto shrink-0"
                     >
                 </a>
                 <p class="text-sm text-slate-600">

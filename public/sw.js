@@ -2,8 +2,8 @@
 const CACHE_NAME = 'taskcheck-v5.1.0';
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/icons/taskcheck-favicon.png',
+  '/icons/taskcheck-logo.png',
   '/offline.html',
 ];
 
@@ -144,8 +144,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: body,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-192x192.png',
+    icon: '/icons/taskcheck-favicon.png',
+    badge: '/icons/taskcheck-favicon.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),

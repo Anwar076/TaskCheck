@@ -5,7 +5,7 @@
         $seoTitle = 'Prijzen checklist app voor bedrijven en personeel | TaskCheck';
         $seoDescription = 'Bekijk prijzen voor TaskCheck: checklist app voor bedrijven met takenlijst personeel, werkcontrole app functies en 30 dagen gratis proefperiode.';
         $seoUrl = route('pricing');
-        $seoImage = asset('icons/icon-512x512.png');
+        $seoImage = asset('icons/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
