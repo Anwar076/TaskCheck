@@ -7,8 +7,10 @@ use App\Models\TaskList;
 use App\Models\ListAssignment;
 use App\Models\Submission;
 use App\Models\SubmissionTask;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class TaskListController extends Controller
 {
@@ -1212,10 +1214,24 @@ PROMPT,
             'rejection_reason' => 'required|string',
         ]);
 
-        $notification = $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
+        $notification = DB::transaction(function () use ($submissionTask, $validatedData) {
+            $created = $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
 
-        // Bij afwijzen gaat de hele inzending direct op 'rejected'
-        $submissionTask->submission->update(['status' => 'rejected']);
+            // Safety net: if model-level helper failed to return/create, create notification here as backup.
+            if (!$created) {
+                $created = Notification::createTaskRejected(
+                    $submissionTask->submission->user_id,
+                    $submissionTask->task->title,
+                    $validatedData['rejection_reason'],
+                    $submissionTask->submission_id
+                );
+            }
+
+            // Bij afwijzen gaat de hele inzending direct op 'rejected'
+            $submissionTask->submission->update(['status' => 'rejected']);
+
+            return $created;
+        });
 
         // Check if it's an AJAX request
         if ($request->ajax() || $request->expectsJson()) {
@@ -1237,7 +1253,20 @@ PROMPT,
             'redo_reason' => 'nullable|string',
         ]);
 
-        $notification = $submissionTask->requestRedo(auth()->id(), $validatedData['redo_reason']);
+        $notification = DB::transaction(function () use ($submissionTask, $validatedData) {
+            $created = $submissionTask->requestRedo(auth()->id(), $validatedData['redo_reason']);
+
+            if (!$created) {
+                $created = Notification::createRedoRequested(
+                    $submissionTask->submission->user_id,
+                    $submissionTask->task->title,
+                    $submissionTask->submission_id,
+                    $validatedData['redo_reason'] ?? null
+                );
+            }
+
+            return $created;
+        });
 
         // Check if it's an AJAX request
         if ($request->ajax() || $request->expectsJson()) {
