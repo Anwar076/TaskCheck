@@ -354,6 +354,23 @@ class SubscriptionController extends Controller
                 $lastException = $e;
                 $message = strtolower($e->getMessage());
 
+                $noSuitableMethods =
+                    str_contains($message, 'no suitable payment methods found')
+                    || str_contains($message, 'does not accept recurring payments');
+
+                if ($noSuitableMethods) {
+                    // Fallback to a one-time iDEAL checkout flow when recurring-first is not accepted
+                    // by the current Mollie profile/method setup.
+                    $oneTimePayload = $attemptPayload;
+                    unset($oneTimePayload['method'], $oneTimePayload['sequenceType'], $oneTimePayload['customerId']);
+
+                    try {
+                        return $this->mollieService->createFirstPayment($oneTimePayload);
+                    } catch (RuntimeException $oneTimeException) {
+                        $lastException = $oneTimeException;
+                    }
+                }
+
                 $customerModeMismatch =
                     str_contains($message, 'customer')
                     && (
