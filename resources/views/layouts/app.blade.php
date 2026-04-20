@@ -18,17 +18,17 @@
 
         <!-- PWA Manifest -->
         <link rel="manifest" href="/manifest.json">
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-        <link rel="icon" type="image/png" href="{{ asset('icons/icon-32x32.png') }}">
+        <link rel="shortcut icon" href="{{ asset('icons/icon-32x32.png') }}" type="image/png">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('icons/icon-16x16.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/icon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192x192.png') }}">
+        <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512x512.png') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('icons/taskcheck-favicon.svg') }}">
 
         <!-- Apple Touch Icons -->
-        <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
-        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
-
-        <!-- Favicon -->
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+        <link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
+        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('icons/icon-152x152.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-192x192.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

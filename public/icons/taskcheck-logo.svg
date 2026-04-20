@@ -1,0 +1,24 @@
+<svg width="640" height="160" viewBox="0 0 640 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badgeGradient" x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#1E3A8A" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(24 32)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="96" height="96" rx="24" fill="url(#badgeGradient)"/>
+    <rect x="23" y="24" width="50" height="48" rx="10" fill="white" fill-opacity="0.16"/>
+    <rect x="31" y="34" width="26" height="4" rx="2" fill="white" fill-opacity="0.85"/>
+    <rect x="31" y="43" width="18" height="4" rx="2" fill="white" fill-opacity="0.72"/>
+    <path d="M36 56.5L43.5 64L61 47" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(148 52)">
+    <text x="0" y="42" fill="#0F172A" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-0.6">TaskCheck</text>
+    <text x="3" y="68" fill="#64748B" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="16" font-weight="500" letter-spacing="0.2">Checklist &amp; kwaliteitscontrole voor teams</text>
+  </g>
+</svg>

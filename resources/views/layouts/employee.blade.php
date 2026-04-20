@@ -32,14 +32,11 @@
                         <!-- Clean Logo -->
                         <div class="flex-shrink-0 flex items-center">
                             <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3">
-                                <div class="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                    </svg>
+                                <img src="{{ asset('icons/taskcheck-favicon.svg') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
+                                <div class="leading-tight">
+                                    <p class="text-lg font-semibold text-gray-900">TaskCheck</p>
+                                    <p class="text-[11px] text-gray-500">Checklist &amp; kwaliteitscontrole</p>
                                 </div>
-                                <span class="text-lg font-semibold text-gray-900">
-                                    TaskCheck
-                                </span>
                             </a>
                         </div>
 
@@ -304,14 +301,11 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex items-center justify-center mb-2">
-                        <div class="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
+                        <img src="{{ asset('icons/taskcheck-favicon.svg') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg mr-3">
+                        <div class="text-left leading-tight">
+                            <p class="text-lg font-semibold text-gray-900">TaskCheck</p>
+                            <p class="text-[11px] text-gray-500">Checklist &amp; kwaliteitscontrole</p>
                         </div>
-                        <span class="text-lg font-semibold text-gray-900">
-                            TaskCheck
-                        </span>
                     </div>
                     <p class="text-sm text-gray-500">&copy; {{ date('Y') }} TaskCheck. All rights reserved.</p>
                 </div>

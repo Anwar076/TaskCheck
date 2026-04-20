@@ -1,5 +1,5 @@
 // ==== BASIS CONFIG ====
-const CACHE_NAME = 'taskcheck-v5.0.0';
+const CACHE_NAME = 'taskcheck-v5.1.0';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/icons/icon-192x192.png',

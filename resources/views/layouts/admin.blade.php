@@ -34,14 +34,10 @@
                 <!-- Clean Logo -->
                 <div class="flex items-center flex-shrink-0 px-6 mb-8">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
+                        <img src="{{ asset('icons/taskcheck-favicon.svg') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
                         <div>
                             <h1 class="text-xl font-bold text-slate-900">TaskCheck</h1>
-                            <p class="text-xs text-slate-500 font-medium">Beheer</p>
+                            <p class="text-xs text-slate-500 font-medium">Checklist &amp; kwaliteitscontrole</p>
                         </div>
                     </div>
                 </div>
@@ -257,14 +253,10 @@
                 <!-- Mobile Logo -->
                 <div class="flex items-center justify-between p-6 border-b border-slate-200/50">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
+                        <img src="{{ asset('icons/taskcheck-favicon.svg') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
                         <div>
                             <h1 class="text-lg font-bold text-gray-900">TaskCheck</h1>
-                            <p class="text-xs text-slate-500 font-medium">Beheer</p>
+                            <p class="text-xs text-slate-500 font-medium">Checklist &amp; kwaliteitscontrole</p>
                         </div>
                     </div>
                     <button type="button" aria-label="Menu sluiten" class="p-2.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors" id="close-mobile-menu">
