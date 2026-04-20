@@ -140,16 +140,34 @@ self.addEventListener('sync', (event) => {
 // ==== PUSH NOTIFICATIONS ====
 self.addEventListener('push', (event) => {
   console.log('[SW] Push received');
-  const body = event.data ? event.data.text() : 'New notification from TaskCheck';
+  let payload = {
+    title: 'TaskCheck',
+    body: 'New notification from TaskCheck',
+    url: '/employee/notifications',
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      payload = {
+        title: parsed.title || payload.title,
+        body: parsed.body || payload.body,
+        url: parsed.url || payload.url,
+      };
+    } catch (error) {
+      payload.body = event.data.text();
+    }
+  }
 
   const options = {
-    body: body,
+    body: payload.body,
     icon: '/logos/taskcheck-favicon.png',
     badge: '/logos/taskcheck-favicon.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
       primaryKey: 1,
+      url: payload.url,
     },
     actions: [
       {
@@ -164,19 +182,21 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('TaskCheck', options)
+    self.registration.showNotification(payload.title, options)
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
+  const targetUrl = event.notification?.data?.url || '/';
+
   if (event.action === 'explore') {
-    event.waitUntil(clients.openWindow('/admin/dashboard'));
+    event.waitUntil(clients.openWindow(targetUrl));
   } else if (event.action === 'close') {
     // niets
   } else {
-    event.waitUntil(clients.openWindow('/'));
+    event.waitUntil(clients.openWindow(targetUrl));
   }
 });
 

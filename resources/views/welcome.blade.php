@@ -626,21 +626,6 @@
                 animateNumber(document.getElementById('live-hours'), 0, 2847, 2200);
             }, 1000);
 
-            // Mobile menu functionality
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mobileMenu = document.getElementById('mobileMenu');
-
-            mobileMenuBtn.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
-            });
-
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-                    mobileMenu.classList.add('hidden');
-                }
-            });
-
             // Scroll reveal
             const revealEls = document.querySelectorAll('.reveal');
             const observer = new IntersectionObserver((entries) => {

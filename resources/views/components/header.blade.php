@@ -1,12 +1,12 @@
 <!-- Navbar -->
 <nav id="siteHeader" class="fixed top-0 w-full z-50 border-b border-white/40 bg-white/70 backdrop-blur-xl transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
-        <div class="flex justify-between items-center h-16">
+        <div class="flex justify-between items-center h-20 sm:h-24">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 <img
-                    src="{{ asset('logos/taskcheck-logo.png') }}"
+                    src="{{ asset('logos/taskcheck-logo.svg') }}"
                     alt="TaskCheck logo"
-                    class="h-12 sm:h-14 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
+                    class="h-16 sm:h-20 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
                 >
             </a>
 

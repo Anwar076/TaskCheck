@@ -35,97 +35,100 @@
 
     <!-- PWA Service Worker Registration -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                        console.log('SW registered: ', registration);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New content is available, force update
-                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                    window.location.reload();
-                                }
-                            });
-                        });
-                    })
-                    .catch((registrationError) => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-        }
-
-        // PWA Install Prompt
         let deferredPrompt;
-        const installButton = document.getElementById('install-button');
-        const installButtonMobile = document.getElementById('install-button-mobile');
 
-        // Function to show install instructions
         function showInstallInstructions() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const isAndroid = /Android/.test(navigator.userAgent);
+            const isInAppBrowser = /(FBAN|FBAV|Instagram|Line|Twitter|wv)/i.test(navigator.userAgent);
 
             let instructions = '';
-            
-            if (isIOS) {
-                instructions = 'To install as a REAL APP (not just a link):\n\n1. Make sure you\'re in Safari browser\n2. Tap the Share button (📤) at the bottom\n3. Scroll down and tap "Add to Home Screen"\n4. Tap "Add" to confirm\n\n✅ This creates a real app without browser bars!\n❌ If you see "Make a fast link" - you\'re not in Safari!';
+
+            if (isInAppBrowser) {
+                instructions = 'Open TaskCheck eerst in Chrome of Safari. In-app browsers maken vaak alleen een snelkoppeling.';
+            } else if (isIOS) {
+                instructions = 'Open in Safari → Share (📤) → Zet op beginscherm. Dan krijg je de echte web-app modus.';
             } else if (isAndroid) {
-                instructions = 'To install as a REAL APP (not just a link):\n\n1. Make sure you\'re in Chrome browser\n2. Tap the menu (⋮) in the top right\n3. Look for "Install App" or "Add to Home Screen"\n4. Tap "Install" to confirm\n\n✅ This creates a real app without browser bars!\n❌ If you see "Make a fast link" - try Chrome browser!';
+                instructions = 'Open in Chrome → menu (⋮) → App installeren. Dan krijg je de echte web-app in plaats van een losse snelkoppeling.';
             } else {
-                instructions = 'To install: Click the install button in your browser\'s address bar, or use the browser menu';
+                instructions = 'Gebruik de install-optie van je browser (adresbalk of menu).';
             }
 
-            alert(`📱 Install TaskCheck App\n\n${instructions}\n\nOr look for the install option in your browser menu.`);
+            alert(`TaskCheck installeren\n\n${instructions}`);
         }
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (installButton) {
-                installButton.style.display = 'block';
-            }
-            if (installButtonMobile) {
-                installButtonMobile.style.display = 'block';
-            }
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+            const installButton = document.getElementById('install-button');
+            const installButtonMobile = document.getElementById('install-button-mobile');
 
-        function handleInstall() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    console.log(`User response to the install prompt: ${choiceResult.outcome}`);
-                    deferredPrompt = null;
-                    if (installButton) {
-                        installButton.style.display = 'none';
-                    }
-                    if (installButtonMobile) {
-                        installButtonMobile.style.display = 'none';
-                    }
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then((registration) => {
+                            registration.addEventListener('updatefound', () => {
+                                const newWorker = registration.installing;
+                                if (!newWorker) {
+                                    return;
+                                }
+
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                });
+                            });
+                        })
+                        .catch((registrationError) => {
+                            console.log('SW registration failed: ', registrationError);
+                        });
                 });
-            } else {
-                showInstallInstructions();
             }
-        }
 
-        if (installButton) {
-            installButton.addEventListener('click', handleInstall);
-        }
-        if (installButtonMobile) {
-            installButtonMobile.addEventListener('click', handleInstall);
-        }
+            const handleInstall = () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(() => {
+                        deferredPrompt = null;
+                        if (installButton) {
+                            installButton.style.display = 'none';
+                        }
+                        if (installButtonMobile) {
+                            installButtonMobile.style.display = 'none';
+                        }
+                    });
+                } else {
+                    showInstallInstructions();
+                }
+            };
 
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA was installed');
+            window.addEventListener('beforeinstallprompt', (event) => {
+                event.preventDefault();
+                deferredPrompt = event;
+
+                if (installButton) {
+                    installButton.style.display = 'block';
+                }
+                if (installButtonMobile) {
+                    installButtonMobile.style.display = 'block';
+                }
+            });
+
             if (installButton) {
-                installButton.style.display = 'none';
+                installButton.addEventListener('click', handleInstall);
             }
             if (installButtonMobile) {
-                installButtonMobile.style.display = 'none';
+                installButtonMobile.addEventListener('click', handleInstall);
             }
+
+            window.addEventListener('appinstalled', () => {
+                if (installButton) {
+                    installButton.style.display = 'none';
+                }
+                if (installButtonMobile) {
+                    installButtonMobile.style.display = 'none';
+                }
+            });
         });
     </script>
     </head>

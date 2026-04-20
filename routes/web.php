@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Services\Ai\SubmissionReviewService;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
+use App\Http\Controllers\Employee\NotificationController as EmployeeNotificationController;
 use App\Http\Controllers\Employee\SubmissionController;
 use App\Http\Controllers\Employee\SettingsController as EmployeeSettingsController;
 use App\Http\Controllers\SubscriptionController;
@@ -194,11 +195,12 @@ Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('emp
     Route::post('/submissions/{submission}/tasks/{task}', [SubmissionController::class, 'completeTask'])->name('submissions.tasks.complete');
     
     // Notification routes
-    Route::get('/notifications', [App\Http\Controllers\Employee\NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/mark-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
-    Route::post('/notifications/mark-all-read', [App\Http\Controllers\Employee\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::post('/notifications/task-overdue', [App\Http\Controllers\Employee\NotificationController::class, 'createTaskOverdue'])->name('notifications.task-overdue');
-    Route::delete('/notifications/{notification}', [App\Http\Controllers\Employee\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications', [EmployeeNotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-read', [EmployeeNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [EmployeeNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/task-overdue', [EmployeeNotificationController::class, 'createTaskOverdue'])->name('notifications.task-overdue');
+    Route::delete('/notifications/{notification}', [EmployeeNotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications/realtime-feed', [EmployeeNotificationController::class, 'realtimeFeed'])->name('notifications.realtime-feed');
 
     // Instellingen
     Route::get('/settings', [EmployeeSettingsController::class, 'edit'])->name('settings.edit');

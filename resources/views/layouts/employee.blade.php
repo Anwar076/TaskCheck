@@ -21,6 +21,10 @@
     <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TaskCheck">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('logos/taskcheck-favicon.png') }}">
 </head>
 <body class="font-sans antialiased bg-gray-50 min-h-screen">
     <div class="flex flex-col min-h-screen">
@@ -74,7 +78,7 @@
                                     $unreadCountNav = auth()->user()->unreadNotifications()->count();
                                 @endphp
                                 @if($unreadCountNav > 0)
-                                    <span class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-red-500 rounded-full">
+                                    <span data-unread-count-badge class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-red-500 rounded-full">
                                         {{ $unreadCountNav > 9 ? '9+' : $unreadCountNav }}
                                     </span>
                                 @endif
@@ -97,7 +101,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                                 </svg>
                                 @if($unreadCount > 0)
-                                    <span class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-red-500 rounded-full">
+                                    <span data-unread-count-badge class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-red-500 rounded-full">
                                         {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                                     </span>
                                 @endif
@@ -233,7 +237,7 @@
                             $unreadCount = auth()->user()->unreadNotifications()->count();
                         @endphp
                         @if($unreadCount > 0)
-                            <span class="inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-red-500 rounded-full">
+                            <span data-unread-count-badge class="inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-red-500 rounded-full">
                                 {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                             </span>
                         @endif
@@ -315,8 +319,114 @@
 
     <!-- Clean JavaScript -->
     <script>
+        const realtimeFeedUrl = @json(route('employee.notifications.realtime-feed'));
+        const realtimeStorageKey = 'taskcheck:last_notification_id';
+
+        function updateUnreadBadges(count) {
+            const badges = document.querySelectorAll('[data-unread-count-badge]');
+            badges.forEach((badge) => {
+                if (!count || count <= 0) {
+                    badge.style.display = 'none';
+                    return;
+                }
+
+                badge.style.display = 'inline-flex';
+                badge.textContent = count > 9 ? '9+' : String(count);
+            });
+        }
+
+        async function registerServiceWorkerIfNeeded() {
+            if (!('serviceWorker' in navigator)) {
+                return null;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                return registration;
+            } catch (error) {
+                console.warn('Service worker registration failed', error);
+                return null;
+            }
+        }
+
+        async function showRealtimeNotification(notification) {
+            if (!('Notification' in window)) {
+                return;
+            }
+
+            if (Notification.permission !== 'granted') {
+                return;
+            }
+
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification(notification.title || 'Nieuwe melding', {
+                body: notification.message || 'Je hebt een nieuwe melding in TaskCheck.',
+                icon: '/logos/taskcheck-favicon.png',
+                badge: '/logos/taskcheck-favicon.png',
+                tag: `taskcheck-notification-${notification.id}`,
+                data: {
+                    url: '/employee/notifications',
+                },
+            });
+        }
+
+        async function startRealtimeNotificationPolling() {
+            let lastNotificationId = Number(localStorage.getItem(realtimeStorageKey) || 0);
+            let firstPoll = true;
+
+            const poll = async () => {
+                try {
+                    const response = await fetch(`${realtimeFeedUrl}?after_id=${lastNotificationId}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const payload = await response.json();
+                    if (!payload || payload.success !== true) {
+                        return;
+                    }
+
+                    updateUnreadBadges(payload.unread_count || 0);
+
+                    const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
+                    if (!firstPoll) {
+                        for (const notification of notifications) {
+                            await showRealtimeNotification(notification);
+                        }
+                    }
+
+                    if (typeof payload.after_id === 'number' && payload.after_id > lastNotificationId) {
+                        lastNotificationId = payload.after_id;
+                        localStorage.setItem(realtimeStorageKey, String(lastNotificationId));
+                    }
+                } catch (error) {
+                    console.warn('Realtime notification polling failed', error);
+                } finally {
+                    firstPoll = false;
+                }
+            };
+
+            await poll();
+            setInterval(poll, 15000);
+        }
+
         // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
+            registerServiceWorkerIfNeeded();
+
+            if ('Notification' in window && Notification.permission === 'default') {
+                document.addEventListener('click', () => {
+                    Notification.requestPermission().catch(() => {});
+                }, { once: true });
+            }
+
+            startRealtimeNotificationPolling();
+
             const mobileMenuButton = document.querySelector('.mobile-menu-button');
             const mobileMenu = document.querySelector('.mobile-menu');
             

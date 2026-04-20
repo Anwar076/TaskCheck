@@ -8,9 +8,9 @@
             <div class="rounded-2xl border border-blue-100 bg-white/90 p-6 shadow-sm">
                 <a href="{{ route('welcome') }}" class="flex items-center gap-3 mb-4">
                     <img
-                        src="{{ asset('logos/taskcheck-logo.png') }}"
+                        src="{{ asset('logos/taskcheck-logo.svg') }}"
                         alt="TaskCheck logo"
-                        class="h-16 sm:h-20 w-auto shrink-0"
+                        class="h-24 sm:h-28 w-auto shrink-0"
                     >
                 </a>
                 <p class="text-sm text-slate-600">

@@ -96,4 +96,38 @@ class NotificationController extends Controller
             'notification' => $notification
         ]);
     }
+
+    public function realtimeFeed(Request $request)
+    {
+        $user = auth()->user();
+        $afterId = (int) $request->query('after_id', 0);
+
+        $newNotifications = $user->notifications()
+            ->when($afterId > 0, function ($query) use ($afterId) {
+                $query->where('id', '>', $afterId);
+            })
+            ->orderByDesc('id')
+            ->take(10)
+            ->get(['id', 'title', 'message', 'type', 'read_at', 'created_at'])
+            ->reverse()
+            ->values();
+
+        $latestNotificationId = (int) ($newNotifications->max('id') ?? $afterId);
+
+        return response()->json([
+            'success' => true,
+            'after_id' => $latestNotificationId,
+            'unread_count' => $user->unreadNotifications()->count(),
+            'notifications' => $newNotifications->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'type' => $notification->type,
+                    'read_at' => $notification->read_at?->toIso8601String(),
+                    'created_at' => $notification->created_at?->toIso8601String(),
+                ];
+            }),
+        ]);
+    }
 }
