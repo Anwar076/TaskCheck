@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pagina Niet Gevonden - TaskCheck</title>
-    <link rel="icon" type="image/png" href="{{ asset('icons/taskcheck-favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

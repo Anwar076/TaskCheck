@@ -4,7 +4,7 @@
         <div class="flex justify-between items-center h-16">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 <img
-                    src="{{ asset('icons/taskcheck-logo.png') }}"
+                    src="{{ asset('logos/taskcheck-logo.png') }}"
                     alt="TaskCheck logo"
                     class="h-12 sm:h-14 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
                 >

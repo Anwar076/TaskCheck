@@ -5,7 +5,7 @@
         $seoTitle = 'Hoe horeca personeel beter te controleren met een checklist app | TaskCheck Blog';
         $seoDescription = 'Praktische gids voor horeca ondernemers: personeel controleren, takenlijsten beheren en werkcontrole borgen met een checklist app.';
         $seoUrl = route('blog.horeca-personeel-controleren-checklist-app');
-        $seoImage = asset('icons/taskcheck-logo.png');
+        $seoImage = asset('logos/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

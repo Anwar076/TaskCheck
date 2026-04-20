@@ -18,13 +18,13 @@
 
         <!-- PWA Manifest -->
         <link rel="manifest" href="/manifest.json">
-        <link rel="shortcut icon" href="{{ asset('icons/taskcheck-favicon.png') }}" type="image/png">
-        <link rel="icon" type="image/png" href="{{ asset('icons/taskcheck-favicon.png') }}">
+        <link rel="shortcut icon" href="{{ asset('logos/taskcheck-favicon.png') }}" type="image/png">
+        <link rel="icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
 
         <!-- Apple Touch Icons -->
-        <link rel="apple-touch-icon" href="{{ asset('icons/taskcheck-favicon.png') }}">
-        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('icons/taskcheck-favicon.png') }}">
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/taskcheck-favicon.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('logos/taskcheck-favicon.png') }}">
+        <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('logos/taskcheck-favicon.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logos/taskcheck-favicon.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

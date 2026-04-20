@@ -12,13 +12,13 @@
 
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
-<link rel="shortcut icon" href="/icons/taskcheck-favicon.png" type="image/png">
-<link rel="icon" type="image/png" href="/icons/taskcheck-favicon.png">
+<link rel="shortcut icon" href="/logos/taskcheck-favicon.png" type="image/png">
+<link rel="icon" type="image/png" href="/logos/taskcheck-favicon.png">
 
 <!-- Apple Touch Icons -->
-<link rel="apple-touch-icon" href="/icons/taskcheck-favicon.png">
-<link rel="apple-touch-icon" sizes="152x152" href="/icons/taskcheck-favicon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/taskcheck-favicon.png">
+<link rel="apple-touch-icon" href="/logos/taskcheck-favicon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/logos/taskcheck-favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/logos/taskcheck-favicon.png">
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">

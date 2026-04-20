@@ -5,7 +5,7 @@
         $seoTitle = 'Werkcontrole app voor teams en locaties | TaskCheck';
         $seoDescription = 'Werkcontrole app voor bedrijven: realtime taken, controle op uitvoering en bewijs per taak. Geschikt voor horeca, schoonmaak en meer.';
         $seoUrl = route('seo.werkcontrole-app');
-        $seoImage = asset('icons/taskcheck-logo.png');
+        $seoImage = asset('logos/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

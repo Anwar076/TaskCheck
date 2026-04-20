@@ -14,25 +14,25 @@
   "categories": ["productivity", "business", "utilities"],
   "icons": [
     {
-      "src": "/icons/taskcheck-favicon.png",
+      "src": "/logos/taskcheck-favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/taskcheck-logo.png",
+      "src": "/logos/taskcheck-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/taskcheck-favicon.png",
+      "src": "/logos/taskcheck-favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/taskcheck-logo.png",
+      "src": "/logos/taskcheck-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

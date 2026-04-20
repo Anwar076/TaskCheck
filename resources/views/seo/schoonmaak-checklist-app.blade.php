@@ -5,7 +5,7 @@
         $seoTitle = 'Schoonmaak checklist app voor kwaliteitscontrole | TaskCheck';
         $seoDescription = 'Schoonmaak checklist app voor bedrijven: werkcontrole per locatie, takenlijst personeel en bewijs met foto/video. Plan een proefperiode.';
         $seoUrl = route('seo.schoonmaak-checklist-app');
-        $seoImage = asset('icons/taskcheck-logo.png');
+        $seoImage = asset('logos/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

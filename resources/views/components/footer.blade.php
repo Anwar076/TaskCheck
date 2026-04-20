@@ -8,7 +8,7 @@
             <div class="rounded-2xl border border-blue-100 bg-white/90 p-6 shadow-sm">
                 <a href="{{ route('welcome') }}" class="flex items-center gap-3 mb-4">
                     <img
-                        src="{{ asset('icons/taskcheck-logo.png') }}"
+                        src="{{ asset('logos/taskcheck-logo.png') }}"
                         alt="TaskCheck logo"
                         class="h-16 sm:h-20 w-auto shrink-0"
                     >

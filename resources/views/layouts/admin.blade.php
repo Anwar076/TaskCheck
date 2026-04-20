@@ -34,7 +34,7 @@
                 <!-- Clean Logo -->
                 <div class="flex items-center flex-shrink-0 px-6 mb-8">
                     <div class="flex items-center space-x-3">
-                        <img src="{{ asset('icons/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
+                        <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
                         <div>
                             <h1 class="text-xl font-bold text-slate-900">TaskCheck</h1>
                             <p class="text-xs text-slate-500 font-medium">Checklist &amp; kwaliteitscontrole</p>
@@ -253,7 +253,7 @@
                 <!-- Mobile Logo -->
                 <div class="flex items-center justify-between p-6 border-b border-slate-200/50">
                     <div class="flex items-center space-x-3">
-                        <img src="{{ asset('icons/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
+                        <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
                         <div>
                             <h1 class="text-lg font-bold text-gray-900">TaskCheck</h1>
                             <p class="text-xs text-slate-500 font-medium">Checklist &amp; kwaliteitscontrole</p>
