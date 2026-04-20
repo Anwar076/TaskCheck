@@ -394,6 +394,8 @@
             const poll = async () => {
                 try {
                     const response = await fetch(`${realtimeFeedUrl}?after_id=${lastNotificationId}`, {
+                        cache: 'no-store',
+                        credentials: 'same-origin',
                         headers: {
                             'Accept': 'application/json',
                         },

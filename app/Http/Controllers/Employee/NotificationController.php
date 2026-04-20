@@ -136,6 +136,10 @@ class NotificationController extends Controller
                     'created_at' => $notification->created_at?->toIso8601String(),
                 ];
             }),
+        ], 200, [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 }
