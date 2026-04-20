@@ -320,8 +320,23 @@
 
     <!-- Clean JavaScript -->
     <script>
-        const realtimeFeedUrl = @json(route('employee.notifications.realtime-feed'));
+        const realtimeFeedUrl = @json(route('employee.notifications.realtime-feed', [], false));
         const realtimeStorageKey = `taskcheck:last_notification_id:user:${@json((string) auth()->id())}`;
+        const vapidKeyUrl = @json(route('push.vapid-public-key', [], false));
+        const pushSubscribeUrl = @json(route('push.subscribe', [], false));
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+
+            return outputArray;
+        }
 
         function updateUnreadBadges(count) {
             const badges = document.querySelectorAll('[data-unread-count-badge]');
@@ -347,6 +362,52 @@
             } catch (error) {
                 console.warn('Service worker registration failed', error);
                 return null;
+            }
+        }
+
+        async function subscribeForBackgroundPush() {
+            try {
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    return;
+                }
+
+                const registration = await navigator.serviceWorker.ready;
+                const keyResponse = await fetch(`${vapidKeyUrl}?_ts=${Date.now()}`, {
+                    cache: 'no-store',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' },
+                });
+
+                if (!keyResponse.ok) {
+                    return;
+                }
+
+                const keyPayload = await keyResponse.json();
+                const vapidPublicKey = keyPayload?.publicKey;
+                if (!vapidPublicKey) {
+                    return;
+                }
+
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+                    });
+                }
+
+                await fetch(pushSubscribeUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify(subscription.toJSON()),
+                });
+            } catch (error) {
+                console.warn('Push subscription failed', error);
             }
         }
 
@@ -393,11 +454,12 @@
 
             const poll = async () => {
                 try {
-                    const response = await fetch(`${realtimeFeedUrl}?after_id=${lastNotificationId}`, {
+                    const response = await fetch(`${realtimeFeedUrl}?after_id=${lastNotificationId}&_ts=${Date.now()}`, {
                         cache: 'no-store',
-                        credentials: 'same-origin',
+                        credentials: 'include',
                         headers: {
                             'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
                         },
                     });
 
@@ -446,8 +508,16 @@
 
             if ('Notification' in window && Notification.permission === 'default') {
                 document.addEventListener('click', () => {
-                    Notification.requestPermission().catch(() => {});
+                    Notification.requestPermission()
+                        .then((permission) => {
+                            if (permission === 'granted') {
+                                subscribeForBackgroundPush();
+                            }
+                        })
+                        .catch(() => {});
                 }, { once: true });
+            } else if ('Notification' in window && Notification.permission === 'granted') {
+                subscribeForBackgroundPush();
             }
 
             startRealtimeNotificationPolling();

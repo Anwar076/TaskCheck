@@ -2,12 +2,27 @@
 
 namespace App\Models;
 
+use App\Services\Notifications\WebPushService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Notification extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::created(function (Notification $notification) {
+            try {
+                app(WebPushService::class)->sendForNotification($notification);
+            } catch (\Throwable $e) {
+                \Log::warning('Unable to send web push', [
+                    'notification_id' => $notification->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        });
+    }
 
     protected $fillable = [
         'user_id',

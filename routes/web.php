@@ -12,6 +12,7 @@ use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardContro
 use App\Http\Controllers\Employee\NotificationController as EmployeeNotificationController;
 use App\Http\Controllers\Employee\SubmissionController;
 use App\Http\Controllers\Employee\SettingsController as EmployeeSettingsController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -209,6 +210,10 @@ Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('emp
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/push/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey'])->name('push.vapid-public-key');
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

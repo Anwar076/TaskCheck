@@ -103,6 +103,11 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function unreadNotifications()
     {
         return $this->hasMany(Notification::class)->whereNull('read_at');
