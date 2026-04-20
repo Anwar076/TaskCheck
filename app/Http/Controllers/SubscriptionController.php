@@ -108,7 +108,12 @@ class SubscriptionController extends Controller
         }
 
         $plan = Company::PLANS[$request->plan];
-        $amountValue = number_format((float) $plan['price_monthly'], 2, '.', '');
+        $billingEmail = (string) Auth::user()->email;
+        $isStarterTestOverride = $this->shouldUseStarterTestOverride($billingEmail, (string) $request->plan);
+        $amountValue = $isStarterTestOverride
+            ? '1.00'
+            : number_format((float) $plan['price_monthly'], 2, '.', '');
+        $subscriptionInterval = $isStarterTestOverride ? '1 day' : '1 month';
 
         try {
             $webhookUrl = $this->resolveWebhookUrl();
@@ -129,9 +134,11 @@ class SubscriptionController extends Controller
                                 'value' => $amountValue,
                             ],
                             'description' => "TaskCheck {$plan['name']} abonnement",
+                            'interval' => $subscriptionInterval,
                             'metadata' => [
                                 'company_id' => $company->id,
                                 'plan' => $request->plan,
+                                'interval' => $subscriptionInterval,
                             ],
                         ]
                     );
@@ -148,7 +155,7 @@ class SubscriptionController extends Controller
             if (!$company->mollie_customer_id) {
                 $customer = $this->mollieService->createCustomer(
                     $company->name,
-                    Auth::user()->email
+                    $billingEmail
                 );
 
                 $company->update([
@@ -170,14 +177,14 @@ class SubscriptionController extends Controller
                 'metadata' => [
                     'company_id' => $company->id,
                     'plan' => $request->plan,
-                    'interval' => '1 month',
+                    'interval' => $subscriptionInterval,
                 ],
             ];
 
             $payment = $this->createFirstPaymentWithFallback(
                 $company,
                 $paymentPayload,
-                (string) Auth::user()->email
+                $billingEmail
             );
 
             $checkoutUrl = data_get($payment, '_links.checkout.href');
@@ -403,14 +410,19 @@ class SubscriptionController extends Controller
                 $subscription = $this->mollieService->createSubscription($company->mollie_customer_id, [
                     'amount' => [
                         'currency' => 'EUR',
-                        'value' => number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', ''),
+                        'value' => (string) data_get(
+                            $payment,
+                            'amount.value',
+                            number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', '')
+                        ),
                     ],
-                    'interval' => '1 month',
+                    'interval' => (string) data_get($payment, 'metadata.interval', '1 month'),
                     'description' => "TaskCheck {$plan} abonnement",
                     'webhookUrl' => $this->resolveWebhookUrl(),
                     'metadata' => [
                         'company_id' => $company->id,
                         'plan' => $plan,
+                        'interval' => (string) data_get($payment, 'metadata.interval', '1 month'),
                     ],
                 ]);
 
@@ -504,6 +516,11 @@ class SubscriptionController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    private function shouldUseStarterTestOverride(string $email, string $plan): bool
+    {
+        return strtolower(trim($email)) === 'anwar@brancom.nl' && $plan === 'starter';
     }
 }
 
