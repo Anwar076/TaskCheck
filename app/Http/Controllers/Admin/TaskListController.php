@@ -1212,7 +1212,7 @@ PROMPT,
             'rejection_reason' => 'required|string',
         ]);
 
-        $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
+        $notification = $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
 
         // Bij afwijzen gaat de hele inzending direct op 'rejected'
         $submissionTask->submission->update(['status' => 'rejected']);
@@ -1222,6 +1222,8 @@ PROMPT,
             return response()->json([
                 'success' => true,
                 'message' => 'Taak afgewezen. De medewerker is op de hoogte gebracht.',
+                'notification_id' => $notification->id ?? null,
+                'notification_user_id' => $notification->user_id ?? null,
             ]);
         }
 
@@ -1235,13 +1237,15 @@ PROMPT,
             'redo_reason' => 'nullable|string',
         ]);
 
-        $submissionTask->requestRedo(auth()->id(), $validatedData['redo_reason']);
+        $notification = $submissionTask->requestRedo(auth()->id(), $validatedData['redo_reason']);
 
         // Check if it's an AJAX request
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Opnieuw doen aangevraagd. De medewerker kan deze taak opnieuw uitvoeren en is op de hoogte gebracht.',
+                'notification_id' => $notification->id ?? null,
+                'notification_user_id' => $notification->user_id ?? null,
             ]);
         }
 

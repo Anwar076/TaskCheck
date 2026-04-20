@@ -850,8 +850,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(response => parseJsonResponseOrThrow(response, 'Afwijzen mislukt. Controleer je sessie en probeer opnieuw.'))
-            .then(() => {
-                showNotification('Taak succesvol afgewezen. De medewerker wordt op de hoogte gesteld.', 'success');
+            .then((payload) => {
+                showNotification(`Taak afgewezen. Notificatie #${payload.notification_id ?? '-'} voor user ${payload.notification_user_id ?? '-'}.`, 'success');
                 updateTaskUIAfterReject(taskId, rejectionReason);
             })
             .catch(error => {
@@ -890,8 +890,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(response => parseJsonResponseOrThrow(response, 'Opnieuw-verzoek mislukt. Controleer je sessie en probeer opnieuw.'))
-            .then(() => {
-                showNotification('Opnieuw-verzoek verzonden. De medewerker kan de taak opnieuw doen.', 'success');
+            .then((payload) => {
+                showNotification(`Opnieuw-verzoek verzonden. Notificatie #${payload.notification_id ?? '-'} voor user ${payload.notification_user_id ?? '-'}.`, 'success');
                 setTimeout(() => {
                     window.location.reload();
                 }, 800);

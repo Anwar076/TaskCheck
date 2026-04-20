@@ -100,7 +100,7 @@ class SubmissionTask extends Model
         ]);
 
         // Create notification for the employee
-        Notification::createTaskRejected(
+        return Notification::createTaskRejected(
             $this->submission->user_id,
             $this->task->title,
             $reason,
@@ -119,7 +119,7 @@ class SubmissionTask extends Model
         ]);
 
         // Create notification for the employee
-        Notification::createRedoRequested(
+        return Notification::createRedoRequested(
             $this->submission->user_id,
             $this->task->title,
             $this->submission_id,
