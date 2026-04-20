@@ -113,7 +113,7 @@ class SubscriptionController extends Controller
         $amountValue = $isStarterTestOverride
             ? '1.00'
             : number_format((float) $plan['price_monthly'], 2, '.', '');
-        $subscriptionInterval = $isStarterTestOverride ? '1 day' : '1 month';
+        $subscriptionInterval = $this->resolveSubscriptionInterval($billingEmail, (string) $request->plan);
 
         try {
             $webhookUrl = $this->resolveWebhookUrl();
@@ -424,24 +424,14 @@ class SubscriptionController extends Controller
 
         if ($company->mollie_customer_id && !$company->mollie_subscription_id) {
             try {
-                $subscription = $this->mollieService->createSubscription($company->mollie_customer_id, [
-                    'amount' => [
-                        'currency' => 'EUR',
-                        'value' => (string) data_get(
-                            $payment,
-                            'amount.value',
-                            number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', '')
-                        ),
-                    ],
-                    'interval' => (string) data_get($payment, 'metadata.interval', '1 month'),
-                    'description' => "TaskCheck {$plan} abonnement",
-                    'webhookUrl' => $this->resolveWebhookUrl(),
-                    'metadata' => [
-                        'company_id' => $company->id,
-                        'plan' => $plan,
-                        'interval' => (string) data_get($payment, 'metadata.interval', '1 month'),
-                    ],
-                ]);
+                $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
+                $fallbackAmount = $this->shouldUseStarterTestOverride($billingEmail, $plan)
+                    ? '1.00'
+                    : number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', '');
+                $amountValue = (string) data_get($payment, 'amount.value', $fallbackAmount);
+                $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval($billingEmail, $plan));
+
+                $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
 
                 $updateData['mollie_subscription_id'] = $subscription['id'] ?? null;
             } catch (\Throwable $e) {
@@ -479,6 +469,7 @@ class SubscriptionController extends Controller
     private function syncPendingPaymentStatus(Company $company): void
     {
         if ($company->hasActiveSubscription()) {
+            $this->ensureRecurringSubscriptionExists($company);
             return;
         }
 
@@ -538,6 +529,58 @@ class SubscriptionController extends Controller
     private function shouldUseStarterTestOverride(string $email, string $plan): bool
     {
         return strtolower(trim($email)) === 'anwar@brancom.nl' && $plan === 'starter';
+    }
+
+    private function resolveSubscriptionInterval(string $email, string $plan): string
+    {
+        return $this->shouldUseStarterTestOverride($email, $plan) ? '1 day' : '1 month';
+    }
+
+    private function createRecurringSubscription(Company $company, string $plan, string $amountValue, string $interval): array
+    {
+        return $this->mollieService->createSubscription((string) $company->mollie_customer_id, [
+            'amount' => [
+                'currency' => 'EUR',
+                'value' => $amountValue,
+            ],
+            'interval' => $interval,
+            'description' => "TaskCheck {$plan} abonnement",
+            'webhookUrl' => $this->resolveWebhookUrl(),
+            'metadata' => [
+                'company_id' => $company->id,
+                'plan' => $plan,
+                'interval' => $interval,
+            ],
+        ]);
+    }
+
+    private function ensureRecurringSubscriptionExists(Company $company): void
+    {
+        if (!$company->hasActiveSubscription() || $company->mollie_subscription_id || !$company->mollie_customer_id) {
+            return;
+        }
+
+        $plan = (string) $company->subscription_plan;
+        if (!isset(Company::PLANS[$plan])) {
+            return;
+        }
+
+        try {
+            $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
+            $amountValue = $this->shouldUseStarterTestOverride($billingEmail, $plan)
+                ? '1.00'
+                : number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', '');
+            $interval = $this->resolveSubscriptionInterval($billingEmail, $plan);
+
+            $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
+            $subscriptionId = trim((string) ($subscription['id'] ?? ''));
+
+            if ($subscriptionId !== '') {
+                $company->update(['mollie_subscription_id' => $subscriptionId]);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }
 
