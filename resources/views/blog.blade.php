@@ -5,7 +5,7 @@
         $seoTitle = 'Blog TaskCheck - Checklist app tips voor horeca, schoonmaak en teams';
         $seoDescription = 'Lees praktische artikelen over takenlijst personeel, werkcontrole app workflows en checklist app voor bedrijven in horeca en schoonmaak.';
         $seoUrl = route('blog');
-        $seoImage = asset('icons/icon-512x512.png');
+        $seoImage = asset('icons/taskcheck-logo.png');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

@@ -32,7 +32,7 @@
                         <!-- Clean Logo -->
                         <div class="flex-shrink-0 flex items-center">
                             <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3">
-                                <img src="{{ asset('icons/taskcheck-favicon.svg') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
+                                <img src="{{ asset('icons/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
                                 <div class="leading-tight">
                                     <p class="text-lg font-semibold text-gray-900">TaskCheck</p>
                                     <p class="text-[11px] text-gray-500">Checklist &amp; kwaliteitscontrole</p>
@@ -301,7 +301,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex items-center justify-center mb-2">
-                        <img src="{{ asset('icons/taskcheck-favicon.svg') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg mr-3">
+                        <img src="{{ asset('icons/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg mr-3">
                         <div class="text-left leading-tight">
                             <p class="text-lg font-semibold text-gray-900">TaskCheck</p>
                             <p class="text-[11px] text-gray-500">Checklist &amp; kwaliteitscontrole</p>

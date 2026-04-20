@@ -8,14 +8,10 @@
             <div class="rounded-2xl border border-blue-100 bg-white/90 p-6 shadow-sm">
                 <a href="{{ route('welcome') }}" class="flex items-center gap-3 mb-4">
                     <img
-                        src="{{ asset('icons/taskcheck-favicon.svg') }}"
+                        src="{{ asset('icons/taskcheck-logo.png') }}"
                         alt="TaskCheck logo"
-                        class="h-10 w-10 shrink-0"
+                        class="h-12 w-auto shrink-0"
                     >
-                    <div class="leading-tight">
-                        <p class="text-xl font-extrabold text-slate-900">TaskCheck</p>
-                        <p class="text-xs text-slate-600">Checklist &amp; kwaliteitscontrole voor teams</p>
-                    </div>
                 </a>
                 <p class="text-sm text-slate-600">
                     Minder ruis, meer grip: geef teams duidelijke taken en managers realtime overzicht.

@@ -4,14 +4,10 @@
         <div class="flex justify-between items-center h-16">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 <img
-                    src="{{ asset('icons/taskcheck-favicon.svg') }}"
+                    src="{{ asset('icons/taskcheck-logo.png') }}"
                     alt="TaskCheck logo"
-                    class="h-9 w-9 sm:h-10 sm:w-10 shrink-0 transition-transform group-hover:scale-[1.03]"
+                    class="h-9 sm:h-10 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
                 >
-                <div class="leading-tight">
-                    <p class="text-lg sm:text-xl font-extrabold text-slate-900">TaskCheck</p>
-                    <p class="text-[11px] sm:text-xs text-slate-600">Checklist &amp; kwaliteitscontrole voor teams</p>
-                </div>
             </a>
 
             <!-- Desktop Navigation -->
