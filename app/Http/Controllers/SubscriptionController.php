@@ -184,7 +184,8 @@ class SubscriptionController extends Controller
             $payment = $this->createFirstPaymentWithFallback(
                 $company,
                 $paymentPayload,
-                $billingEmail
+                $billingEmail,
+                $isStarterTestOverride
             );
 
             $checkoutUrl = data_get($payment, '_links.checkout.href');
@@ -339,7 +340,12 @@ class SubscriptionController extends Controller
         return $defaultWebhook;
     }
 
-    private function createFirstPaymentWithFallback(Company $company, array $paymentPayload, string $billingEmail): array
+    private function createFirstPaymentWithFallback(
+        Company $company,
+        array $paymentPayload,
+        string $billingEmail,
+        bool $requireRecurring = false
+    ): array
     {
         $payloadWithoutMethod = $paymentPayload;
         unset($payloadWithoutMethod['method']);
@@ -359,6 +365,12 @@ class SubscriptionController extends Controller
                     || str_contains($message, 'does not accept recurring payments');
 
                 if ($noSuitableMethods) {
+                    if ($requireRecurring) {
+                        throw new RuntimeException(
+                            'Recurring betaling kon niet worden gestart. Activeer in Mollie een recurring-geschikte methode (zoals SEPA Incasso) voor dit live-profiel.'
+                        );
+                    }
+
                     // Fallback to a one-time iDEAL checkout flow when recurring-first is not accepted
                     // by the current Mollie profile/method setup.
                     $oneTimePayload = $attemptPayload;
