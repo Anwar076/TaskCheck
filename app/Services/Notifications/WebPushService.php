@@ -52,7 +52,7 @@ class WebPushService
                     'endpoint' => $subscription->endpoint,
                     'publicKey' => $subscription->public_key,
                     'authToken' => $subscription->auth_token,
-                    'contentEncoding' => $subscription->content_encoding ?: 'aesgcm',
+                    'contentEncoding' => $subscription->content_encoding ?: 'aes128gcm',
                 ]),
                 $payload
             );

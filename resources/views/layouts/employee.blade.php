@@ -404,7 +404,12 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                     },
-                    body: JSON.stringify(subscription.toJSON()),
+                    body: JSON.stringify({
+                        ...subscription.toJSON(),
+                        contentEncoding: (window.PushManager && Array.isArray(window.PushManager.supportedContentEncodings) && window.PushManager.supportedContentEncodings[0])
+                            ? window.PushManager.supportedContentEncodings[0]
+                            : 'aes128gcm',
+                    }),
                 });
             } catch (error) {
                 console.warn('Push subscription failed', error);

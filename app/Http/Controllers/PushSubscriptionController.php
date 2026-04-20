@@ -32,7 +32,7 @@ class PushSubscriptionController extends Controller
             [
                 'public_key' => $validated['keys']['p256dh'],
                 'auth_token' => $validated['keys']['auth'],
-                'content_encoding' => $validated['contentEncoding'] ?? 'aesgcm',
+                'content_encoding' => $validated['contentEncoding'] ?? 'aes128gcm',
                 'user_agent' => (string) $request->userAgent(),
                 'last_seen_at' => now(),
             ]
