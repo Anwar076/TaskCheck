@@ -57,6 +57,7 @@ class SubscriptionController extends Controller
 
         $nextBillingDate = null;
         $daysUntilNextBilling = null;
+        $pendingPlanDetails = null;
 
         if ($company->hasActiveSubscription() && $company->mollie_customer_id && $company->mollie_subscription_id) {
             try {
@@ -75,11 +76,16 @@ class SubscriptionController extends Controller
             }
         }
 
+        if ($company->pending_subscription_plan && isset(Company::PLANS[$company->pending_subscription_plan])) {
+            $pendingPlanDetails = Company::PLANS[$company->pending_subscription_plan];
+        }
+
         return view('subscription.show', [
             'company' => $company,
             'planDetails' => $company->getPlanDetails(),
             'nextBillingDate' => $nextBillingDate,
             'daysUntilNextBilling' => $daysUntilNextBilling,
+            'pendingPlanDetails' => $pendingPlanDetails,
         ]);
     }
 
@@ -107,6 +113,38 @@ class SubscriptionController extends Controller
         try {
             $webhookUrl = $this->resolveWebhookUrl();
 
+            if ($company->hasActiveSubscription()) {
+                if ($company->subscription_plan === $request->plan && !$company->pending_subscription_plan) {
+                    return redirect()->route('subscription.show')
+                        ->with('success', 'Dit is al je huidige abonnement.');
+                }
+
+                if ($company->mollie_customer_id && $company->mollie_subscription_id) {
+                    $this->mollieService->updateSubscription(
+                        (string) $company->mollie_customer_id,
+                        (string) $company->mollie_subscription_id,
+                        [
+                            'amount' => [
+                                'currency' => 'EUR',
+                                'value' => $amountValue,
+                            ],
+                            'description' => "TaskCheck {$plan['name']} abonnement",
+                            'metadata' => [
+                                'company_id' => $company->id,
+                                'plan' => $request->plan,
+                            ],
+                        ]
+                    );
+
+                    $company->update([
+                        'pending_subscription_plan' => $request->plan,
+                    ]);
+
+                    return redirect()->route('subscription.show')
+                        ->with('success', 'Planwijziging ingepland. Je nieuwe plan gaat in bij de volgende facturatie.');
+                }
+            }
+
             if (!$company->mollie_customer_id) {
                 $customer = $this->mollieService->createCustomer(
                     $company->name,
@@ -127,8 +165,8 @@ class SubscriptionController extends Controller
                 'method' => 'ideal',
                 'redirectUrl' => route('subscription.payment-return'),
                 'webhookUrl' => $webhookUrl,
-                // 'sequenceType' => 'first',
-                // 'customerId' => $company->mollie_customer_id,
+                'sequenceType' => 'first',
+                'customerId' => $company->mollie_customer_id,
                 'metadata' => [
                     'company_id' => $company->id,
                     'plan' => $request->plan,

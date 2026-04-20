@@ -118,6 +118,20 @@
                         </div>
                     @endif
 
+                    @if($company && $company->hasActiveSubscription() && $company->pending_subscription_plan)
+                        <div class="mb-8 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-start gap-4">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8M8 12h8m-8 5h5"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-indigo-900">Planwijziging ingepland</h3>
+                                <p class="text-indigo-700 text-sm mt-1">Je nieuwe plan ({{ ucfirst($company->pending_subscription_plan) }}) gaat in bij de volgende facturatie. Tot die tijd blijft je huidige plan actief.</p>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Plan kaarten --}}
                     <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
                         @foreach($plans as $planKey => $plan)
@@ -159,9 +173,11 @@
                                         @csrf
                                         <input type="hidden" name="plan" value="{{ $planKey }}">
                                         <button type="submit"
-                                                class="w-full py-3.5 px-4 rounded-xl font-semibold transition-all shadow-sm {{ $currentPlan === $planKey ? 'bg-slate-100 text-slate-500 cursor-default' : ($planKey === 'professional' ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200' : 'bg-slate-800 hover:bg-slate-900 text-white') }}">
-                                            @if($currentPlan === $planKey)
+                                                class="w-full py-3.5 px-4 rounded-xl font-semibold transition-all shadow-sm {{ $currentPlan === $planKey && !$company?->pending_subscription_plan ? 'bg-slate-100 text-slate-500 cursor-default' : ($planKey === 'professional' ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200' : 'bg-slate-800 hover:bg-slate-900 text-white') }}">
+                                            @if($currentPlan === $planKey && !$company?->pending_subscription_plan)
                                                 Huidig plan
+                                            @elseif($company?->pending_subscription_plan === $planKey)
+                                                Ingepland voor volgende maand
                                             @else
                                                 Kies {{ $plan['name'] }}
                                             @endif

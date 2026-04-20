@@ -92,6 +92,20 @@
                                     @if($company->subscription_ends_at)
                                         <p class="text-slate-600"><span class="font-medium">Verlengt op:</span> {{ $company->subscription_ends_at->format('d M Y') }}</p>
                                     @endif
+                                    @if(!empty($pendingPlanDetails))
+                                        <div class="rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-3">
+                                            <p class="text-sm font-semibold text-indigo-900">Volgende planwijziging</p>
+                                            <p class="text-sm text-indigo-700 mt-1">
+                                                Je plan wijzigt naar <strong>{{ $pendingPlanDetails['name'] }}</strong>
+                                                @if(isset($nextBillingDate) && !is_null($nextBillingDate))
+                                                    op {{ $nextBillingDate->format('d M Y') }}.
+                                                @else
+                                                    bij de volgende facturatie.
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-indigo-700/80 mt-1">Je huidige plan blijft actief tot die datum. Er wordt nu niets dubbel afgerekend.</p>
+                                        </div>
+                                    @endif
                                 </div>
                             @else
                                 <div class="space-y-3">

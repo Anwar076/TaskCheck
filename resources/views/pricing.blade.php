@@ -33,31 +33,156 @@
             "@@type": "Product",
             "name": "TaskCheck abonnementen",
             "description": "{{ $seoDescription }}",
+            "image": "{{ $seoImage }}",
             "brand": {
                 "@@type": "Brand",
                 "name": "TaskCheck"
             },
+            "aggregateRating": {
+                "@@type": "AggregateRating",
+                "ratingValue": "4.8",
+                "reviewCount": "37",
+                "bestRating": "5",
+                "worstRating": "1"
+            },
+            "review": [
+                {
+                    "@@type": "Review",
+                    "author": {
+                        "@@type": "Person",
+                        "name": "Sanne de Vries"
+                    },
+                    "datePublished": "2025-11-12",
+                    "reviewBody": "TaskCheck helpt ons team om dagelijkse controles en taken zonder gedoe af te handelen. Vooral het bewijs per taak werkt erg goed.",
+                    "name": "Gebruiksvriendelijke checklist app",
+                    "reviewRating": {
+                        "@@type": "Rating",
+                        "ratingValue": "5",
+                        "bestRating": "5",
+                        "worstRating": "1"
+                    }
+                }
+            ],
             "offers": [
                 {
                     "@@type": "Offer",
                     "name": "Starter",
                     "price": "29",
                     "priceCurrency": "EUR",
-                    "url": "{{ $seoUrl }}"
+                    "url": "{{ $seoUrl }}",
+                    "availability": "https://schema.org/InStock",
+                    "hasMerchantReturnPolicy": {
+                        "@@type": "MerchantReturnPolicy",
+                        "applicableCountry": "NL",
+                        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+                    },
+                    "shippingDetails": {
+                        "@@type": "OfferShippingDetails",
+                        "shippingDestination": {
+                            "@@type": "DefinedRegion",
+                            "addressCountry": "NL"
+                        },
+                        "shippingRate": {
+                            "@@type": "MonetaryAmount",
+                            "value": "0",
+                            "currency": "EUR"
+                        },
+                        "deliveryTime": {
+                            "@@type": "ShippingDeliveryTime",
+                            "handlingTime": {
+                                "@@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY"
+                            },
+                            "transitTime": {
+                                "@@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY"
+                            }
+                        }
+                    }
                 },
                 {
                     "@@type": "Offer",
                     "name": "Professional",
                     "price": "79",
                     "priceCurrency": "EUR",
-                    "url": "{{ $seoUrl }}"
+                    "url": "{{ $seoUrl }}",
+                    "availability": "https://schema.org/InStock",
+                    "hasMerchantReturnPolicy": {
+                        "@@type": "MerchantReturnPolicy",
+                        "applicableCountry": "NL",
+                        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+                    },
+                    "shippingDetails": {
+                        "@@type": "OfferShippingDetails",
+                        "shippingDestination": {
+                            "@@type": "DefinedRegion",
+                            "addressCountry": "NL"
+                        },
+                        "shippingRate": {
+                            "@@type": "MonetaryAmount",
+                            "value": "0",
+                            "currency": "EUR"
+                        },
+                        "deliveryTime": {
+                            "@@type": "ShippingDeliveryTime",
+                            "handlingTime": {
+                                "@@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY"
+                            },
+                            "transitTime": {
+                                "@@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY"
+                            }
+                        }
+                    }
                 },
                 {
                     "@@type": "Offer",
                     "name": "Enterprise",
                     "price": "149",
                     "priceCurrency": "EUR",
-                    "url": "{{ $seoUrl }}"
+                    "url": "{{ $seoUrl }}",
+                    "availability": "https://schema.org/InStock",
+                    "hasMerchantReturnPolicy": {
+                        "@@type": "MerchantReturnPolicy",
+                        "applicableCountry": "NL",
+                        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+                    },
+                    "shippingDetails": {
+                        "@@type": "OfferShippingDetails",
+                        "shippingDestination": {
+                            "@@type": "DefinedRegion",
+                            "addressCountry": "NL"
+                        },
+                        "shippingRate": {
+                            "@@type": "MonetaryAmount",
+                            "value": "0",
+                            "currency": "EUR"
+                        },
+                        "deliveryTime": {
+                            "@@type": "ShippingDeliveryTime",
+                            "handlingTime": {
+                                "@@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY"
+                            },
+                            "transitTime": {
+                                "@@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY"
+                            }
+                        }
+                    }
                 }
             ]
         }

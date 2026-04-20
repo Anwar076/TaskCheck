@@ -50,6 +50,11 @@ class MollieService
         return $this->request('post', "/customers/{$customerId}/subscriptions", $payload);
     }
 
+    public function updateSubscription(string $customerId, string $subscriptionId, array $payload): array
+    {
+        return $this->request('patch', "/customers/{$customerId}/subscriptions/{$subscriptionId}", $payload);
+    }
+
     public function getSubscription(string $customerId, string $subscriptionId): array
     {
         $customerId = trim($customerId);
