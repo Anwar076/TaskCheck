@@ -176,7 +176,7 @@
                                                 class="w-full py-3.5 px-4 rounded-xl font-semibold transition-all shadow-sm {{ $currentPlan === $planKey && !$company?->pending_subscription_plan ? 'bg-slate-100 text-slate-500 cursor-default' : ($planKey === 'professional' ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200' : 'bg-slate-800 hover:bg-slate-900 text-white') }}">
                                             @if($currentPlan === $planKey && !$company?->pending_subscription_plan)
                                                 Huidig plan
-                                            @elseif($company?->pending_subscription_plan === $planKey)
+                                            @elseif($company?->hasActiveSubscription() && $company?->pending_subscription_plan === $planKey)
                                                 Ingepland voor volgende maand
                                             @else
                                                 Kies {{ $plan['name'] }}
