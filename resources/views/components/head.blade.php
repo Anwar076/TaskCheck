@@ -12,8 +12,9 @@
 
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
-<link rel="shortcut icon" href="/logos/taskcheck-favicon.png" type="image/png">
-<link rel="icon" type="image/png" href="/logos/taskcheck-favicon.png">
+<link rel="shortcut icon" href="/logos/taskcheck-favicon.svg" type="image/svg+xml">
+<link rel="icon" type="image/svg+xml" href="/logos/taskcheck-favicon.svg">
+<link rel="alternate icon" type="image/png" href="/logos/taskcheck-favicon.png">
 
 <!-- Apple Touch Icons -->
 <link rel="apple-touch-icon" href="/logos/taskcheck-favicon.png">

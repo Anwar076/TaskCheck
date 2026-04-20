@@ -23,7 +23,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TaskCheck">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('logos/taskcheck-favicon.svg') }}">
+    <link rel="alternate icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logos/taskcheck-favicon.png') }}">
 </head>
 <body class="font-sans antialiased bg-gray-50 min-h-screen">
@@ -320,7 +321,7 @@
     <!-- Clean JavaScript -->
     <script>
         const realtimeFeedUrl = @json(route('employee.notifications.realtime-feed'));
-        const realtimeStorageKey = 'taskcheck:last_notification_id';
+        const realtimeStorageKey = `taskcheck:last_notification_id:user:${@json((string) auth()->id())}`;
 
         function updateUnreadBadges(count) {
             const badges = document.querySelectorAll('[data-unread-count-badge]');
@@ -350,6 +351,8 @@
         }
 
         async function showRealtimeNotification(notification) {
+            showInAppRealtimeToast(notification);
+
             if (!('Notification' in window)) {
                 return;
             }
@@ -370,9 +373,23 @@
             });
         }
 
+        function showInAppRealtimeToast(notification) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 z-[9999] max-w-sm rounded-xl border border-blue-200 bg-white px-4 py-3 shadow-xl';
+            toast.innerHTML = `
+                <p class="text-sm font-semibold text-slate-900">${notification.title || 'Nieuwe melding'}</p>
+                <p class="mt-1 text-xs text-slate-600">${notification.message || 'Je hebt een nieuwe melding in TaskCheck.'}</p>
+            `;
+
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
         async function startRealtimeNotificationPolling() {
             let lastNotificationId = Number(localStorage.getItem(realtimeStorageKey) || 0);
-            let firstPoll = true;
+            let hasExistingCursor = Number.isFinite(lastNotificationId) && lastNotificationId > 0;
 
             const poll = async () => {
                 try {
@@ -394,25 +411,31 @@
                     updateUnreadBadges(payload.unread_count || 0);
 
                     const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
-                    if (!firstPoll) {
-                        for (const notification of notifications) {
-                            await showRealtimeNotification(notification);
-                        }
+                    if (!hasExistingCursor && typeof payload.latest_user_notification_id === 'number') {
+                        // First run on this account: start from current latest notification
+                        // so historical notifications are not replayed as "new".
+                        lastNotificationId = payload.latest_user_notification_id;
+                        localStorage.setItem(realtimeStorageKey, String(lastNotificationId));
+                        hasExistingCursor = true;
+                        return;
+                    }
+
+                    for (const notification of notifications) {
+                        await showRealtimeNotification(notification);
                     }
 
                     if (typeof payload.after_id === 'number' && payload.after_id > lastNotificationId) {
                         lastNotificationId = payload.after_id;
                         localStorage.setItem(realtimeStorageKey, String(lastNotificationId));
+                        hasExistingCursor = true;
                     }
                 } catch (error) {
                     console.warn('Realtime notification polling failed', error);
-                } finally {
-                    firstPoll = false;
                 }
             };
 
             await poll();
-            setInterval(poll, 15000);
+            setInterval(poll, 8000);
         }
 
         // Mobile menu toggle

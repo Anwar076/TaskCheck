@@ -101,6 +101,13 @@ class NotificationController extends Controller
     {
         $user = auth()->user();
         $afterId = (int) $request->query('after_id', 0);
+        $latestUserNotificationId = (int) ($user->notifications()->max('id') ?? 0);
+
+        // If client-side state is stale or from another account/device context,
+        // reset the cursor so new notifications can be delivered again.
+        if ($afterId > $latestUserNotificationId) {
+            $afterId = 0;
+        }
 
         $newNotifications = $user->notifications()
             ->when($afterId > 0, function ($query) use ($afterId) {
@@ -117,6 +124,7 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'after_id' => $latestNotificationId,
+            'latest_user_notification_id' => $latestUserNotificationId,
             'unread_count' => $user->unreadNotifications()->count(),
             'notifications' => $newNotifications->map(function ($notification) {
                 return [
