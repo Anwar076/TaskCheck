@@ -177,7 +177,7 @@
                     <h3 class="font-semibold text-slate-900">Snelle links</h3>
                     <div class="mt-2 space-y-1.5 text-sm">
                         <a href="{{ route('pricing') }}" class="block text-blue-600 hover:text-blue-700">Bekijk prijzen</a>
-                        <a href="{{ route('login') }}" class="block text-blue-600 hover:text-blue-700">Start 30 dagen gratis</a>
+                        <a href="{{ route('login') }}" class="block text-blue-600 hover:text-blue-700">Start 14 dagen gratis</a>
                         <a href="{{ route('seo.werkcontrole-app') }}" class="block text-blue-600 hover:text-blue-700">Werkcontrole app informatie</a>
                         <a href="{{ route('blog') }}" class="block text-blue-600 hover:text-blue-700">Lees de blog</a>
                         <!-- <a href="{{ route('help') }}" class="block text-blue-600 hover:text-blue-700">Helpcentrum</a> -->

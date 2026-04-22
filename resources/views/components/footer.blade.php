@@ -31,9 +31,9 @@
 
             <div class="rounded-2xl border border-emerald-100 bg-white/90 p-6 shadow-sm">
                 <h3 class="font-semibold text-slate-900 mb-3">Start vandaag</h3>
-                <p class="text-sm text-slate-600 mb-4">Probeer TaskCheck 30 dagen gratis en bekijk direct wat het voor je team oplevert.</p>
+                <p class="text-sm text-slate-600 mb-4">Probeer TaskCheck 14 dagen gratis en bekijk direct wat het voor je team oplevert.</p>
                 <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-4 py-2.5 transition">
-                    Probeer 30 dagen gratis
+                    Probeer 14 dagen gratis
                 </a>
             </div>
         </div>

@@ -3,7 +3,7 @@
 <head>
     @php
         $seoTitle = 'Checklist app voor bedrijven, horeca en schoonmaak | TaskCheck';
-        $seoDescription = 'TaskCheck is de checklist app voor bedrijven: takenlijst personeel beheren, werkcontrole uitvoeren en bewijs verzamelen met foto en video. Start 30 dagen gratis.';
+        $seoDescription = 'TaskCheck is de checklist app voor bedrijven: takenlijst personeel beheren, werkcontrole uitvoeren en bewijs verzamelen met foto en video. Start 14 dagen gratis.';
         $seoUrl = route('welcome');
         $seoImage = asset('logos/taskcheck-logo.png');
     @endphp
@@ -79,7 +79,7 @@
                     "name": "Hoe start ik met TaskCheck?",
                     "acceptedAnswer": {
                         "@@type": "Answer",
-                        "text": "Je kunt starten met een proefperiode van 30 dagen. Daarna kies je een abonnement dat past bij je team en bedrijfsgrootte."
+                        "text": "Je kunt starten met een proefperiode van 14 dagen. Daarna kies je een abonnement dat past bij je team en bedrijfsgrootte."
                     }
                 }
             ]
@@ -213,7 +213,7 @@
                     </div>
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-xs text-emerald-700 mb-5 ml-2">
                         <span class="text-emerald-600">🎉</span>
-                        Probeer gratis voor 1 maand
+                        Probeer gratis voor 14 dagen
                     </div>
                     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.14] sm:leading-[1.1] lg:leading-[1.08] tracking-tight text-slate-900">
                         Checklist app voor bedrijven
@@ -250,7 +250,7 @@
                             </a>
                         @else
                             <a href="{{ route('login') }}" class="cta-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">
-                                Probeer 1 maand gratis
+                                Probeer 14 dagen gratis
                             </a>
                         @endauth
                         <a href="{{ route('pricing') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-slate-700 font-semibold transition">
@@ -555,7 +555,7 @@
 
         <div class="mt-8 text-center">
             <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-slate-700 font-semibold transition">
-                Probeer 30 dagen gratis
+                Probeer 14 dagen gratis
             </a>
         </div>
     </section>
@@ -571,7 +571,7 @@
                     @auth
                         <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">Open dashboard</a>
                     @else
-                        <a href="{{ route('login') }}" class="cta-btn inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">Probeer 1 maand gratis</a>
+                        <a href="{{ route('login') }}" class="cta-btn inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition">Probeer 14 dagen gratis</a>
                     @endauth
                     <a href="mailto:admin@taskcheck.com" class="inline-flex items-center px-6 py-3 rounded-xl border border-indigo-200 bg-white text-slate-700 font-semibold hover:bg-indigo-50 transition">Contact sales</a>
                 </div>

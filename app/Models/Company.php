@@ -126,12 +126,12 @@ class Company extends Model
         return max(0, now()->diffInDays($this->trial_ends_at, false));
     }
 
-    // Start trial period (30 days)
+    // Start trial period (14 days)
     public function startTrial(): void
     {
         $this->update([
             'subscription_status' => 'trial',
-            'trial_ends_at' => now()->addDays(30),
+            'trial_ends_at' => now()->addDays(14),
         ]);
     }
 

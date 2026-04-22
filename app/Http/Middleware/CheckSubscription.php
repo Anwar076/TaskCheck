@@ -44,7 +44,7 @@ class CheckSubscription
             // If trial expired and no subscription, redirect to choose plan
             if ($company->trialExpired() && !$company->hasActiveSubscription()) {
                 return redirect()->route('subscription.choose-plan')
-                    ->with('error', 'Your 30-day free trial has expired. Please choose a subscription plan to continue.');
+                    ->with('error', 'Your 14-day free trial has expired. Please choose a subscription plan to continue.');
             }
 
             // Otherwise, subscription might be cancelled or expired

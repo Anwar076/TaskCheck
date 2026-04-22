@@ -386,7 +386,7 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ url('/pricing') }}" class="btn-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg">
-                    Probeer 1 maand gratis
+                    Probeer 14 dagen gratis
                 </a>
                 <a href="{{ url('/contact') }}" class="bg-white text-gray-700 px-8 py-4 rounded-lg font-semibold text-lg border border-gray-300 hover:bg-gray-50 transition-colors">
                     Plan een demo

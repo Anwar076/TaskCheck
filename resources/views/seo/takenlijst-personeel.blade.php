@@ -26,7 +26,7 @@
         <p class="mt-4 text-lg text-slate-600">Met TaskCheck maak je van losse taken een betrouwbaar proces met eigenaarschap, bewijs en realtime opvolging.</p>
 
         <div class="mt-8 grid md:grid-cols-2 gap-4">
-            <a href="{{ route('login') }}" class="inline-flex justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-3 hover:from-blue-700 hover:to-indigo-700">Start 30 dagen gratis</a>
+            <a href="{{ route('login') }}" class="inline-flex justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-3 hover:from-blue-700 hover:to-indigo-700">Start 14 dagen gratis</a>
             <a href="{{ route('pricing') }}" class="inline-flex justify-center rounded-xl border border-blue-200 bg-white text-slate-700 font-semibold px-6 py-3 hover:bg-blue-50">Bekijk prijzen</a>
         </div>
 

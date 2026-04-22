@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeQuickstartMail;
 use App\Models\User;
 use App\Models\Company;
 use Illuminate\Auth\Events\Registered;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -44,7 +47,7 @@ class RegisteredUserController extends Controller
             $company = Company::create([
                 'name' => $request->company_name,
                 'subscription_status' => 'trial',
-                'trial_ends_at' => now()->addDays(30),
+                'trial_ends_at' => now()->addDays(14),
             ]);
 
             // Create user as admin for the company
@@ -62,7 +65,17 @@ class RegisteredUserController extends Controller
 
             DB::commit();
 
-            return redirect()->route('dashboard')->with('success', 'Welcome! You have started your 30-day free trial.');
+            try {
+                Mail::to($user->email)->send(new WelcomeQuickstartMail($user, $company));
+            } catch (\Throwable $mailException) {
+                Log::warning('Welcome quickstart mail could not be sent', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $mailException->getMessage(),
+                ]);
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Welcome! You have started your 14-day free trial.');
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

@@ -3,7 +3,7 @@
 <head>
     @php
         $seoTitle = 'Prijzen checklist app voor bedrijven en personeel | TaskCheck';
-        $seoDescription = 'Bekijk prijzen voor TaskCheck: checklist app voor bedrijven met takenlijst personeel, werkcontrole app functies en 30 dagen gratis proefperiode.';
+        $seoDescription = 'Bekijk prijzen voor TaskCheck: checklist app voor bedrijven met takenlijst personeel, werkcontrole app functies en 14 dagen gratis proefperiode.';
         $seoUrl = route('pricing');
         $seoImage = asset('logos/taskcheck-logo.png');
     @endphp
@@ -205,7 +205,7 @@
                     "name": "Kan ik eerst gratis starten?",
                     "acceptedAnswer": {
                         "@@type": "Answer",
-                        "text": "Ja, je kunt TaskCheck 30 dagen gratis proberen. Daarna kies je het abonnement dat past bij je team."
+                        "text": "Ja, je kunt TaskCheck 14 dagen gratis proberen. Daarna kies je het abonnement dat past bij je team."
                     }
                 },
                 {
@@ -241,7 +241,7 @@
                     Kies een plan dat past bij je organisatie en start direct met een veilige checkout via Mollie.
                 </p>
                 <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-200 bg-emerald-50 text-sm text-emerald-700 font-medium">
-                    <span>🎉</span> 30 dagen gratis proefperiode
+                    <span>🎉</span> 14 dagen gratis proefperiode
                 </div>
             </div>
         </div>
