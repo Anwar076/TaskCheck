@@ -22,6 +22,8 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('logos/taskcheck-favicon.svg') }}" type="image/svg+xml">
     <link rel="icon" type="image/svg+xml" href="{{ asset('logos/taskcheck-favicon.svg') }}">
     <link rel="alternate icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">

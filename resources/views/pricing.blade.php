@@ -242,7 +242,7 @@
                 </p>
                 <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-200 bg-emerald-50 text-sm text-emerald-700 font-medium">
                     <span>🎉</span> 14 dagen gratis proefperiode
-                </div>
+        </div>
             </div>
         </div>
     </section>
@@ -263,7 +263,7 @@
                         <input type="hidden" name="plan" value="starter">
                         <button type="submit" class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">
                             Kies Starter
-                        </button>
+                </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="mt-6 inline-flex w-full justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 transition">
@@ -291,7 +291,7 @@
                         <input type="hidden" name="plan" value="professional">
                         <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 transition">
                             Kies Professional
-                        </button>
+                </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="mt-6 inline-flex w-full justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 transition">
@@ -317,7 +317,7 @@
                         <input type="hidden" name="plan" value="enterprise">
                         <button type="submit" class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">
                             Kies Enterprise
-                        </button>
+                </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="mt-6 inline-flex w-full justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 transition">
