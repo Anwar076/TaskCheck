@@ -349,8 +349,7 @@
                                             class="hidden"
                                             @if($task->required_proof_type === 'photo') accept="image/*" @endif
                                             @if($task->required_proof_type === 'video') accept="video/*" @endif
-                                            onchange="handleFileSelect(this, '{{ $submissionTask->id }}')"
-                                            {{ in_array($task->required_proof_type, ['photo', 'video', 'file']) ? 'required' : '' }}>
+                                            onchange="handleFileSelect(this, '{{ $submissionTask->id }}')">
 
                                         {{-- Camera-input voor foto (wordt via JS gekopieerd naar file-input) --}}
                                         @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
