@@ -770,8 +770,18 @@ function handleCameraCapture(cameraInput, taskId) {
     // hoofd-input updaten
     fileInput.files = dt.files;
 
+    // Fallback for browsers/devices where assigning FileList can fail silently:
+    // include camera input directly in form submit payload.
+    if (!fileInput.files || fileInput.files.length === 0) {
+        cameraInput.name = 'proof_files[]';
+    } else {
+        cameraInput.name = '';
+    }
+
     // camera-input resetten zodat je opnieuw iets kunt opnemen
-    cameraInput.value = '';
+    if (cameraInput.name !== 'proof_files[]') {
+        cameraInput.value = '';
+    }
 
     // preview updaten op basis van hoofd-input
     handleFileSelect(fileInput, taskId);
@@ -782,6 +792,12 @@ function handleFileSelect(input, taskId) {
     const previewArea = document.getElementById('preview-area-' + taskId);
     if (!previewArea) return;
     previewArea.innerHTML = '';
+
+    // When normal file-input is populated, avoid sending stale camera fallback fields.
+    const photoInput = document.getElementById('camera-input-photo-' + taskId);
+    const videoInput = document.getElementById('camera-input-video-' + taskId);
+    if (photoInput) photoInput.name = '';
+    if (videoInput) videoInput.name = '';
 
     Array.from(input.files).forEach(file => updateMediaPreview(taskId, file));
 }
@@ -853,6 +869,11 @@ function handleFileSelect(input, taskId) {
     const previewArea = document.getElementById('preview-area-' + taskId);
     if (!previewArea) return;
     previewArea.innerHTML = '';
+
+    const photoInput = document.getElementById('camera-input-photo-' + taskId);
+    const videoInput = document.getElementById('camera-input-video-' + taskId);
+    if (photoInput) photoInput.name = '';
+    if (videoInput) videoInput.name = '';
 
     Array.from(input.files).forEach(file => updateMediaPreview(taskId, file));
 }
@@ -1363,6 +1384,7 @@ function updateTaskToCompleted(taskId, completedAt) {
 
     if (taskCard) {
         taskCard.dataset.status = 'completed';
+        taskCard.classList.add('task-completed');
     }
 
     // Header optioneel stylen
