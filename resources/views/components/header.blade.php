@@ -6,6 +6,10 @@
                 <img
                     src="{{ asset('logos/taskcheck-logo.svg') }}"
                     alt="TaskCheck logo"
+                    width="320"
+                    height="96"
+                    fetchpriority="high"
+                    decoding="async"
                     class="h-16 sm:h-20 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
                 >
             </a>
@@ -77,15 +81,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Subtle solid header on scroll for readability
     if (siteHeader) {
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 16) {
-                siteHeader.classList.add('bg-white/95', 'shadow-sm');
-                siteHeader.classList.remove('bg-white/70');
-            } else {
-                siteHeader.classList.remove('bg-white/95', 'shadow-sm');
-                siteHeader.classList.add('bg-white/70');
+        let lastScrolledState = false;
+        let ticking = false;
+
+        const updateHeaderState = () => {
+            const isScrolled = window.scrollY > 16;
+            if (isScrolled !== lastScrolledState) {
+                siteHeader.classList.toggle('bg-white/95', isScrolled);
+                siteHeader.classList.toggle('shadow-sm', isScrolled);
+                siteHeader.classList.toggle('bg-white/70', !isScrolled);
+                lastScrolledState = isScrolled;
             }
-        });
+            ticking = false;
+        };
+
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                window.requestAnimationFrame(updateHeaderState);
+                ticking = true;
+            }
+        }, { passive: true });
     }
 });
 </script>

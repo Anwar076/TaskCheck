@@ -10,6 +10,10 @@
                     <img
                         src="{{ asset('logos/taskcheck-logo.svg') }}"
                         alt="TaskCheck logo"
+                        width="320"
+                        height="96"
+                        loading="lazy"
+                        decoding="async"
                         class="h-24 sm:h-28 w-auto shrink-0"
                     >
                 </a>
@@ -44,11 +48,33 @@
         </div>
     </div>
     <script>
-  window.texviaConfig = {
-    companyId: 'fe972c26-e4aa-4d76-9cee-06a37490fea8',
-    theme: 'light',
-    position: 'bottom-right'
-  };
-</script>
-<script src="https://texvia-ai-support.lovable.app/widget.js"></script>
+    (function () {
+      let widgetLoaded = false;
+      const loadWidget = () => {
+        if (widgetLoaded) return;
+        widgetLoaded = true;
+        window.texviaConfig = {
+          companyId: 'fe972c26-e4aa-4d76-9cee-06a37490fea8',
+          theme: 'light',
+          position: 'bottom-right'
+        };
+        const script = document.createElement('script');
+        script.src = 'https://texvia-ai-support.lovable.app/widget.js';
+        script.async = true;
+        document.body.appendChild(script);
+      };
+
+      // Load after initial render to protect mobile LCP.
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadWidget, { timeout: 5000 });
+      } else {
+        setTimeout(loadWidget, 3000);
+      }
+
+      // Or sooner on first user interaction.
+      ['pointerdown', 'keydown', 'touchstart'].forEach((eventName) => {
+        window.addEventListener(eventName, loadWidget, { once: true, passive: true });
+      });
+    })();
+    </script>
 </footer>

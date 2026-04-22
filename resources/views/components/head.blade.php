@@ -26,27 +26,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                fontFamily: {
-                    'sans': ['Poppins', 'ui-sans-serif', 'system-ui'],
-                },
-                colors: {
-                    primary: {
-                        500: '#3b82f6',
-                        600: '#2563eb',
-                        700: '#1d4ed8',
-                    }
-                }
-            }
-        }
-    }
-</script>
+<!-- Local compiled Tailwind (faster than CDN runtime) -->
+@vite('resources/css/app.css')
 <style> 
+    body { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
+
     /* Animations */
     @keyframes fadeUp { from { opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
     @keyframes fadeIn { from { opacity:0;} to {opacity:1;} }

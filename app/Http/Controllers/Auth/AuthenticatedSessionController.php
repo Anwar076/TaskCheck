@@ -24,7 +24,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        // Keep users logged in until they explicitly log out.
+        $request->authenticate(true);
 
         $request->session()->regenerate();
 

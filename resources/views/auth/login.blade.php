@@ -40,6 +40,7 @@
 
         <form method="POST" action="{{ route('login') }}" class="space-y-6" id="login-form">
             @csrf
+            <input type="hidden" name="remember" value="1">
 
             <!-- Email Address -->
             <div>
@@ -97,6 +98,8 @@
                     <input id="remember_me" 
                            type="checkbox" 
                            name="remember"
+                           value="1"
+                           checked
                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                     <label for="remember_me" class="ml-2 block text-sm text-gray-700">
                         Onthoud mij
