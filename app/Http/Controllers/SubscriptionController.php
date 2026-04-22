@@ -495,6 +495,16 @@ class SubscriptionController extends Controller
 
     private function syncPendingPaymentStatus(Company $company): void
     {
+        // If a subscription is explicitly cancelled and there is no ongoing
+        // checkout/plan-change flow, never auto-reactivate from old paid payments.
+        if (
+            $company->subscription_status === 'cancelled'
+            && !$company->mollie_payment_id
+            && !$company->pending_subscription_plan
+        ) {
+            return;
+        }
+
         if ($company->hasActiveSubscription()) {
             $this->ensureRecurringSubscriptionExists($company);
             return;
@@ -534,6 +544,12 @@ class SubscriptionController extends Controller
         }
 
         if (!$company->mollie_customer_id) {
+            return;
+        }
+
+        // Only reconcile historical customer payments when we are in an
+        // explicit activation flow (pending plan or payment id present).
+        if (!$company->mollie_payment_id && !$company->pending_subscription_plan) {
             return;
         }
 
