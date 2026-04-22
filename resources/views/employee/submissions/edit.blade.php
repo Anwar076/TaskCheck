@@ -168,10 +168,7 @@
                                     </span>
                                 @elseif($submissionTask->status === 'redo_requested')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                        </svg>
-                                        Opnieuw Vereist
+                                        Opnieuw Uitvoeren
                                     </span>
                                 @endif
                             </div>
@@ -179,7 +176,7 @@
                     </div>
 
                     <div id="task-body-{{ $submissionTask->id }}" class="task-body">
-                    @if($submissionTask->status === 'rejected' || $submissionTask->redo_requested)
+                    @if($submissionTask->rejection_reason && in_array($submissionTask->status, ['pending', 'redo_requested']))
                         <!-- Rejection/Redo Information -->
                         <div class="bg-red-50 border-l-4 border-red-400 px-4 sm:px-6 py-4 sm:py-6">
                             <div class="flex flex-col sm:flex-row items-start gap-3">
@@ -189,26 +186,16 @@
                                     </svg>
                                 </div>
                                 <div class="flex-1 text-sm sm:text-base">
-                                    @if($submissionTask->status === 'rejected')
-                                        <h4 class="text-base sm:text-lg font-semibold text-red-900 mb-2">Taak Afgewezen</h4>
+                                    @if($submissionTask->rejection_reason)
+                                        <h4 class="text-base sm:text-lg font-semibold text-red-900 mb-2">Taak Afgekeurd</h4>
                                         @if($submissionTask->rejection_reason)
                                             <p class="text-red-800 mb-2">
                                                 <strong>Reden:</strong> {{ $submissionTask->rejection_reason }}
                                             </p>
                                         @endif
                                         <p class="text-red-700">
-                                            Deze taak is afgewezen op {{ $submissionTask->rejected_at ? $submissionTask->rejected_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') : 'onbekende datum' }}. 
-                                            Je kunt deze taak niet bewerken totdat je manager om herhaling vraagt. <strong>Je kunt de lijst wel indienen.</strong>
-                                        </p>
-                                    @elseif($submissionTask->status === 'redo_requested')
-                                        <h4 class="text-base sm:text-lg font-semibold text-orange-900 mb-2">Opnieuw Vereist</h4>
-                                        @if($submissionTask->redo_reason)
-                                            <p class="text-orange-800 mb-2">
-                                                <strong>Reden voor Herhaling:</strong> {{ $submissionTask->redo_reason }}
-                                            </p>
-                                        @endif
-                                        <p class="text-orange-700">
-                                            Herhaal deze taak met de verstrekte feedback.
+                                            Deze taak is afgekeurd op {{ $submissionTask->rejected_at ? $submissionTask->rejected_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') : 'onbekende datum' }}.
+                                            Voer deze taak opnieuw uit en dien daarna de checklist opnieuw in.
                                         </p>
                                     @endif
                                 </div>
@@ -247,7 +234,7 @@
                                 </div>
                             @endif
 
-                            <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6" id="task-form-{{ $task->id }}">
+                            <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6" id="task-form-{{ $task->id }}" data-required-proof-type="{{ $task->required_proof_type }}">
                                 @csrf
                                 
                                 <!-- Hidden field for checklist progress -->
@@ -536,14 +523,13 @@
 
         <!-- Final Submission -->
         @php
-            // completed, approved, rejected (zonder herhalingsverzoek) = mag indienen
-            // redo_requested, pending = moet eerst afronden
+            // Alleen completed/approved tellen als klaar voor indienen.
             $allRequiredCompleted = $submission->submissionTasks
                 ->filter(fn($st) => $st->task->is_required)
-                ->every(fn($st) => in_array($st->status, ['completed', 'approved', 'rejected']));
+                ->every(fn($st) => in_array($st->status, ['completed', 'approved']));
             $hasRedoRequired = $submission->submissionTasks
                 ->filter(fn($st) => $st->task->is_required)
-                ->contains('status', 'redo_requested');
+                ->contains(fn($st) => in_array($st->status, ['redo_requested', 'rejected']) || (!empty($st->rejection_reason) && $st->status === 'pending'));
         @endphp
 
         <!-- Final Submission - Always Visible -->
@@ -1070,6 +1056,7 @@ function clearSignaturePadFinal() {
 function validateTaskForm(form) {
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
+    const requiredProofType = form.dataset.requiredProofType || 'none';
 
     requiredFields.forEach(field => {
         field.classList.remove('border-red-500', 'border-red-300');
@@ -1077,7 +1064,11 @@ function validateTaskForm(form) {
         if (field.type === 'file') {
             if (field.files.length === 0) {
                 field.classList.add('border-red-500');
-                showNotification('Bewijs is vereist voor deze taak.', 'error');
+                if (requiredProofType === 'photo') {
+                    showNotification('Je bent vergeten om een afbeelding erbij te zetten.', 'error');
+                } else {
+                    showNotification('Bewijs is vereist voor deze taak.', 'error');
+                }
                 isValid = false;
             }
         } else if ((field.type === 'checkbox' || field.type === 'radio') &&

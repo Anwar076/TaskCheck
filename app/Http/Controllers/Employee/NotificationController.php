@@ -127,6 +127,12 @@ class NotificationController extends Controller
             'latest_user_notification_id' => $latestUserNotificationId,
             'unread_count' => $user->unreadNotifications()->count(),
             'notifications' => $newNotifications->map(function ($notification) {
+                $data = is_array($notification->data) ? $notification->data : [];
+                $targetUrl = $data['url'] ?? null;
+                if (!$targetUrl && !empty($data['submission_id'])) {
+                    $targetUrl = "/employee/submissions/{$data['submission_id']}/edit";
+                }
+
                 return [
                     'id' => $notification->id,
                     'title' => $notification->title,
@@ -134,6 +140,7 @@ class NotificationController extends Controller
                     'type' => $notification->type,
                     'read_at' => $notification->read_at?->toIso8601String(),
                     'created_at' => $notification->created_at?->toIso8601String(),
+                    'url' => $targetUrl ?: '/employee/notifications',
                 ];
             }),
         ], 200, [

@@ -1215,7 +1215,23 @@ PROMPT,
         ]);
 
         $notification = DB::transaction(function () use ($submissionTask, $validatedData) {
-            $created = $submissionTask->reject($validatedData['rejection_reason'], auth()->id());
+            // "Afkeuren" betekent direct: taak opnieuw laten uitvoeren.
+            $submissionTask->update([
+                'status' => 'pending',
+                'rejection_reason' => $validatedData['rejection_reason'],
+                'rejected_at' => now(),
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'redo_requested' => false,
+                'redo_reason' => null,
+            ]);
+
+            $created = Notification::createTaskRejected(
+                $submissionTask->submission->user_id,
+                $submissionTask->task->title,
+                $validatedData['rejection_reason'],
+                $submissionTask->submission_id
+            );
 
             // Safety net: if model-level helper failed to return/create, create notification here as backup.
             if (!$created) {
@@ -1227,8 +1243,8 @@ PROMPT,
                 );
             }
 
-            // Bij afwijzen gaat de hele inzending direct op 'rejected'
-            $submissionTask->submission->update(['status' => 'rejected']);
+            // Bij afwijzen terug naar in_progress zodat medewerker opnieuw uitvoert en opnieuw indient.
+            $submissionTask->submission->update(['status' => 'in_progress']);
 
             return $created;
         });
@@ -1237,14 +1253,14 @@ PROMPT,
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Taak afgewezen. De medewerker is op de hoogte gebracht.',
+                'message' => 'Taak afgekeurd. Medewerker moet de taak opnieuw uitvoeren en daarna de checklist opnieuw indienen.',
                 'notification_id' => $notification->id ?? null,
                 'notification_user_id' => $notification->user_id ?? null,
             ]);
         }
 
         return redirect()->back()
-            ->with('success', 'Taak afgewezen. De medewerker is op de hoogte gebracht.');
+            ->with('success', 'Taak afgekeurd. Medewerker moet de taak opnieuw uitvoeren en daarna de checklist opnieuw indienen.');
     }
 
     public function requestRedo(Request $request, \App\Models\SubmissionTask $submissionTask)

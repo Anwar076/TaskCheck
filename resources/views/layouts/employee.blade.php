@@ -322,6 +322,7 @@
     <script>
         const realtimeFeedUrl = @json(route('employee.notifications.realtime-feed', [], false));
         const realtimeStorageKey = `taskcheck:last_notification_id:user:${@json((string) auth()->id())}`;
+        const realtimeShownNotificationsKey = `taskcheck:shown_notifications:user:${@json((string) auth()->id())}`;
         const vapidKeyUrl = @json(route('push.vapid-public-key', [], false));
         const pushSubscribeUrl = @json(route('push.subscribe', [], false));
 
@@ -417,6 +418,10 @@
         }
 
         async function showRealtimeNotification(notification) {
+            if (wasNotificationRecentlyShown(notification.id)) {
+                return;
+            }
+            rememberShownNotification(notification.id);
             showInAppRealtimeToast(notification);
             playRealtimeNotificationSound();
 
@@ -428,6 +433,11 @@
                 return;
             }
 
+            // Voorkom dubbele meldingen op iOS/mobiel: als app open en zichtbaar is, alleen in-app toast.
+            if (document.visibilityState === 'visible' && document.hasFocus()) {
+                return;
+            }
+
             const registration = await navigator.serviceWorker.ready;
             await registration.showNotification(notification.title || 'Nieuwe melding', {
                 body: notification.message || 'Je hebt een nieuwe melding in TaskCheck.',
@@ -436,9 +446,34 @@
                 vibrate: [100, 40, 140],
                 tag: `taskcheck-notification-${notification.id}`,
                 data: {
-                    url: '/employee/notifications',
+                    url: notification.url || '/employee/notifications',
                 },
             });
+        }
+
+        function getShownNotificationIds() {
+            try {
+                const raw = sessionStorage.getItem(realtimeShownNotificationsKey);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function rememberShownNotification(id) {
+            if (!id) return;
+            const current = getShownNotificationIds();
+            if (!current.includes(id)) {
+                current.push(id);
+            }
+            const trimmed = current.slice(-100);
+            sessionStorage.setItem(realtimeShownNotificationsKey, JSON.stringify(trimmed));
+        }
+
+        function wasNotificationRecentlyShown(id) {
+            if (!id) return false;
+            return getShownNotificationIds().includes(id);
         }
 
         function playRealtimeNotificationSound() {
@@ -474,14 +509,22 @@
         }
 
         function showInAppRealtimeToast(notification) {
+            const existing = document.querySelector('[data-realtime-toast]');
+            if (existing) {
+                existing.remove();
+            }
+
             const toast = document.createElement('div');
-            toast.className = 'fixed bottom-4 right-4 z-[9999] max-w-sm rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
+            toast.setAttribute('data-realtime-toast', '1');
+            toast.className = 'fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-3 left-3 sm:left-auto sm:right-4 z-[9999] sm:max-w-sm rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
+            const targetUrl = notification.url || '/employee/notifications';
             toast.innerHTML = `
                 <div class="flex items-start gap-3">
                     <span class="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">🔔</span>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-slate-900">${notification.title || 'Nieuwe melding'}</p>
                         <p class="mt-1 text-xs text-slate-600">${notification.message || 'Je hebt een nieuwe melding in TaskCheck.'}</p>
+                        <a href="${targetUrl}" class="mt-2 inline-flex items-center text-xs font-semibold text-blue-700 hover:text-blue-900">Open melding</a>
                     </div>
                 </div>
             `;

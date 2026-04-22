@@ -279,6 +279,7 @@ class SubmissionController extends Controller
 
             if ($task->required_proof_type === 'photo') {
                 $rules['proof_files.*'] = 'image|max:5120'; // 5MB max for images
+                $messages['proof_files.required'] = 'Je bent vergeten om een afbeelding toe te voegen.';
             }
             
             if ($task->required_proof_type === 'text') {
@@ -409,16 +410,14 @@ class SubmissionController extends Controller
                 abort(403, 'You do not have access to this submission.');
             }
 
-            // Check if all required tasks are "done" for submission purposes:
+            // Check if all required tasks are done for submission purposes:
             // - completed, approved: taak is afgerond
-            // - rejected: manager heeft geweigerd maar NIET om herhaling gevraagd → lijst kan ingediend
-            // - redo_requested: manager vraagt herhaling → employee MOET eerst opnieuw doen
-            // - pending: nog niet voltooid
+            // - pending/redo_requested/rejected: nog niet klaar om in te dienen
             $incompleteRequiredTasks = $submission->submissionTasks()
                 ->whereHas('task', function ($query) {
                     $query->where('is_required', true);
                 })
-                ->whereNotIn('status', ['completed', 'approved', 'rejected'])
+                ->whereNotIn('status', ['completed', 'approved'])
                 ->count();
 
             if ($incompleteRequiredTasks > 0) {

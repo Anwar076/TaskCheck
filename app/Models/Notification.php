@@ -83,7 +83,7 @@ class Notification extends Model
     public static function createTaskRejected($userId, $taskTitle, $reason, $submissionId)
     {
         $message = $reason;
-        $message .= "\n\nJe kunt de lijst wel indienen. Als je manager om herhaling vraagt, moet je de taak opnieuw uitvoeren.";
+        $message .= "\n\nDeze taak moet je opnieuw uitvoeren. Daarna moet je de checklist opnieuw indienen.";
         return self::create([
             'user_id' => $userId,
             'type' => 'task_rejected',
@@ -93,6 +93,7 @@ class Notification extends Model
                 'submission_id' => $submissionId,
                 'task_title' => $taskTitle,
                 'reason' => $reason,
+                'url' => "/employee/submissions/{$submissionId}/edit",
             ],
         ]);
     }

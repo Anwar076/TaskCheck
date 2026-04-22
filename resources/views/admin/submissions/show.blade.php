@@ -243,7 +243,7 @@
             <div class="divide-y divide-slate-200">
                 @foreach($submission->submissionTasks as $index => $submissionTask)
                     @php
-                        $taskStatusLabels = ['completed' => 'Afgerond', 'approved' => 'Goedgekeurd', 'rejected' => 'Afgewezen', 'redo_requested' => 'Opnieuw gevraagd', 'pending' => 'Openstaand'];
+                        $taskStatusLabels = ['completed' => 'Afgerond', 'approved' => 'Goedgekeurd', 'rejected' => 'Afgekeurd', 'redo_requested' => 'Opnieuw uitvoeren', 'pending' => 'Openstaand'];
                         $taskStatusColors = ['completed' => 'bg-amber-100 text-amber-800 border-amber-200', 'approved' => 'bg-emerald-100 text-emerald-800 border-emerald-200', 'rejected' => 'bg-red-100 text-red-800 border-red-200', 'redo_requested' => 'bg-orange-100 text-orange-800 border-orange-200', 'pending' => 'bg-slate-100 text-slate-800 border-slate-200'];
                         $ts = $submissionTask->status;
                         $aiTask = $taskReviewsById[$submissionTask->task->id] ?? null;
@@ -501,20 +501,9 @@
                                             <div class="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                             </div>
-                                            <h6 class="text-base font-bold text-red-900 mb-2">Taak afgewezen</h6>
-                                            <p class="text-sm text-red-700 mb-4">Deze taak is afgewezen en wacht op verdere actie.</p>
+                                            <h6 class="text-base font-bold text-red-900 mb-2">Taak afgekeurd</h6>
+                                            <p class="text-sm text-red-700 mb-4">Medewerker moet deze taak opnieuw uitvoeren en de checklist opnieuw indienen.</p>
                                         </div>
-                                        <form method="POST" action="{{ route('admin.submission-tasks.redo', $submissionTask) }}" class="redo-form" id="redo-form-{{ $submissionTask->id }}">
-                                            @csrf
-                                            <div class="mb-4">
-                                                <label class="block text-sm font-medium text-slate-700 mb-2">Reden voor opnieuw (optioneel)</label>
-                                                <textarea name="redo_reason" placeholder="Leg uit waarom de medewerker deze taak opnieuw moet doen..." rows="2" class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"></textarea>
-                                            </div>
-                                            <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-xl transition-colors" id="redo-btn-{{ $submissionTask->id }}">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                                                Vraag medewerker om opnieuw
-                                            </button>
-                                        </form>
                                     </div>
                                 </div>
                             @elseif($submissionTask->status === 'approved')
@@ -725,22 +714,10 @@ function updateTaskUIAfterReject(taskId, rejectionReason) {
                 <div class="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </div>
-                <h6 class="text-base font-bold text-red-900 mb-2">Taak afgewezen</h6>
-                <p class="text-sm text-red-700">Deze taak is afgewezen en wacht op verdere actie.</p>
+                <h6 class="text-base font-bold text-red-900 mb-2">Taak afgekeurd</h6>
+                <p class="text-sm text-red-700">Medewerker moet deze taak opnieuw uitvoeren en de checklist opnieuw indienen.</p>
             </div>
-            <form method="POST" action="/admin/submission-tasks/${taskId}/redo" class="redo-form mt-5" id="redo-form-${taskId}">
-                <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''}">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Reden voor opnieuw (optioneel)</label>
-                    <textarea name="redo_reason" placeholder="Leg uit waarom de medewerker deze taak opnieuw moet doen..." rows="2" class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"></textarea>
-                </div>
-                <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-xl transition-colors" id="redo-btn-${taskId}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                    Vraag medewerker om opnieuw
-                </button>
-            </form>
         `;
-        bindRedoForm(box.querySelector(`#redo-form-${taskId}`));
     }
 
     let reviewBlock = container.querySelector('.manager-review-block');
@@ -774,46 +751,6 @@ function updateTaskUIAfterReject(taskId, rejectionReason) {
         </div>
     `;
     reviewBlock.querySelector('.rejection-reason-text').textContent = rejectionReason;
-}
-
-function bindRedoForm(form) {
-    if (!form || form.dataset.bound === '1') return;
-    form.dataset.bound = '1';
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const taskId = form.id.replace('redo-form-', '');
-        const submitBtn = document.getElementById('redo-btn-' + taskId);
-        if (!submitBtn) return;
-
-        submitBtn.innerHTML = `<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Verwerken...`;
-        submitBtn.disabled = true;
-
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token'),
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => parseJsonResponseOrThrow(response, 'Opnieuw-verzoek mislukt. Controleer je sessie en probeer opnieuw.'))
-        .then((payload) => {
-            showNotification(`Opnieuw-verzoek verzonden. Notificatie #${payload.notification_id ?? '-'} voor user ${payload.notification_user_id ?? '-'}.`, 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
-        })
-        .catch(error => {
-            console.error('Redo fetch error:', error);
-            showNotification(error.message || 'Fout bij opnieuw aanvragen. Probeer het opnieuw.', 'error');
-            submitBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Vraag medewerker om opnieuw`;
-            submitBtn.disabled = false;
-        });
-    });
 }
 
 async function parseJsonResponseOrThrow(response, fallbackMessage) {
@@ -918,11 +855,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitBtn.disabled = false;
             });
         });
-    });
-    
-    // Redo (laat ik nog gewoon met reload doen als je wilt, of zelfde patroon)
-    document.querySelectorAll('[id^="redo-form-"]').forEach(function(form) {
-        bindRedoForm(form);
     });
 });
 </script>

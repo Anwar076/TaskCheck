@@ -80,7 +80,7 @@
                     $taskTitle = $data['task_title'] ?? null;
                     if ($type === 'task_rejected' && $taskTitle && isset($data['reason'])) {
                         $displayTitle = "Je taak '{$taskTitle}' is afgewezen";
-                        $displayMessage = $data['reason'] . "\n\nJe kunt de lijst wel indienen. Als je manager om herhaling vraagt, moet je de taak opnieuw uitvoeren.";
+                        $displayMessage = $data['reason'] . "\n\nVoer deze taak opnieuw uit en dien daarna de checklist opnieuw in.";
                     } elseif ($type === 'task_redo_requested' && $taskTitle) {
                         $displayTitle = "Herhaal taak '{$taskTitle}'";
                         $displayMessage = ($data['redo_reason'] ?? null)
@@ -90,6 +90,7 @@
                         $displayTitle = $notification->title;
                         $displayMessage = $notification->message;
                     }
+                    $targetUrl = $data['url'] ?? (isset($data['submission_id']) ? route('employee.submissions.edit', $data['submission_id']) : null);
                     $borderColor = match ($type) {
                         'task_rejected' => 'border-red-400',
                         'task_redo_requested' => 'border-amber-400',
@@ -170,8 +171,8 @@
                                     </span>
 
                                     <div class="flex items-center gap-2 order-1 sm:order-2">
-                                        @if($notification->data && isset($notification->data['submission_id']))
-                                            <a href="{{ route('employee.submissions.edit', $notification->data['submission_id']) }}"
+                                        @if($targetUrl)
+                                            <a href="{{ $targetUrl }}"
                                                class="js-ripple inline-flex items-center justify-center min-h-[44px] px-3 py-2.5 sm:py-1.5 rounded-xl sm:rounded-lg text-xs sm:text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-colors touch-manipulation">
                                                 <span>Bekijk Taak</span>
                                                 <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
