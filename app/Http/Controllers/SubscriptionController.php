@@ -220,7 +220,22 @@ class SubscriptionController extends Controller
         }
 
         try {
+            $accessUntil = $company->subscription_ends_at?->copy();
+
             if ($company->mollie_customer_id && $company->mollie_subscription_id) {
+                try {
+                    $subscription = $this->mollieService->getSubscription(
+                        (string) $company->mollie_customer_id,
+                        (string) $company->mollie_subscription_id
+                    );
+                    $nextPaymentDate = trim((string) ($subscription['nextPaymentDate'] ?? ''));
+                    if ($nextPaymentDate !== '') {
+                        $accessUntil = Carbon::parse($nextPaymentDate)->endOfDay();
+                    }
+                } catch (\Throwable $ignored) {
+                    // If fetch fails, we still continue cancellation.
+                }
+
                 $this->mollieService->cancelSubscription(
                     $company->mollie_customer_id,
                     $company->mollie_subscription_id
@@ -230,7 +245,7 @@ class SubscriptionController extends Controller
             $company->update([
                 'subscription_status' => 'cancelled',
                 'mollie_subscription_id' => null,
-                'subscription_ends_at' => now(),
+                'subscription_ends_at' => $accessUntil ?? now(),
             ]);
         } catch (\Throwable $e) {
             return redirect()->route('subscription.show')

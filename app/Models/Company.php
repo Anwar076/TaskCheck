@@ -99,10 +99,21 @@ class Company extends Model
             && (!$this->subscription_ends_at || $this->subscription_ends_at->isFuture());
     }
 
+    public function hasCancelledButStillActiveAccess(): bool
+    {
+        return $this->subscription_status === 'cancelled'
+            && $this->subscription_ends_at
+            && $this->subscription_ends_at->isFuture();
+    }
+
     // Check if company can access the system
     public function canAccess(): bool
     {
-        return $this->is_active && ($this->isOnTrial() || $this->hasActiveSubscription());
+        return $this->is_active && (
+            $this->isOnTrial()
+            || $this->hasActiveSubscription()
+            || $this->hasCancelledButStillActiveAccess()
+        );
     }
 
     // Get days remaining in trial

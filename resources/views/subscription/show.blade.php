@@ -107,6 +107,25 @@
                                         </div>
                                     @endif
                                 </div>
+                            @elseif($company->subscription_status === 'cancelled' && $company->subscription_ends_at && $company->subscription_ends_at->isFuture())
+                                <div class="space-y-3">
+                                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-semibold border border-amber-100">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Opzegging bevestigd
+                                    </span>
+                                    @if($planDetails)
+                                        <p class="text-2xl font-bold text-amber-600">{{ $planDetails['name'] }}</p>
+                                    @endif
+                                    <p class="text-slate-700">
+                                        Je abonnement is <strong>succesvol opgezegd bij Mollie</strong>.
+                                        Je toegang blijft actief tot <strong>{{ $company->subscription_ends_at->format('d M Y') }}</strong>.
+                                    </p>
+                                    <p class="text-sm text-slate-600">
+                                        Daarna stopt de toegang automatisch en wordt er geen nieuwe factuur aangemaakt.
+                                    </p>
+                                </div>
                             @else
                                 <div class="space-y-3">
                                     <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-semibold border border-amber-100">
@@ -204,6 +223,29 @@
                                             Abonnement Opzeggen
                                         </button>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($company->subscription_status === 'cancelled')
+                        <div class="mt-8 pt-8 border-t border-slate-200">
+                            <div class="flex items-start gap-3 p-6 bg-amber-50/50 rounded-2xl border border-amber-100">
+                                <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-amber-800 mb-1">Abonnement is opgezegd</h3>
+                                    @if($company->subscription_ends_at && $company->subscription_ends_at->isFuture())
+                                        <p class="text-amber-800/90 text-sm">
+                                            De opzegging is bevestigd. Je houdt toegang tot
+                                            <strong>{{ $company->subscription_ends_at->format('d M Y') }}</strong>.
+                                        </p>
+                                    @else
+                                        <p class="text-amber-800/90 text-sm">
+                                            De opzegging is bevestigd en je abonnement is beëindigd.
+                                        </p>
+                                    @endif
                                 </div>
                             </div>
                         </div>
