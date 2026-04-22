@@ -729,7 +729,7 @@ function updateTaskUIAfterReject(taskId, rejectionReason) {
                 <p class="text-sm text-red-700">Deze taak is afgewezen en wacht op verdere actie.</p>
             </div>
             <form method="POST" action="/admin/submission-tasks/${taskId}/redo" class="redo-form mt-5" id="redo-form-${taskId}">
-                <input type="hidden" name="_token" value="${document.querySelector('meta[name=&quot;csrf-token&quot;]')?.getAttribute('content') || ''}">
+                <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''}">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700 mb-2">Reden voor opnieuw (optioneel)</label>
                     <textarea name="redo_reason" placeholder="Leg uit waarom de medewerker deze taak opnieuw moet doen..." rows="2" class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"></textarea>
