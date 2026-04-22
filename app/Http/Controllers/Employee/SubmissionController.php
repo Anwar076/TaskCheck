@@ -461,6 +461,21 @@ class SubmissionController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
+            $submission->loadMissing(['taskList', 'user']);
+            $adminUsers = \App\Models\User::query()
+                ->where('company_id', $submission->company_id)
+                ->where('role', 'admin')
+                ->pluck('id');
+
+            foreach ($adminUsers as $adminUserId) {
+                \App\Models\Notification::createSubmissionCompletedForAdmin(
+                    (int) $adminUserId,
+                    (int) $submission->id,
+                    (string) ($submission->user->name ?? 'Een medewerker'),
+                    (string) ($submission->taskList->title ?? 'Checklist')
+                );
+            }
+
             // Handle AJAX requests
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([

@@ -1,5 +1,5 @@
 // ==== BASIS CONFIG ====
-const CACHE_NAME = 'taskcheck-v5.2.0';
+const CACHE_NAME = 'taskcheck-v5.3.0';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/logos/taskcheck-favicon.png',
@@ -142,8 +142,9 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Push received');
   let payload = {
     title: 'TaskCheck',
-    body: 'New notification from TaskCheck',
+    body: 'Je hebt een nieuwe melding in TaskCheck.',
     url: '/employee/notifications',
+    type: 'general',
   };
 
   if (event.data) {
@@ -153,6 +154,7 @@ self.addEventListener('push', (event) => {
         title: parsed.title || payload.title,
         body: parsed.body || payload.body,
         url: parsed.url || payload.url,
+        type: parsed.type || payload.type,
       };
     } catch (error) {
       payload.body = event.data.text();
@@ -163,20 +165,25 @@ self.addEventListener('push', (event) => {
     body: payload.body,
     icon: '/logos/taskcheck-favicon.png',
     badge: '/logos/taskcheck-favicon.png',
-    vibrate: [100, 50, 100],
+    image: '/logos/taskcheck-logo.png',
+    vibrate: [120, 40, 120, 40, 180],
+    tag: `taskcheck-${payload.type || 'general'}`,
+    renotify: true,
+    requireInteraction: true,
+    timestamp: Date.now(),
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1,
+      primaryKey: Date.now(),
       url: payload.url,
     },
     actions: [
       {
         action: 'explore',
-        title: 'View details',
+        title: 'Openen',
       },
       {
         action: 'close',
-        title: 'Close',
+        title: 'Sluiten',
       },
     ],
   };
@@ -190,14 +197,24 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const targetUrl = event.notification?.data?.url || '/';
-
-  if (event.action === 'explore') {
-    event.waitUntil(clients.openWindow(targetUrl));
-  } else if (event.action === 'close') {
-    // niets
-  } else {
-    event.waitUntil(clients.openWindow(targetUrl));
+  if (event.action === 'close') {
+    return;
   }
+
+  event.waitUntil((async () => {
+    const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windowClients) {
+      if ('focus' in client && client.url.includes(self.location.origin)) {
+        await client.focus();
+        if ('navigate' in client) {
+          await client.navigate(targetUrl);
+        }
+        return;
+      }
+    }
+
+    await clients.openWindow(targetUrl);
+  })());
 });
 
 // ==== OFFLINE SUBMISSIONS (BASIS) ====

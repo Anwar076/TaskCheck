@@ -156,6 +156,57 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2">
+                        @php $adminUnreadCount = auth()->user()->unreadNotifications()->count(); @endphp
+                        <div class="relative" data-admin-notification-root>
+                            <button
+                                type="button"
+                                class="relative p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                                title="Notificaties"
+                                aria-label="Notificaties openen"
+                                aria-expanded="false"
+                                data-admin-notification-toggle
+                            >
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+                                </svg>
+                                <span data-admin-unread-badge class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 min-w-[1rem] px-1 text-[10px] font-medium text-white bg-red-500 rounded-full {{ $adminUnreadCount > 0 ? '' : 'hidden' }}">
+                                    {{ $adminUnreadCount > 9 ? '9+' : $adminUnreadCount }}
+                                </span>
+                            </button>
+
+                            <div
+                                class="hidden absolute right-0 mt-2 w-[22rem] max-w-[90vw] rounded-2xl border border-slate-200 bg-white shadow-xl z-50 overflow-hidden"
+                                data-admin-notification-dropdown
+                            >
+                                <div class="px-4 py-3 border-b border-slate-100">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <h3 class="text-sm font-semibold text-slate-900">Notificaties</h3>
+                                        <span class="text-[11px] font-medium text-slate-500" data-admin-notification-permission-state>
+                                            Browser machtiging: onbekend
+                                        </span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                            data-admin-mark-all-read
+                                        >
+                                            Markeer alles gelezen
+                                        </button>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="mt-2 hidden w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                                        data-admin-enable-notifications
+                                    >
+                                        Meldingen toestaan
+                                    </button>
+                                </div>
+                                <div class="max-h-80 overflow-y-auto" data-admin-notification-list>
+                                    <div class="px-4 py-3 text-sm text-slate-500">Nog geen nieuwe meldingen.</div>
+                                </div>
+                            </div>
+                        </div>
                         <a href="{{ route('admin.settings.edit') }}" class="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors" title="Instellingen">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -355,8 +406,456 @@
 
     <!-- Clean JavaScript -->
     <script>
+        const adminRealtimeFeedUrl = @json(route('admin.notifications.realtime-feed', [], false));
+        const adminRealtimeStorageKey = `taskcheck:admin:last_notification_id:user:${@json((string) auth()->id())}`;
+        const vapidKeyUrl = @json(route('push.vapid-public-key', [], false));
+        const pushSubscribeUrl = @json(route('push.subscribe', [], false));
+        const adminMarkReadUrlTemplate = @json(route('admin.notifications.mark-read', ['notification' => '__NOTIFICATION_ID__'], false));
+        const adminMarkAllReadUrl = @json(route('admin.notifications.mark-all-read', [], false));
+        const adminNotificationState = {
+            isOpen: false,
+            items: [],
+            hydratedFromUnread: false,
+        };
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+
+            return outputArray;
+        }
+
+        function updateAdminUnreadBadge(count) {
+            const badges = document.querySelectorAll('[data-admin-unread-badge]');
+            badges.forEach((badge) => {
+                if (!count || count <= 0) {
+                    badge.classList.add('hidden');
+                    return;
+                }
+
+                badge.classList.remove('hidden');
+                badge.textContent = count > 9 ? '9+' : String(count);
+            });
+        }
+
+        function showAdminToast(notification) {
+            const safeTitle = escapeHtml(notification.title || 'Nieuwe melding');
+            const safeMessage = escapeHtml(notification.message || '');
+            playRealtimeNotificationSound();
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 z-[9999] max-w-sm rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
+            toast.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <span class="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">🔔</span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-900">${safeTitle}</p>
+                        <p class="mt-1 text-xs text-slate-600">${safeMessage}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function playRealtimeNotificationSound() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) {
+                    return;
+                }
+
+                const context = new AudioContextClass();
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(660, context.currentTime + 0.14);
+
+                gainNode.gain.setValueAtTime(0.0001, context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.2);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                oscillator.start(context.currentTime);
+                oscillator.stop(context.currentTime + 0.22);
+
+                oscillator.onended = () => {
+                    context.close().catch(() => {});
+                };
+            } catch (error) {
+                // Browsers kunnen geluid blokkeren zonder user interaction.
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderAdminNotificationList() {
+            const list = document.querySelector('[data-admin-notification-list]');
+            if (!list) return;
+
+            if (!adminNotificationState.items.length) {
+                list.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">Nog geen nieuwe meldingen.</div>';
+                return;
+            }
+
+            list.innerHTML = adminNotificationState.items.map((notification) => {
+                const title = escapeHtml(notification.title || 'Nieuwe melding');
+                const message = escapeHtml(notification.message || '');
+                const notificationId = Number(notification.id || 0);
+                const targetUrl = resolveAdminNotificationTargetUrl(notification);
+                return `
+                    <button
+                        type="button"
+                        class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
+                        data-admin-notification-item
+                        data-notification-id="${notificationId}"
+                        data-target-url="${escapeHtml(targetUrl)}"
+                    >
+                        <p class="text-sm font-semibold text-slate-900">${title}</p>
+                        <p class="mt-1 text-xs text-slate-600">${message}</p>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function resolveAdminNotificationTargetUrl(notification) {
+            const data = notification && typeof notification === 'object' ? notification.data : null;
+            if (data && typeof data === 'object' && typeof data.url === 'string' && data.url.trim() !== '') {
+                return data.url;
+            }
+
+            return '/admin/dashboard';
+        }
+
+        function prependAdminNotificationItems(notifications) {
+            if (!Array.isArray(notifications) || notifications.length === 0) {
+                return;
+            }
+
+            const merged = [...notifications, ...adminNotificationState.items];
+            const uniqueById = [];
+            const seenIds = new Set();
+
+            for (const item of merged) {
+                const notificationId = Number(item?.id || 0);
+                if (notificationId > 0 && seenIds.has(notificationId)) {
+                    continue;
+                }
+                if (notificationId > 0) {
+                    seenIds.add(notificationId);
+                }
+                uniqueById.push(item);
+                if (uniqueById.length >= 15) {
+                    break;
+                }
+            }
+
+            adminNotificationState.items = uniqueById;
+            renderAdminNotificationList();
+        }
+
+        async function markAdminNotificationAsRead(notificationId) {
+            if (!notificationId || notificationId <= 0) {
+                return false;
+            }
+
+            try {
+                const endpoint = adminMarkReadUrlTemplate.replace('__NOTIFICATION_ID__', String(notificationId));
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                });
+
+                if (!response.ok) {
+                    return false;
+                }
+
+                const payload = await response.json();
+                if (payload && payload.success === true) {
+                    updateAdminUnreadBadge(Number(payload.unread_count || 0));
+                    return true;
+                }
+            } catch (error) {
+                console.warn('Admin mark notification as read failed', error);
+            }
+
+            return false;
+        }
+
+        async function markAllAdminNotificationsAsRead() {
+            try {
+                const response = await fetch(adminMarkAllReadUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                });
+
+                if (!response.ok) {
+                    return false;
+                }
+
+                const payload = await response.json();
+                if (!payload || payload.success !== true) {
+                    return false;
+                }
+
+                adminNotificationState.items = [];
+                renderAdminNotificationList();
+                updateAdminUnreadBadge(Number(payload.unread_count || 0));
+                return true;
+            } catch (error) {
+                console.warn('Admin mark all notifications as read failed', error);
+                return false;
+            }
+        }
+
+        function setupAdminNotificationBell() {
+            const root = document.querySelector('[data-admin-notification-root]');
+            const toggle = document.querySelector('[data-admin-notification-toggle]');
+            const dropdown = document.querySelector('[data-admin-notification-dropdown]');
+            const markAllReadButton = document.querySelector('[data-admin-mark-all-read]');
+            if (!root || !toggle || !dropdown) return;
+
+            const closeDropdown = () => {
+                adminNotificationState.isOpen = false;
+                dropdown.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+            };
+
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                adminNotificationState.isOpen = !adminNotificationState.isOpen;
+                dropdown.classList.toggle('hidden', !adminNotificationState.isOpen);
+                toggle.setAttribute('aria-expanded', adminNotificationState.isOpen ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!root.contains(event.target)) {
+                    closeDropdown();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeDropdown();
+                }
+            });
+
+            if (markAllReadButton) {
+                markAllReadButton.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    markAllReadButton.disabled = true;
+                    markAllReadButton.classList.add('opacity-60');
+                    await markAllAdminNotificationsAsRead();
+                    markAllReadButton.disabled = false;
+                    markAllReadButton.classList.remove('opacity-60');
+                });
+            }
+
+            dropdown.addEventListener('click', async (event) => {
+                const item = event.target.closest('[data-admin-notification-item]');
+                if (!item) return;
+
+                const notificationId = Number(item.getAttribute('data-notification-id') || 0);
+                const targetUrl = item.getAttribute('data-target-url') || '/admin/dashboard';
+
+                item.classList.add('opacity-70');
+                item.disabled = true;
+
+                const readAt = await markAdminNotificationAsRead(notificationId);
+                if (readAt) {
+                    adminNotificationState.items = adminNotificationState.items.filter((notification) => Number(notification?.id || 0) !== notificationId);
+                    renderAdminNotificationList();
+                } else {
+                    item.classList.remove('opacity-70');
+                    item.disabled = false;
+                }
+
+                window.location.href = targetUrl;
+            });
+        }
+
+        function updateAdminPermissionUi() {
+            const permissionState = document.querySelector('[data-admin-notification-permission-state]');
+            const enableButton = document.querySelector('[data-admin-enable-notifications]');
+            if (!permissionState || !enableButton || !('Notification' in window)) return;
+
+            if (Notification.permission === 'granted') {
+                permissionState.textContent = 'Browser machtiging: toegestaan';
+                enableButton.classList.add('hidden');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                permissionState.textContent = 'Browser machtiging: geblokkeerd';
+                enableButton.classList.add('hidden');
+                return;
+            }
+
+            permissionState.textContent = 'Browser machtiging: nog niet gegeven';
+            enableButton.classList.remove('hidden');
+        }
+
+        async function requestAdminNotificationPermission() {
+            if (!('Notification' in window)) return;
+
+            try {
+                const permission = await Notification.requestPermission();
+                updateAdminPermissionUi();
+
+                if (permission === 'granted') {
+                    await subscribeForBackgroundPush();
+                }
+            } catch (error) {
+                console.warn('Admin notification permission request failed', error);
+            }
+        }
+
+        async function subscribeForBackgroundPush() {
+            try {
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    return;
+                }
+
+                const registration = await navigator.serviceWorker.ready;
+                const keyResponse = await fetch(`${vapidKeyUrl}?_ts=${Date.now()}`, {
+                    cache: 'no-store',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' },
+                });
+                if (!keyResponse.ok) return;
+
+                const keyPayload = await keyResponse.json();
+                if (!keyPayload?.publicKey) return;
+
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(keyPayload.publicKey),
+                    });
+                }
+
+                await fetch(pushSubscribeUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({
+                        ...subscription.toJSON(),
+                        contentEncoding: (window.PushManager && Array.isArray(window.PushManager.supportedContentEncodings) && window.PushManager.supportedContentEncodings[0])
+                            ? window.PushManager.supportedContentEncodings[0]
+                            : 'aes128gcm',
+                    }),
+                });
+            } catch (error) {
+                console.warn('Admin push subscription failed', error);
+            }
+        }
+
+        async function startAdminRealtimePolling() {
+            let lastNotificationId = Number(localStorage.getItem(adminRealtimeStorageKey) || 0);
+            let hasExistingCursor = Number.isFinite(lastNotificationId) && lastNotificationId > 0;
+
+            const poll = async () => {
+                try {
+                    const response = await fetch(`${adminRealtimeFeedUrl}?after_id=${lastNotificationId}&_ts=${Date.now()}`, {
+                        cache: 'no-store',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!response.ok) return;
+                    const payload = await response.json();
+                    if (!payload || payload.success !== true) return;
+
+                    updateAdminUnreadBadge(payload.unread_count || 0);
+
+                    const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
+                    const unreadNotifications = Array.isArray(payload.unread_notifications) ? payload.unread_notifications : [];
+                    if (!hasExistingCursor && typeof payload.latest_user_notification_id === 'number') {
+                        if (!adminNotificationState.hydratedFromUnread && unreadNotifications.length > 0) {
+                            prependAdminNotificationItems(unreadNotifications);
+                            adminNotificationState.hydratedFromUnread = true;
+                        }
+
+                        lastNotificationId = payload.latest_user_notification_id;
+                        localStorage.setItem(adminRealtimeStorageKey, String(lastNotificationId));
+                        hasExistingCursor = true;
+                        return;
+                    }
+
+                    prependAdminNotificationItems(notifications);
+
+                    for (const notification of notifications) {
+                        showAdminToast(notification);
+                    }
+
+                    if (typeof payload.after_id === 'number' && payload.after_id > lastNotificationId) {
+                        lastNotificationId = payload.after_id;
+                        localStorage.setItem(adminRealtimeStorageKey, String(lastNotificationId));
+                        hasExistingCursor = true;
+                    }
+                } catch (error) {
+                    console.warn('Admin realtime polling failed', error);
+                }
+            };
+
+            await poll();
+            setInterval(poll, 8000);
+        }
+
         // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+
+            setupAdminNotificationBell();
+            updateAdminPermissionUi();
+            const enableNotificationsButton = document.querySelector('[data-admin-enable-notifications]');
+            if (enableNotificationsButton) {
+                enableNotificationsButton.addEventListener('click', requestAdminNotificationPermission);
+            }
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                subscribeForBackgroundPush();
+            }
+
+            startAdminRealtimePolling();
+
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
             const closeMobileMenu = document.getElementById('close-mobile-menu');

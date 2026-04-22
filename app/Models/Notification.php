@@ -142,4 +142,24 @@ class Notification extends Model
             ],
         ]);
     }
+
+    public static function createSubmissionCompletedForAdmin(
+        int $userId,
+        int $submissionId,
+        string $employeeName,
+        string $listTitle
+    ) {
+        return self::create([
+            'user_id' => $userId,
+            'type' => 'submission_completed',
+            'title' => 'Nieuwe ingevulde lijst',
+            'message' => "{$employeeName} heeft de lijst '{$listTitle}' volledig ingevuld.",
+            'data' => [
+                'submission_id' => $submissionId,
+                'employee_name' => $employeeName,
+                'list_title' => $listTitle,
+                'url' => "/admin/submissions/{$submissionId}",
+            ],
+        ]);
+    }
 }

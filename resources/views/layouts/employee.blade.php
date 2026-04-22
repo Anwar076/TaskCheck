@@ -418,6 +418,7 @@
 
         async function showRealtimeNotification(notification) {
             showInAppRealtimeToast(notification);
+            playRealtimeNotificationSound();
 
             if (!('Notification' in window)) {
                 return;
@@ -432,6 +433,7 @@
                 body: notification.message || 'Je hebt een nieuwe melding in TaskCheck.',
                 icon: '/logos/taskcheck-favicon.png',
                 badge: '/logos/taskcheck-favicon.png',
+                vibrate: [100, 40, 140],
                 tag: `taskcheck-notification-${notification.id}`,
                 data: {
                     url: '/employee/notifications',
@@ -439,12 +441,49 @@
             });
         }
 
+        function playRealtimeNotificationSound() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) {
+                    return;
+                }
+
+                const context = new AudioContextClass();
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(660, context.currentTime + 0.14);
+
+                gainNode.gain.setValueAtTime(0.0001, context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.2);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                oscillator.start(context.currentTime);
+                oscillator.stop(context.currentTime + 0.22);
+
+                oscillator.onended = () => {
+                    context.close().catch(() => {});
+                };
+            } catch (error) {
+                // Browsers kunnen geluid blokkeren zonder user interaction.
+            }
+        }
+
         function showInAppRealtimeToast(notification) {
             const toast = document.createElement('div');
-            toast.className = 'fixed bottom-4 right-4 z-[9999] max-w-sm rounded-xl border border-blue-200 bg-white px-4 py-3 shadow-xl';
+            toast.className = 'fixed bottom-4 right-4 z-[9999] max-w-sm rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
             toast.innerHTML = `
-                <p class="text-sm font-semibold text-slate-900">${notification.title || 'Nieuwe melding'}</p>
-                <p class="mt-1 text-xs text-slate-600">${notification.message || 'Je hebt een nieuwe melding in TaskCheck.'}</p>
+                <div class="flex items-start gap-3">
+                    <span class="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">🔔</span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-900">${notification.title || 'Nieuwe melding'}</p>
+                        <p class="mt-1 text-xs text-slate-600">${notification.message || 'Je hebt een nieuwe melding in TaskCheck.'}</p>
+                    </div>
+                </div>
             `;
 
             document.body.appendChild(toast);

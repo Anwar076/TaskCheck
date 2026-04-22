@@ -42,7 +42,7 @@ class WebPushService
         $payload = json_encode([
             'title' => $notification->title ?: 'TaskCheck',
             'body' => $notification->message ?: 'Nieuwe melding',
-            'url' => '/employee/notifications',
+            'url' => $this->resolveTargetUrl($notification),
             'notification_id' => $notification->id,
         ], JSON_UNESCAPED_UNICODE);
 
@@ -74,6 +74,25 @@ class WebPushService
                 }
             }
         }
+    }
+
+    private function resolveTargetUrl(Notification $notification): string
+    {
+        $data = is_array($notification->data) ? $notification->data : [];
+        if (!empty($data['url']) && is_string($data['url'])) {
+            return $data['url'];
+        }
+
+        $user = $notification->user;
+        if ($user && $user->role === 'admin') {
+            if (!empty($data['submission_id'])) {
+                return '/admin/submissions/'.$data['submission_id'];
+            }
+
+            return '/admin/dashboard';
+        }
+
+        return '/employee/notifications';
     }
 }
 
