@@ -244,7 +244,7 @@ private function getUserAssignments($user, $date)
         return Submission::where('user_id', $user->id)
             ->where('list_id', $taskList->id)
             ->whereDate('created_at', $date)
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'reviewed'])
             ->exists();
     }
 

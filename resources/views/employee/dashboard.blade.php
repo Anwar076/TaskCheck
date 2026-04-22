@@ -532,7 +532,7 @@
                                         $existingSubmission = \App\Models\Submission::where('user_id', auth()->id())
                                             ->where('list_id', $list->id)
                                             ->whereDate('created_at', today())
-                                            ->where('status', '!=', 'completed')
+                                            ->whereIn('status', ['in_progress', 'rejected', 'redo_requested'])
                                             ->first();
                                     @endphp
                                     
@@ -761,9 +761,20 @@ function updateTodaysListsCounter() {
 // Completed lijsten uit localStorage toepassen (bij load)
 function applyCompletedListsFromStorage() {
     try {
+        const todayKey = new Date().toISOString().slice(0, 10);
         Object.keys(localStorage).forEach(key => {
             if (key.startsWith('completed_list_')) {
-                const listId = key.replace('completed_list_', '');
+                const parts = key.split(':');
+                if (parts.length !== 2) {
+                    localStorage.removeItem(key);
+                    return;
+                }
+                const listId = parts[0].replace('completed_list_', '');
+                const completionDate = parts[1];
+                if (completionDate !== todayKey) {
+                    localStorage.removeItem(key);
+                    return;
+                }
                 removeListCard(listId);
             }
         });
@@ -775,7 +786,12 @@ function applyCompletedListsFromStorage() {
 // Luister naar wijzigingen in localStorage (andere tab/pagina)
 window.addEventListener('storage', function(e) {
     if (!e.key || !e.key.startsWith('completed_list_')) return;
-    const listId = e.key.replace('completed_list_', '');
+    const parts = e.key.split(':');
+    if (parts.length !== 2) return;
+    const listId = parts[0].replace('completed_list_', '');
+    const completionDate = parts[1];
+    const todayKey = new Date().toISOString().slice(0, 10);
+    if (completionDate !== todayKey) return;
     removeListCard(listId);
     showDashboardToast('Een lijst is zojuist afgerond en van je dashboard gehaald 🎉', 'success');
 });
@@ -976,47 +992,6 @@ document.addEventListener('DOMContentLoaded', function() {
     applyCompletedListsFromStorage();
     updateTodaysListsCounter();
     
-    // BELANGRIJK: Zorg ervoor dat individuele taken NOOIT automatisch worden verwijderd
-    // Taken moeten altijd zichtbaar blijven, ongeacht hun status (completed, overdue, etc.)
-    // Alleen hele lijsten kunnen worden verwijderd via removeListCard() wanneer de lijst is afgerond
-    
-    // Expliciet uitschakelen van alle mogelijke automatische verwijdering van taken
-    // Blokkeer alle remove() calls op individuele taken
-    const originalRemove = Element.prototype.remove;
-    Element.prototype.remove = function() {
-        // Als dit een taak item is, blokkeer verwijdering
-        if (this.classList && this.classList.contains('flex') && 
-            this.classList.contains('items-center') && 
-            this.classList.contains('space-x-3') &&
-            this.closest('[data-list-id]')) {
-            // Dit is een taak binnen een lijst - blokkeer verwijdering
-            console.warn('Poging om taak te verwijderen geblokkeerd. Taken moeten altijd zichtbaar blijven.');
-            return;
-        }
-        // Anders, normaal verwijderen
-        return originalRemove.call(this);
-    };
-    
-    // Zorg ervoor dat taken altijd zichtbaar blijven (geen display: none of opacity: 0 voor langere tijd)
-    const ensureTasksVisible = setInterval(() => {
-        document.querySelectorAll('[data-list-id] .flex.items-center.space-x-3').forEach(task => {
-            // Reset eventuele verborgen styles
-            if (task.style.display === 'none') {
-                task.style.display = '';
-                console.warn('Taak was verborgen, maar is weer zichtbaar gemaakt.');
-            }
-            // Zorg ervoor dat taken niet permanent opacity 0 hebben (behalve tijdens animaties)
-            if (task.style.opacity === '0' && !task.hasAttribute('data-animating')) {
-                task.style.opacity = '';
-                console.warn('Taak had opacity 0, maar is weer zichtbaar gemaakt.');
-            }
-        });
-    }, 1000); // Check elke seconde
-    
-    // Stop interval na 30 seconden (dan zijn alle animaties klaar)
-    setTimeout(() => {
-        clearInterval(ensureTasksVisible);
-    }, 30000);
 });
 
 

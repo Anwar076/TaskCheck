@@ -934,6 +934,7 @@ class ValidationError extends Error {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('checklist-js v4 loaded');
+    const completionStorageKey = 'completed_list_{{ $submission->taskList->id }}:' + new Date().toISOString().slice(0, 10);
 
     if (!window.signaturePads) window.signaturePads = {};
 
@@ -1057,6 +1058,16 @@ function validateTaskForm(form) {
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
     const requiredProofType = form.dataset.requiredProofType || 'none';
+    const mainFileInput = form.querySelector('input[type="file"][name="proof_files[]"]');
+    const hasProofFiles = !!(mainFileInput && mainFileInput.files && mainFileInput.files.length > 0);
+
+    if (requiredProofType === 'photo' && !hasProofFiles) {
+        if (mainFileInput) {
+            mainFileInput.classList.add('border-red-500');
+        }
+        showNotification('Je hebt geen afbeelding toegevoegd aan de taak.', 'error');
+        return false;
+    }
 
     requiredFields.forEach(field => {
         field.classList.remove('border-red-500', 'border-red-300');
@@ -1338,7 +1349,7 @@ function initializeFinalSubmissionAjax() {
             if (!data.success) throw new Error(data.message || 'Onbekende fout opgetreden');
 
             try {
-                localStorage.setItem('completed_list_{{ $submission->taskList->id }}', Date.now().toString());
+                localStorage.setItem(completionStorageKey, Date.now().toString());
             } catch (e) {
                 console.warn('Kon localStorage niet schrijven:', e);
             }
