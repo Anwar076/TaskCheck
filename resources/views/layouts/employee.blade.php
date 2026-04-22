@@ -352,6 +352,14 @@
             });
         }
 
+        function normalizeEmployeeNotificationUrl(url) {
+            if (!url || typeof url !== 'string') {
+                return '/employee/notifications';
+            }
+
+            return url.endsWith('/edit') ? url.slice(0, -5) : url;
+        }
+
         async function registerServiceWorkerIfNeeded() {
             if (!('serviceWorker' in navigator)) {
                 return null;
@@ -446,7 +454,7 @@
                 vibrate: [100, 40, 140],
                 tag: `taskcheck-notification-${notification.id}`,
                 data: {
-                    url: notification.url || '/employee/notifications',
+                    url: normalizeEmployeeNotificationUrl(notification.url),
                 },
             });
         }
@@ -517,7 +525,7 @@
             const toast = document.createElement('div');
             toast.setAttribute('data-realtime-toast', '1');
             toast.className = 'fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-3 left-3 sm:left-auto sm:right-4 z-[9999] sm:max-w-sm rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
-            const targetUrl = notification.url || '/employee/notifications';
+            const targetUrl = normalizeEmployeeNotificationUrl(notification.url);
             toast.innerHTML = `
                 <div class="flex items-start gap-3">
                     <span class="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">🔔</span>

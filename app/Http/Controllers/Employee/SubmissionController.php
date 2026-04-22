@@ -279,7 +279,7 @@ class SubmissionController extends Controller
 
             if ($task->required_proof_type === 'photo') {
                 $rules['proof_files.*'] = 'image|max:5120'; // 5MB max for images
-                $messages['proof_files.required'] = 'Je bent vergeten om een afbeelding toe te voegen.';
+                $messages['proof_files.required'] = 'Je hebt geen afbeelding toegevoegd aan de taak.';
             }
             
             if ($task->required_proof_type === 'text') {

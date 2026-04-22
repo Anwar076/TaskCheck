@@ -93,7 +93,7 @@ class Notification extends Model
                 'submission_id' => $submissionId,
                 'task_title' => $taskTitle,
                 'reason' => $reason,
-                'url' => "/employee/submissions/{$submissionId}/edit",
+                'url' => "/employee/submissions/{$submissionId}",
             ],
         ]);
     }

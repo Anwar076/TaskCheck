@@ -91,6 +91,9 @@
                         $displayMessage = $notification->message;
                     }
                     $targetUrl = $data['url'] ?? (isset($data['submission_id']) ? route('employee.submissions.edit', $data['submission_id']) : null);
+                    if (is_string($targetUrl) && str_ends_with($targetUrl, '/edit')) {
+                        $targetUrl = substr($targetUrl, 0, -5);
+                    }
                     $borderColor = match ($type) {
                         'task_rejected' => 'border-red-400',
                         'task_redo_requested' => 'border-amber-400',

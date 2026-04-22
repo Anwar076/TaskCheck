@@ -130,7 +130,10 @@ class NotificationController extends Controller
                 $data = is_array($notification->data) ? $notification->data : [];
                 $targetUrl = $data['url'] ?? null;
                 if (!$targetUrl && !empty($data['submission_id'])) {
-                    $targetUrl = "/employee/submissions/{$data['submission_id']}/edit";
+                    $targetUrl = "/employee/submissions/{$data['submission_id']}";
+                }
+                if (is_string($targetUrl) && str_ends_with($targetUrl, '/edit')) {
+                    $targetUrl = substr($targetUrl, 0, -5);
                 }
 
                 return [

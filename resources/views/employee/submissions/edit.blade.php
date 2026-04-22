@@ -1065,7 +1065,7 @@ function validateTaskForm(form) {
             if (field.files.length === 0) {
                 field.classList.add('border-red-500');
                 if (requiredProofType === 'photo') {
-                    showNotification('Je bent vergeten om een afbeelding erbij te zetten.', 'error');
+                    showNotification('Je hebt geen afbeelding toegevoegd aan de taak.', 'error');
                 } else {
                     showNotification('Bewijs is vereist voor deze taak.', 'error');
                 }
