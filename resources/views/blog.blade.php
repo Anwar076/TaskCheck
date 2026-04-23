@@ -60,10 +60,14 @@
     </section>
 
     <section class="pb-16">
-        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-4">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-4">
             <a href="{{ route('seo.horeca-checklist-app') }}" class="rounded-2xl border border-blue-100 bg-white/85 p-5 hover:bg-white transition">
                 <h3 class="font-semibold text-slate-900">Horeca checklist app</h3>
                 <p class="text-sm text-slate-600 mt-1">Lees hoe restaurants, keukens en teams dagelijks controle houden.</p>
+            </a>
+            <a href="{{ route('seo.horeca-app-personeel') }}" class="rounded-2xl border border-indigo-100 bg-white/85 p-5 hover:bg-white transition">
+                <h3 class="font-semibold text-slate-900">Horeca app personeel</h3>
+                <p class="text-sm text-slate-600 mt-1">Stuur teams per shift aan met duidelijke taken en realtime werkcontrole.</p>
             </a>
             <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="rounded-2xl border border-emerald-100 bg-white/85 p-5 hover:bg-white transition">
                 <h3 class="font-semibold text-slate-900">Schoonmaak checklist app</h3>

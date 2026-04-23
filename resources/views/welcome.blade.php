@@ -363,11 +363,16 @@
     </section>
 
     <section class="max-w-7xl mx-auto px-6 py-10 reveal">
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="{{ route('seo.horeca-checklist-app') }}" class="rounded-2xl border border-blue-100 bg-white/85 p-5 hover:bg-white transition">
                 <p class="text-xs font-semibold text-blue-700">Horeca</p>
                 <h3 class="mt-1 font-semibold text-slate-900">Restaurant checklist en keukencontrole</h3>
                 <p class="text-sm text-slate-600 mt-1">Standaardiseer opening, service en sluiting met duidelijk bewijs per taak.</p>
+            </a>
+            <a href="{{ route('seo.horeca-app-personeel') }}" class="rounded-2xl border border-indigo-100 bg-white/85 p-5 hover:bg-white transition">
+                <p class="text-xs font-semibold text-indigo-700">Horeca personeel</p>
+                <h3 class="mt-1 font-semibold text-slate-900">Horeca app personeel per shift</h3>
+                <p class="text-sm text-slate-600 mt-1">Stuur bediening, bar en keuken aan met duidelijke taken en controle.</p>
             </a>
             <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="rounded-2xl border border-emerald-100 bg-white/85 p-5 hover:bg-white transition">
                 <p class="text-xs font-semibold text-emerald-700">Schoonmaak</p>
@@ -386,7 +391,7 @@
         <div class="rounded-2xl border border-blue-100 bg-white/90 p-6 sm:p-8">
             <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Checklist app voor bedrijven die operationeel willen groeien</h2>
             <p class="mt-3 text-slate-600">TaskCheck helpt organisaties om takenlijsten voor personeel centraal te beheren en werkcontrole aantoonbaar te maken. Voor horeca teams betekent dit grip op opening, keukencontrole en sluitrondes. Voor schoonmaakbedrijven betekent dit consistente kwaliteitscontrole per locatie met bewijs per taak. Ook andere bedrijven met terugkerende operationele processen gebruiken TaskCheck om fouten te verminderen en productiviteit te verhogen.</p>
-            <p class="mt-3 text-slate-600">Met realtime dashboards zie je direct welke taken zijn afgerond, welke controles ontbreken en waar je moet bijsturen. Daardoor werk je niet langer op onderbuikgevoel, maar op actuele data. Bekijk ook de pagina’s <a href="{{ route('seo.horeca-checklist-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">horeca checklist app</a>, <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">schoonmaak checklist app</a>, <a href="{{ route('seo.werkcontrole-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">werkcontrole app</a> en <a href="{{ route('seo.takenlijst-personeel') }}" class="text-blue-700 font-semibold hover:text-blue-800">takenlijst personeel</a> voor sectorgerichte informatie.</p>
+            <p class="mt-3 text-slate-600">Met realtime dashboards zie je direct welke taken zijn afgerond, welke controles ontbreken en waar je moet bijsturen. Daardoor werk je niet langer op onderbuikgevoel, maar op actuele data. Bekijk ook de pagina’s <a href="{{ route('seo.horeca-checklist-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">horeca checklist app</a>, <a href="{{ route('seo.horeca-app-personeel') }}" class="text-blue-700 font-semibold hover:text-blue-800">horeca app personeel</a>, <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">schoonmaak checklist app</a>, <a href="{{ route('seo.werkcontrole-app') }}" class="text-blue-700 font-semibold hover:text-blue-800">werkcontrole app</a> en <a href="{{ route('seo.takenlijst-personeel') }}" class="text-blue-700 font-semibold hover:text-blue-800">takenlijst personeel</a> voor sectorgerichte informatie.</p>
         </div>
     </section>
 
