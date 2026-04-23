@@ -18,11 +18,10 @@
 
         <!-- PWA Manifest -->
         <link rel="manifest" href="/manifest.json">
+
+        <!-- ✅ FIXED FAVICON -->
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-        <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
-        <link rel="shortcut icon" href="{{ asset('logos/taskcheck-favicon.svg') }}" type="image/svg+xml">
-        <link rel="icon" type="image/svg+xml" href="{{ asset('logos/taskcheck-favicon.svg') }}">
-        <link rel="alternate icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('logos/taskcheck-favicon.png') }}">
 
         <!-- Apple Touch Icons -->
         <link rel="apple-touch-icon" href="{{ asset('logos/taskcheck-favicon.png') }}">
