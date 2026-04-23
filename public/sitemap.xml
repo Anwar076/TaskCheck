@@ -55,6 +55,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://taskcheck.nl/horeca-app-personeel</loc>
+    <lastmod>2026-04-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://taskcheck.nl/blog/horeca-personeel-controleren-checklist-app</loc>
     <lastmod>2026-04-22</lastmod>
     <changefreq>monthly</changefreq>
