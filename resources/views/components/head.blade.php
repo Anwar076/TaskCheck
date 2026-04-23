@@ -12,9 +12,11 @@
 
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
-<link rel="shortcut icon" href="/logos/taskcheck-favicon.svg" type="image/svg+xml">
-<link rel="icon" type="image/svg+xml" href="/logos/taskcheck-favicon.svg">
-<link rel="alternate icon" type="image/png" href="/logos/taskcheck-favicon.png">
+
+<!-- ✅ FIXED FAVICON (BELANGRIJK) -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/logos/taskcheck-favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/logos/taskcheck-favicon.png">
 
 <!-- Apple Touch Icons -->
 <link rel="apple-touch-icon" href="/logos/taskcheck-favicon.png">
@@ -26,12 +28,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<!-- Local compiled Tailwind (faster than CDN runtime) -->
+<!-- Local compiled Tailwind -->
 @vite('resources/css/app.css')
+
 <style> 
     body { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
 
-    /* Animations */
     @keyframes fadeUp { from { opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
     @keyframes fadeIn { from { opacity:0;} to {opacity:1;} }
     @keyframes float { 0%,100% {transform:translateY(0);} 50% {transform:translateY(-8px);} }
@@ -40,7 +42,6 @@
     .fade-in { animation: fadeIn 1s ease-out forwards; }
     .float { animation: float 6s ease-in-out infinite; }
 
-    /* Hover effects */
     .card-hover { transition: all 0.35s ease; }
     .card-hover:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
 
