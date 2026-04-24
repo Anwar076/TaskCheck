@@ -32,6 +32,17 @@ class MollieService
         return $this->request('get', '/payments/'.rawurlencode($paymentId));
     }
 
+    public function cancelPayment(string $paymentId): void
+    {
+        $paymentId = trim($paymentId);
+        if ($paymentId === '') {
+            return;
+        }
+
+        // Mollie uses DELETE /payments/{id} for payment cancellation.
+        $this->request('delete', '/payments/'.rawurlencode($paymentId));
+    }
+
     public function getRecentCustomerPayments(string $customerId, int $limit = 10): array
     {
         $customerId = trim($customerId);

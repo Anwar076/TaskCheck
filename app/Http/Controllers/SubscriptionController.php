@@ -259,6 +259,25 @@ class SubscriptionController extends Controller
                         // Keep cancellation resilient if one of the old subscriptions no longer exists.
                     }
                 }
+
+                // Also cancel recent in-progress customer payments to prevent
+                // additional debits after explicit cancellation.
+                $payments = $this->mollieService->getRecentCustomerPayments((string) $company->mollie_customer_id, 50);
+                foreach ($payments as $payment) {
+                    $paymentId = trim((string) ($payment['id'] ?? ''));
+                    $status = strtolower(trim((string) ($payment['status'] ?? '')));
+
+                    if ($paymentId === '' || !in_array($status, ['open', 'pending', 'authorized'], true)) {
+                        continue;
+                    }
+
+                    try {
+                        $this->mollieService->cancelPayment($paymentId);
+                    } catch (\Throwable $ignored) {
+                        // Some pending methods cannot be cancelled anymore by API.
+                        // We continue cancellation flow and keep subscription stopped.
+                    }
+                }
             }
 
             $company->update([
