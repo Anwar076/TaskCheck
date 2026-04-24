@@ -242,10 +242,31 @@ class SubscriptionController extends Controller
                 );
             }
 
+            // Defensive cleanup: cancel any other active/pending customer subscriptions as well.
+            // This prevents new charges from orphaned or duplicate recurring subscriptions.
+            if ($company->mollie_customer_id) {
+                $subscriptions = $this->mollieService->getCustomerSubscriptions((string) $company->mollie_customer_id);
+                foreach ($subscriptions as $subscription) {
+                    $subscriptionId = trim((string) ($subscription['id'] ?? ''));
+                    $status = strtolower(trim((string) ($subscription['status'] ?? '')));
+                    if ($subscriptionId === '' || in_array($status, ['canceled', 'completed'], true)) {
+                        continue;
+                    }
+
+                    try {
+                        $this->mollieService->cancelSubscription((string) $company->mollie_customer_id, $subscriptionId);
+                    } catch (\Throwable $ignored) {
+                        // Keep cancellation resilient if one of the old subscriptions no longer exists.
+                    }
+                }
+            }
+
             $company->update([
                 'subscription_status' => 'cancelled',
                 'mollie_subscription_id' => null,
                 'subscription_ends_at' => $accessUntil ?? now(),
+                'pending_subscription_plan' => null,
+                'mollie_payment_id' => null,
             ]);
         } catch (\Throwable $e) {
             return redirect()->route('subscription.show')
@@ -281,6 +302,15 @@ class SubscriptionController extends Controller
             $status = $payment['status'] ?? null;
 
             if ($status === 'paid') {
+                if ($this->shouldIgnorePaidActivation($company, (string) $company->mollie_payment_id)) {
+                    $company->update([
+                        'mollie_payment_id' => null,
+                        'pending_subscription_plan' => null,
+                    ]);
+
+                    return redirect()->route('subscription.show')
+                        ->with('warning', 'Betaling ontvangen voor een geannuleerd abonnement. Het abonnement blijft opgezegd.');
+                }
                 $this->finalizePaidPayment($company, $payment);
 
                 return redirect()->route('subscription.show')
@@ -318,6 +348,9 @@ class SubscriptionController extends Controller
             }
 
             if ($status === 'paid') {
+                if ($this->shouldIgnorePaidActivation($company, $paymentId)) {
+                    return response('ok', 200);
+                }
                 $this->finalizePaidPayment($company, $payment);
             }
         } catch (\Throwable $e) {
@@ -516,6 +549,13 @@ class SubscriptionController extends Controller
                 $status = $payment['status'] ?? null;
 
                 if ($status === 'paid') {
+                    if ($this->shouldIgnorePaidActivation($company, (string) $company->mollie_payment_id)) {
+                        $company->update([
+                            'mollie_payment_id' => null,
+                            'pending_subscription_plan' => null,
+                        ]);
+                        return;
+                    }
                     $this->finalizePaidPayment($company, $payment);
                     return;
                 }
@@ -563,10 +603,38 @@ class SubscriptionController extends Controller
                 return;
             }
 
+            $paidPaymentId = trim((string) ($paidPayment['id'] ?? ''));
+            if ($this->shouldIgnorePaidActivation($company, $paidPaymentId)) {
+                $company->update([
+                    'mollie_payment_id' => null,
+                    'pending_subscription_plan' => null,
+                ]);
+                return;
+            }
+
             $this->finalizePaidPayment($company, $paidPayment);
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    private function shouldIgnorePaidActivation(Company $company, string $paymentId): bool
+    {
+        if ($company->subscription_status !== 'cancelled') {
+            return false;
+        }
+
+        // A paid webhook for an old/parallel payment should never reactivate
+        // a company that explicitly cancelled and has no active checkout flow.
+        if ($company->pending_subscription_plan) {
+            return false;
+        }
+
+        if (!$company->mollie_payment_id) {
+            return true;
+        }
+
+        return trim((string) $company->mollie_payment_id) !== trim($paymentId);
     }
 
     private function shouldUseStarterTestOverride(string $email, string $plan): bool

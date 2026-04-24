@@ -45,6 +45,19 @@ class MollieService
         return is_array($payments) ? $payments : [];
     }
 
+    public function getCustomerSubscriptions(string $customerId, int $limit = 250): array
+    {
+        $customerId = trim($customerId);
+        if ($customerId === '') {
+            return [];
+        }
+
+        $response = $this->request('get', '/customers/'.rawurlencode($customerId).'/subscriptions?limit='.$limit);
+        $subscriptions = $response['_embedded']['subscriptions'] ?? [];
+
+        return is_array($subscriptions) ? $subscriptions : [];
+    }
+
     public function createSubscription(string $customerId, array $payload): array
     {
         return $this->request('post', "/customers/{$customerId}/subscriptions", $payload);
