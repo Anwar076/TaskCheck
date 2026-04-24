@@ -370,6 +370,9 @@ class SubscriptionController extends Controller
                 if ($this->shouldIgnorePaidActivation($company, $paymentId)) {
                     return response('ok', 200);
                 }
+                if (!$this->isActivationPayment($company, $paymentId, $payment)) {
+                    return response('ok', 200);
+                }
                 $this->finalizePaidPayment($company, $payment);
             }
         } catch (\Throwable $e) {
@@ -668,6 +671,11 @@ class SubscriptionController extends Controller
 
     private function createRecurringSubscription(Company $company, string $plan, string $amountValue, string $interval): array
     {
+        $existingSubscriptionId = $this->findExistingReusableSubscriptionId($company);
+        if ($existingSubscriptionId !== null) {
+            return ['id' => $existingSubscriptionId];
+        }
+
         return $this->mollieService->createSubscription((string) $company->mollie_customer_id, [
             'amount' => [
                 'currency' => 'EUR',
@@ -682,6 +690,52 @@ class SubscriptionController extends Controller
                 'interval' => $interval,
             ],
         ]);
+    }
+
+    private function findExistingReusableSubscriptionId(Company $company): ?string
+    {
+        if (!$company->mollie_customer_id) {
+            return null;
+        }
+
+        try {
+            $subscriptions = $this->mollieService->getCustomerSubscriptions((string) $company->mollie_customer_id);
+            foreach ($subscriptions as $subscription) {
+                $subscriptionId = trim((string) ($subscription['id'] ?? ''));
+                $status = strtolower(trim((string) ($subscription['status'] ?? '')));
+                if ($subscriptionId === '') {
+                    continue;
+                }
+
+                if (in_array($status, ['active', 'pending', 'suspended'], true)) {
+                    return $subscriptionId;
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return null;
+    }
+
+    private function isActivationPayment(Company $company, string $paymentId, array $payment): bool
+    {
+        $storedPaymentId = trim((string) $company->mollie_payment_id);
+        if ($storedPaymentId !== '' && $storedPaymentId === trim($paymentId)) {
+            return true;
+        }
+
+        if ($company->pending_subscription_plan) {
+            return true;
+        }
+
+        if (!$company->hasActiveSubscription() && strtolower((string) data_get($payment, 'sequenceType', '')) === 'first') {
+            return true;
+        }
+
+        // Recurring charges of already active subscriptions should not
+        // re-run activation logic.
+        return false;
     }
 
     private function ensureRecurringSubscriptionExists(Company $company): void
