@@ -100,6 +100,15 @@ Route::get('/horeca-app-personeel', function () {
 Route::get('/checklist-app-voor-bedrijven', function () {
     return view('seo.checklist-app-voor-bedrijven');
 })->name('seo.checklist-app-voor-bedrijven');
+Route::get('/wat-is-een-checklist-app', function () {
+    return view('seo.wat-is-een-checklist-app');
+})->name('seo.wat-is-een-checklist-app');
+Route::get('/checklist-app-schoonmaak', function () {
+    return view('seo.checklist-app-schoonmaak');
+})->name('seo.checklist-app-schoonmaak');
+Route::get('/beste-checklist-app-2026', function () {
+    return view('seo.beste-checklist-app-2026');
+})->name('seo.beste-checklist-app-2026');
 Route::get('/takenlijst-personeel', function () {
     return view('seo.takenlijst-personeel');
 })->name('seo.takenlijst-personeel');
