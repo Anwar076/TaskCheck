@@ -28,49 +28,49 @@ Route::get('/refresh-csrf', function () {
 })->name('refresh-csrf');
 
 // Public pages (only for web browsers)
-Route::get('/features', function () {
-    return redirect()->route('welcome');
-})->name('features');
+// Route::get('/features', function () {
+//     return redirect()->route('welcome');
+// })->name('features');
 
 Route::get('/pricing', function () {
     return view('pricing');
 })->name('pricing');
 
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
+// Route::get('/about', function () {
+//     return view('about');
+// })->name('about');
 
 Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
-Route::get('/help', function () {
-    return view('help');
-})->name('help');
+// Route::get('/help', function () {
+//     return view('help');
+// })->name('help');
 
-Route::get('/privacy', function () {
-    return view('privacy');
-})->name('privacy');
+// Route::get('/privacy', function () {
+//     return view('privacy');
+// })->name('privacy');
 
-Route::get('/terms', function () {
-    return view('terms');
-})->name('terms');
+// Route::get('/terms', function () {
+//     return view('terms');
+// })->name('terms');
 
-Route::get('/status', function () {
-    return view('status');
-})->name('status');
+// Route::get('/status', function () {
+//     return view('status');
+// })->name('status');
 
-Route::get('/security', function () {
-    return view('security');
-})->name('security');
+// Route::get('/security', function () {
+//     return view('security');
+// })->name('security');
 
-Route::get('/api', function () {
-    return view('api');
-})->name('api');
+// Route::get('/api', function () {
+//     return view('api');
+// })->name('api');
 
-Route::get('/integrations', function () {
-    return view('integrations');
-})->name('integrations');
+// Route::get('/integrations', function () {
+//     return view('integrations');
+// })->name('integrations');
 
 Route::get('/blog', function () {
     return view('blog');
@@ -113,13 +113,13 @@ Route::get('/takenlijst-personeel', function () {
     return view('seo.takenlijst-personeel');
 })->name('seo.takenlijst-personeel');
 
-Route::get('/careers', function () {
-    return view('careers');
-})->name('careers');
+// Route::get('/careers', function () {
+//     return view('careers');
+// })->name('careers');
 
-Route::get('/documentation', function () {
-    return view('documentation');
-})->name('documentation');
+// Route::get('/documentation', function () {
+//     return view('documentation');
+// })->name('documentation');
 
 // Subscription routes (accessible even without active subscription for choosing plans)
 Route::post('/subscription/mollie/webhook', [SubscriptionController::class, 'mollieWebhook'])->name('subscription.mollie.webhook');
