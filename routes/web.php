@@ -97,6 +97,9 @@ Route::get('/werkcontrole-app', function () {
 Route::get('/horeca-app-personeel', function () {
     return view('seo.horeca-app-personeel');
 })->name('seo.horeca-app-personeel');
+Route::get('/checklist-app-voor-bedrijven', function () {
+    return view('seo.checklist-app-voor-bedrijven');
+})->name('seo.checklist-app-voor-bedrijven');
 Route::get('/takenlijst-personeel', function () {
     return view('seo.takenlijst-personeel');
 })->name('seo.takenlijst-personeel');
