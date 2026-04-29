@@ -180,7 +180,7 @@
                         <a href="{{ route('login') }}" class="block text-blue-600 hover:text-blue-700">Start 14 dagen gratis</a>
                         <a href="{{ route('seo.werkcontrole-app') }}" class="block text-blue-600 hover:text-blue-700">Werkcontrole app informatie</a>
                         <a href="{{ route('blog') }}" class="block text-blue-600 hover:text-blue-700">Lees de blog</a>
-                        <!-- <a href="{{ route('help') }}" class="block text-blue-600 hover:text-blue-700">Helpcentrum</a> -->
+                        {{-- <a href="{{ route('help') }}" class="block text-blue-600 hover:text-blue-700">Helpcentrum</a> --}}
                     </div>
                 </div>
             </div>
