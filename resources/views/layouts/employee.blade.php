@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @php
+        $webAppVersion = file_exists(public_path('sw.js'))
+            ? date('Ymd.His', filemtime(public_path('sw.js')))
+            : 'unknown';
+    @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -313,6 +318,7 @@
                         </div>
                     </div>
                     <p class="text-sm text-gray-500">&copy; {{ date('Y') }} TaskCheck. All rights reserved.</p>
+                    <p class="mt-1 text-xs text-gray-400">Web app versie: {{ $webAppVersion }}</p>
                 </div>
             </div>
         </footer>

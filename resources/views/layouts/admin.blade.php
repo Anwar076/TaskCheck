@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @php
+        $webAppVersion = file_exists(public_path('sw.js'))
+            ? date('Ymd.His', filemtime(public_path('sw.js')))
+            : 'unknown';
+    @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -299,6 +304,11 @@
                     <!-- Content -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         @yield('content')
+                    </div>
+                    <div class="mt-4 text-right">
+                        <span class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-500">
+                            Web app versie: {{ $webAppVersion }}
+                        </span>
                     </div>
                 </div>
             </main>

@@ -1,5 +1,5 @@
 // ==== BASIS CONFIG ====
-const CACHE_NAME = 'taskcheck-v5.3.2';
+const CACHE_NAME = 'taskcheck-v5.3.4';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/logos/taskcheck-favicon.png',
@@ -33,6 +33,7 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(STATIC_ASSETS))
       .then(() => {
         console.log('[SW] Static assets cached');
+        // Auto update: activeer nieuwe service worker direct.
         return self.skipWaiting();
       })
       .catch((err) => console.error('[SW] Install error', err))
