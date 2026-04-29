@@ -699,23 +699,22 @@
 
                 const toast = document.createElement('div');
                 toast.setAttribute('data-welcome-update-toast', '1');
-                toast.className = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-[9999] rounded-2xl border border-blue-200 bg-white shadow-2xl p-4';
+                toast.className = 'fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4';
                 toast.innerHTML = `
-                    <p class="text-sm font-semibold text-slate-900">Er is een update beschikbaar</p>
-                    <p class="mt-1 text-xs text-slate-600">Klik op updaten om de nieuwste versie te laden.</p>
-                    <div class="mt-3 flex items-center gap-2">
-                        <button type="button" data-update-now class="inline-flex items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-semibold px-3 py-2 hover:bg-blue-700 transition-colors">Updaten</button>
-                        <button type="button" data-update-later class="inline-flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 hover:bg-slate-50 transition-colors">Later</button>
+                    <div class="w-full max-w-md rounded-2xl border border-blue-200 bg-white shadow-2xl p-5 sm:p-6">
+                        <p class="text-base font-semibold text-slate-900">Update vereist</p>
+                        <p class="mt-1 text-sm text-slate-600">Er is een nieuwe versie beschikbaar. Update eerst om verder te gaan.</p>
+                        <div class="mt-4">
+                            <button type="button" data-update-now class="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 hover:bg-blue-700 transition-colors">Updaten en doorgaan</button>
+                        </div>
                     </div>
                 `;
 
                 toast.querySelector('[data-update-now]')?.addEventListener('click', () => {
                     onUpdate();
                 });
-                toast.querySelector('[data-update-later]')?.addEventListener('click', () => {
-                    toast.remove();
-                });
 
+                document.body.classList.add('overflow-hidden');
                 document.body.appendChild(toast);
             }
 
