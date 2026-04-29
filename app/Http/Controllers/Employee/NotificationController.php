@@ -119,6 +119,14 @@ class NotificationController extends Controller
             ->reverse()
             ->values();
 
+        $unreadNotifications = $user->notifications()
+            ->whereNull('read_at')
+            ->orderByDesc('id')
+            ->take(10)
+            ->get(['id', 'title', 'message', 'type', 'read_at', 'created_at'])
+            ->reverse()
+            ->values();
+
         $latestNotificationId = (int) ($newNotifications->max('id') ?? $afterId);
 
         return response()->json([
@@ -127,6 +135,26 @@ class NotificationController extends Controller
             'latest_user_notification_id' => $latestUserNotificationId,
             'unread_count' => $user->unreadNotifications()->count(),
             'notifications' => $newNotifications->map(function ($notification) {
+                $data = is_array($notification->data) ? $notification->data : [];
+                $targetUrl = $data['url'] ?? null;
+                if (!$targetUrl && !empty($data['submission_id'])) {
+                    $targetUrl = "/employee/submissions/{$data['submission_id']}";
+                }
+                if (is_string($targetUrl) && str_ends_with($targetUrl, '/edit')) {
+                    $targetUrl = substr($targetUrl, 0, -5);
+                }
+
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'type' => $notification->type,
+                    'read_at' => $notification->read_at?->toIso8601String(),
+                    'created_at' => $notification->created_at?->toIso8601String(),
+                    'url' => $targetUrl ?: '/employee/notifications',
+                ];
+            }),
+            'unread_notifications' => $unreadNotifications->map(function ($notification) {
                 $data = is_array($notification->data) ? $notification->data : [];
                 $targetUrl = $data['url'] ?? null;
                 if (!$targetUrl && !empty($data['submission_id'])) {

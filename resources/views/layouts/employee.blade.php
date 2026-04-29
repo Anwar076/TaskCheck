@@ -2,11 +2,19 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $swFile = public_path('sw.js');
+        $versionFile = public_path('build/manifest.json');
+        $fallbackFile = public_path('sw.js');
         $webAppVersion = 'onbekend';
-        if (file_exists($swFile)) {
-            $swMtime = filemtime($swFile);
-            $webAppVersion = 'v' . date('y.m.d-Hi', $swMtime) . ' (' . date('d-m-Y H:i', $swMtime) . ')';
+        $versionTimestamp = null;
+
+        if (file_exists($versionFile)) {
+            $versionTimestamp = filemtime($versionFile);
+        } elseif (file_exists($fallbackFile)) {
+            $versionTimestamp = filemtime($fallbackFile);
+        }
+
+        if ($versionTimestamp) {
+            $webAppVersion = 'v' . date('y.m.d-Hi', $versionTimestamp) . ' (' . date('d-m-Y H:i', $versionTimestamp) . ')';
         }
     @endphp
     <meta charset="utf-8">
@@ -334,6 +342,8 @@
         const realtimeShownNotificationsKey = `taskcheck:shown_notifications:user:${@json((string) auth()->id())}`;
         const vapidKeyUrl = @json(route('push.vapid-public-key', [], false));
         const pushSubscribeUrl = @json(route('push.subscribe', [], false));
+        const notificationMarkReadUrlTemplate = @json(route('employee.notifications.mark-read', ['notification' => '__ID__'], false));
+        const csrfTokenValue = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -359,6 +369,24 @@
                 badge.style.display = 'inline-flex';
                 badge.textContent = count > 9 ? '9+' : String(count);
             });
+
+            syncAppIconBadge(count || 0);
+        }
+
+        async function syncAppIconBadge(count) {
+            try {
+                if (typeof navigator.setAppBadge !== 'function' || typeof navigator.clearAppBadge !== 'function') {
+                    return;
+                }
+
+                if (count > 0) {
+                    await navigator.setAppBadge(count);
+                } else {
+                    await navigator.clearAppBadge();
+                }
+            } catch (error) {
+                // Not all browsers/OS combinations support app icon badges.
+            }
         }
 
         function normalizeEmployeeNotificationUrl(url) {
@@ -526,30 +554,73 @@
         }
 
         function showInAppRealtimeToast(notification) {
-            const existing = document.querySelector('[data-realtime-toast]');
+            if (!notification?.id) return;
+
+            let container = document.querySelector('[data-realtime-toast-container]');
+            if (!container) {
+                container = document.createElement('div');
+                container.setAttribute('data-realtime-toast-container', '1');
+                container.className = 'fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-3 left-3 sm:left-auto sm:right-4 z-[9999] sm:max-w-sm space-y-3';
+                document.body.appendChild(container);
+            }
+
+            const existing = container.querySelector(`[data-realtime-toast-id="${notification.id}"]`);
             if (existing) {
-                existing.remove();
+                return;
             }
 
             const toast = document.createElement('div');
             toast.setAttribute('data-realtime-toast', '1');
-            toast.className = 'fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-3 left-3 sm:left-auto sm:right-4 z-[9999] sm:max-w-sm rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
+            toast.setAttribute('data-realtime-toast-id', String(notification.id));
+            toast.className = 'rounded-2xl border border-blue-200 bg-white px-4 py-3 shadow-2xl ring-1 ring-blue-100';
             const targetUrl = normalizeEmployeeNotificationUrl(notification.url);
             toast.innerHTML = `
                 <div class="flex items-start gap-3">
                     <span class="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm">🔔</span>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <p class="text-sm font-semibold text-slate-900">${notification.title || 'Nieuwe melding'}</p>
                         <p class="mt-1 text-xs text-slate-600">${notification.message || 'Je hebt een nieuwe melding in TaskCheck.'}</p>
-                        <a href="${targetUrl}" class="mt-2 inline-flex items-center text-xs font-semibold text-blue-700 hover:text-blue-900">Open melding</a>
+                        <div class="mt-2 flex items-center gap-2">
+                            <a href="${targetUrl}" class="inline-flex items-center text-xs font-semibold text-blue-700 hover:text-blue-900">Open melding</a>
+                            <button type="button" data-notification-read="${notification.id}" class="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50">Afgevinkt</button>
+                        </div>
                     </div>
                 </div>
             `;
 
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
+            const markReadButton = toast.querySelector(`[data-notification-read="${notification.id}"]`);
+            markReadButton?.addEventListener('click', async () => {
+                markReadButton.setAttribute('disabled', 'disabled');
+                markReadButton.textContent = 'Bezig...';
+
+                const url = notificationMarkReadUrlTemplate.replace('__ID__', String(notification.id));
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfTokenValue,
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Kon melding niet afvinken.');
+                    }
+
+                    toast.remove();
+                    const currentUnread = Number(document.querySelector('[data-unread-count-badge]')?.textContent || 0);
+                    const nextUnread = Number.isFinite(currentUnread) ? Math.max(currentUnread - 1, 0) : 0;
+                    updateUnreadBadges(nextUnread);
+                } catch (error) {
+                    markReadButton.removeAttribute('disabled');
+                    markReadButton.textContent = 'Afgevinkt';
+                }
+            });
+
+            container.appendChild(toast);
         }
 
         async function startRealtimeNotificationPolling() {
@@ -579,9 +650,11 @@
                     updateUnreadBadges(payload.unread_count || 0);
 
                     const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
+                    const unreadNotifications = Array.isArray(payload.unread_notifications) ? payload.unread_notifications : [];
                     if (!hasExistingCursor && typeof payload.latest_user_notification_id === 'number') {
-                        // First run on this account: start from current latest notification
-                        // so historical notifications are not replayed as "new".
+                        for (const unreadNotification of unreadNotifications) {
+                            showInAppRealtimeToast(unreadNotification);
+                        }
                         lastNotificationId = payload.latest_user_notification_id;
                         localStorage.setItem(realtimeStorageKey, String(lastNotificationId));
                         hasExistingCursor = true;

@@ -2,11 +2,19 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $swFile = public_path('sw.js');
+        $versionFile = public_path('build/manifest.json');
+        $fallbackFile = public_path('sw.js');
         $webAppVersion = 'onbekend';
-        if (file_exists($swFile)) {
-            $swMtime = filemtime($swFile);
-            $webAppVersion = 'v' . date('y.m.d-Hi', $swMtime) . ' (' . date('d-m-Y H:i', $swMtime) . ')';
+        $versionTimestamp = null;
+
+        if (file_exists($versionFile)) {
+            $versionTimestamp = filemtime($versionFile);
+        } elseif (file_exists($fallbackFile)) {
+            $versionTimestamp = filemtime($fallbackFile);
+        }
+
+        if ($versionTimestamp) {
+            $webAppVersion = 'v' . date('y.m.d-Hi', $versionTimestamp) . ' (' . date('d-m-Y H:i', $versionTimestamp) . ')';
         }
     @endphp
     <meta charset="utf-8">
