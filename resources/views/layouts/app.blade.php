@@ -63,30 +63,6 @@
             const installButton = document.getElementById('install-button');
             const installButtonMobile = document.getElementById('install-button-mobile');
 
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js')
-                        .then((registration) => {
-                            registration.addEventListener('updatefound', () => {
-                                const newWorker = registration.installing;
-                                if (!newWorker) {
-                                    return;
-                                }
-
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                        window.location.reload();
-                                    }
-                                });
-                            });
-                        })
-                        .catch((registrationError) => {
-                            console.log('SW registration failed: ', registrationError);
-                        });
-                });
-            }
-
             const handleInstall = () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
