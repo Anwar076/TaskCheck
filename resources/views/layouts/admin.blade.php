@@ -483,6 +483,24 @@
                 badge.classList.remove('hidden');
                 badge.textContent = count > 9 ? '9+' : String(count);
             });
+
+            syncAdminAppIconBadge(count || 0);
+        }
+
+        async function syncAdminAppIconBadge(count) {
+            try {
+                if (typeof navigator.setAppBadge !== 'function' || typeof navigator.clearAppBadge !== 'function') {
+                    return;
+                }
+
+                if (count > 0) {
+                    await navigator.setAppBadge(count);
+                } else {
+                    await navigator.clearAppBadge();
+                }
+            } catch (error) {
+                // Browser/launcher might not support app icon badges.
+            }
         }
 
         function showAdminToast(notification) {

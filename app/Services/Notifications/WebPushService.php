@@ -44,6 +44,10 @@ class WebPushService
             'body' => $notification->message ?: 'Nieuwe melding',
             'url' => $this->resolveTargetUrl($notification),
             'notification_id' => $notification->id,
+            'unread_count' => Notification::query()
+                ->where('user_id', $notification->user_id)
+                ->whereNull('read_at')
+                ->count(),
         ], JSON_UNESCAPED_UNICODE);
 
         foreach ($subscriptions as $subscription) {

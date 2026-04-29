@@ -146,6 +146,7 @@ self.addEventListener('push', (event) => {
     body: 'Je hebt een nieuwe melding in TaskCheck.',
     url: '/employee/notifications',
     type: 'general',
+    unreadCount: 0,
   };
 
   if (event.data) {
@@ -156,6 +157,7 @@ self.addEventListener('push', (event) => {
         body: parsed.body || payload.body,
         url: parsed.url || payload.url,
         type: parsed.type || payload.type,
+        unreadCount: Number(parsed.unread_count || parsed.badge_count || 0),
       };
     } catch (error) {
       payload.body = event.data.text();
@@ -189,9 +191,22 @@ self.addEventListener('push', (event) => {
     ],
   };
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title, options)
-  );
+  event.waitUntil((async () => {
+    await self.registration.showNotification(payload.title, options);
+
+    // App icon badge (when supported by browser/OS)
+    if (typeof self.registration.setAppBadge === 'function') {
+      try {
+        if (payload.unreadCount > 0) {
+          await self.registration.setAppBadge(payload.unreadCount);
+        } else {
+          await self.registration.setAppBadge(1);
+        }
+      } catch (error) {
+        // Ignore unsupported/denied badge updates
+      }
+    }
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {
