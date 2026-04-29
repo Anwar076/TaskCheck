@@ -2,9 +2,12 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $webAppVersion = file_exists(public_path('sw.js'))
-            ? date('Ymd.His', filemtime(public_path('sw.js')))
-            : 'unknown';
+        $swFile = public_path('sw.js');
+        $webAppVersion = 'onbekend';
+        if (file_exists($swFile)) {
+            $swMtime = filemtime($swFile);
+            $webAppVersion = 'v' . date('y.m.d-Hi', $swMtime) . ' (' . date('d-m-Y H:i', $swMtime) . ')';
+        }
     @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

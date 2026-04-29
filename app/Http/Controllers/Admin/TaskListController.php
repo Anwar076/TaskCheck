@@ -1087,6 +1087,12 @@ PROMPT,
                         'is_active' => true,
                     ]);
                     $assignments[] = $assignment;
+                    \App\Models\Notification::createListAssigned(
+                        (int) $selectedUser->id,
+                        (int) $list->id,
+                        (string) $list->title,
+                        'user'
+                    );
                     \Log::info('Created user assignment', ['assignment_id' => $assignment->id, 'user_id' => $userId]);
                 } else {
                     $skippedAssignments++;
@@ -1109,6 +1115,23 @@ PROMPT,
                         'is_active' => true,
                     ]);
                     $assignments[] = $assignment;
+
+                    $departmentUsers = \App\Models\User::query()
+                        ->where('company_id', auth()->user()->company_id)
+                        ->where('role', 'employee')
+                        ->where('department', $validatedData['department'])
+                        ->when($list->location_id, fn ($q) => $q->where('location_id', $list->location_id))
+                        ->get(['id']);
+
+                    foreach ($departmentUsers as $departmentUser) {
+                        \App\Models\Notification::createListAssigned(
+                            (int) $departmentUser->id,
+                            (int) $list->id,
+                            (string) $list->title,
+                            'department'
+                        );
+                    }
+
                     \Log::info('Created department assignment', ['assignment_id' => $assignment->id, 'department' => $validatedData['department']]);
                 } else {
                     $skippedAssignments++;

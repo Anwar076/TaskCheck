@@ -163,4 +163,27 @@ class Notification extends Model
             ],
         ]);
     }
+
+    public static function createListAssigned(
+        int $userId,
+        int $listId,
+        string $listTitle,
+        string $assignmentType = 'user'
+    ) {
+        $typeLabel = $assignmentType === 'department' ? 'afdeling' : 'persoonlijk';
+
+        return self::create([
+            'user_id' => $userId,
+            'type' => 'list_assigned',
+            'title' => 'Nieuwe takenlijst toegewezen',
+            'message' => "Je hebt een nieuwe takenlijst gekregen: '{$listTitle}'.",
+            'data' => [
+                'list_id' => $listId,
+                'list_title' => $listTitle,
+                'assignment_type' => $assignmentType,
+                'assignment_label' => $typeLabel,
+                'url' => "/employee/lists/{$listId}",
+            ],
+        ]);
+    }
 }
