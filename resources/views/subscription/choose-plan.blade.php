@@ -9,24 +9,30 @@
             '1 admin account',
             '5 medewerker accounts',
             '1 locatie',
-            'Basis taakbeheer',
-            'Weekoverzicht en AI-import niet inbegrepen',
+            'Taken met foto- en videobewijs',
+            'Realtime voortgangsoverzicht',
+            'Mobiele webapp (installeerbaar)',
         ],
         'professional' => [
-            'Alles van Starter',
             '2 admin accounts',
-            '10 employee accounts',
+            '10 medewerker accounts',
             '2 locaties',
-            'AI-import (PDF, Excel, Word, foto)',
+            'AI-import (PDF, Excel, Word of foto)',
             'Weekoverzicht & rapportages',
+            'Taken met foto- en videobewijs',
+            'Realtime voortgangsoverzicht',
+            'Mobiele webapp (installeerbaar)',
             'Priority support',
         ],
         'business' => [
-            'Alles van Professional',
             '5 admin accounts',
-            '20 employee accounts',
+            '20 medewerker accounts',
             '3 locaties',
             'Uitgebreide rapportages per locatie',
+            'Inzicht in prestaties per team en locatie',
+            'Taken met foto- en videobewijs',
+            'Realtime voortgangsoverzicht',
+            'Mobiele webapp (installeerbaar)',
             'Priority support',
         ],
     ];
@@ -78,7 +84,7 @@
                             </div>
                             <div>
                                 <h1 class="text-xl sm:text-2xl font-bold text-white">Kies Je Abonnement</h1>
-                                <p class="text-blue-100 text-sm sm:text-base mt-1">Vergelijk en selecteer het plan dat bij je past</p>
+                                <p class="text-blue-100 text-sm sm:text-base mt-1">Kies het plan dat past bij jouw organisatie en start direct.</p>
                             </div>
                         </div>
                         @if($company)
