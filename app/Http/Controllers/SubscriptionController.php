@@ -92,7 +92,7 @@ class SubscriptionController extends Controller
     public function activate(Request $request): RedirectResponse
     {
         $request->validate([
-            'plan' => ['required', 'in:starter,professional,enterprise,custom'],
+            'plan' => ['required', 'in:starter,professional,business,custom'],
         ]);
 
         $company = Auth::user()->company;

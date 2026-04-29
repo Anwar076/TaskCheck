@@ -23,11 +23,11 @@
         $planNameMap = [
             'starter' => 'Starter',
             'professional' => 'Professional',
-            'enterprise' => 'Enterprise',
+            'business' => 'Business',
             'custom' => 'Custom',
         ];
         $planName = $planNameMap[$planKey] ?? ucfirst($planKey);
-        $hasAiFeatures = in_array($planKey, ['professional', 'enterprise', 'custom'], true);
+        $hasAiFeatures = in_array($planKey, ['professional', 'business', 'custom'], true);
     @endphp
 
     <div class="header">
@@ -104,7 +104,7 @@
                 <p style="margin:0 0 8px;"><strong>Je gebruikt momenteel Starter (zonder AI).</strong></p>
                 <ul>
                     <li>Alle kernfuncties werken: checklists, bewijs, review en notificaties.</li>
-                    <li>AI-functies zijn beschikbaar in Professional en Enterprise.</li>
+                    <li>AI-functies zijn beschikbaar in Professional, Business en Enterprise.</li>
                     <li>Upgraden kan op elk moment via <strong>Abonnement</strong> in het dashboard.</li>
                 </ul>
             @endif

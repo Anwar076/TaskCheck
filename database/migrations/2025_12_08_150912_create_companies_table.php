@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('domain')->nullable();
-            $table->string('subscription_plan')->nullable(); // 'starter', 'professional', 'enterprise', 'custom'
+            $table->string('subscription_plan')->nullable(); // e.g. 'starter', 'professional', 'business', 'custom'
             $table->enum('subscription_status', ['trial', 'active', 'cancelled', 'expired'])->default('trial');
             $table->dateTime('trial_ends_at')->nullable();
             $table->dateTime('subscription_ends_at')->nullable();

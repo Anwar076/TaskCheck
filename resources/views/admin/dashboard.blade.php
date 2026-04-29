@@ -41,6 +41,27 @@
             </div>
         </div>
 
+        <div class="mb-6 sm:mb-8">
+            <form method="GET" class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+                <div class="flex flex-col md:flex-row md:items-end gap-3">
+                    <div>
+                        <label for="dashboard-location-filter" class="block text-sm font-medium text-slate-700 mb-1.5">Locatie filter</label>
+                        <select id="dashboard-location-filter" name="location_id" class="w-full md:min-w-[280px] md:w-[340px] px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                            <option value="">Alle locaties</option>
+                            @foreach(collect($locations ?? []) as $location)
+                                <option value="{{ $location->id }}" {{ (string) ($selectedLocationId ?? '') === (string) $location->id ? 'selected' : '' }}>
+                                    {{ $location->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors w-full md:w-auto md:self-end">
+                        Toepassen
+                    </button>
+                </div>
+            </form>
+        </div>
+
         {{-- KPI-kaarten --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
             <a href="{{ route('admin.users.index') }}" class="group bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 hover:shadow-lg hover:border-blue-100 transition-all">
@@ -352,7 +373,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('live-monitoring-data');
         container.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto"></div><p class="text-slate-500 mt-2 text-sm">Laden...</p></div>';
 
-        fetch('/admin/live-monitoring', { headers: { 'Accept': 'application/json' } })
+        const selectedLocationId = document.getElementById('dashboard-location-filter')?.value || '';
+        const query = selectedLocationId ? `?location_id=${encodeURIComponent(selectedLocationId)}` : '';
+
+        fetch(`/admin/live-monitoring${query}`, { headers: { 'Accept': 'application/json' } })
             .then(r => r.ok ? r.json() : Promise.reject(new Error('Netwerkfout. Controleer je verbinding.')))
             .then(data => {
                 container.innerHTML = renderLiveData(data);

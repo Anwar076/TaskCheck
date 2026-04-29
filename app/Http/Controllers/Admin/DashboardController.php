@@ -7,36 +7,73 @@ use App\Models\User;
 use App\Models\TaskList;
 use App\Models\Submission;
 use App\Models\SubmissionTask;
+use App\Models\Location;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $companyId = auth()->user()->company_id;
+        $selectedLocationId = null;
+
+        if ($request->filled('location_id')) {
+            $candidateLocationId = (int) $request->get('location_id');
+            $locationExists = Location::where('company_id', $companyId)->where('id', $candidateLocationId)->exists();
+            if ($locationExists) {
+                $selectedLocationId = $candidateLocationId;
+            }
+        }
+
+        $locations = Location::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $taskListQuery = TaskList::query()->where('company_id', $companyId);
+        if ($selectedLocationId) {
+            $taskListQuery->where('location_id', $selectedLocationId);
+        }
+
+        $submissionQuery = Submission::query()->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+            $query->where('company_id', $companyId);
+            if ($selectedLocationId) {
+                $query->where('location_id', $selectedLocationId);
+            }
+        });
+
+        $tasksQuery = \App\Models\Task::query()->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+            $query->where('company_id', $companyId);
+            if ($selectedLocationId) {
+                $query->where('location_id', $selectedLocationId);
+            }
+        });
         
         // Enhanced KPI Statistics
         $stats = [
             // Basic counts
-            'total_employees' => User::where('company_id', $companyId)->where('role', 'employee')->count(),
+            'total_employees' => User::where('company_id', $companyId)
+                ->where('role', 'employee')
+                ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
+                ->count(),
             'total_admins' => User::where('company_id', $companyId)->where('role', 'admin')->count(),
             'total_users' => User::where('company_id', $companyId)->count(),
-            'total_lists' => TaskList::count(),
-            'active_lists' => TaskList::active()->count(),
-            'total_tasks' => \App\Models\Task::count(),
+            'total_lists' => (clone $taskListQuery)->count(),
+            'active_lists' => (clone $taskListQuery)->where('is_active', true)->count(),
+            'total_tasks' => (clone $tasksQuery)->count(),
             
             // Submissions stats
-            'total_submissions' => Submission::count(),
-            'pending_submissions' => Submission::where('status', 'completed')->count(),
-            'approved_submissions' => Submission::where('status', 'reviewed')->count(),
-            'rejected_submissions' => Submission::where('status', 'rejected')->count(),
+            'total_submissions' => (clone $submissionQuery)->count(),
+            'pending_submissions' => (clone $submissionQuery)->where('status', 'completed')->count(),
+            'approved_submissions' => (clone $submissionQuery)->where('status', 'reviewed')->count(),
+            'rejected_submissions' => (clone $submissionQuery)->where('status', 'rejected')->count(),
             
             // Today's activity
-            'completed_today' => Submission::whereDate('completed_at', today())->count(),
-            'started_today' => Submission::whereDate('created_at', today())->count(),
-            'submissions_this_week' => Submission::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-            'submissions_this_month' => Submission::whereMonth('created_at', now()->month)->count(),
+            'completed_today' => (clone $submissionQuery)->whereDate('completed_at', today())->count(),
+            'started_today' => (clone $submissionQuery)->whereDate('created_at', today())->count(),
+            'submissions_this_week' => (clone $submissionQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'submissions_this_month' => (clone $submissionQuery)->whereMonth('created_at', now()->month)->count(),
             
             // Performance metrics
             'avg_completion_time' => $this->getAverageCompletionTime(),
@@ -45,12 +82,18 @@ class DashboardController extends Controller
             'completion_rate_month' => $this->getCompletionRate('month'),
             
             // Task statistics
-            'most_used_proof_type' => $this->getMostUsedProofType(),
-            'tasks_requiring_signature' => \App\Models\Task::where('requires_signature', true)->count(),
+            'most_used_proof_type' => $this->getMostUsedProofType($companyId, $selectedLocationId),
+            'tasks_requiring_signature' => (clone $tasksQuery)->where('requires_signature', true)->count(),
         ];
 
         // Recent submissions for review
         $recentSubmissions = Submission::with(['user', 'taskList'])
+            ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+                $query->where('company_id', $companyId);
+                if ($selectedLocationId) {
+                    $query->where('location_id', $selectedLocationId);
+                }
+            })
             ->where('status', 'completed')
             ->latest()
             ->take(10)
@@ -68,13 +111,24 @@ class DashboardController extends Controller
         // Enhanced employee performance stats (last 30 days)
         $employeeStats = User::where('company_id', $companyId)
             ->where('role', 'employee')
+            ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
             ->withCount([
-                'submissions as total_submissions' => function ($query) {
+                'submissions as total_submissions' => function ($query) use ($selectedLocationId) {
                     $query->where('created_at', '>=', now()->subDays(30));
+                    if ($selectedLocationId) {
+                        $query->whereHas('taskList', function ($taskListQuery) use ($selectedLocationId) {
+                            $taskListQuery->where('location_id', $selectedLocationId);
+                        });
+                    }
                 },
-                'submissions as completed_submissions' => function ($query) {
+                'submissions as completed_submissions' => function ($query) use ($selectedLocationId) {
                     $query->where('status', 'completed')
                           ->where('created_at', '>=', now()->subDays(30));
+                    if ($selectedLocationId) {
+                        $query->whereHas('taskList', function ($taskListQuery) use ($selectedLocationId) {
+                            $taskListQuery->where('location_id', $selectedLocationId);
+                        });
+                    }
                 }
             ])
             ->take(10)
@@ -92,19 +146,23 @@ class DashboardController extends Controller
             $date = now()->subDays($i);
             $dailyActivity->push([
                 'date' => $date->format('M j'),
-                'submissions' => Submission::whereDate('created_at', $date)->count(),
-                'completions' => Submission::whereDate('completed_at', $date)->count(),
+                'submissions' => (clone $submissionQuery)->whereDate('created_at', $date)->count(),
+                'completions' => (clone $submissionQuery)->whereDate('completed_at', $date)->count(),
             ]);
         }
 
         // List usage statistics
         $listStats = TaskList::withCount(['submissions'])
+            ->where('company_id', $companyId)
+            ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
             ->orderByDesc('submissions_count')
             ->take(5)
             ->get();
 
         // Priority distribution
         $priorityStats = TaskList::selectRaw('priority, count(*) as count')
+            ->where('company_id', $companyId)
+            ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
             ->groupBy('priority')
             ->get()
             ->pluck('count', 'priority');
@@ -116,7 +174,9 @@ class DashboardController extends Controller
             'employeeStats',
             'dailyActivity',
             'listStats',
-            'priorityStats'
+            'priorityStats',
+            'locations',
+            'selectedLocationId'
         ));
     }
 
@@ -160,9 +220,15 @@ class DashboardController extends Controller
         return $total > 0 ? round(($completed / $total) * 100, 1) : 0;
     }
 
-    private function getMostUsedProofType()
+    private function getMostUsedProofType(int $companyId, ?int $selectedLocationId = null)
     {
         $proofType = \App\Models\Task::selectRaw('required_proof_type, count(*) as count')
+            ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+                $query->where('company_id', $companyId);
+                if ($selectedLocationId) {
+                    $query->where('location_id', $selectedLocationId);
+                }
+            })
             ->groupBy('required_proof_type')
             ->orderByDesc('count')
             ->first();
@@ -170,10 +236,26 @@ class DashboardController extends Controller
         return $proofType ? ucfirst($proofType->required_proof_type) : 'None';
     }
 
-    public function liveMonitoring()
+    public function liveMonitoring(Request $request)
     {
+        $companyId = auth()->user()->company_id;
+        $selectedLocationId = null;
+        if ($request->filled('location_id')) {
+            $candidateLocationId = (int) $request->get('location_id');
+            $locationExists = Location::where('company_id', $companyId)->where('id', $candidateLocationId)->exists();
+            if ($locationExists) {
+                $selectedLocationId = $candidateLocationId;
+            }
+        }
+
         // Get active user sessions (submissions in progress)
         $activeSessions = Submission::with(['user', 'taskList', 'submissionTasks.task'])
+            ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+                $query->where('company_id', $companyId);
+                if ($selectedLocationId) {
+                    $query->where('location_id', $selectedLocationId);
+                }
+            })
             ->where(function ($query) {
                 $query->where('status', 'in_progress')
                       ->orWhere(function ($subQuery) {
@@ -265,6 +347,12 @@ class DashboardController extends Controller
 
         // Get recently completed submissions (last 2 hours)
         $recentCompletions = Submission::with(['user', 'taskList'])
+            ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+                $query->where('company_id', $companyId);
+                if ($selectedLocationId) {
+                    $query->where('location_id', $selectedLocationId);
+                }
+            })
             ->where('status', 'completed')
             ->where('completed_at', '>=', now()->subHours(2))
             ->latest('completed_at')
@@ -286,6 +374,12 @@ class DashboardController extends Controller
 
         // Get users who started tasks in the last hour but haven't been active
         $staleUsers = Submission::with(['user', 'taskList'])
+            ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+                $query->where('company_id', $companyId);
+                if ($selectedLocationId) {
+                    $query->where('location_id', $selectedLocationId);
+                }
+            })
             ->where('status', '!=', 'completed')
             ->where('created_at', '>=', now()->subHours(1))
             ->where('updated_at', '<', now()->subMinutes(30))
@@ -305,6 +399,7 @@ class DashboardController extends Controller
             'recentCompletions' => $recentCompletions,
             'staleUsers' => $staleUsers,
             'timestamp' => now()->toISOString(),
+            'selected_location_id' => $selectedLocationId,
             'summary' => [
                 'active_users' => $activeSessions->count(),
                 'avg_progress' => round($activeSessions->avg('progress_percentage') ?? 0, 1),

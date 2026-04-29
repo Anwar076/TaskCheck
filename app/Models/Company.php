@@ -28,6 +28,7 @@ class Company extends Model
         'mollie_subscription_id',
         'mollie_payment_id',
         'max_users',
+        'max_locations',
         'max_storage_gb',
         'is_active',
     ];
@@ -42,30 +43,43 @@ class Company extends Model
     const PLANS = [
         'starter' => [
             'name' => 'Starter',
-            'price_monthly' => 29,
-            'price_annual' => 23, // 20% discount
+            'price_monthly' => 39,
+            'price_annual' => 31, // 20% discount
             'max_users' => 6, // 1 admin + 5 medewerkers
+            'max_locations' => 1,
             'max_storage_gb' => 5,
         ],
         'professional' => [
             'name' => 'Professional',
-            'price_monthly' => 79,
-            'price_annual' => 63,
+            'price_monthly' => 99,
+            'price_annual' => 79,
             'max_users' => 12, // 2 admins + 10 medewerkers
+            'max_locations' => 2,
             'max_storage_gb' => 50,
         ],
+        'business' => [
+            'name' => 'Business',
+            'price_monthly' => 179,
+            'price_annual' => 143,
+            'max_users' => 25, // 5 admins + 20 medewerkers
+            'max_locations' => 3,
+            'max_storage_gb' => -1,
+        ],
+        // Legacy paid enterprise plan (kept for backward compatibility).
         'enterprise' => [
-            'name' => 'Enterprise',
+            'name' => 'Enterprise (Legacy)',
             'price_monthly' => 149,
             'price_annual' => 119,
-            'max_users' => 25, // 5 admins + 20 medewerkers
-            'max_storage_gb' => -1, // Unlimited
+            'max_users' => 25,
+            'max_locations' => -1,
+            'max_storage_gb' => -1,
         ],
         'custom' => [
-            'name' => 'Custom',
+            'name' => 'Enterprise',
             'price_monthly' => 0,
             'price_annual' => 0,
             'max_users' => -1, // Unlimited
+            'max_locations' => -1, // Unlimited
             'max_storage_gb' => -1, // Unlimited
         ],
     ];
@@ -74,6 +88,11 @@ class Company extends Model
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function locations()
+    {
+        return $this->hasMany(Location::class);
     }
 
     // Check if company is on trial
@@ -145,6 +164,7 @@ class Company extends Model
             'subscription_status' => 'active',
             'subscription_ends_at' => $endDate,
             'max_users' => self::PLANS[$plan]['max_users'] ?? 5,
+            'max_locations' => self::PLANS[$plan]['max_locations'] ?? 1,
             'max_storage_gb' => self::PLANS[$plan]['max_storage_gb'] ?? 5,
         ]);
     }
@@ -173,6 +193,37 @@ class Company extends Model
     public function getUserCount(): int
     {
         return $this->users()->count();
+    }
+
+    public function hasReachedLocationLimit(): bool
+    {
+        $locationLimit = $this->getLocationLimit();
+        if ($locationLimit === -1) {
+            return false;
+        }
+
+        return $this->locations()->where('is_active', true)->count() >= $locationLimit;
+    }
+
+    public function getLocationCount(): int
+    {
+        return $this->locations()->where('is_active', true)->count();
+    }
+
+    public function getLocationLimit(): int
+    {
+        $plan = $this->subscription_plan;
+
+        // Keep custom plan configurable through DB.
+        if ($plan === 'custom') {
+            return (int) ($this->max_locations ?? -1);
+        }
+
+        if ($plan && isset(self::PLANS[$plan]['max_locations'])) {
+            return (int) self::PLANS[$plan]['max_locations'];
+        }
+
+        return (int) ($this->max_locations ?? 1);
     }
 
     /**

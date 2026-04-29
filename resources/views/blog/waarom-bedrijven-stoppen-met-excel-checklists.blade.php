@@ -5,7 +5,7 @@
         $seoTitle = 'Waarom bedrijven stoppen met Excel en overstappen op checklist apps | TaskCheck Blog';
         $seoDescription = 'Ontdek waarom Excel tekortschiet voor takenlijst personeel en waarom bedrijven kiezen voor een checklist app en werkcontrole app.';
         $seoUrl = route('blog.waarom-bedrijven-stoppen-met-excel-checklists');
-        $seoImage = asset('logos/taskcheck-logo.png');
+        $seoImage = asset('images/taskcheck-excel-blog-hero.webp');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -25,6 +25,10 @@
     <div class="max-w-4xl mx-auto px-6">
         <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">Waarom bedrijven stoppen met Excel en overstappen op checklist apps</h1>
         <p class="mt-4 text-lg text-slate-600">Excel blijft een krachtig hulpmiddel, maar voor dagelijkse operationele werkcontrole is het vaak niet meer genoeg.</p>
+
+        <div class="mt-8 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
+            <img src="{{ asset('images/taskcheck-excel-blog-hero.webp') }}" alt="TaskCheck dashboard als alternatief voor Excel checklists en werkcontrole" class="w-full rounded-xl" loading="lazy">
+        </div>
 
         <div class="mt-8 space-y-5 text-slate-700 leading-7">
             <h2 class="text-2xl font-bold text-slate-900">Excel werkt prima... totdat je schaal krijgt</h2>

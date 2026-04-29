@@ -29,6 +29,7 @@ class User extends Authenticatable
         'preferences',
         'is_active',
         'company_id',
+        'location_id',
     ];
 
     /**
@@ -116,6 +117,11 @@ class User extends Authenticatable
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 
     /**

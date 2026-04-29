@@ -8,22 +8,26 @@
         'starter' => [
             '1 admin account',
             '5 medewerker accounts',
+            '1 locatie',
             'Basis taakbeheer',
+            'Weekoverzicht en AI-import niet inbegrepen',
         ],
         'professional' => [
             'Alles van Starter',
             '2 admin accounts',
             '10 employee accounts',
-            'Advanced analytics',
+            '2 locaties',
+            'AI-import (PDF, Excel, Word, foto)',
+            'Weekoverzicht & rapportages',
             'Priority support',
-            'AI',
         ],
-        'enterprise' => [
+        'business' => [
             'Alles van Professional',
             '5 admin accounts',
             '20 employee accounts',
+            '3 locaties',
+            'Uitgebreide rapportages per locatie',
             'Priority support',
-            'AI',
         ],
     ];
 @endphp
@@ -135,7 +139,7 @@
                     {{-- Plan kaarten --}}
                     <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
                         @foreach($plans as $planKey => $plan)
-                            @if($planKey !== 'custom')
+                            @if(in_array($planKey, ['starter', 'professional', 'business'], true))
                                 <div class="relative rounded-2xl border-2 p-6 sm:p-8 flex flex-col transition-all duration-300 {{ $planKey === 'professional' ? 'border-blue-500 bg-gradient-to-b from-blue-50/50 to-white shadow-xl md:scale-105 z-10' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-lg' }}">
                                     @if($planKey === 'professional')
                                         <div class="absolute -top-3 left-1/2 -translate-x-1/2">

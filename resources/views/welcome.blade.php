@@ -15,7 +15,7 @@
         $seoTitle = 'Checklist app voor bedrijven, horeca en schoonmaak | TaskCheck';
         $seoDescription = 'TaskCheck is de checklist app voor bedrijven: takenlijst personeel beheren, werkcontrole uitvoeren en bewijs verzamelen met foto en video. Start 14 dagen gratis.';
         $seoUrl = route('welcome');
-        $seoImage = asset('logos/taskcheck-logo.png');
+        $seoImage = asset('images/taskcheck-platform-overview.webp');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')

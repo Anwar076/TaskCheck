@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\TaskListController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TaskTemplateController;
+use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Services\Ai\SubmissionReviewService;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
@@ -166,6 +167,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
     Route::resource('lists', TaskListController::class)->except(['index']);
     Route::resource('lists.tasks', TaskController::class)->shallow();
     Route::resource('templates', TaskTemplateController::class);
+    Route::resource('locations', LocationController::class)->except(['show']);
     Route::resource('users', UserController::class)->except(['index']);
         Route::resource('submissions', SubmissionController::class)->except(['index']);
 

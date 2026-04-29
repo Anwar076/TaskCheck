@@ -1514,6 +1514,9 @@ function initializeChecklists() {
     document.querySelectorAll('form[id^="task-form-"]').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            if (form.dataset.submitting === '1') {
+                return;
+            }
             if (!validateTaskForm(form)) return;
 
             const taskId = form.id.replace('task-form-', '');
@@ -1526,6 +1529,7 @@ function initializeChecklists() {
 
             const submitBtn = form.querySelector('button[type="submit"]');
             const original = submitBtn.innerHTML;
+            form.dataset.submitting = '1';
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1537,23 +1541,59 @@ function initializeChecklists() {
             showLoadingOverlay();
 
             const formData = new FormData(form);
+            const submitTaskForm = async (allowRetry = true) => {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                });
 
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                if (response.ok) {
+                    return response.json();
                 }
-            })
-            .then(r => {
-                if (r.ok) return r.json();
-                if (r.status === 422) return r.json().then(d => { throw new ValidationError(d.message || 'Validation failed', d.errors); });
-                if (r.status === 403) throw new Error('Access denied. Please refresh the page and try again.');
-                if (r.status === 500) throw new Error('Server error occurred. Please try again in a moment.');
-                throw new Error(`Request failed with status ${r.status}`);
-            })
+
+                if (response.status === 422) {
+                    const data = await response.json();
+                    throw new ValidationError(data.message || 'Validation failed', data.errors);
+                }
+
+                if (response.status === 419) {
+                    // Refresh token once and retry transparently.
+                    const refreshResponse = await fetch('/refresh-csrf', {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (refreshResponse.ok) {
+                        const refreshData = await refreshResponse.json();
+                        if (refreshData && refreshData.token) {
+                            const meta = document.querySelector('meta[name="csrf-token"]');
+                            if (meta) meta.setAttribute('content', refreshData.token);
+                        }
+                    }
+
+                    if (allowRetry) {
+                        return submitTaskForm(false);
+                    }
+                }
+
+                // Temporary/transient errors: retry once.
+                if (allowRetry && (response.status >= 500 || response.status === 0)) {
+                    await new Promise(resolve => setTimeout(resolve, 350));
+                    return submitTaskForm(false);
+                }
+
+                if (response.status === 403) throw new Error('Toegang geweigerd. Ververs de pagina en probeer opnieuw.');
+                if (response.status >= 500) throw new Error('Serverfout opgetreden. Probeer het opnieuw.');
+                throw new Error(`Verzoek mislukt met status ${response.status}`);
+            };
+
+            submitTaskForm()
             .then(data => {
                 if (!data.success) throw new Error(data.message || 'Onbekende fout opgetreden');
 
@@ -1568,6 +1608,7 @@ function initializeChecklists() {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = original;
                 }
+                form.dataset.submitting = '0';
             })
             .catch(err => {
                 let msg = 'Fout bij het afronden van taak. Probeer opnieuw.';
@@ -1582,6 +1623,7 @@ function initializeChecklists() {
                 hideLoadingOverlay();
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = original;
+                form.dataset.submitting = '0';
             });
         });
     });

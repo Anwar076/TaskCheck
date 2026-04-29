@@ -200,6 +200,25 @@
                                         </div>
                                     @endif
                                 </div>
+
+                                <div>
+                                    @php $locationLimit = $company->getLocationLimit(); @endphp
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-slate-600 font-medium">Locaties</span>
+                                        <span class="font-bold text-slate-900">
+                                            {{ $company->getLocationCount() }} / {{ $locationLimit == -1 ? '∞' : $locationLimit }}
+                                        </span>
+                                    </div>
+                                    @if($locationLimit != -1)
+                                        @php
+                                            $locationPercent = $locationLimit > 0 ? min(100, ($company->getLocationCount() / $locationLimit) * 100) : 0;
+                                        @endphp
+                                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                            <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500"
+                                                 style="width: {{ $locationPercent }}%"></div>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>

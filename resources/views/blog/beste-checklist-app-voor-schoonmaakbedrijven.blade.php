@@ -5,7 +5,7 @@
         $seoTitle = 'Beste checklist app voor schoonmaakbedrijven | TaskCheck Blog';
         $seoDescription = 'Ontdek waar de beste checklist app voor schoonmaakbedrijven aan moet voldoen: werkcontrole, bewijs, planning en rapportage.';
         $seoUrl = route('blog.beste-checklist-app-voor-schoonmaakbedrijven');
-        $seoImage = asset('logos/taskcheck-logo.png');
+        $seoImage = asset('images/taskcheck-schoonmaak-blog-hero.webp');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -25,6 +25,10 @@
     <div class="max-w-4xl mx-auto px-6">
         <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">Beste checklist app voor schoonmaakbedrijven</h1>
         <p class="mt-4 text-lg text-slate-600">Schoonmaakbedrijven draaien op betrouwbaarheid. Opdrachtgevers willen zicht op kwaliteit, teamleiders willen grip op uitvoering, en medewerkers willen duidelijke taken.</p>
+
+        <div class="mt-8 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
+            <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}" alt="TaskCheck schoonmaak checklist app dashboard voor kwaliteitscontrole" class="w-full rounded-xl" loading="lazy">
+        </div>
 
         <div class="mt-8 space-y-5 text-slate-700 leading-7">
             <h2 class="text-2xl font-bold text-slate-900">Waarom een schoonmaakbedrijf een gespecialiseerde checklist app nodig heeft</h2>

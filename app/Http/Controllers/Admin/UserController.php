@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\Location;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -37,8 +38,10 @@ class UserController extends Controller
      */
     public function create()
     {
+        $companyId = auth()->user()->company_id;
         return view('admin.users.create', [
             'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
+            'locations' => Location::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -55,6 +58,10 @@ class UserController extends Controller
             'department' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'location_id' => [
+                'nullable',
+                Rule::exists('locations', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
+            ],
         ]);
 
         $this->ensureRoleLimitNotExceeded(
@@ -97,9 +104,11 @@ class UserController extends Controller
             abort(403, 'Unauthorized access to user.');
         }
         
+        $companyId = auth()->user()->company_id;
         return view('admin.users.edit', [
             'user' => $user,
             'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
+            'locations' => Location::where('company_id', $companyId)->orderByDesc('is_active')->orderBy('name')->get(),
         ]);
     }
 
@@ -121,6 +130,10 @@ class UserController extends Controller
             'department' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'location_id' => [
+                'nullable',
+                Rule::exists('locations', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
+            ],
         ]);
 
         if ($validated['role'] !== $user->role) {
@@ -221,7 +234,9 @@ class UserController extends Controller
         $planLimits = [
             'starter' => ['admin' => 1, 'employee' => 5],
             'professional' => ['admin' => 2, 'employee' => 10],
+            'business' => ['admin' => 5, 'employee' => 20],
             'enterprise' => ['admin' => 5, 'employee' => 20],
+            'custom' => ['admin' => null, 'employee' => null],
         ];
 
         $planKey = $company->subscription_plan ?: 'starter';
@@ -249,7 +264,9 @@ class UserController extends Controller
         $planLimits = [
             'starter' => ['admin' => 1, 'employee' => 5],
             'professional' => ['admin' => 2, 'employee' => 10],
+            'business' => ['admin' => 5, 'employee' => 20],
             'enterprise' => ['admin' => 5, 'employee' => 20],
+            'custom' => ['admin' => null, 'employee' => null],
         ];
 
         $planKey = $company?->subscription_plan ?: 'starter';

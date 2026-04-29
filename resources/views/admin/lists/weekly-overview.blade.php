@@ -114,16 +114,33 @@
                     <h3 class="text-base font-semibold text-slate-900 mb-1">Periode kiezen</h3>
                     <p class="text-slate-600 text-sm">Selecteer de periode voor de analytics</p>
                 </div>
-                <form method="GET" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <input type="date" name="start_date" value="{{ isset($startDate) ? \Carbon\Carbon::parse($startDate)->format('Y-m-d') : now()->startOfWeek()->format('Y-m-d') }}" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <span class="text-slate-500 text-sm">t/m</span>
-                        <input type="date" name="end_date" value="{{ isset($endDate) ? \Carbon\Carbon::parse($endDate)->format('Y-m-d') : now()->endOfWeek()->format('Y-m-d') }}" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <form method="GET" class="w-full lg:w-auto">
+                    <div class="grid grid-cols-1 xl:grid-cols-[minmax(200px,260px)_minmax(150px,180px)_auto_minmax(150px,180px)_auto] gap-2 sm:gap-3 items-end">
+                        <div>
+                            <label for="weekly-location-filter" class="block text-xs font-medium text-slate-600 mb-1">Locatie</label>
+                            <select id="weekly-location-filter" name="location_id" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                <option value="">Alle locaties</option>
+                                @foreach(collect($locations ?? []) as $location)
+                                    <option value="{{ $location->id }}" {{ (string) ($selectedLocationId ?? '') === (string) $location->id ? 'selected' : '' }}>
+                                        {{ $location->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="weekly-start-date" class="block text-xs font-medium text-slate-600 mb-1">Van</label>
+                            <input id="weekly-start-date" type="date" name="start_date" value="{{ isset($startDate) ? \Carbon\Carbon::parse($startDate)->format('Y-m-d') : now()->startOfWeek()->format('Y-m-d') }}" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <span class="text-slate-500 text-sm text-center hidden xl:inline pb-3">t/m</span>
+                        <div>
+                            <label for="weekly-end-date" class="block text-xs font-medium text-slate-600 mb-1">Tot</label>
+                            <input id="weekly-end-date" type="date" name="end_date" value="{{ isset($endDate) ? \Carbon\Carbon::parse($endDate)->format('Y-m-d') : now()->endOfWeek()->format('Y-m-d') }}" class="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 h-11 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors w-full xl:w-auto xl:self-end">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                            Vernieuwen
+                        </button>
                     </div>
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                        Vernieuwen
-                    </button>
                 </form>
             </div>
         </div>

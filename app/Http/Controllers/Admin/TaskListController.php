@@ -8,15 +8,18 @@ use App\Models\ListAssignment;
 use App\Models\Submission;
 use App\Models\SubmissionTask;
 use App\Models\Notification;
+use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class TaskListController extends Controller
 {
     public function index(Request $request)
     {
-        $query = TaskList::with(['creator', 'template'])
+        $query = TaskList::with(['creator', 'template', 'location'])
             ->withCount('tasks');
 
         if ($request->filled('search')) {
@@ -30,6 +33,10 @@ class TaskListController extends Controller
 
         if ($request->has('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        if ($request->filled('location_id')) {
+            $query->where('location_id', (int) $request->get('location_id'));
         }
 
         $lists = $query->latest()->paginate(12);
@@ -58,7 +65,9 @@ class TaskListController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.lists.create', compact('parentLists', 'templates'));
+        $locations = Location::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.lists.create', compact('parentLists', 'templates', 'locations'));
     }
 
     public function store(Request $request)
@@ -78,6 +87,12 @@ class TaskListController extends Controller
             'template_id' => 'nullable|exists:task_templates,id',
             'selected_days' => 'nullable|array',
             'selected_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'location_id' => [
+                'nullable',
+                Rule::exists('locations', 'id')->where(function ($query) {
+                    $query->where('company_id', auth()->user()->company_id);
+                }),
+            ],
         ]);
 
         // Set creator and company
@@ -101,6 +116,7 @@ class TaskListController extends Controller
 
         // Remove selected_days from the main data as it's now in schedule_config
         unset($validatedData['selected_days']);
+        $validatedData['location_id'] = $validatedData['location_id'] ?? null;
 
         // Create the task list
         $taskList = TaskList::create($validatedData);
@@ -179,12 +195,14 @@ class TaskListController extends Controller
     public function show(TaskList $list)
     {
         // Explicitly load assignments with user relationships for debugging
-        $list->load(['assignments.user', 'tasks', 'submissions']);
+        $list->load(['assignments.user', 'tasks', 'submissions', 'location']);
         
         // Get all users for the assignment modal (zelfde bedrijf; bij null company_id alle gebruikers)
         $companyId = auth()->user()->company_id;
         $users = \App\Models\User::query()
             ->when($companyId !== null, fn($q) => $q->where('company_id', $companyId))
+            ->where('role', 'employee')
+            ->when($list->location_id, fn($q) => $q->where('location_id', $list->location_id))
             ->orderBy('name')
             ->get();
         
@@ -228,7 +246,12 @@ class TaskListController extends Controller
             ->orderBy('title')
             ->get();
 
-        return view('admin.lists.edit', compact('list', 'parentLists'));
+        $locations = Location::where('is_active', true)
+            ->orWhere('id', $list->location_id)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.lists.edit', compact('list', 'parentLists', 'locations'));
     }
 
     public function update(Request $request, TaskList $list)
@@ -252,6 +275,12 @@ class TaskListController extends Controller
             'schedule_config' => 'nullable|array',
             'selected_days' => 'nullable|array',
             'selected_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'location_id' => [
+                'nullable',
+                Rule::exists('locations', 'id')->where(function ($query) {
+                    $query->where('company_id', auth()->user()->company_id);
+                }),
+            ],
         ]);
 
         // Handle improved schedule configuration
@@ -271,6 +300,7 @@ class TaskListController extends Controller
 
         // Remove selected_days from the main data as it's now in schedule_config
         unset($validatedData['selected_days']);
+        $validatedData['location_id'] = $validatedData['location_id'] ?? null;
 
         // Update the task list
         $list->update($validatedData);
@@ -281,6 +311,8 @@ class TaskListController extends Controller
 
     public function aiGenerate(Request $request)
     {
+        $this->ensurePlanFeatureAvailable('ai');
+
         $validated = $request->validate([
             'prompt' => 'nullable|string|max:2000',
             'source_file' => 'nullable|file|max:8192|mimes:jpg,jpeg,png,webp,pdf',
@@ -445,11 +477,15 @@ PROMPT;
 
     public function aiImportPage()
     {
+        $this->ensurePlanFeatureAvailable('ai');
+
         return view('admin.lists.ai-import');
     }
 
     public function aiImportGenerate(Request $request)
     {
+        $this->ensurePlanFeatureAvailable('ai');
+
         $validated = $request->validate([
             'prompt' => 'nullable|string|max:4000',
             'source_file' => 'nullable|file|max:12288|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp',
@@ -620,6 +656,8 @@ PROMPT,
 
     public function aiImportStore(Request $request)
     {
+        $this->ensurePlanFeatureAvailable('ai');
+
         $validated = $request->validate([
             'import_payload' => 'required|string',
             'selected_indices' => 'required|array|min:1',
@@ -1014,6 +1052,24 @@ PROMPT,
             if ($validatedData['assignment_type'] === 'user') {
                 // Assign to specific user
                 $userId = $validatedData['user_ids'];
+
+                $selectedUser = \App\Models\User::query()
+                    ->where('id', $userId)
+                    ->where('company_id', auth()->user()->company_id)
+                    ->where('role', 'employee')
+                    ->first();
+
+                if (!$selectedUser) {
+                    throw ValidationException::withMessages([
+                        'user_ids' => 'Geselecteerde medewerker is ongeldig voor jouw bedrijf.',
+                    ]);
+                }
+
+                if ($list->location_id && (int) $selectedUser->location_id !== (int) $list->location_id) {
+                    throw ValidationException::withMessages([
+                        'user_ids' => 'Deze medewerker hoort niet bij de locatie van deze takenlijst.',
+                    ]);
+                }
                 
                 // Check if assignment already exists
                 $existingAssignment = \App\Models\ListAssignment::where('list_id', $list->id)
@@ -1345,16 +1401,40 @@ PROMPT,
 
     public function weeklyOverview(Request $request)
     {
+        $this->ensurePlanFeatureAvailable('weekly_overview');
+
         // Date range setup
         $startDate = $request->get('start_date', now()->startOfWeek()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->endOfWeek()->format('Y-m-d'));
+        $companyId = auth()->user()->company_id;
+
+        $selectedLocationId = null;
+        if ($request->filled('location_id')) {
+            $candidateLocationId = (int) $request->get('location_id');
+            $locationExists = Location::where('company_id', $companyId)->where('id', $candidateLocationId)->exists();
+            if ($locationExists) {
+                $selectedLocationId = $candidateLocationId;
+            }
+        }
+
+        $locations = Location::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
         // Get employees with submissions in the date range
-        $companyId = auth()->user()->company_id;
         $employees = \App\Models\User::where('company_id', $companyId)
             ->where('role', 'employee')
-            ->with(['submissions' => function ($query) use ($startDate, $endDate) {
+            ->when($selectedLocationId, function ($query) use ($selectedLocationId) {
+                $query->where('location_id', $selectedLocationId);
+            })
+            ->with(['submissions' => function ($query) use ($startDate, $endDate, $selectedLocationId) {
                 $query->whereBetween('created_at', [$startDate, $endDate])
+                      ->when($selectedLocationId, function ($submissionQuery) use ($selectedLocationId) {
+                          $submissionQuery->whereHas('taskList', function ($taskListQuery) use ($selectedLocationId) {
+                              $taskListQuery->where('location_id', $selectedLocationId);
+                          });
+                      })
                       ->with(['taskList', 'submissionTasks']);
             }])
             ->get();
@@ -1392,11 +1472,36 @@ PROMPT,
 
         // Get active weekly lists for basic overview
         $lists = TaskList::with(['assignments.user', 'tasks'])
+            ->where('company_id', $companyId)
             ->where('schedule_type', 'weekly')
             ->where('is_active', true)
+            ->when($selectedLocationId, function ($query) use ($selectedLocationId) {
+                $query->where('location_id', $selectedLocationId);
+            })
             ->get();
 
-        return view('admin.lists.weekly-overview', compact('lists', 'overview', 'startDate', 'endDate'));
+        return view('admin.lists.weekly-overview', compact(
+            'lists',
+            'overview',
+            'startDate',
+            'endDate',
+            'locations',
+            'selectedLocationId'
+        ));
+    }
+
+    private function ensurePlanFeatureAvailable(string $feature): void
+    {
+        $company = auth()->user()->company;
+        $plan = $company?->subscription_plan ?: 'starter';
+
+        if ($feature === 'ai' && $plan === 'starter') {
+            abort(403, 'AI-import is beschikbaar vanaf Professional.');
+        }
+
+        if ($feature === 'weekly_overview' && $plan === 'starter') {
+            abort(403, 'Weekoverzicht is beschikbaar vanaf Professional.');
+        }
     }
 
     public function createDailySubLists(Request $request, TaskList $list)
@@ -1425,6 +1530,7 @@ PROMPT,
             'created_by' => auth()->id(),
             'is_active' => true,
             'schedule_config' => ['day' => $validatedData['day']],
+            'location_id' => $list->location_id,
         ]);
 
         return redirect()->route('admin.lists.show', $dayList)

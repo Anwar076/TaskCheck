@@ -26,12 +26,14 @@
                             </svg>
                             Terug naar overzicht
                         </a>
-                        <a href="{{ route('admin.lists.ai-import') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                            </svg>
-                            AI Importer
-                        </a>
+                        @if((auth()->user()->company?->subscription_plan ?? 'starter') !== 'starter')
+                            <a href="{{ route('admin.lists.ai-import') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                                AI Importer
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -164,6 +166,21 @@
                                 <option value="urgent" {{ old('priority') === 'urgent' ? 'selected' : '' }}>Urgent</option>
                             </select>
                             @error('priority')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="location_id" class="block text-sm font-medium text-slate-700 mb-1.5">Locatie</label>
+                            <select name="location_id" id="location_id"
+                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Alle locaties / algemeen</option>
+                                @foreach($locations as $location)
+                                    <option value="{{ $location->id }}" {{ (string) old('location_id') === (string) $location->id ? 'selected' : '' }}>
+                                        {{ $location->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('location_id')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

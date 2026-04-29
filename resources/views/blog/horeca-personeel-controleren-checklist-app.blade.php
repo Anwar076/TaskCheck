@@ -5,7 +5,7 @@
         $seoTitle = 'Hoe horeca personeel beter te controleren met een checklist app | TaskCheck Blog';
         $seoDescription = 'Praktische gids voor horeca ondernemers: personeel controleren, takenlijsten beheren en werkcontrole borgen met een checklist app.';
         $seoUrl = route('blog.horeca-personeel-controleren-checklist-app');
-        $seoImage = asset('logos/taskcheck-logo.png');
+        $seoImage = asset('images/taskcheck-horeca-blog-hero.webp');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -25,6 +25,10 @@
     <div class="max-w-4xl mx-auto px-6">
         <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">Hoe horeca personeel beter te controleren met een checklist app</h1>
         <p class="mt-4 text-lg text-slate-600">Veel horeca teams werken hard, maar verliezen tijd door onduidelijke overdrachten, vergeten controles en verschil in kwaliteit tussen shifts.</p>
+
+        <div class="mt-8 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
+            <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="TaskCheck horeca dashboard en mobiele checklist app voor personeel controle" class="w-full rounded-xl" loading="lazy">
+        </div>
 
         <div class="mt-8 space-y-5 text-slate-700 leading-7">
             <h2 class="text-2xl font-bold text-slate-900">Waarom traditionele controles in horeca tekortschieten</h2>

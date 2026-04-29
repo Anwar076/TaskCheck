@@ -32,6 +32,7 @@ class TaskList extends Model
         'is_active',
         'template_id',
         'company_id',
+        'location_id',
     ];
 
     protected function casts(): array
@@ -80,6 +81,11 @@ class TaskList extends Model
     public function template()
     {
         return $this->belongsTo(TaskTemplate::class, 'template_id');
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 
     // Scopes

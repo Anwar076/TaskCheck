@@ -5,6 +5,9 @@
 @endsection
 
 @section('content')
+@php
+    $locationOptions = \App\Models\Location::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+@endphp
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
 
@@ -45,8 +48,8 @@
         <div id="lists-stats" style="display: none;">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
                 <div class="px-4 sm:px-6 py-4 sm:py-5">
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div class="flex-1 w-full lg:max-w-md">
+                    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                        <div class="w-full xl:max-w-md 2xl:max-w-lg">
                             <label for="search-input" class="sr-only">Zoeken</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -54,23 +57,32 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                                     </svg>
                                 </div>
-                                <input type="search" id="search-input" placeholder="Zoek op titel of beschrijving..." autocomplete="off" class="block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input type="search" id="search-input" placeholder="Zoek op titel of beschrijving..." autocomplete="off" class="block w-full h-11 pl-10 pr-4 border border-slate-200 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 xl:flex-nowrap">
+                            <div class="flex items-center gap-2 sm:gap-2.5">
                                 <label for="status-filter" class="text-sm text-slate-600 whitespace-nowrap">Status:</label>
-                                <select id="status-filter" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]">
+                                <select id="status-filter" class="h-11 px-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[138px]">
                                     <option value="">Alle statussen</option>
                                     <option value="active">Actief</option>
                                     <option value="inactive">Inactief</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm text-slate-600">
+                            <div class="flex items-center gap-2 sm:gap-2.5">
+                                <label for="location-filter" class="text-sm text-slate-600 whitespace-nowrap">Locatie:</label>
+                                <select id="location-filter" class="h-11 px-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[170px]">
+                                    <option value="">Alle locaties</option>
+                                    @foreach($locationOptions as $locationOption)
+                                        <option value="{{ $locationOption->id }}">{{ $locationOption->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 sm:pl-1">
+                                <span class="text-sm text-slate-600 whitespace-nowrap">
                                     <span id="total-lists" class="font-semibold text-slate-900">0</span> lijsten
                                 </span>
-                                <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" title="Vernieuwen">
+                                <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shrink-0" title="Vernieuwen">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
                                     </svg>
@@ -150,11 +162,13 @@ async function loadLists() {
         // Get search and filter parameters
         const search = document.getElementById('search-input').value;
         const status = document.getElementById('status-filter').value;
+        const locationId = document.getElementById('location-filter').value;
         const pageParam = typeof loadLists.page === 'number' ? loadLists.page : 1;
 
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         if (status) params.append('is_active', status === 'active');
+        if (locationId) params.append('location_id', locationId);
         if (pageParam > 1) params.append('page', pageParam);
         params.append('_t', Date.now());
 
@@ -277,6 +291,13 @@ function renderLists(lists) {
                     </div>
                 </div>
                 <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6.75-5.625-6.75-11.25a6.75 6.75 0 1113.5 0C18.75 15.375 12 21 12 21z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11.25a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                        </svg>
+                        ${escapeHtml(list.location ? list.location.name : 'Algemeen')}
+                    </span>
                     <span class="inline-flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/>
@@ -469,9 +490,10 @@ function initializeListsPage() {
     // Search functionality
     const searchInput = document.getElementById('search-input');
     const statusFilter = document.getElementById('status-filter');
+    const locationFilter = document.getElementById('location-filter');
     const refreshBtn = document.getElementById('refresh-btn');
     
-        if (searchInput && statusFilter && refreshBtn) {
+        if (searchInput && statusFilter && locationFilter && refreshBtn) {
             let searchTimeout;
             function triggerSearch() {
                 loadLists.setPage(1);
@@ -490,6 +512,10 @@ function initializeListsPage() {
             });
         
         statusFilter.addEventListener('change', function() {
+            loadLists.setPage(1);
+            loadLists();
+        });
+        locationFilter.addEventListener('change', function() {
             loadLists.setPage(1);
             loadLists();
         });

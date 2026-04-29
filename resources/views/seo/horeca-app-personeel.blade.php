@@ -5,7 +5,7 @@
         $seoTitle = 'Horeca app personeel voor checklists en werkcontrole | TaskCheck';
         $seoDescription = 'Horeca app personeel: plan taken per shift, controleer uitvoering met bewijs en houd grip op kwaliteit in restaurant, keuken en bediening.';
         $seoUrl = route('seo.horeca-app-personeel');
-        $seoImage = asset('logos/taskcheck-logo.png');
+        $seoImage = asset('images/taskcheck-horeca-personeel-seo-hero.webp');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -28,6 +28,10 @@
         <div class="mt-8 grid md:grid-cols-2 gap-4">
             <a href="{{ route('pricing') }}" class="inline-flex justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-6 py-3 hover:from-blue-700 hover:to-indigo-700">Bekijk prijzen</a>
             <a href="{{ route('login') }}" class="inline-flex justify-center rounded-xl border border-blue-200 bg-white text-slate-700 font-semibold px-6 py-3 hover:bg-blue-50">Start 14 dagen gratis</a>
+        </div>
+
+        <div class="mt-8 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
+            <img src="{{ asset('images/taskcheck-horeca-personeel-seo-hero.webp') }}" alt="Horeca app personeel met TaskCheck dashboard en mobiele takenlijsten" class="w-full rounded-xl" loading="lazy">
         </div>
 
         <section class="mt-10 space-y-5 text-slate-700 leading-7">

@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Canonical domain + scheme for SEO: always use https://taskcheck.nl
+    RewriteCond %{HTTP_HOST} ^www\.taskcheck\.nl$ [NC]
+    RewriteRule ^ https://taskcheck.nl%{REQUEST_URI} [L,R=301]
+
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP_HOST} ^taskcheck\.nl$ [NC]
+    RewriteRule ^ https://taskcheck.nl%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

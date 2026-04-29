@@ -272,7 +272,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Clean Flash Messages -->
                 @if (session('success'))
-                    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flash-message">
                         <div class="flex items-center">
                             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                                 <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,7 +285,7 @@
                 @endif
 
                 @if (session('error'))
-                    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flash-message">
                         <div class="flex items-center">
                             <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
                                 <svg class="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -633,9 +633,9 @@
                 });
             }
 
-            // Auto-hide flash messages
+            // Auto-hide only real flash messages (not inline rejection blocks).
             setTimeout(function() {
-                const flashMessages = document.querySelectorAll('.bg-green-50, .bg-red-50');
+                const flashMessages = document.querySelectorAll('.flash-message');
                 if (flashMessages.length > 0) {
                     flashMessages.forEach(function(message) {
                         if (message && message.style) {

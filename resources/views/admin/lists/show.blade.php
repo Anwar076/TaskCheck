@@ -53,6 +53,9 @@
                                 @if($list->category)
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-white/20 text-white">{{ $list->category }}</span>
                                 @endif
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-white/20 text-white">
+                                    Locatie: {{ $list->location?->name ?? 'Algemeen' }}
+                                </span>
                                 @if($list->requires_signature)
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-white/20 text-white">Handtekening</span>
                                 @endif

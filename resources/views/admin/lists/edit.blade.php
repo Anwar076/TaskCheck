@@ -96,6 +96,21 @@
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div>
+                            <label for="location_id" class="block text-sm font-medium text-slate-700 mb-1.5">Locatie</label>
+                            <select name="location_id" id="location_id"
+                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Alle locaties / algemeen</option>
+                                @foreach($locations as $location)
+                                    <option value="{{ $location->id }}" {{ (string) old('location_id', $list->location_id) === (string) $location->id ? 'selected' : '' }}>
+                                        {{ $location->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('location_id')
+                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                     <div>
                         <label for="schedule_type" class="block text-sm font-medium text-slate-700 mb-1.5">Planningstype <span class="text-red-500">*</span></label>
