@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
 use App\Services\Billing\MollieService;
 use Illuminate\Http\Request;
@@ -802,27 +803,26 @@ class SubscriptionController extends Controller
         $dashboardUrl = route('subscription.show');
 
         $invoiceBlock = $invoiceUrl !== ''
-            ? '<p>Factuur: <a href="' . e($invoiceUrl) . '">' . e($invoiceUrl) . '</a></p>'
-            : '<p>Factuurdetails vind je in je klantomgeving of in Mollie.</p>';
+            ? "Factuur link:\n{$invoiceUrl}"
+            : "Factuurdetails vind je in je klantomgeving of in Mollie.";
 
-        $html = '<p>Beste ' . e($company->name) . ',</p>'
-            . '<p>We hebben je betaling ontvangen.</p>'
-            . '<ul>'
-            . '<li><strong>Betaling ID:</strong> ' . e($paymentId) . '</li>'
-            . '<li><strong>Omschrijving:</strong> ' . e($description) . '</li>'
-            . '<li><strong>Bedrag:</strong> ' . e($currency) . ' ' . e($amount) . '</li>'
-            . '<li><strong>Betaald op:</strong> ' . e($paidAt) . '</li>'
-            . '</ul>'
-            . $invoiceBlock
-            . '<p>Abonnement details: <a href="' . e($dashboardUrl) . '">' . e($dashboardUrl) . '</a></p>'
-            . '<p>Met vriendelijke groet,<br>TaskCheck</p>';
+        $body = "We hebben je betaling ontvangen.\n\n"
+            . "Betaling ID: {$paymentId}\n"
+            . "Omschrijving: {$description}\n"
+            . "Bedrag: {$currency} {$amount}\n"
+            . "Betaald op: {$paidAt}\n\n"
+            . $invoiceBlock;
 
         try {
-            Mail::send([], [], function ($mail) use ($recipient, $description, $html): void {
-                $mail->to($recipient)
-                    ->subject('Betaling ontvangen - ' . $description)
-                    ->html($html);
-            });
+            Mail::to($recipient)->send(new TaskCheckNotificationMail(
+                subjectLine: 'Betaling ontvangen - ' . $description,
+                greetingName: $company->name,
+                title: 'Betaling succesvol ontvangen',
+                bodyText: $body,
+                ctaLabel: 'Abonnement bekijken',
+                ctaUrl: $dashboardUrl,
+                metaText: 'Vragen over facturatie? Neem contact op met TaskCheck support.'
+            ));
 
             Cache::put($sentCacheKey, true, now()->addDays(7));
         } catch (\Throwable $e) {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
 use App\Models\IncidentTicket;
 use App\Models\Submission;
@@ -202,14 +203,15 @@ class DashboardController extends Controller
             }
 
             try {
-                $safeBody = nl2br(e((string) $validated['message']));
-                $html = "<p>Beste {$company->name},</p><p>{$safeBody}</p><p>Met vriendelijke groet,<br>TaskCheck Super Admin</p>";
-
-                Mail::send([], [], function ($mail) use ($recipient, $validated, $html) {
-                    $mail->to($recipient)
-                        ->subject($validated['subject'])
-                        ->html($html);
-                });
+                Mail::to($recipient)->send(new TaskCheckNotificationMail(
+                    subjectLine: (string) $validated['subject'],
+                    greetingName: $company->name,
+                    title: (string) $validated['subject'],
+                    bodyText: (string) $validated['message'],
+                    ctaLabel: 'Open TaskCheck',
+                    ctaUrl: config('app.url'),
+                    metaText: 'Je ontvangt dit bericht omdat je beheercontact bent van een TaskCheck organisatie.'
+                ));
 
                 $sent++;
             } catch (\Throwable $e) {
