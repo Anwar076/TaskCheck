@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
+use App\Models\Invoice;
 use App\Services\Billing\MollieService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -12,10 +13,13 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use RuntimeException;
 
 class SubscriptionController extends Controller
 {
+    private const VAT_RATE = 21.00;
+
     public function __construct(
         private readonly MollieService $mollieService
     ) {
@@ -89,6 +93,7 @@ class SubscriptionController extends Controller
             'nextBillingDate' => $nextBillingDate,
             'daysUntilNextBilling' => $daysUntilNextBilling,
             'pendingPlanDetails' => $pendingPlanDetails,
+            'invoices' => $company->invoices()->latest('paid_at')->limit(20)->get(),
         ]);
     }
 
@@ -115,7 +120,7 @@ class SubscriptionController extends Controller
         $isStarterTestOverride = $this->shouldUseStarterTestOverride($billingEmail, (string) $request->plan);
         $amountValue = $isStarterTestOverride
             ? '1.00'
-            : number_format((float) $plan['price_monthly'], 2, '.', '');
+            : $this->calculateGrossMonthlyAmount((float) $plan['price_monthly']);
         $subscriptionInterval = $this->resolveSubscriptionInterval($billingEmail, (string) $request->plan);
 
         try {
@@ -396,6 +401,23 @@ class SubscriptionController extends Controller
         return response('ok', 200);
     }
 
+    public function downloadInvoice(Invoice $invoice): Response
+    {
+        $user = Auth::user();
+        if (
+            !$user
+            || (!$user->isSuperAdmin() && (int) $user->company_id !== (int) $invoice->company_id)
+        ) {
+            abort(403);
+        }
+
+        $pdf = $this->renderInvoicePdf($invoice);
+
+        return response($pdf)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $invoice->invoice_number . '.pdf"');
+    }
+
     private function resolveWebhookUrl(): string
     {
         $configuredWebhook = (string) config('services.mollie.webhook_url');
@@ -514,7 +536,7 @@ class SubscriptionController extends Controller
                 $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
                 $fallbackAmount = $this->shouldUseStarterTestOverride($billingEmail, $plan)
                     ? '1.00'
-                    : number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', '');
+                    : $this->calculateGrossMonthlyAmount((float) Company::PLANS[$plan]['price_monthly']);
                 $amountValue = (string) data_get($payment, 'amount.value', $fallbackAmount);
                 $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval($billingEmail, $plan));
 
@@ -543,7 +565,7 @@ class SubscriptionController extends Controller
                     continue;
                 }
 
-                $expectedAmount = number_format((float) ($planConfig['price_monthly'] ?? 0), 2, '.', '');
+                $expectedAmount = $this->calculateGrossMonthlyAmount((float) ($planConfig['price_monthly'] ?? 0));
                 if ($expectedAmount === $paidAmount) {
                     return $planKey;
                 }
@@ -674,6 +696,13 @@ class SubscriptionController extends Controller
         return $this->shouldUseStarterTestOverride($email, $plan) ? '1 day' : '1 month';
     }
 
+    private function calculateGrossMonthlyAmount(float $basePrice): string
+    {
+        $gross = $basePrice * (1 + (self::VAT_RATE / 100));
+
+        return number_format($gross, 2, '.', '');
+    }
+
     private function createRecurringSubscription(Company $company, string $plan, string $amountValue, string $interval): array
     {
         $existingSubscriptionId = $this->findExistingReusableSubscriptionId($company);
@@ -758,7 +787,7 @@ class SubscriptionController extends Controller
             $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
             $amountValue = $this->shouldUseStarterTestOverride($billingEmail, $plan)
                 ? '1.00'
-                : number_format((float) Company::PLANS[$plan]['price_monthly'], 2, '.', '');
+                : $this->calculateGrossMonthlyAmount((float) Company::PLANS[$plan]['price_monthly']);
             $interval = $this->resolveSubscriptionInterval($billingEmail, $plan);
 
             $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
@@ -783,6 +812,8 @@ class SubscriptionController extends Controller
         }
 
         $sentCacheKey = "billing_receipt_sent:{$paymentId}";
+        $invoice = $this->createOrUpdateInvoiceFromPayment($company, $payment);
+
         if (Cache::has($sentCacheKey)) {
             return;
         }
@@ -799,35 +830,104 @@ class SubscriptionController extends Controller
         $paidAt = $paidAtRaw !== ''
             ? Carbon::parse($paidAtRaw)->timezone('Europe/Amsterdam')->format('d-m-Y H:i')
             : now()->timezone('Europe/Amsterdam')->format('d-m-Y H:i');
-        $invoiceUrl = (string) data_get($payment, '_links.invoice.href', '');
-        $dashboardUrl = route('subscription.show');
-
-        $invoiceBlock = $invoiceUrl !== ''
-            ? "Factuur link:\n{$invoiceUrl}"
-            : "Factuurdetails vind je in je klantomgeving of in Mollie.";
 
         $body = "We hebben je betaling ontvangen.\n\n"
+            . "Factuurnummer: {$invoice->invoice_number}\n"
             . "Betaling ID: {$paymentId}\n"
             . "Omschrijving: {$description}\n"
             . "Bedrag: {$currency} {$amount}\n"
             . "Betaald op: {$paidAt}\n\n"
-            . $invoiceBlock;
+            . "De factuur zit als PDF bij deze e-mail.";
 
         try {
-            Mail::to($recipient)->send(new TaskCheckNotificationMail(
-                subjectLine: 'Betaling ontvangen - ' . $description,
-                greetingName: $company->name,
-                title: 'Betaling succesvol ontvangen',
-                bodyText: $body,
-                ctaLabel: 'Abonnement bekijken',
-                ctaUrl: $dashboardUrl,
-                metaText: 'Vragen over facturatie? Neem contact op met TaskCheck support.'
-            ));
+            $pdfBytes = $this->renderInvoicePdf($invoice);
+            $invoicesUrl = route('subscription.show');
+
+            Mail::send('emails.taskcheck-notification', [
+                'greetingName' => $company->name,
+                'title' => 'Factuur en betaling bevestigd',
+                'bodyText' => $body,
+                'ctaLabel' => 'Bekijk al je facturen',
+                'ctaUrl' => $invoicesUrl,
+                'metaText' => 'Dit is je officiële factuurmail van TaskCheck.',
+            ], function ($mail) use ($recipient, $description, $invoice, $pdfBytes): void {
+                $mail->to($recipient)
+                    ->subject('Factuur - ' . $description)
+                    ->attachData($pdfBytes, $invoice->invoice_number . '.pdf', [
+                        'mime' => 'application/pdf',
+                    ]);
+            });
 
             Cache::put($sentCacheKey, true, now()->addDays(7));
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    private function createOrUpdateInvoiceFromPayment(Company $company, array $payment): Invoice
+    {
+        $paymentId = trim((string) ($payment['id'] ?? ''));
+        $paidAtRaw = (string) data_get($payment, 'paidAt', '');
+        $paidAt = $paidAtRaw !== '' ? Carbon::parse($paidAtRaw) : now();
+        $datePart = $paidAt->timezone('Europe/Amsterdam')->format('Ym');
+        $grossAmount = (float) data_get($payment, 'amount.value', 0);
+        $vatRate = 21.00;
+        $amountExVat = round($grossAmount / (1 + ($vatRate / 100)), 2);
+        $vatAmount = round($grossAmount - $amountExVat, 2);
+
+        $existing = Invoice::where('payment_id', $paymentId)->first();
+        $invoiceNumber = $existing?->invoice_number ?: $this->generateInvoiceNumber($datePart, $company);
+
+        return Invoice::updateOrCreate(
+            ['payment_id' => $paymentId],
+            [
+                'company_id' => $company->id,
+                'invoice_number' => $invoiceNumber,
+                'description' => (string) data_get($payment, 'description', 'TaskCheck abonnement'),
+                'currency' => (string) data_get($payment, 'amount.currency', 'EUR'),
+                'amount' => $grossAmount,
+                'vat_rate' => $vatRate,
+                'amount_ex_vat' => $amountExVat,
+                'vat_amount' => $vatAmount,
+                'paid_at' => $paidAt,
+                'meta' => [
+                    'payment_id' => $paymentId,
+                    'method' => (string) data_get($payment, 'method', ''),
+                    'status' => (string) data_get($payment, 'status', ''),
+                ],
+            ]
+        );
+    }
+
+    private function generateInvoiceNumber(string $datePart, Company $company): string
+    {
+        $companyCode = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', (string) ($company->name ?? 'COMP')), 0, 4));
+        if ($companyCode === '') {
+            $companyCode = 'COMP';
+        }
+
+        $prefix = 'TC-' . $datePart . '-' . $companyCode . '-';
+        $latest = Invoice::where('invoice_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
+            ->value('invoice_number');
+
+        $next = 1;
+        if (is_string($latest) && str_contains($latest, $prefix)) {
+            $lastSerial = (int) substr($latest, -4);
+            $next = $lastSerial + 1;
+        }
+
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function renderInvoicePdf(Invoice $invoice): string
+    {
+        $invoice->loadMissing('company');
+
+        return Pdf::loadView('pdf.invoice', [
+            'invoice' => $invoice,
+            'company' => $invoice->company,
+        ])->output();
     }
 }
 

@@ -128,6 +128,11 @@
                 <a href="{{ route('contact') }}" class="mt-6 inline-flex w-full justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 transition">Vraag een offerte aan</a>
             </article>
         </div>
+        <div class="max-w-7xl mx-auto px-6 mt-5">
+            <p class="text-center text-sm text-slate-600">
+                Er wordt bij het afrekenen 21% btw in rekening gebracht, het standaardtarief in Nederland.
+            </p>
+        </div>
     </section>
 
     <section class="pb-16">

@@ -266,6 +266,54 @@
             </div>
         </div>
     </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl p-4 mt-4">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold text-slate-900">Facturen (alle bedrijven)</h2>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500">Laatste 100 facturen</span>
+                <a href="{{ route('super-admin.invoices.export.csv') }}"
+                   class="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
+                    Export CSV (Excel)
+                </a>
+            </div>
+        </div>
+        @if(($invoices ?? collect())->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-500 border-b">
+                            <th class="py-2 pr-4">Factuurnr</th>
+                            <th class="py-2 pr-4">Bedrijf</th>
+                            <th class="py-2 pr-4">Datum</th>
+                            <th class="py-2 pr-4">Omschrijving</th>
+                            <th class="py-2 pr-4">Bedrag</th>
+                            <th class="py-2">Actie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($invoices as $invoice)
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 pr-4 font-medium text-slate-900">{{ $invoice->invoice_number }}</td>
+                                <td class="py-2 pr-4">{{ $invoice->company?->name ?? '-' }}</td>
+                                <td class="py-2 pr-4">{{ optional($invoice->paid_at)->timezone('Europe/Amsterdam')->format('d-m-Y H:i') }}</td>
+                                <td class="py-2 pr-4">{{ $invoice->description ?: 'TaskCheck abonnement' }}</td>
+                                <td class="py-2 pr-4">{{ $invoice->currency }} {{ number_format((float) $invoice->amount, 2, ',', '.') }}</td>
+                                <td class="py-2">
+                                    <a href="{{ route('subscription.invoices.download', $invoice) }}" target="_blank"
+                                       class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700">
+                                        PDF
+                                    </a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <p class="text-sm text-slate-500">Nog geen facturen gevonden.</p>
+        @endif
+    </div>
 </div>
 
 <div id="sa-ticket-modal" class="fixed inset-0 z-50 hidden">

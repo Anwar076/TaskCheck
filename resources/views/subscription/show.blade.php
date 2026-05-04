@@ -223,6 +223,47 @@
                         </div>
                     </div>
 
+                    {{-- Facturen --}}
+                    <div class="mt-8 pt-8 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-slate-900">Facturen</h3>
+                            <span class="text-xs text-slate-500">Laatste 20 betalingen</span>
+                        </div>
+                        @if(($invoices ?? collect())->count() > 0)
+                            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-slate-50 text-slate-600">
+                                        <tr>
+                                            <th class="text-left px-4 py-3">Factuur</th>
+                                            <th class="text-left px-4 py-3">Datum</th>
+                                            <th class="text-left px-4 py-3">Omschrijving</th>
+                                            <th class="text-left px-4 py-3">Bedrag</th>
+                                            <th class="text-right px-4 py-3">Actie</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($invoices as $invoice)
+                                            <tr class="border-t border-slate-100">
+                                                <td class="px-4 py-3 font-semibold text-slate-900">{{ $invoice->invoice_number }}</td>
+                                                <td class="px-4 py-3">{{ optional($invoice->paid_at)->timezone('Europe/Amsterdam')->format('d-m-Y H:i') }}</td>
+                                                <td class="px-4 py-3">{{ $invoice->description ?: 'TaskCheck abonnement' }}</td>
+                                                <td class="px-4 py-3">{{ $invoice->currency }} {{ number_format((float) $invoice->amount, 2, ',', '.') }}</td>
+                                                <td class="px-4 py-3 text-right">
+                                                    <a href="{{ route('subscription.invoices.download', $invoice) }}" target="_blank"
+                                                       class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700">
+                                                        PDF
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-sm text-slate-500">Nog geen facturen beschikbaar.</p>
+                        @endif
+                    </div>
+
                     {{-- Gevarenzone --}}
                     @if($company->hasActiveSubscription())
                         <div class="mt-8 pt-8 border-t border-slate-200">

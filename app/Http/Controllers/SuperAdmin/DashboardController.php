@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
 use App\Models\IncidentTicket;
+use App\Models\Invoice;
 use App\Models\Submission;
 use App\Models\Task;
 use App\Models\TaskList;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
@@ -68,6 +70,11 @@ class DashboardController extends Controller
             ->latest()
             ->limit(20)
             ->get();
+        $invoices = Invoice::query()
+            ->with('company:id,name')
+            ->latest('paid_at')
+            ->limit(100)
+            ->get();
 
         return view('super-admin.dashboard', compact(
             'companies',
@@ -75,7 +82,8 @@ class DashboardController extends Controller
             'plans',
             'aiUsage',
             'recentErrors',
-            'tickets'
+            'tickets',
+            'invoices'
         ));
     }
 
@@ -406,6 +414,56 @@ PROMPT;
             'analysis' => $analysis,
             'model' => $model,
             'analyzed_at' => optional($incident->fresh()->ai_analyzed_at)?->toIso8601String(),
+        ]);
+    }
+
+    public function exportInvoicesCsv(): StreamedResponse
+    {
+        $filename = 'taskcheck-invoices-' . now()->timezone('Europe/Amsterdam')->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function (): void {
+            $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
+
+            fputcsv($handle, [
+                'Invoice Number',
+                'Company',
+                'Paid At',
+                'Description',
+                'Currency',
+                'Amount Ex VAT',
+                'VAT Rate',
+                'VAT Amount',
+                'Amount Incl VAT',
+                'Payment ID',
+            ], ';');
+
+            Invoice::query()
+                ->with('company:id,name')
+                ->latest('paid_at')
+                ->chunk(500, function ($invoices) use ($handle): void {
+                    foreach ($invoices as $invoice) {
+                        fputcsv($handle, [
+                            (string) $invoice->invoice_number,
+                            (string) ($invoice->company?->name ?? ''),
+                            optional($invoice->paid_at)?->timezone('Europe/Amsterdam')?->format('Y-m-d H:i:s') ?? '',
+                            (string) ($invoice->description ?: 'TaskCheck abonnement'),
+                            (string) $invoice->currency,
+                            number_format((float) $invoice->amount_ex_vat, 2, '.', ''),
+                            number_format((float) $invoice->vat_rate, 2, '.', ''),
+                            number_format((float) $invoice->vat_amount, 2, '.', ''),
+                            number_format((float) $invoice->amount, 2, '.', ''),
+                            (string) $invoice->payment_id,
+                        ], ';');
+                    }
+                });
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-store, no-cache',
         ]);
     }
 

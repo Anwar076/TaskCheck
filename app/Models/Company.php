@@ -97,6 +97,11 @@ class Company extends Model
         return $this->hasMany(Location::class);
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     // Check if company is on trial
     public function isOnTrial(): bool
     {

@@ -129,6 +129,7 @@ Route::post('/subscription/mollie/webhook', [SubscriptionController::class, 'mol
 Route::middleware(['auth'])->prefix('subscription')->name('subscription.')->group(function () {
     Route::get('/choose-plan', [SubscriptionController::class, 'choosePlan'])->name('choose-plan');
     Route::get('/', [SubscriptionController::class, 'show'])->name('show');
+    Route::get('/invoices/{invoice}/download', [SubscriptionController::class, 'downloadInvoice'])->name('invoices.download');
     Route::get('/payment-return', [SubscriptionController::class, 'paymentReturn'])->name('payment-return');
     Route::post('/activate', [SubscriptionController::class, 'activate'])->name('activate');
     Route::post('/cancel', [SubscriptionController::class, 'cancel'])->name('cancel');
@@ -150,7 +151,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified', 'subscription'])->name('dashboard');
 
 // Admin Routes
-Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'subscription', 'admin', 'company_profile_complete'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/live-monitoring', [AdminDashboardController::class, 'liveMonitoring'])->name('live-monitoring');
     
@@ -214,6 +215,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
 
 Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/invoices/export/csv', [SuperAdminDashboardController::class, 'exportInvoicesCsv'])->name('invoices.export.csv');
     Route::post('/communications/broadcast-mail', [SuperAdminDashboardController::class, 'sendBroadcastMail'])->name('communications.broadcast-mail');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');

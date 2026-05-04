@@ -205,6 +205,9 @@
                             </svg>
                             Alle plannen bevatten 14 dagen gratis proefperiode. Betaling verloopt veilig via Mollie.
                         </p>
+                        <p class="mt-2 text-sm text-slate-500">
+                            Er wordt bij het afrekenen 21% btw in rekening gebracht, het standaardtarief in Nederland.
+                        </p>
                     </div>
                 </div>
             </div>

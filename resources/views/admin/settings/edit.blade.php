@@ -11,6 +11,10 @@
 
 @section('content')
 <div class="p-6 sm:p-8">
+    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <strong>Belangrijk:</strong> Organisatienaam, adres, telefoon en e-mail zijn verplicht voor correcte facturen.
+    </div>
+
     <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PUT')
@@ -104,8 +108,8 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Adres</label>
-                    <input type="text" name="address" id="address"
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Adres <span class="text-red-500">*</span></label>
+                    <input type="text" name="address" id="address" required
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         value="{{ old('address', $company->address) }}" placeholder="Straat, nummer, postcode, plaats">
                     @error('address')
@@ -113,8 +117,8 @@
                     @enderror
                 </div>
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefoon</label>
-                    <input type="text" name="phone" id="phone"
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefoon <span class="text-red-500">*</span></label>
+                    <input type="text" name="phone" id="phone" required
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         value="{{ old('phone', $company->phone) }}" placeholder="+31 20 123 4567">
                     @error('phone')
@@ -122,8 +126,8 @@
                     @enderror
                 </div>
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                    <input type="email" name="email" id="email"
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" id="email" required
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         value="{{ old('email', $company->email) }}" placeholder="info@bedrijf.nl">
                     @error('email')
