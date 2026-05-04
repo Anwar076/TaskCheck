@@ -86,8 +86,13 @@ class DashboardController extends Controller
         // Aantal voltooide TAKEN vandaag (niet inzendingen) - voor voortgangsbalk
         $todaysListIds = $todaysLists->pluck('id')->toArray();
         $completedTasksToday = SubmissionTask::whereHas('submission', function ($q) use ($user, $todaysListIds) {
-            $q->where('user_id', $user->id)->whereIn('list_id', $todaysListIds);
-        })->whereIn('status', ['completed', 'approved'])->count();
+            $q->where('user_id', $user->id)
+                ->whereDate('created_at', today())
+                ->whereIn('list_id', $todaysListIds);
+        })
+            ->whereIn('status', ['completed', 'approved'])
+            ->distinct('task_id')
+            ->count('task_id');
 
         // Get statistics
         $stats = [
