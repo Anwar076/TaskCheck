@@ -24,6 +24,7 @@ class Company extends Model
         'subscription_status',
         'trial_ends_at',
         'subscription_ends_at',
+        'billing_required',
         'mollie_customer_id',
         'mollie_subscription_id',
         'mollie_payment_id',
@@ -36,6 +37,7 @@ class Company extends Model
     protected $casts = [
         'trial_ends_at' => 'datetime',
         'subscription_ends_at' => 'datetime',
+        'billing_required' => 'boolean',
         'is_active' => 'boolean',
     ];
 

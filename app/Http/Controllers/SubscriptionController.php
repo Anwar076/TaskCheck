@@ -6,6 +6,8 @@ use App\Models\Company;
 use App\Services\Billing\MollieService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -330,6 +332,7 @@ class SubscriptionController extends Controller
                     return redirect()->route('subscription.show')
                         ->with('warning', 'Betaling ontvangen voor een geannuleerd abonnement. Het abonnement blijft opgezegd.');
                 }
+                $this->sendPaymentReceiptEmail($company, $payment);
                 $this->finalizePaidPayment($company, $payment);
 
                 return redirect()->route('subscription.show')
@@ -370,6 +373,7 @@ class SubscriptionController extends Controller
                 if ($this->shouldIgnorePaidActivation($company, $paymentId)) {
                     return response('ok', 200);
                 }
+                $this->sendPaymentReceiptEmail($company, $payment);
                 if (!$this->isActivationPayment($company, $paymentId, $payment)) {
                     return response('ok', 200);
                 }
@@ -762,6 +766,65 @@ class SubscriptionController extends Controller
             if ($subscriptionId !== '') {
                 $company->update(['mollie_subscription_id' => $subscriptionId]);
             }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
+     * Send a billing receipt/invoice e-mail once per paid payment.
+     */
+    private function sendPaymentReceiptEmail(Company $company, array $payment): void
+    {
+        $paymentId = trim((string) ($payment['id'] ?? ''));
+        if ($paymentId === '') {
+            return;
+        }
+
+        $sentCacheKey = "billing_receipt_sent:{$paymentId}";
+        if (Cache::has($sentCacheKey)) {
+            return;
+        }
+
+        $recipient = trim((string) ($company->email ?: optional($company->users()->orderBy('id')->first())->email));
+        if ($recipient === '') {
+            return;
+        }
+
+        $amount = (string) data_get($payment, 'amount.value', '0.00');
+        $currency = (string) data_get($payment, 'amount.currency', 'EUR');
+        $description = (string) data_get($payment, 'description', 'TaskCheck betaling');
+        $paidAtRaw = (string) data_get($payment, 'paidAt', '');
+        $paidAt = $paidAtRaw !== ''
+            ? Carbon::parse($paidAtRaw)->timezone('Europe/Amsterdam')->format('d-m-Y H:i')
+            : now()->timezone('Europe/Amsterdam')->format('d-m-Y H:i');
+        $invoiceUrl = (string) data_get($payment, '_links.invoice.href', '');
+        $dashboardUrl = route('subscription.show');
+
+        $invoiceBlock = $invoiceUrl !== ''
+            ? '<p>Factuur: <a href="' . e($invoiceUrl) . '">' . e($invoiceUrl) . '</a></p>'
+            : '<p>Factuurdetails vind je in je klantomgeving of in Mollie.</p>';
+
+        $html = '<p>Beste ' . e($company->name) . ',</p>'
+            . '<p>We hebben je betaling ontvangen.</p>'
+            . '<ul>'
+            . '<li><strong>Betaling ID:</strong> ' . e($paymentId) . '</li>'
+            . '<li><strong>Omschrijving:</strong> ' . e($description) . '</li>'
+            . '<li><strong>Bedrag:</strong> ' . e($currency) . ' ' . e($amount) . '</li>'
+            . '<li><strong>Betaald op:</strong> ' . e($paidAt) . '</li>'
+            . '</ul>'
+            . $invoiceBlock
+            . '<p>Abonnement details: <a href="' . e($dashboardUrl) . '">' . e($dashboardUrl) . '</a></p>'
+            . '<p>Met vriendelijke groet,<br>TaskCheck</p>';
+
+        try {
+            Mail::send([], [], function ($mail) use ($recipient, $description, $html): void {
+                $mail->to($recipient)
+                    ->subject('Betaling ontvangen - ' . $description)
+                    ->html($html);
+            });
+
+            Cache::put($sentCacheKey, true, now()->addDays(7));
         } catch (\Throwable $e) {
             report($e);
         }

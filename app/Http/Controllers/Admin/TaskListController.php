@@ -9,6 +9,7 @@ use App\Models\Submission;
 use App\Models\SubmissionTask;
 use App\Models\Notification;
 use App\Models\Location;
+use App\Services\Ai\AiUsageLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -444,6 +445,14 @@ PROMPT;
                 ], 500);
             }
 
+            AiUsageLogger::logChatCompletion(
+                $response,
+                AiUsageLogger::FEATURE_LIST_AI_GENERATE,
+                auth()->user()->company_id,
+                auth()->id(),
+                $model
+            );
+
             $content = $response->json('choices.0.message.content');
             $decoded = is_string($content) ? json_decode($content, true) : null;
 
@@ -625,6 +634,14 @@ PROMPT,
                     'message' => 'AI-verzoek mislukt: ' . $response->body(),
                 ], 500);
             }
+
+            AiUsageLogger::logChatCompletion(
+                $response,
+                AiUsageLogger::FEATURE_LIST_AI_IMPORT,
+                auth()->user()->company_id,
+                auth()->id(),
+                $model
+            );
 
             $contentText = $response->json('choices.0.message.content');
             $decoded = is_string($contentText) ? json_decode($contentText, true) : null;

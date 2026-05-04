@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
+use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Services\Ai\SubmissionReviewService;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\NotificationController as EmployeeNotificationController;
@@ -135,11 +136,17 @@ Route::middleware(['auth'])->prefix('subscription')->name('subscription.')->grou
 
 // Redirect dashboard based on user role
 Route::get('/dashboard', function () {
-    if (auth()->user()->isAdmin()) {
+    $user = auth()->user();
+
+    if ($user->isAdmin()) {
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
         return redirect()->route('admin.dashboard');
-    } else {
-        return redirect()->route('employee.dashboard');
     }
+
+    return redirect()->route('employee.dashboard');
 })->middleware(['auth', 'verified', 'subscription'])->name('dashboard');
 
 // Admin Routes
@@ -203,6 +210,18 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
     Route::get('/debug/test-assignment', function() {
         return view('debug.test-assignment');
     })->name('debug.test-assignment');
+});
+
+Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
+    Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/communications/broadcast-mail', [SuperAdminDashboardController::class, 'sendBroadcastMail'])->name('communications.broadcast-mail');
+    Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
+    Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
+    Route::get('/errors/feed', [SuperAdminDashboardController::class, 'errorsFeed'])->name('errors.feed');
+    Route::post('/incidents', [SuperAdminDashboardController::class, 'createIncidentTicket'])->name('incidents.store');
+    Route::get('/incidents/{incident}', [SuperAdminDashboardController::class, 'showIncidentTicket'])->name('incidents.show');
+    Route::post('/incidents/{incident}/analyze', [SuperAdminDashboardController::class, 'analyzeIncidentTicket'])->name('incidents.analyze');
+    Route::put('/incidents/{incident}/status', [SuperAdminDashboardController::class, 'updateIncidentTicketStatus'])->name('incidents.status.update');
 });
 
 // Employee Routes

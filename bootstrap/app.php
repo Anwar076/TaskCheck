@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'employee' => \App\Http\Middleware\EmployeeMiddleware::class,
+            'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'pwa' => \App\Http\Middleware\RedirectPwaToLogin::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,
         ]);

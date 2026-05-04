@@ -107,6 +107,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Super Admin Emails
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated e-mail addresses from .env that are allowed to access
+    | the super admin dashboard.
+    |
+    */
+    'super_admin_emails' => array_values(array_filter(array_map(
+        fn ($email) => strtolower(trim((string) $email)),
+        explode(',', (string) env('SUPER_ADMIN_EMAILS', ''))
+    ))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Maintenance Mode Driver
     |--------------------------------------------------------------------------
     |

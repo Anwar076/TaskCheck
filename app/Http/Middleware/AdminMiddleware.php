@@ -25,6 +25,10 @@ class AdminMiddleware
             abort(403, 'Access denied. Admin privileges required.');
         }
 
+        if (auth()->user()->isSuperAdmin()) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
         return $next($request);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use App\Models\Submission;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
@@ -125,6 +126,14 @@ PROMPT;
         if (!$response->ok()) {
             throw new \RuntimeException('AI-review mislukt: ' . $response->body());
         }
+
+        AiUsageLogger::logChatCompletion(
+            $response,
+            AiUsageLogger::FEATURE_SUBMISSION_AI_REVIEW,
+            $submission->company_id,
+            Auth::id(),
+            $model
+        );
 
         $content = $response->json('choices.0.message.content');
         if (!is_string($content)) {

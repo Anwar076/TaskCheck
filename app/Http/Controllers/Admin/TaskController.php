@@ -7,6 +7,7 @@ use App\Models\TaskList;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\TaskAssignment;
+use App\Services\Ai\AiUsageLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -308,6 +309,14 @@ PROMPT;
                     'message' => 'AI-verzoek mislukt: ' . $response->body(),
                 ], 500);
             }
+
+            AiUsageLogger::logChatCompletion(
+                $response,
+                AiUsageLogger::FEATURE_TASK_AI_SUGGEST,
+                $company?->id,
+                auth()->id(),
+                $model
+            );
 
             $content = $response->json('choices.0.message.content');
             $decoded = is_string($content) ? json_decode($content, true) : null;

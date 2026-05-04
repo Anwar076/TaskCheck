@@ -22,6 +22,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
         'password',
         'role',
         'phone',
@@ -66,6 +67,26 @@ class User extends Authenticatable
     public function isEmployee(): bool
     {
         return $this->role === 'employee';
+    }
+
+    /**
+     * Super admins are listed in SUPER_ADMIN_EMAILS (.env, comma-separated) and must be admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        if (!$this->isAdmin()) {
+            return false;
+        }
+
+        $emails = collect(config('app.super_admin_emails', []))
+            ->map(fn ($email) => strtolower(trim((string) $email)))
+            ->filter();
+
+        if ($emails->isEmpty()) {
+            return false;
+        }
+
+        return $emails->contains(strtolower((string) $this->email));
     }
 
     // Relationships
