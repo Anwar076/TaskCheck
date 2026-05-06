@@ -1054,11 +1054,27 @@ function clearSignaturePadFinal() {
 // ===== Helpers & AJAX for forms =====
 
 function validateTaskForm(form) {
-    const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
     const requiredProofType = form.dataset.requiredProofType || 'none';
     const mainFileInput = form.querySelector('input[type="file"][name="proof_files[]"]');
     const hasProofFiles = !!(mainFileInput && mainFileInput.files && mainFileInput.files.length > 0);
+
+    const signatureCanvas = form.querySelector('canvas[id^="signature-pad-task-"]');
+    if (signatureCanvas) {
+        const key = 'task-' + signatureCanvas.id.replace('signature-pad-task-', '');
+        const hidden = form.querySelector('input[name="digital_signature"]');
+
+        if (window.signaturePads && window.signaturePads[key]) {
+            if (window.signaturePads[key].isEmpty()) {
+                showNotification('Een digitale handtekening is vereist voor deze taak.', 'error');
+                isValid = false;
+            } else if (hidden) {
+                hidden.value = window.signaturePads[key].toDataURL();
+            }
+        }
+    }
+
+    const requiredFields = form.querySelectorAll('[required]');
 
     if (requiredProofType === 'photo' && !hasProofFiles) {
         if (mainFileInput) {
@@ -1090,18 +1106,6 @@ function validateTaskForm(form) {
             isValid = false;
         }
     });
-
-    const signatureCanvas = form.querySelector('canvas[id^="signature-pad-task-"]');
-    if (signatureCanvas) {
-        const key = 'task-' + signatureCanvas.id.replace('signature-pad-task-', '');
-        if (window.signaturePads && window.signaturePads[key] && window.signaturePads[key].isEmpty()) {
-            showNotification('Een digitale handtekening is vereist voor deze taak.', 'error');
-            isValid = false;
-        } else if (window.signaturePads && window.signaturePads[key]) {
-            const hidden = form.querySelector('input[name="digital_signature"]');
-            if (hidden) hidden.value = window.signaturePads[key].toDataURL();
-        }
-    }
 
     if (!isValid) {
         showNotification('Alle verplichte velden moeten ingevuld worden.', 'error');
