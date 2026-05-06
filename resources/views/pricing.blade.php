@@ -53,11 +53,17 @@
                     <li>• Realtime voortgangsoverzicht</li>
                     <li>• Mobiele webapp (installeerbaar)</li>
                 </ul>
-                <form action="{{ route('subscription.activate') }}" method="POST" class="mt-6">
-                    @csrf
-                    <input type="hidden" name="plan" value="starter">
-                    <button type="submit" class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">Start 14 dagen gratis</button>
-                </form>
+                <div class="mt-6">
+                    @auth
+                        <a href="{{ route('subscription.choose-plan') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">
+                            Start 14 dagen gratis
+                        </a>
+                    @else
+                        <a href="{{ route('register') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">
+                            Start 14 dagen gratis
+                        </a>
+                    @endauth
+                </div>
             </article>
 
             <article class="rounded-2xl border-2 border-blue-500 bg-white p-6 relative flex flex-col h-full">
@@ -79,11 +85,17 @@
                     <li>• Mobiele webapp (installeerbaar)</li>
                     <li>• Priority support</li>
                 </ul>
-                <form action="{{ route('subscription.activate') }}" method="POST" class="mt-6">
-                    @csrf
-                    <input type="hidden" name="plan" value="professional">
-                    <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 transition">Start 14 dagen gratis</button>
-                </form>
+                <div class="mt-6">
+                    @auth
+                        <a href="{{ route('subscription.choose-plan') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 transition">
+                            Start 14 dagen gratis
+                        </a>
+                    @else
+                        <a href="{{ route('register') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 transition">
+                            Start 14 dagen gratis
+                        </a>
+                    @endauth
+                </div>
             </article>
 
             <article class="rounded-2xl border border-indigo-100 bg-white/90 p-6 flex flex-col h-full">
@@ -104,11 +116,17 @@
                     <li>• Mobiele webapp (installeerbaar)</li>
                     <li>• Priority support</li>
                 </ul>
-                <form action="{{ route('subscription.activate') }}" method="POST" class="mt-6">
-                    @csrf
-                    <input type="hidden" name="plan" value="business">
-                    <button type="submit" class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">Start 14 dagen gratis</button>
-                </form>
+                <div class="mt-6">
+                    @auth
+                        <a href="{{ route('subscription.choose-plan') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">
+                            Start 14 dagen gratis
+                        </a>
+                    @else
+                        <a href="{{ route('register') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 transition">
+                            Start 14 dagen gratis
+                        </a>
+                    @endauth
+                </div>
             </article>
 
             <article class="rounded-2xl border border-fuchsia-100 bg-white/90 p-6 flex flex-col h-full">
