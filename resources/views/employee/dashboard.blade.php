@@ -35,18 +35,8 @@
                         <!-- Linear Progress Bar -->
                         <div class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
                             @php
-                                // Bereken totaal aantal taken alleen van lijsten die aan deze gebruiker zijn toegewezen
-                                $totalTasksToday = 0;
-                                
-                                // Alleen tellen als er lijsten zijn toegewezen
-                                if ($todaysLists && $todaysLists->count() > 0) {
-                                    foreach($todaysLists as $list) {
-                                        // Check of de lijst taken heeft geladen
-                                        if ($list->tasks) {
-                                            $totalTasksToday += $list->tasks->count();
-                                        }
-                                    }
-                                }
+                                $totalTasksToday = (int) ($stats['total_tasks_today'] ?? 0);
+                                $completedTasksToday = (int) ($stats['completed_today'] ?? 0);
                                 
                                 // Als er geen taken zijn vandaag, toon 0% voortgang
                                 if ($totalTasksToday == 0) {
@@ -56,7 +46,7 @@
                                 } else {
                                     $totalForProgress = $totalTasksToday;
                                     // Alleen afgeronde taken tellen, max 100%
-                                    $progressPercent = min(100, round(($stats['completed_today'] / $totalForProgress) * 100));
+                                    $progressPercent = min(100, round(($completedTasksToday / $totalForProgress) * 100));
                                     
                                     // Bepaal kleur op basis van voortgang
                                     $progressColor = 'from-blue-500 to-blue-600';
@@ -85,7 +75,7 @@
                                 </div>
                             </div>
                             <div class="flex flex-col xs:flex-row xs:justify-between text-xs text-gray-500 mt-2 gap-1">
-                                <span>{{ $stats['completed_today'] }} afgerond</span>
+                                <span>{{ $completedTasksToday }} afgerond</span>
                                 @if($totalTasksToday > 0)
                                     <span>{{ $totalTasksToday }} totaal</span>
                                 @else
