@@ -83,25 +83,29 @@ class DashboardController extends Controller
         // Get unread notifications
         $notifications = $user->unreadNotifications()->latest()->take(5)->get();
 
-        // Aantal taken vandaag (op basis van gefilterde taken in today's lists)
-        $totalTasksToday = (int) $todaysLists->sum(function ($list) {
+        // Resterende taken vandaag (zichtbaar op dashboard)
+        $remainingTasksToday = (int) $todaysLists->sum(function ($list) {
             return $list->tasks ? $list->tasks->count() : 0;
         });
 
         // Aantal voltooide TAKEN vandaag (niet inzendingen) - voor voortgangsbalk
-        $todaysListIds = $todaysLists->pluck('id')->toArray();
-        $completedTasksToday = SubmissionTask::whereHas('submission', function ($q) use ($user, $todaysListIds) {
+        $completedTasksToday = SubmissionTask::whereHas('submission', function ($q) use ($user) {
             $q->where('user_id', $user->id)
-                ->whereIn('list_id', $todaysListIds);
+                ->whereDate('created_at', today());
         })
             ->whereIn('status', ['completed', 'approved'])
             ->whereDate('completed_at', today())
             ->count();
 
+        // Totale werkdruk vandaag = wat al afgerond is + wat nog open staat.
+        // Hierdoor blijft voortgang correct als afgeronde lijsten uit het "vandaag"-overzicht verdwijnen.
+        $totalTasksToday = $completedTasksToday + $remainingTasksToday;
+
         // Get statistics
         $stats = [
             'pending_tasks' => $todaysLists->count(),
             'completed_today' => $completedTasksToday,
+            'remaining_tasks_today' => $remainingTasksToday,
             'total_tasks_today' => $totalTasksToday,
             'total_completed' => Submission::where('user_id', $user->id)
                 ->where('status', 'completed')
