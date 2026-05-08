@@ -92,7 +92,7 @@ Route::get('/horeca-checklist-app', function () {
     return view('seo.horeca-checklist-app');
 })->name('seo.horeca-checklist-app');
 Route::get('/schoonmaak-checklist-app', function () {
-    return view('seo.schoonmaak-checklist-app');
+    return redirect()->route('seo.checklist-app-schoonmaak', [], 301);
 })->name('seo.schoonmaak-checklist-app');
 Route::get('/werkcontrole-app', function () {
     return view('seo.werkcontrole-app');
@@ -115,6 +115,9 @@ Route::get('/beste-checklist-app-2026', function () {
 Route::get('/takenlijst-personeel', function () {
     return view('seo.takenlijst-personeel');
 })->name('seo.takenlijst-personeel');
+Route::get('/opening-checklist-horeca', function () {
+    return view('seo.opening-checklist-horeca');
+})->name('seo.opening-checklist-horeca');
 
 // Route::get('/careers', function () {
 //     return view('careers');
