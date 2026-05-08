@@ -75,7 +75,7 @@ class RegisteredUserController extends Controller
             try {
                 Mail::to($user->email)->send(new WelcomeQuickstartMail($user, $company));
             } catch (\Throwable $mailException) {
-                Log::warning('Welcome quickstart mail could not be sent', [
+                Log::warning('Welcome mail could not be sent', [
                     'user_id' => $user->id,
                     'email' => $user->email,
                     'error' => $mailException->getMessage(),

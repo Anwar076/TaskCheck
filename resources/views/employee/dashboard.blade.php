@@ -103,15 +103,6 @@
                             @endif
                         </div>
                         @endif
-                        <div class="mt-3">
-                            <a href="{{ route('employee.dashboard', array_merge(request()->query(), ['quickstart' => 1])) }}"
-                               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-200 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
-                                </svg>
-                                Quickstart opnieuw starten
-                            </a>
-                        </div>
                     </div>
                 </div>
                 
@@ -665,31 +656,6 @@
     </div>
 </div>
 
-@if(!empty($quickstartSteps))
-<div id="employee-quickstart-modal" class="fixed inset-0 z-[100] hidden">
-    <div class="absolute inset-0 z-[100] bg-slate-900/60 backdrop-blur-[1px]"></div>
-    <div id="employee-quickstart-stage" class="relative z-[120] w-full h-full p-4 pointer-events-none">
-        <div id="employee-quickstart-panel" class="absolute z-[130] w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden pointer-events-auto">
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-lg font-bold text-slate-900">Quickstart Medewerker</h3>
-                <span id="employee-quickstart-counter" class="text-sm text-slate-500"></span>
-            </div>
-            <div class="px-5 py-5 max-h-[58vh] overflow-y-auto">
-                <h4 id="employee-quickstart-title" class="text-lg font-semibold text-slate-900"></h4>
-                <p id="employee-quickstart-description" class="mt-2.5 text-sm text-slate-600 leading-relaxed"></p>
-            </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
-                <button type="button" id="employee-quickstart-skip" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800">Overslaan</button>
-                <div class="flex items-center gap-2">
-                    <button type="button" id="employee-quickstart-prev" class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">Vorige</button>
-                    <button type="button" id="employee-quickstart-next" class="px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700">Volgende</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
 <!-- Enhanced JavaScript with Animations + Dynamic List Removal -->
 <script>
 function markNotificationAsRead(notificationId) {
@@ -1016,196 +982,6 @@ document.addEventListener('DOMContentLoaded', function() {
     applyCompletedListsFromStorage();
     updateTodaysListsCounter();
 
-    const quickstartEnabled = @json((bool) ($showQuickstartWizard ?? false));
-    const quickstartSteps = @json($quickstartSteps ?? []);
-    const quickstartModal = document.getElementById('employee-quickstart-modal');
-    const quickstartStage = document.getElementById('employee-quickstart-stage');
-    const quickstartPanel = document.getElementById('employee-quickstart-panel');
-    const quickstartTargets = [
-        '#quickstart-employee-hero',
-        '#quickstart-employee-hero',
-        '#quickstart-employee-alerts',
-        '#quickstart-employee-today',
-        '#quickstart-employee-today',
-        '#quickstart-employee-success',
-    ];
-    let quickstartIndex = 0;
-    let activeQuickstartHighlight = null;
-
-    function persistQuickstartCompleted() {
-        return fetch(@json(route('quickstart.complete')), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            },
-            body: JSON.stringify({ wizard: 'employee' }),
-        }).catch(() => null);
-    }
-
-    function closeQuickstart(markCompleted = false) {
-        if (markCompleted) {
-            persistQuickstartCompleted();
-        }
-        if (activeQuickstartHighlight) {
-            activeQuickstartHighlight.classList.remove('quickstart-highlight');
-            activeQuickstartHighlight = null;
-        }
-        quickstartModal?.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function highlightQuickstartTarget(index) {
-        if (activeQuickstartHighlight) {
-            activeQuickstartHighlight.classList.remove('quickstart-highlight');
-            activeQuickstartHighlight = null;
-        }
-
-        const selector = quickstartTargets[index];
-        if (!selector) {
-            return;
-        }
-
-        const target = document.querySelector(selector);
-        if (!target) {
-            return;
-        }
-
-        target.classList.add('quickstart-highlight');
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        activeQuickstartHighlight = target;
-
-        positionQuickstartPanel(target);
-    }
-
-    function positionQuickstartPanel(target) {
-        if (!quickstartPanel || !quickstartStage) {
-            return;
-        }
-
-        const viewportW = window.innerWidth;
-        const viewportH = window.innerHeight;
-        const rect = target.getBoundingClientRect();
-        const margin = 16;
-        const gap = 20;
-        const panelRectLive = quickstartPanel.getBoundingClientRect();
-        const panelWidth = Math.min(Math.max(panelRectLive.width || 420, 360), viewportW - (margin * 2));
-        const panelHeight = Math.min(Math.max(panelRectLive.height || 320, 260), viewportH - (margin * 2));
-
-        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-        const targetCenterX = rect.left + (rect.width / 2);
-        const targetCenterY = rect.top + (rect.height / 2);
-
-        const candidates = [
-            { // right
-                left: rect.right + gap,
-                top: targetCenterY - (panelHeight / 2),
-            },
-            { // left
-                left: rect.left - panelWidth - gap,
-                top: targetCenterY - (panelHeight / 2),
-            },
-            { // bottom
-                left: targetCenterX - (panelWidth / 2),
-                top: rect.bottom + gap,
-            },
-            { // top
-                left: targetCenterX - (panelWidth / 2),
-                top: rect.top - panelHeight - gap,
-            },
-            { // bottom-right fallback
-                left: viewportW - panelWidth - margin,
-                top: viewportH - panelHeight - margin,
-            },
-        ].map((candidate) => ({
-            left: clamp(candidate.left, margin, viewportW - panelWidth - margin),
-            top: clamp(candidate.top, margin, viewportH - panelHeight - margin),
-        }));
-
-        function overlapArea(panelRect, targetRect) {
-            const xOverlap = Math.max(0, Math.min(panelRect.right, targetRect.right) - Math.max(panelRect.left, targetRect.left));
-            const yOverlap = Math.max(0, Math.min(panelRect.bottom, targetRect.bottom) - Math.max(panelRect.top, targetRect.top));
-            return xOverlap * yOverlap;
-        }
-
-        const evaluated = candidates.map((candidate) => {
-            const panelRect = {
-                left: candidate.left,
-                top: candidate.top,
-                right: candidate.left + panelWidth,
-                bottom: candidate.top + panelHeight,
-            };
-            const overlap = overlapArea(panelRect, rect);
-            const distance = Math.abs((panelRect.left + panelWidth / 2) - targetCenterX) + Math.abs((panelRect.top + panelHeight / 2) - targetCenterY);
-            return {
-                candidate,
-                overlap,
-                distance,
-                score: overlap > 0 ? (100000 + overlap + distance) : distance,
-            };
-        });
-
-        // Always prefer positions that do not overlap the highlighted block at all.
-        const nonOverlapping = evaluated
-            .filter((item) => item.overlap === 0)
-            .sort((a, b) => a.distance - b.distance);
-
-        const best = nonOverlapping.length > 0
-            ? nonOverlapping[0].candidate
-            : evaluated.sort((a, b) => a.score - b.score)[0].candidate;
-
-        quickstartPanel.style.left = `${best.left}px`;
-        quickstartPanel.style.top = `${best.top}px`;
-    }
-
-    function renderQuickstartStep() {
-        if (!quickstartModal || !quickstartSteps.length) {
-            return;
-        }
-
-        const step = quickstartSteps[quickstartIndex];
-        const titleEl = document.getElementById('employee-quickstart-title');
-        const descriptionEl = document.getElementById('employee-quickstart-description');
-        const counterEl = document.getElementById('employee-quickstart-counter');
-        const prevBtn = document.getElementById('employee-quickstart-prev');
-        const nextBtn = document.getElementById('employee-quickstart-next');
-
-        if (titleEl) titleEl.textContent = step.title || '';
-        if (descriptionEl) descriptionEl.textContent = step.description || '';
-        if (counterEl) counterEl.textContent = `Stap ${quickstartIndex + 1} van ${quickstartSteps.length}`;
-        if (prevBtn) prevBtn.disabled = quickstartIndex === 0;
-        if (prevBtn) prevBtn.classList.toggle('opacity-50', quickstartIndex === 0);
-        if (nextBtn) nextBtn.textContent = quickstartIndex === quickstartSteps.length - 1 ? 'Afronden' : 'Volgende';
-        highlightQuickstartTarget(quickstartIndex);
-    }
-
-    if (quickstartEnabled && quickstartModal && quickstartSteps.length) {
-        quickstartModal.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-        renderQuickstartStep();
-
-        document.getElementById('employee-quickstart-prev')?.addEventListener('click', function () {
-            if (quickstartIndex > 0) {
-                quickstartIndex -= 1;
-                renderQuickstartStep();
-            }
-        });
-
-        document.getElementById('employee-quickstart-next')?.addEventListener('click', function () {
-            if (quickstartIndex < quickstartSteps.length - 1) {
-                quickstartIndex += 1;
-                renderQuickstartStep();
-                return;
-            }
-
-            closeQuickstart(true);
-        });
-
-        document.getElementById('employee-quickstart-skip')?.addEventListener('click', function () {
-            closeQuickstart(true);
-        });
-    }
-    
 });
 
 
@@ -1284,11 +1060,5 @@ document.addEventListener('DOMContentLoaded', function() {
     word-break: break-word;
 }
 
-.quickstart-highlight {
-    position: relative;
-    z-index: 110;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.55), 0 18px 35px rgba(15, 23, 42, 0.30);
-    transition: box-shadow 0.25s ease;
-}
 </style>
 @endsection

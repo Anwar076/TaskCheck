@@ -21,16 +21,22 @@
                     <tr>
                         <td style="padding:24px;">
                             <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
-                                Super dat je gestart bent. In de bijlage vind je de <strong>TaskCheck Quickstart PDF</strong> met een korte stap-voor-stap uitleg.
+                                Super dat je gestart bent met <strong>TaskCheck</strong>. Je account staat live en je kunt vandaag meteen aan de slag met je team.
+                            </p>
+                            <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#334155;">
+                                Leuke weetjes om direct te starten:
                             </p>
                             <ul style="margin:0 0 18px;padding-left:20px;color:#334155;font-size:14px;line-height:1.7;">
-                                <li>Bedrijf en instellingen controleren</li>
-                                <li>Eerste takenlijst maken</li>
-                                <li>Medewerkers uitnodigen</li>
-                                <li>Checklist uitvoeren en beoordelen</li>
+                                <li>Teams die dagelijks met checklists werken, missen minder stappen in hun kwaliteitsproces.</li>
+                                <li>Foto- en tekstbewijs maakt controles transparant voor management en klanten.</li>
+                                <li>Met vaste templates werk je sneller en consistenter per locatie of afdeling.</li>
                             </ul>
+                            <p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#334155;">
+                                Korte review van gebruikers:
+                                <em>"Sinds we TaskCheck gebruiken, hebben we veel meer overzicht en veel minder herstelwerk."</em>
+                            </p>
                             <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#334155;">
-                                Je proefperiode is direct actief. Je kunt vandaag al live starten met je team.
+                                Je proefperiode is direct actief. Veel succes met de eerste takenlijsten!
                             </p>
                             <p style="margin:0;font-size:14px;line-height:1.6;color:#334155;">
                                 Veel succes,<br>

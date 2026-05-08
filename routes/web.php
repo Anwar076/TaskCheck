@@ -282,24 +282,6 @@ Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('emp
 });
 
 Route::middleware('auth')->group(function () {
-    Route::post('/quickstart/complete', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'wizard' => ['required', 'in:admin,employee'],
-        ]);
-
-        $user = auth()->user();
-        $preferences = (array) ($user->preferences ?? []);
-        $wizard = $request->string('wizard')->toString();
-        $preferencesKey = $wizard === 'admin' ? 'quickstart_admin_completed' : 'quickstart_employee_completed';
-        $preferences[$preferencesKey] = true;
-        $preferences[$preferencesKey . '_at'] = now()->toISOString();
-
-        $user->setAttribute('preferences', $preferences);
-        $user->save();
-
-        return response()->json(['success' => true]);
-    })->name('quickstart.complete');
-
     Route::get('/push/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey'])->name('push.vapid-public-key');
     Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');

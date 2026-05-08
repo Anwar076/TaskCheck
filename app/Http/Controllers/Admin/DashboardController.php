@@ -167,35 +167,6 @@ class DashboardController extends Controller
             ->get()
             ->pluck('count', 'priority');
 
-        $preferences = (array) (auth()->user()->preferences ?? []);
-        $showQuickstartWizard = $request->boolean('quickstart') || !($preferences['quickstart_admin_completed'] ?? false);
-        $quickstartSteps = [
-            [
-                'title' => 'Welkom in je admin dashboard',
-                'description' => 'Hier zie je in een oogopslag de gezondheid van je team. We lopen nu kort alle belangrijke onderdelen door.',
-            ],
-            [
-                'title' => 'KPI kaarten bovenaan',
-                'description' => 'Gebruik deze kaarten om direct naar medewerkers, takenlijsten en inzendingen te gaan. Zo heb je elke dag snel overzicht.',
-            ],
-            [
-                'title' => 'Teamoverzicht en realtime tab',
-                'description' => 'Onder "Recente activiteit" keur je werk na. In "Realtime overzicht" zie je live wie bezig is en waar iemand eventueel vastloopt.',
-            ],
-            [
-                'title' => 'Snelle acties',
-                'description' => 'Maak hier snel een nieuwe lijst, beoordeel inzendingen of voeg een gebruiker toe. Dit is je dagelijkse startpunt.',
-            ],
-            [
-                'title' => 'Teamprestaties',
-                'description' => 'Hier zie je voltooiingspercentages per medewerker. Gebruik dit voor coaching en om knelpunten vroeg te signaleren.',
-            ],
-            [
-                'title' => 'Volgende stap',
-                'description' => 'Start met een takenlijst, wijs die toe aan een medewerker, en controleer daarna de inzendingen in je reviewflow.',
-            ],
-        ];
-
         return view('admin.dashboard', compact(
             'stats', 
             'recentSubmissions', 
@@ -205,9 +176,7 @@ class DashboardController extends Controller
             'listStats',
             'priorityStats',
             'locations',
-            'selectedLocationId',
-            'showQuickstartWizard',
-            'quickstartSteps'
+            'selectedLocationId'
         ));
     }
 

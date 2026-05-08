@@ -118,36 +118,7 @@ class DashboardController extends Controller
             'unread_notifications' => $notifications->count(),
         ];
 
-        $preferences = (array) ($user->preferences ?? []);
-        $showQuickstartWizard = $request->boolean('quickstart') || !($preferences['quickstart_employee_completed'] ?? false);
-        $quickstartSteps = [
-            [
-                'title' => 'Welkom in je medewerker dashboard',
-                'description' => 'Hier zie je precies wat je vandaag moet doen en wat al afgerond is.',
-            ],
-            [
-                'title' => 'Voortgang vandaag',
-                'description' => 'Bovenaan zie je je persoonlijke voortgangsbalk. Zo weet je altijd hoeveel taken nog openstaan.',
-            ],
-            [
-                'title' => 'Meldingen en opnieuw uitvoeren',
-                'description' => 'Taken met feedback van je leidinggevende verschijnen hier. Rond die eerst af om vertraging te voorkomen.',
-            ],
-            [
-                'title' => 'Taken van vandaag',
-                'description' => 'Open je toegewezen lijsten, start taken en bewijs je uitvoering met foto, tekst, video of bestand waar gevraagd.',
-            ],
-            [
-                'title' => 'Status per taak',
-                'description' => 'Je ziet direct of een taak op tijd is, bijna begint of te laat is. Dat helpt je prioriteiten slim te kiezen.',
-            ],
-            [
-                'title' => 'Slimme werkwijze',
-                'description' => 'Werk lijst voor lijst af, vul bewijs volledig in en markeer meldingen als gelezen zodra je actie hebt genomen.',
-            ],
-        ];
-
-        return view('employee.dashboard', compact('todaysLists', 'recentSubmissions', 'rejectedTasks', 'redoTasks', 'notifications', 'stats', 'showQuickstartWizard', 'quickstartSteps'));
+        return view('employee.dashboard', compact('todaysLists', 'recentSubmissions', 'rejectedTasks', 'redoTasks', 'notifications', 'stats'));
     }
 
     
