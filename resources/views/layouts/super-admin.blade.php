@@ -26,6 +26,13 @@
     <meta name="theme-color" content="#4c1d95">
 </head>
 <body class="font-sans antialiased bg-slate-100 text-slate-900">
+    @php
+        $superAdminDashboardTab = request()->string('tab')->toString();
+        $allowedSuperAdminTabs = ['communications', 'companies', 'monitoring', 'invoices', 'templates'];
+        if (!in_array($superAdminDashboardTab, $allowedSuperAdminTabs, true)) {
+            $superAdminDashboardTab = 'communications';
+        }
+    @endphp
     <div class="min-h-screen flex">
         <aside class="hidden md:flex md:w-64 md:flex-col bg-gradient-to-b from-violet-950 to-slate-900 text-white shadow-xl">
             <div class="flex flex-col flex-grow pt-6 overflow-y-auto">
@@ -46,7 +53,32 @@
                     <a href="{{ route('super-admin.dashboard') }}"
                        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
                         <svg class="h-5 w-5 shrink-0 opacity-90" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
-                        Overzicht
+                        Dashboard
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'communications']) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'communications' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
+                        <span class="h-2 w-2 rounded-full bg-violet-300/80"></span>
+                        Communicatie
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'companies']) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'companies' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
+                        <span class="h-2 w-2 rounded-full bg-violet-300/80"></span>
+                        Bedrijven
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'monitoring' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
+                        <span class="h-2 w-2 rounded-full bg-violet-300/80"></span>
+                        Monitoring
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'templates' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
+                        <span class="h-2 w-2 rounded-full bg-violet-300/80"></span>
+                        Templates
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'invoices']) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'invoices' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
+                        <span class="h-2 w-2 rounded-full bg-violet-300/80"></span>
+                        Facturen
                     </a>
                     <a href="{{ route('profile.edit') }}"
                        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-violet-100/90 hover:bg-white/10 transition-colors {{ request()->routeIs('profile.*') ? 'bg-white/15 text-white' : '' }}">
@@ -112,7 +144,12 @@
                 <button type="button" class="rounded-lg p-2 hover:bg-white/10" id="sa-mobile-close" aria-label="Sluiten">✕</button>
             </div>
             <nav class="flex-1 space-y-1 p-4">
-                <a href="{{ route('super-admin.dashboard') }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Overzicht</a>
+                <a href="{{ route('super-admin.dashboard') }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Dashboard</a>
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'communications']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Communicatie</a>
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'companies']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Bedrijven</a>
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Monitoring</a>
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Templates</a>
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'invoices']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Facturen</a>
                 <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Profiel</a>
             </nav>
             <form method="POST" action="{{ route('logout') }}" class="border-t border-white/10 p-4">
@@ -136,5 +173,6 @@
         })();
     </script>
     @stack('scripts')
+    @include('partials.google-translate')
 </body>
 </html>

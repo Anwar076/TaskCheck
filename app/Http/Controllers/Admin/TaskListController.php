@@ -9,6 +9,8 @@ use App\Models\Submission;
 use App\Models\SubmissionTask;
 use App\Models\Notification;
 use App\Models\Location;
+use App\Models\Task;
+use App\Models\TaskTemplate;
 use App\Services\Ai\AiUsageLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -190,7 +192,7 @@ class TaskListController extends Controller
         }
 
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($validatedData['template_id'] ? ' Taken uit sjabloon zijn toegevoegd.' : '') . ($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
+            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($validatedData['template_id'] ? ' Taken uit template zijn toegevoegd.' : '') . ($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
     }
 
     public function show(TaskList $list)
@@ -202,10 +204,16 @@ class TaskListController extends Controller
         $companyId = auth()->user()->company_id;
         $users = \App\Models\User::query()
             ->when($companyId !== null, fn($q) => $q->where('company_id', $companyId))
-            ->where('role', 'employee')
+            ->whereIn('role', ['employee', 'admin'])
+            ->where('is_active', true)
             ->when($list->location_id, fn($q) => $q->where('location_id', $list->location_id))
             ->orderBy('name')
             ->get();
+
+        $departments = collect(auth()->user()->company?->departments ?? [])
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->values()
+            ->all();
         
         // Ensure list belongs to same company
         if ($list->company_id !== auth()->user()->company_id) {
@@ -230,7 +238,7 @@ class TaskListController extends Controller
             })->toArray()
         ]);
         
-        return view('admin.lists.show', compact('list', 'users'));
+        return view('admin.lists.show', compact('list', 'users', 'departments'));
     }
 
     public function edit(TaskList $list)
@@ -1073,7 +1081,8 @@ PROMPT,
                 $selectedUser = \App\Models\User::query()
                     ->where('id', $userId)
                     ->where('company_id', auth()->user()->company_id)
-                    ->where('role', 'employee')
+                    ->whereIn('role', ['employee', 'admin'])
+                    ->where('is_active', true)
                     ->first();
 
                 if (!$selectedUser) {
@@ -1135,7 +1144,8 @@ PROMPT,
 
                     $departmentUsers = \App\Models\User::query()
                         ->where('company_id', auth()->user()->company_id)
-                        ->where('role', 'employee')
+                        ->whereIn('role', ['employee', 'admin'])
+                        ->where('is_active', true)
                         ->where('department', $validatedData['department'])
                         ->when($list->location_id, fn ($q) => $q->where('location_id', $list->location_id))
                         ->get(['id']);
@@ -1575,5 +1585,84 @@ PROMPT,
 
         return redirect()->route('admin.lists.show', $dayList)
             ->with('success', 'Daglijst succesvol aangemaakt.');
+    }
+
+    public function syncTemplate(TaskList $list)
+    {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        if (!$list->template_id) {
+            return redirect()->route('admin.lists.show', $list)
+                ->with('error', 'Deze takenlijst is niet gekoppeld aan een template.');
+        }
+
+        $template = TaskTemplate::withoutGlobalScopes()
+            ->where('id', $list->template_id)
+            ->where('company_id', auth()->user()->company_id)
+            ->with('templateTasks')
+            ->first();
+
+        if (!$template) {
+            return redirect()->route('admin.lists.show', $list)
+                ->with('error', 'Gekoppeld template niet gevonden.');
+        }
+
+        DB::transaction(function () use ($list, $template) {
+            $templateTasks = $template->templateTasks()->orderBy('sort_order')->get();
+            $matchedTaskIds = [];
+            $templateOrderIndexes = $templateTasks->pluck('sort_order')->filter()->values()->all();
+
+            $list->load('tasks');
+
+            foreach ($templateTasks as $tt) {
+                $task = $list->tasks->firstWhere('order_index', $tt->sort_order)
+                    ?? $list->tasks->firstWhere('title', $tt->title);
+
+                $payload = [
+                    'title' => $tt->title,
+                    'description' => $tt->description,
+                    'instructions' => $tt->instructions,
+                    'required_proof_type' => $tt->required_proof_type,
+                    'is_required' => $tt->is_required,
+                    'checklist_items' => $tt->checklist_items,
+                    'attachments' => $tt->attachments,
+                    'validation_rules' => $tt->validation_rules,
+                    'start_time' => $tt->start_time,
+                    'end_time' => $tt->end_time,
+                    'order_index' => $tt->sort_order,
+                ];
+
+                if ($task) {
+                    $task->update($payload);
+                } else {
+                    $payload['list_id'] = $list->id;
+                    $payload['created_by'] = auth()->id();
+                    $task = Task::create($payload);
+                }
+
+                $matchedTaskIds[] = $task->id;
+            }
+
+            $toDelete = $list->tasks->filter(function ($task) use ($templateOrderIndexes, $matchedTaskIds) {
+                if (in_array($task->id, $matchedTaskIds, true)) {
+                    return false;
+                }
+
+                if ($task->order_index !== null && in_array($task->order_index, $templateOrderIndexes, true)) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            foreach ($toDelete as $task) {
+                $task->delete();
+            }
+        });
+
+        return redirect()->route('admin.lists.show', $list)
+            ->with('success', 'Takenlijst is opnieuw gesynchroniseerd met het template.');
     }
 }

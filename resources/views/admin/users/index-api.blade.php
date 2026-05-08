@@ -11,7 +11,7 @@
     $fallbackStats = [
         'total_users' => $allUsers->count(),
         'admin_users' => $allUsers->where('role', 'admin')->count(),
-        'employee_users' => $allUsers->where('role', 'employee')->count(),
+        'employee_users' => $allUsers->whereIn('role', ['employee', 'admin'])->count(),
         'active_users' => $allUsers->where('is_active', true)->count(),
     ];
 @endphp
@@ -43,6 +43,8 @@
                 </div>
             </div>
         </div>
+
+        @include('admin.settings.tabs', ['activeTab' => 'users'])
 
         {{-- Stats --}}
         <div id="users-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">

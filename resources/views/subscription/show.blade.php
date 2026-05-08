@@ -3,8 +3,8 @@
 @section('page-title', 'Abonnement')
 
 @section('content')
-<div class="py-6 sm:py-8 lg:py-10">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 shadow-sm" role="alert">
                     <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -17,18 +17,18 @@
             @endif
 
             {{-- Hero kaart --}}
-            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden mb-8">
-                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 sm:px-8 py-8 sm:py-10">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden mb-8">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                                <svg class="w-8 h-8 sm:w-9 sm:h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-xl sm:text-2xl font-bold text-white">{{ $company->name ?? 'Bedrijf' }}</h1>
-                                <p class="text-blue-100 text-sm sm:text-base mt-1">Abonnementsdetails</p>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{{ $company->name ?? 'Bedrijf' }}</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Abonnementsdetails</p>
                             </div>
                         </div>
                         @if($company->subscription_status === 'trial')
@@ -39,8 +39,12 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-6 sm:p-8">
+                @include('admin.settings.tabs', ['activeTab' => 'subscription'])
+
                     <div class="grid md:grid-cols-2 gap-6 sm:gap-8">
                         {{-- Huidig plan --}}
                         <div class="space-y-5">
@@ -311,8 +315,7 @@
                         </div>
                     @endif
                 </div>
-            </div>
-        </div>
+    </div>
     </div>
 </div>
 @endsection

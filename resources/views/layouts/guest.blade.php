@@ -46,5 +46,6 @@
                 </p>
             </div>
         </div>
+        @include('partials.google-translate')
     </body>
 </html>

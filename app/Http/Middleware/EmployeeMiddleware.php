@@ -15,7 +15,9 @@ class EmployeeMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->isEmployee()) {
+        $user = auth()->user();
+
+        if (!auth()->check() || !$user || (!$user->isEmployee() && !($user->isAdmin() && !$user->isSuperAdmin()))) {
             abort(403, 'Access denied. Employee privileges required.');
         }
 

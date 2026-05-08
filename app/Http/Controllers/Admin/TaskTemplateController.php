@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\TaskTemplate;
 use App\Models\TemplateTask;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class TaskTemplateController extends Controller
 {
@@ -16,6 +18,23 @@ class TaskTemplateController extends Controller
     {
         // Force fresh data from database
         $templates = TaskTemplate::with(['templateTasks', 'taskLists'])->orderBy('name')->get();
+        $globalTemplatesQuery = TaskTemplate::withoutGlobalScopes()
+            ->whereNull('company_id');
+
+        if (Schema::hasColumn('task_templates', 'target_company_type')) {
+            $globalTemplatesQuery->where(function ($query) {
+                $companyType = auth()->user()->company->company_type ?? null;
+                $query->whereNull('target_company_type');
+                if ($companyType) {
+                    $query->orWhere('target_company_type', $companyType);
+                }
+            });
+        }
+
+        $globalTemplates = $globalTemplatesQuery
+            ->with('templateTasks')
+            ->orderBy('name')
+            ->get();
         
         // Debug: Always log what we're doing
         \Log::info('TaskTemplateController@index called', [
@@ -39,7 +58,27 @@ class TaskTemplateController extends Controller
         }
 
         // Otherwise, return the regular view
-        return view('admin.templates.index', compact('templates'));
+        $companyTemplatesBySource = TaskTemplate::withoutGlobalScopes()
+            ->where('company_id', auth()->user()->company_id)
+            ->whereNotNull('source_template_id')
+            ->get()
+            ->keyBy('source_template_id');
+
+        $templateLibrary = $globalTemplates->map(function (TaskTemplate $globalTemplate) use ($companyTemplatesBySource) {
+            $linked = $companyTemplatesBySource->get($globalTemplate->id);
+            $hasUpdate = $linked && (
+                !$linked->source_updated_at || $globalTemplate->updated_at->gt($linked->source_updated_at)
+            );
+
+            return [
+                'global' => $globalTemplate,
+                'linked_template_id' => $linked?->id,
+                'is_imported' => (bool) $linked,
+                'has_update' => (bool) $hasUpdate,
+            ];
+        });
+
+        return view('admin.templates.index', compact('templates', 'templateLibrary'));
     }
 
     /**
@@ -78,9 +117,9 @@ class TaskTemplateController extends Controller
         // Create template tasks
         foreach ($validated['tasks'] as $index => $taskData) {
             // Filter out empty checklist items and ensure proper format
-            $checklistItems = isset($taskData['checklist_items']) ? array_filter($taskData['checklist_items'], function($item) {
+            $checklistItems = isset($taskData['checklist_items']) ? array_values(array_filter($taskData['checklist_items'], function($item) {
                 return !empty(trim($item));
-            }) : null;
+            })) : null;
             
             // Convert to null if empty array
             if (is_array($checklistItems) && empty($checklistItems)) {
@@ -103,7 +142,7 @@ class TaskTemplateController extends Controller
         }
 
         return redirect()->route('admin.templates.index')
-            ->with('success', 'Sjabloon succesvol aangemaakt!');
+            ->with('success', 'Template succesvol aangemaakt!');
     }
 
     /**
@@ -161,9 +200,9 @@ class TaskTemplateController extends Controller
         // Update or create tasks
         foreach ($validated['tasks'] as $index => $taskData) {
             // Filter out empty checklist items and ensure proper format
-            $checklistItems = isset($taskData['checklist_items']) ? array_filter($taskData['checklist_items'], function($item) {
+            $checklistItems = isset($taskData['checklist_items']) ? array_values(array_filter($taskData['checklist_items'], function($item) {
                 return !empty(trim($item));
-            }) : null;
+            })) : null;
             
             // Convert to null if empty array
             if (is_array($checklistItems) && empty($checklistItems)) {
@@ -214,12 +253,12 @@ class TaskTemplateController extends Controller
         $referer = request()->headers->get('referer');
         if ($referer && strpos($referer, "/admin/templates/{$template->id}") !== false) {
             return redirect()->route('admin.templates.show', $template)
-                ->with('success', 'Sjabloon succesvol bijgewerkt!')
+                ->with('success', 'Template succesvol bijgewerkt!')
                 ->with('template_updated', true);
         }
 
         return redirect()->route('admin.templates.index')
-            ->with('success', 'Sjabloon succesvol bijgewerkt!');
+            ->with('success', 'Template succesvol bijgewerkt!');
     }
 
     /**
@@ -238,12 +277,12 @@ class TaskTemplateController extends Controller
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Kan sjabloon niet verwijderen: wordt nog gebruikt door bestaande lijsten.'
+                    'message' => 'Kan template niet verwijderen: wordt nog gebruikt door bestaande lijsten.'
                 ], 422);
             }
 
             return redirect()->route('admin.templates.index')
-                ->with('error', 'Kan sjabloon niet verwijderen: wordt nog gebruikt door bestaande lijsten.');
+                ->with('error', 'Kan template niet verwijderen: wordt nog gebruikt door bestaande lijsten.');
         }
 
         if ($listsCount > 0 && $force === 'unlink') {
@@ -268,12 +307,12 @@ class TaskTemplateController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Sjabloon succesvol verwijderd!'
+                'message' => 'Template succesvol verwijderd!'
             ]);
         }
 
         return redirect()->route('admin.templates.index')
-            ->with('success', 'Sjabloon succesvol verwijderd!');
+            ->with('success', 'Template succesvol verwijderd!');
     }
 
     /**
@@ -291,12 +330,123 @@ class TaskTemplateController extends Controller
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Takenlijst succesvol aangemaakt uit sjabloon!',
+                'message' => 'Takenlijst succesvol aangemaakt uit template!',
                 'redirect' => route('admin.lists.show', $taskList)
             ]);
         }
 
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Takenlijst succesvol aangemaakt uit sjabloon!');
+            ->with('success', 'Takenlijst succesvol aangemaakt uit template!');
+    }
+
+    public function importGlobalTemplate(TaskTemplate $template)
+    {
+        if ($template->company_id !== null) {
+            abort(404);
+        }
+
+        $companyId = auth()->user()->company_id;
+        $existing = TaskTemplate::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('source_template_id', $template->id)
+            ->first();
+
+        if ($existing) {
+            return redirect()->route('admin.templates.index')->with('success', 'Template is al geimporteerd.');
+        }
+
+        $template->load('templateTasks');
+
+        DB::transaction(function () use ($template, $companyId) {
+            $newTemplate = TaskTemplate::withoutGlobalScopes()->create([
+                'name' => $template->name,
+                'description' => $template->description,
+                'is_active' => true,
+                'company_id' => $companyId,
+                'source_template_id' => $template->id,
+                'source_updated_at' => $template->updated_at,
+            ]);
+
+            foreach ($template->templateTasks as $task) {
+                TemplateTask::create([
+                    'template_id' => $newTemplate->id,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'instructions' => $task->instructions,
+                    'required_proof_type' => $task->required_proof_type,
+                    'is_required' => $task->is_required,
+                    'checklist_items' => $task->checklist_items,
+                    'attachments' => $task->attachments,
+                    'validation_rules' => $task->validation_rules,
+                    'start_time' => $task->start_time,
+                    'end_time' => $task->end_time,
+                    'sort_order' => $task->sort_order,
+                    'is_active' => true,
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.templates.index')->with('success', 'Nieuwe template geimporteerd.');
+    }
+
+    public function applyGlobalTemplateUpdate(TaskTemplate $template)
+    {
+        $companyId = auth()->user()->company_id;
+        if ($template->company_id !== $companyId || !$template->source_template_id) {
+            abort(404);
+        }
+
+        $sourceTemplate = TaskTemplate::withoutGlobalScopes()
+            ->whereNull('company_id')
+            ->with('templateTasks')
+            ->findOrFail($template->source_template_id);
+
+        DB::transaction(function () use ($template, $sourceTemplate) {
+            $template->update([
+                'name' => $sourceTemplate->name,
+                'description' => $sourceTemplate->description,
+                'source_updated_at' => $sourceTemplate->updated_at,
+            ]);
+
+            $existingBySortOrder = $template->templateTasks()->get()->keyBy('sort_order');
+            $incomingSortOrders = [];
+
+            foreach ($sourceTemplate->templateTasks as $sourceTask) {
+                $incomingSortOrders[] = $sourceTask->sort_order;
+
+                $payload = [
+                    'title' => $sourceTask->title,
+                    'description' => $sourceTask->description,
+                    'instructions' => $sourceTask->instructions,
+                    'required_proof_type' => $sourceTask->required_proof_type,
+                    'is_required' => $sourceTask->is_required,
+                    'checklist_items' => $sourceTask->checklist_items,
+                    'attachments' => $sourceTask->attachments,
+                    'validation_rules' => $sourceTask->validation_rules,
+                    'start_time' => $sourceTask->start_time,
+                    'end_time' => $sourceTask->end_time,
+                    'sort_order' => $sourceTask->sort_order,
+                    'is_active' => true,
+                ];
+
+                $existingTask = $existingBySortOrder->get($sourceTask->sort_order);
+                if ($existingTask) {
+                    $existingTask->update($payload);
+                } else {
+                    $payload['template_id'] = $template->id;
+                    TemplateTask::create($payload);
+                }
+            }
+
+            $template->templateTasks()
+                ->whereNotIn('sort_order', $incomingSortOrders)
+                ->delete();
+
+            $template->load('templateTasks');
+            $template->syncToLists();
+        });
+
+        return redirect()->route('admin.templates.index')
+            ->with('success', 'Template update toegepast op je takenlijsten.');
     }
 }

@@ -12,6 +12,7 @@ class Company extends Model
 
     protected $fillable = [
         'name',
+        'company_type',
         'domain',
         'logo_path',
         'address',
@@ -19,6 +20,7 @@ class Company extends Model
         'email',
         'website',
         'description',
+        'departments',
         'subscription_plan',
         'pending_subscription_plan',
         'subscription_status',
@@ -39,6 +41,7 @@ class Company extends Model
         'subscription_ends_at' => 'datetime',
         'billing_required' => 'boolean',
         'is_active' => 'boolean',
+        'departments' => 'array',
     ];
 
     // Plan configurations

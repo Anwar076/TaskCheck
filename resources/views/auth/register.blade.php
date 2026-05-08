@@ -40,6 +40,33 @@
                 @enderror
             </div>
 
+            <!-- Company Type -->
+            <div>
+                <label for="company_type" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Bedrijfstype
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7.5h18M4.5 7.5V18A1.5 1.5 0 006 19.5h12A1.5 1.5 0 0019.5 18V7.5M9 11.25h6M9 14.25h6"></path>
+                        </svg>
+                    </div>
+                    <select id="company_type"
+                            name="company_type"
+                            required
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('company_type') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                        <option value="">Kies bedrijfstype</option>
+                        <option value="cleaning" {{ old('company_type') === 'cleaning' ? 'selected' : '' }}>Schoonmaak</option>
+                        <option value="horeca" {{ old('company_type') === 'horeca' ? 'selected' : '' }}>Horeca</option>
+                        <option value="other" {{ old('company_type') === 'other' ? 'selected' : '' }}>Anders</option>
+                    </select>
+                </div>
+                <p class="mt-2 text-xs text-gray-500">Op basis van je keuze zetten we direct passende starter templates klaar.</p>
+                @error('company_type')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <!-- Name -->
             <div>
                 <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">

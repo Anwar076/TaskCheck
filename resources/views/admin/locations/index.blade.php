@@ -1,29 +1,50 @@
 @extends('layouts.admin')
 
-@section('content')
-<div class="p-6">
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">Locaties</h1>
-            @php $locationLimit = $company?->getLocationLimit(); @endphp
-            <p class="text-sm text-slate-600">
-                @if($company && $locationLimit === -1)
-                    Onbeperkt locaties op jouw plan.
-                @elseif($company)
-                    {{ $company->getLocationCount() }} van {{ $locationLimit }} locaties in gebruik.
-                @endif
-            </p>
-        </div>
-        <a href="{{ route('admin.locations.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            Locatie toevoegen
-        </a>
-    </div>
+@section('page-title', 'Locaties')
 
-    <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white">
-        <table class="min-w-full divide-y divide-slate-100">
+@section('content')
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        @php $locationLimit = $company?->getLocationLimit(); @endphp
+
+        <div class="mb-6 sm:mb-8">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6.75-5.625-6.75-11.25a6.75 6.75 0 1113.5 0C18.75 15.375 12 21 12 21z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 11.25a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Locaties</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">
+                                    @if($company && $locationLimit === -1)
+                                        Onbeperkt locaties op jouw plan.
+                                    @elseif($company)
+                                        {{ $company->getLocationCount() }} van {{ $locationLimit }} locaties in gebruik.
+                                    @else
+                                        Beheer je locaties en status.
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.locations.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                            Locatie toevoegen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-100">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">Naam</th>
@@ -61,7 +82,9 @@
                     </tr>
                 @endforelse
             </tbody>
-        </table>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

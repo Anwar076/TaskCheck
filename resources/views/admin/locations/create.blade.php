@@ -1,10 +1,34 @@
 @extends('layouts.admin')
 
-@section('content')
-<div class="p-6 max-w-3xl">
-    <h1 class="text-2xl font-bold text-slate-900 mb-6">Nieuwe locatie</h1>
+@section('page-title', 'Nieuwe locatie')
 
-    <form method="POST" action="{{ route('admin.locations.store') }}" class="space-y-5">
+@section('content')
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="mb-6 sm:mb-8">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6.75-5.625-6.75-11.25a6.75 6.75 0 1113.5 0C18.75 15.375 12 21 12 21z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 11.25a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Nieuwe locatie</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Voeg een nieuwe locatie toe aan je organisatie</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.locations.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                            Naar overzicht
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <form method="POST" action="{{ route('admin.locations.store') }}" class="p-6 sm:p-8 space-y-5">
         @csrf
 
         <div>
@@ -30,10 +54,12 @@
             Actief
         </label>
 
-        <div class="flex justify-end gap-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
             <a href="{{ route('admin.locations.index') }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Annuleren</a>
             <button type="submit" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Opslaan</button>
         </div>
     </form>
+        </div>
+    </div>
 </div>
 @endsection

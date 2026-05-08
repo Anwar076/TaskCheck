@@ -688,7 +688,7 @@ class SubscriptionController extends Controller
 
     private function shouldUseStarterTestOverride(string $email, string $plan): bool
     {
-        return strtolower(trim($email)) === 'anwar@brancom.nl' && $plan === 'starter';
+        return false;
     }
 
     private function resolveSubscriptionInterval(string $email, string $plan): string

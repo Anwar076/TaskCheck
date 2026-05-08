@@ -120,9 +120,18 @@
                         </div>
                         <div>
                             <label for="department" class="block text-sm font-medium text-slate-700 mb-1.5">Afdeling</label>
-                            <input type="text" name="department" id="department"
-                                   class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   value="{{ old('department') }}" placeholder="Bijv. Schoonmaak, Operaties">
+                            <select name="department" id="department"
+                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Geen afdeling</option>
+                                @foreach(($departments ?? []) as $department)
+                                    <option value="{{ $department }}" {{ old('department') === $department ? 'selected' : '' }}>
+                                        {{ $department }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if(empty($departments ?? []))
+                                <p class="mt-1.5 text-xs text-slate-500">Nog geen afdelingen ingesteld. Voeg ze toe bij instellingen.</p>
+                            @endif
                             @error('department')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                             @enderror

@@ -66,6 +66,15 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            @if($list->template_id)
+                                <form method="POST" action="{{ route('admin.lists.sync-template', $list) }}" onsubmit="return confirm('Taken uit het gekoppelde template opnieuw toepassen op deze lijst?')">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"/></svg>
+                                        Template opnieuw synchroniseren
+                                    </button>
+                                </form>
+                            @endif
                             <a href="{{ route('admin.lists.edit', $list) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
                                 Bewerken
@@ -604,21 +613,24 @@
                     </div>
 
                     {{-- Department select --}}
-                    <div id="departmentAssignment" class="hidden">
+                    <div id="departmentAssignment" class="hidden" data-departments-empty="{{ empty($departments ?? []) ? '1' : '0' }}">
                         <label for="department" class="block text-sm font-semibold text-slate-900 mb-1.5">
                             Afdeling <span class="text-red-500">*</span>
                         </label>
                         <select name="department" id="department" class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-100" disabled>
                             <option value="">Kies een afdeling...</option>
-                            <option value="HR">HR</option>
-                            <option value="IT">IT</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Operations">Operations</option>
-                            <option value="Cleaning">Schoonmaak</option>
-                            <option value="Maintenance">Onderhoud</option>
+                            @foreach(($departments ?? []) as $departmentOption)
+                                <option value="{{ $departmentOption }}">{{ $departmentOption }}</option>
+                            @endforeach
                         </select>
-                        <p class="mt-1 text-xs text-slate-500">Alle medewerkers in deze afdeling krijgen toegang</p>
+                        @if(empty($departments ?? []))
+                            <p class="mt-1.5 text-sm text-amber-600">
+                                Er zijn geen afdelingen. Wil je een afdeling maken?
+                                <a href="{{ route('admin.settings.edit') }}" class="font-medium underline hover:text-amber-800">Ga naar instellingen</a>
+                            </p>
+                        @else
+                            <p class="mt-1 text-xs text-slate-500">Alle medewerkers in deze afdeling krijgen toegang</p>
+                        @endif
                     </div>
 
                     {{-- Dates --}}
@@ -694,6 +706,7 @@ function toggleAssignmentType() {
     const assignmentTypeRadio = document.querySelector('input[name="assignment_type"]:checked');
     
     if (!assignmentTypeRadio) return;
+    const departmentsEmpty = departmentAssignment?.dataset?.departmentsEmpty === '1';
     
     if (assignmentTypeRadio.value === 'user') {
         userAssignment?.classList.remove('hidden');
@@ -706,7 +719,10 @@ function toggleAssignmentType() {
         departmentAssignment?.classList.remove('hidden');
         userSelect.disabled = true;
         userSelect.value = '';
-        departmentSelect.disabled = false;
+        departmentSelect.disabled = departmentsEmpty;
+        if (departmentsEmpty) {
+            departmentSelect.value = '';
+        }
     }
 }
 
@@ -750,9 +766,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const userAssignment = document.getElementById('userAssignment');
         const assignmentType = document.querySelector('input[name="assignment_type"]:checked');
         const usersEmpty = userAssignment?.dataset?.usersEmpty === '1';
+        const departmentsEmpty = document.getElementById('departmentAssignment')?.dataset?.departmentsEmpty === '1';
         if (assignmentType?.value === 'user' && usersEmpty) {
             e.preventDefault();
             alert('Geen gebruikers beschikbaar. Maak eerst een gebruiker aan (Gebruikers → Nieuwe gebruiker) of kies voor afdelingstoewijzing.');
+            return;
+        }
+        if (assignmentType?.value === 'department' && departmentsEmpty) {
+            e.preventDefault();
+            alert('Er zijn geen afdelingen ingesteld. Voeg eerst afdelingen toe bij instellingen.');
             return;
         }
 

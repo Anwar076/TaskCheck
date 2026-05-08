@@ -85,26 +85,20 @@
                                 </svg>
                                 Instellingen
                             </a>
-                            <a href="{{ route('employee.notifications.index') }}" 
-                               class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors relative {{ request()->routeIs('employee.notifications.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                </svg>
-                                Notificaties
-                                @php
-                                    $unreadCountNav = auth()->user()->unreadNotifications()->count();
-                                @endphp
-                                @if($unreadCountNav > 0)
-                                    <span data-unread-count-badge class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-red-500 rounded-full">
-                                        {{ $unreadCountNav > 9 ? '9+' : $unreadCountNav }}
-                                    </span>
-                                @endif
-                            </a>
                         </div>
                     </div>
 
                     <!-- Clean User Menu -->
                     <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                        @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                            <form method="POST" action="{{ route('dashboard.switch') }}">
+                                @csrf
+                                <input type="hidden" name="mode" value="admin">
+                                <button type="submit" class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 border border-blue-200 hover:bg-blue-50 rounded-lg transition-colors">
+                                    Admin dashboard
+                                </button>
+                            </form>
+                        @endif
                         @php
                             $unreadNotifications = auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->take(5)->get();
                             $unreadCount = auth()->user()->unreadNotifications()->count();
@@ -173,14 +167,12 @@
                                         </div>
                                     @endif
                                 </div>
-                                @if($unreadCount > 0)
-                                    <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
-                                        <a href="{{ route('employee.notifications.index') }}" 
-                                           class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700">
-                                            Alle notificaties bekijken
-                                        </a>
-                                    </div>
-                                @endif
+                                <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                                    <a href="{{ route('employee.notifications.index') }}" 
+                                       class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700">
+                                        Alle notificaties bekijken
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         
@@ -242,23 +234,6 @@
                         </svg>
                         Instellingen
                     </a>
-                    <a href="{{ route('employee.notifications.index') }}" 
-                       class="flex items-center justify-between px-3 py-2 rounded-lg text-base font-medium transition-colors {{ request()->routeIs('employee.notifications.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <div class="flex items-center">
-                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                            Notificaties
-                        </div>
-                        @php
-                            $unreadCount = auth()->user()->unreadNotifications()->count();
-                        @endphp
-                        @if($unreadCount > 0)
-                            <span data-unread-count-badge class="inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-red-500 rounded-full">
-                                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                            </span>
-                        @endif
-                    </a>
                 </div>
                 <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
                     <div class="flex items-center space-x-3 mb-3">
@@ -270,6 +245,15 @@
                                 <div class="text-xs text-gray-500">{{ Auth::user()->email }}</div>
                             </div>
                         </div>
+                        @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                            <form method="POST" action="{{ route('dashboard.switch') }}" class="mb-3">
+                                @csrf
+                                <input type="hidden" name="mode" value="admin">
+                                <button type="submit" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
+                                    Naar admin dashboard
+                                </button>
+                            </form>
+                        @endif
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200">
@@ -647,6 +631,12 @@
                         return;
                     }
 
+                    if (typeof payload.latest_user_notification_id === 'number' && payload.latest_user_notification_id < lastNotificationId) {
+                        lastNotificationId = payload.latest_user_notification_id;
+                        localStorage.setItem(realtimeStorageKey, String(lastNotificationId));
+                        hasExistingCursor = lastNotificationId > 0;
+                    }
+
                     updateUnreadBadges(payload.unread_count || 0);
 
                     const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
@@ -734,5 +724,6 @@
             }, 5000);
         });
     </script>
+    @include('partials.google-translate')
 </body>
 </html>

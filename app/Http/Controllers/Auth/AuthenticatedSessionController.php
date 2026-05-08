@@ -42,7 +42,9 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('super-admin.dashboard');
             }
 
-            return redirect()->route('admin.dashboard');
+            $preferredDashboard = (string) $request->session()->get('dashboard_mode', 'admin');
+
+            return redirect()->route($preferredDashboard === 'employee' ? 'employee.dashboard' : 'admin.dashboard');
         } elseif ($user->role === 'employee') {
             return redirect()->route('employee.dashboard');
         }

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Sjabloon bewerken')
+@section('page-title', 'Template bewerken')
 
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
@@ -19,7 +19,7 @@
                             </div>
                             <div class="min-w-0">
                                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">{{ $template->name }}</h1>
-                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Bewerk sjabloon en taken</p>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Bewerk template en taken</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
@@ -29,7 +29,7 @@
                             </a>
                             <a href="{{ route('admin.templates.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18.75"/></svg>
-                                Naar sjablonen
+                                Naar templates
                             </a>
                         </div>
                     </div>
@@ -45,11 +45,11 @@
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Basisgegevens</h2>
-                    <p class="text-slate-600 text-sm mt-0.5">Naam en beschrijving van het sjabloon</p>
+                    <p class="text-slate-600 text-sm mt-0.5">Naam en beschrijving van het template</p>
                 </div>
                 <div class="p-4 sm:p-6 space-y-5">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Sjabloonnaam <span class="text-red-500">*</span></label>
+                        <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Templatenaam <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" required value="{{ old('name', $template->name) }}"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-500 @enderror"
                             placeholder="Bijv. Dagelijkse schoonmaak-checklist">
@@ -59,7 +59,7 @@
                         <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
                         <textarea id="description" name="description" rows="3"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-500 @enderror"
-                            placeholder="Beschrijf waarvoor dit sjabloon gebruikt wordt...">{{ old('description', $template->description) }}</textarea>
+                            placeholder="Beschrijf waarvoor dit template gebruikt wordt...">{{ old('description', $template->description) }}</textarea>
                         @error('description')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -69,8 +69,8 @@
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">Sjabloon-taken</h2>
-                        <p class="text-slate-600 text-sm mt-0.5">Pas de taken van dit sjabloon aan</p>
+                        <h2 class="text-lg font-bold text-slate-900">Template-taken</h2>
+                        <p class="text-slate-600 text-sm mt-0.5">Pas de taken van dit template aan</p>
                     </div>
                     <button type="button" onclick="addTask()"
                         class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">

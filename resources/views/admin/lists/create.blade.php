@@ -61,7 +61,7 @@
                                 <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
                                 <input type="text" name="title" id="title" required
                                        class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                       value="{{ old('title') }}"
+                                       value="{{ old('title', request('title')) }}"
                                        placeholder="Bijv. Dagelijkse keukencontrole">
                                 @error('title')
                                     <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
@@ -71,7 +71,7 @@
                                 <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
                                 <textarea name="description" id="description" rows="3"
                                           class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                          placeholder="Beschrijf waarvoor deze takenlijst dient...">{{ old('description') }}</textarea>
+                                          placeholder="Beschrijf waarvoor deze takenlijst dient...">{{ old('description', request('description')) }}</textarea>
                                 @error('description')
                                     <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -125,19 +125,19 @@
             {{-- Hidden field to carry AI-taken mee naar backend --}}
             <input type="hidden" name="ai_tasks" id="ai-tasks-json" value="">
 
-            {{-- Sjabloon --}}
+            {{-- Template --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
-                    <h2 class="text-lg font-bold text-slate-900">Sjabloon <span class="font-normal text-slate-600">(optioneel)</span></h2>
-                    <p class="text-slate-600 text-sm mt-0.5">Start met een bestaand sjabloon of maak een lege lijst</p>
+                    <h2 class="text-lg font-bold text-slate-900">Template <span class="font-normal text-slate-600">(optioneel)</span></h2>
+                    <p class="text-slate-600 text-sm mt-0.5">Start met een bestaand template of maak een lege lijst</p>
                 </div>
                 <div class="p-4 sm:p-6">
-                    <label for="template_id" class="block text-sm font-medium text-slate-700 mb-1.5">Sjabloon kiezen</label>
+                    <label for="template_id" class="block text-sm font-medium text-slate-700 mb-1.5">Template kiezen</label>
                     <select name="template_id" id="template_id"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">— Lijst van scratch aanmaken —</option>
                         @foreach($templates as $template)
-                            <option value="{{ $template->id }}" {{ old('template_id') == $template->id ? 'selected' : '' }}>
+                            <option value="{{ $template->id }}" {{ old('template_id', request('template_id')) == $template->id ? 'selected' : '' }}>
                                 {{ $template->name }}
                             </option>
                         @endforeach
@@ -186,11 +186,12 @@
                         </div>
                     </div>
                     <div>
-                        <label for="schedule_type" class="block text-sm font-medium text-slate-700 mb-1.5">Planningstype <span class="text-red-500">*</span></label>
+                        <label for="schedule_type" class="block text-sm font-medium text-slate-700 mb-1.5">Herhalingen <span class="text-red-500">*</span></label>
                         <select name="schedule_type" id="schedule_type" required
                                 class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 onchange="toggleScheduleConfig()">
-                            <option value="once" {{ old('schedule_type', 'once') === 'once' ? 'selected' : '' }}>Eenmalig</option>
+                            <option value="" disabled {{ old('schedule_type') ? '' : 'selected' }}>Kies herhaling</option>
+                            <option value="once" {{ old('schedule_type') === 'once' ? 'selected' : '' }}>Eenmalig</option>
                             <option value="daily" {{ old('schedule_type') === 'daily' ? 'selected' : '' }}>Dagelijks (elke dag)</option>
                             <option value="weekly" {{ old('schedule_type') === 'weekly' ? 'selected' : '' }}>Wekelijks (vaste dagen)</option>
                             <option value="monthly" {{ old('schedule_type') === 'monthly' ? 'selected' : '' }}>Maandelijks</option>
@@ -367,7 +368,7 @@
         <div class="mt-8 p-4 sm:p-6 bg-blue-50 border border-blue-100 rounded-xl">
             <h3 class="text-sm font-semibold text-blue-900 mb-2">Wat gebeurt er daarna?</h3>
             <p class="text-sm text-blue-800">
-                Na het aanmaken kun je taken toevoegen, aan medewerkers toewijzen en de lijst bewerken. Bij een sjabloon worden de taken automatisch overgenomen.
+                Na het aanmaken kun je taken toevoegen, aan medewerkers toewijzen en de lijst bewerken. Bij een template worden de taken automatisch overgenomen.
             </p>
         </div>
     </div>

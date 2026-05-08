@@ -16,10 +16,14 @@ class TaskTemplate extends Model
         'description',
         'is_active',
         'company_id',
+        'source_template_id',
+        'source_updated_at',
+        'target_company_type',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'source_updated_at' => 'datetime',
     ];
 
     /**

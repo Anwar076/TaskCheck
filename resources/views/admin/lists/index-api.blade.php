@@ -287,7 +287,7 @@ function renderLists(lists) {
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${list.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
                             ${list.is_active ? 'Actief' : 'Inactief'}
                         </span>
-                        ${list.template ? `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800">Sjabloon</span>` : ''}
+                        ${list.template ? `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800">Template</span>` : ''}
                     </div>
                 </div>
                 <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">

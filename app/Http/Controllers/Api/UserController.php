@@ -304,7 +304,7 @@ class UserController extends Controller
             $stats = [
                 'total_users' => User::where('company_id', $companyId)->count(),
                 'admin_users' => User::where('company_id', $companyId)->where('role', 'admin')->count(),
-                'employee_users' => User::where('company_id', $companyId)->where('role', 'employee')->count(),
+                'employee_users' => User::where('company_id', $companyId)->whereIn('role', ['employee', 'admin'])->count(),
                 'active_users' => User::where('company_id', $companyId)->where('is_active', true)->count(),
                 'inactive_users' => User::where('company_id', $companyId)->where('is_active', false)->count(),
             ];

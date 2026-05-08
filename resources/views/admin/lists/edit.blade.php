@@ -113,7 +113,7 @@
                         </div>
                     </div>
                     <div>
-                        <label for="schedule_type" class="block text-sm font-medium text-slate-700 mb-1.5">Planningstype <span class="text-red-500">*</span></label>
+                        <label for="schedule_type" class="block text-sm font-medium text-slate-700 mb-1.5">Herhalingen <span class="text-red-500">*</span></label>
                         <select name="schedule_type" id="schedule_type" required
                                 class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 onchange="toggleScheduleConfig()">

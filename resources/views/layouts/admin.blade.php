@@ -45,8 +45,8 @@
 <body class="font-sans antialiased bg-slate-50">
     <div class="min-h-screen flex">
         <!-- Clean Sidebar -->
-        <div class="hidden md:flex md:w-64 md:flex-col">
-            <div class="flex flex-col flex-grow pt-6 overflow-y-auto bg-white shadow-sm border-r border-slate-200">
+        <div class="hidden md:flex md:w-64 md:flex-col md:shrink-0">
+            <div class="sticky top-0 h-screen flex flex-col pt-6 bg-white shadow-sm border-r border-slate-200">
                 <!-- Clean Logo -->
                 <div class="flex items-center flex-shrink-0 px-6 mb-8">
                     <div class="flex items-center space-x-3">
@@ -88,7 +88,7 @@
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.templates.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                         </svg>
-                        Sjablonen
+                        Templates
                     </a>
                     <a href="{{ route('admin.submissions.index') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.submissions.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
@@ -98,13 +98,6 @@
                         Inzendingen
                     </a>
                     
-                    <a href="{{ route('admin.users.index') }}" 
-                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.users.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>
-                        </svg>
-                        Gebruikers
-                    </a>
                     @if((auth()->user()->company?->subscription_plan ?? 'starter') !== 'starter')
                         <a href="{{ route('admin.weekly-overview') }}" 
                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.weekly-overview') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
@@ -115,13 +108,6 @@
                         </a>
                     @endif
                     
-                    <a href="{{ route('subscription.show') }}" 
-                       class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('subscription.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('subscription.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-                        </svg>
-                        Abonnement
-                    </a>
                     <a href="{{ route('admin.settings.edit') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.settings.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.settings.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -131,31 +117,6 @@
                     </a>
                 </nav>
 
-                <!-- Clean User section -->
-                <div class="flex-shrink-0 border-t border-slate-200 p-6">
-                    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <div class="relative h-10 w-10 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white font-semibold shadow-sm">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                                <span class="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-400"></span>
-                            </div>
-                            <div class="min-w-0">
-                                <div class="truncate text-sm font-semibold text-slate-900">{{ Auth::user()->name }}</div>
-                                <div class="text-xs text-slate-500 whitespace-nowrap">Beheerder</div>
-                            </div>
-                        </div>
-                        <form method="POST" action="{{ route('logout') }}" class="mt-3">
-                            @csrf
-                            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600" title="Uitloggen">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.625A2.625 2.625 0 0013.125 3h-6.75A2.625 2.625 0 003.75 5.625v12.75A2.625 2.625 0 006.375 21h6.75a2.625 2.625 0 002.625-2.625V15"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 12h12m0 0-3-3m3 3-3 3"/>
-                                </svg>
-                                Uitloggen
-                            </button>
-                        </form>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -182,6 +143,22 @@
 
                     <!-- Actions -->
                     <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                            data-admin-quickstart-open
+                        >
+                            Quickstart
+                        </button>
+                        @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                            <form method="POST" action="{{ route('dashboard.switch') }}" class="hidden sm:block">
+                                @csrf
+                                <input type="hidden" name="mode" value="employee">
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                                    Medewerker dashboard
+                                </button>
+                            </form>
+                        @endif
                         @php $adminUnreadCount = auth()->user()->unreadNotifications()->count(); @endphp
                         <div class="relative" data-admin-notification-root>
                             <button
@@ -212,13 +189,21 @@
                                         </span>
                                     </div>
                                     <div class="mt-2">
-                                        <button
-                                            type="button"
-                                            class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                                            data-admin-mark-all-read
-                                        >
-                                            Markeer alles gelezen
-                                        </button>
+                                        <div class="flex items-center gap-2">
+                                            <a
+                                                href="{{ route('admin.notifications.index') }}"
+                                                class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                            >
+                                                Alle notificaties
+                                            </a>
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                                data-admin-mark-all-read
+                                            >
+                                                Markeer alles gelezen
+                                            </button>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
@@ -233,11 +218,41 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="{{ route('admin.settings.edit') }}" class="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors" title="Instellingen">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </a>
+                        <div class="relative" data-admin-profile-root>
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors"
+                                aria-label="Profielmenu openen"
+                                aria-expanded="false"
+                                data-admin-profile-toggle
+                            >
+                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-semibold text-white">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                </span>
+                                <span class="hidden sm:block text-sm font-medium max-w-[10rem] truncate">{{ Auth::user()->name }}</span>
+                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </button>
+
+                            <div
+                                class="hidden absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white shadow-xl z-50 overflow-hidden"
+                                data-admin-profile-dropdown
+                            >
+                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    Profiel
+                                </a>
+                                <a href="{{ route('admin.settings.edit') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    Instellingen
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                        Uitloggen
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -313,9 +328,7 @@
                     @endif
 
                     <!-- Content -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        @yield('content')
-                    </div>
+                    @yield('content')
                     <div class="mt-4 text-right">
                         <span class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-500">
                             Web app versie: {{ $webAppVersion }}
@@ -323,6 +336,29 @@
                     </div>
                 </div>
             </main>
+        </div>
+    </div>
+
+    <div id="admin-global-quickstart-modal" class="fixed inset-0 z-[120] hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[1px]"></div>
+        <div id="admin-global-quickstart-stage" class="relative z-[140] h-full w-full p-4 pointer-events-none">
+            <div id="admin-global-quickstart-panel" class="absolute z-[150] w-full max-w-md rounded-2xl border border-slate-100 bg-white shadow-2xl overflow-hidden pointer-events-auto">
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="text-base font-bold text-slate-900">Quickstart</h3>
+                    <span id="admin-global-quickstart-counter" class="text-xs text-slate-500"></span>
+                </div>
+                <div class="px-5 py-5 max-h-[58vh] overflow-y-auto">
+                    <h4 id="admin-global-quickstart-title" class="text-lg font-semibold text-slate-900"></h4>
+                    <p id="admin-global-quickstart-description" class="mt-2.5 text-sm text-slate-600 leading-relaxed"></p>
+                </div>
+                <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button type="button" id="admin-global-quickstart-skip" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-800">Overslaan</button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="admin-global-quickstart-prev" class="px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">Vorige</button>
+                        <button type="button" id="admin-global-quickstart-next" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700">Volgende</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -378,7 +414,7 @@
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.templates.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                         </svg>
-                        Sjablonen
+                        Templates
                     </a>
                     <a href="{{ route('admin.submissions.index') }}" 
                        class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.submissions.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
@@ -388,13 +424,6 @@
                         Submissions
                     </a>
                     
-                    <a href="{{ route('admin.users.index') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.users.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>
-                        </svg>
-                        Gebruikers
-                    </a>
                     @if((auth()->user()->company?->subscription_plan ?? 'starter') !== 'starter')
                         <a href="{{ route('admin.weekly-overview') }}" 
                            class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.weekly-overview') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
@@ -404,13 +433,6 @@
                             Weekoverzicht
                         </a>
                     @endif
-                    <a href="{{ route('subscription.show') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('subscription.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('subscription.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-                        </svg>
-                        Abonnement
-                    </a>
                     <a href="{{ route('admin.settings.edit') }}" 
                        class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.settings.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.settings.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -431,6 +453,15 @@
                             <p class="text-xs text-slate-500">Beheerder</p>
                         </div>
                     </div>
+                    @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                        <form method="POST" action="{{ route('dashboard.switch') }}" class="mb-3">
+                            @csrf
+                            <input type="hidden" name="mode" value="employee">
+                            <button type="submit" class="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-blue-700 hover:bg-blue-50 rounded-xl transition-colors border border-blue-200 hover:border-blue-300">
+                                Naar medewerker dashboard
+                            </button>
+                        </form>
+                    @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-red-200 hover:border-red-300">
@@ -447,6 +478,423 @@
 
     <!-- Clean JavaScript -->
     <script>
+        const adminQuickstartState = {
+            steps: [],
+            index: 0,
+            activeTarget: null,
+            isOpen: false,
+        };
+
+        function normalizeAdminQuickstartKey() {
+            return `taskcheck:quickstart:admin:${window.location.pathname}`;
+        }
+
+        function getAdminQuickstartDefaultSteps() {
+            return [
+                {
+                    title: 'Welkom op deze pagina',
+                    description: 'Dit is het startpunt van deze beheerpagina. We laten je kort zien waar de belangrijkste onderdelen zitten.',
+                    targets: ['main h1', 'main h2', '.bg-gradient-to-br', '.bg-gradient-to-r'],
+                },
+                {
+                    title: 'Navigatie links',
+                    description: 'Via het linker menu ga je snel naar takenlijsten, templates, inzendingen, locaties en instellingen.',
+                    targets: ['aside nav', '.md\\:w-64'],
+                },
+                {
+                    title: 'Belangrijkste content',
+                    description: 'Hier zie je de kern van de pagina: kaarten, tabellen, formulieren of overzichtsblokken.',
+                    targets: ['main .grid', 'main .rounded-2xl', 'main .rounded-xl'],
+                },
+                {
+                    title: 'Acties uitvoeren',
+                    description: 'Gebruik de actieknoppen om aan te maken, te beheren of te updaten. Sla wijzigingen altijd bewust op.',
+                    targets: ['main form', 'main button[type="submit"]', 'main .inline-flex'],
+                },
+                {
+                    title: 'Slim werken',
+                    description: 'Controleer notificaties rechtsboven, werk blok voor blok en gebruik deze quickstart opnieuw als je hulp nodig hebt.',
+                    targets: ['[data-admin-notification-root]', '[data-admin-profile-root]'],
+                },
+            ];
+        }
+
+        function getAdminQuickstartPageSpecificSteps(pathname) {
+            const stepsByPattern = [
+                {
+                    pattern: /^\/admin\/dashboard$/,
+                    steps: [
+                        {
+                            title: 'Dashboard overzicht',
+                            description: 'Hier zie je direct de belangrijkste cijfers, recente activiteit en prestaties van je team.',
+                            targets: ['#quickstart-admin-hero', 'main h1'],
+                        },
+                        {
+                            title: 'KPI kaarten',
+                            description: 'Gebruik deze kaarten om snel naar medewerkers, lijsten en inzendingen te navigeren.',
+                            targets: ['#quickstart-admin-kpis', 'main .grid'],
+                        },
+                        {
+                            title: 'Team en realtime',
+                            description: 'In dit blok volg je recente activiteit en live voortgang van je medewerkers.',
+                            targets: ['#quickstart-admin-team'],
+                        },
+                        {
+                            title: 'Snelle acties',
+                            description: 'Start hier met dagelijkse acties zoals lijst maken, inzendingen beoordelen of gebruiker toevoegen.',
+                            targets: ['#quickstart-admin-actions'],
+                        },
+                        {
+                            title: 'Praktische volgorde',
+                            description: 'Slimme flow: 1) lijst maken, 2) toewijzen, 3) inzendingen beoordelen, 4) bijsturen in templates.',
+                            targets: ['#quickstart-admin-actions', 'aside nav'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/lists(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Takenlijsten pagina',
+                            description: 'Hier beheer je alle lijsten: aanmaken, plannen, toewijzen, uitvoeren en opvolgen.',
+                            targets: ['main h1', 'main h2', 'main .rounded-2xl'],
+                        },
+                        {
+                            title: 'Lijsten overzicht',
+                            description: 'Gebruik de tabel of kaarten om snel een lijst te openen en te beheren.',
+                            targets: ['table', 'main .grid', 'main .overflow-x-auto'],
+                        },
+                        {
+                            title: 'Belangrijkste acties',
+                            description: 'Maak nieuwe lijsten en stuur ze door naar je team via toewijzingen.',
+                            targets: ['a[href*="/admin/lists/create"]', 'button[type="submit"]', 'main form'],
+                        },
+                        {
+                            title: 'Planning en herhalingen',
+                            description: 'Controleer bij elke lijst de herhaling, prioriteit en locatie zodat je planning klopt per dag.',
+                            targets: ['select[name="schedule_type"]', 'select[name="priority"]', 'select[name="location_id"]', 'main form'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/locations(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Locaties beheer',
+                            description: 'Hier beheer je alle vestigingen en hou je structuur per locatie overzichtelijk.',
+                            targets: ['main h1', 'main h2'],
+                        },
+                        {
+                            title: 'Locatie overzicht',
+                            description: 'Bekijk en bewerk bestaande locaties vanuit dit overzicht.',
+                            targets: ['table', 'main .grid', 'main .overflow-x-auto'],
+                        },
+                        {
+                            title: 'Nieuwe locatie',
+                            description: 'Voeg een locatie toe zodat lijsten en medewerkers correct gekoppeld kunnen worden.',
+                            targets: ['a[href*="/admin/locations/create"]', 'button[type="submit"]', 'main form'],
+                        },
+                        {
+                            title: 'Locatiekwaliteit',
+                            description: 'Houd locatienamen en status actueel, zodat rapportages en toewijzingen betrouwbaar blijven.',
+                            targets: ['main table', 'main .overflow-x-auto', 'main form'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/templates(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Templates pagina',
+                            description: 'Hier bouw je standaard sjablonen voor consistente lijsten en taken.',
+                            targets: ['main h1', 'main h2'],
+                        },
+                        {
+                            title: 'Template overzicht',
+                            description: 'Bekijk bestaande templates en kies wat je wilt aanpassen of publiceren.',
+                            targets: ['table', 'main .grid'],
+                        },
+                        {
+                            title: 'Acties met templates',
+                            description: 'Maak een nieuwe template of start direct een lijst vanuit een template.',
+                            targets: ['a[href*="/admin/templates/create"]', 'button', 'main form'],
+                        },
+                        {
+                            title: 'Standaardiseren',
+                            description: 'Gebruik heldere instructies en bewijsopties, zodat medewerkers consequent dezelfde kwaliteitsnorm volgen.',
+                            targets: ['textarea[name="description"]', 'main form', 'main .rounded-xl'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/submissions(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Inzendingen',
+                            description: 'Hier controleer je het uitgevoerde werk en stuur je bij waar nodig.',
+                            targets: ['main h1', 'main h2'],
+                        },
+                        {
+                            title: 'Beoordelen',
+                            description: 'Open inzendingen om bewijs te controleren en goed te keuren of terug te sturen.',
+                            targets: ['table', 'main .grid', 'a[href*="/admin/submissions/"]'],
+                        },
+                        {
+                            title: 'Kwaliteitsflow',
+                            description: 'Gebruik consistente beoordeling zodat teams weten wat verwacht wordt.',
+                            targets: ['button[type="submit"]', 'main form'],
+                        },
+                        {
+                            title: 'Terugkoppeling',
+                            description: 'Geef duidelijke feedback bij afkeuren of redo, dan weet de medewerker exact wat verbeterd moet worden.',
+                            targets: ['textarea[name="notes"]', 'main form', 'button[type="submit"]'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/settings(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Instellingen hub',
+                            description: 'Deze pagina bevat organisatie-instellingen, gebruikers en abonnement in 1 plek.',
+                            targets: ['main h1', 'main h2', 'main nav', 'main .border-b'],
+                        },
+                        {
+                            title: 'Organisatie instellingen',
+                            description: 'Werk bedrijfsgegevens en afdelingen bij voor correcte werking in de rest van de app.',
+                            targets: ['input[name="name"]', 'main form', 'input[name="phone"]'],
+                        },
+                        {
+                            title: 'Gebruikers tab',
+                            description: 'Beheer teamleden en rollen via de gebruikers-tab binnen instellingen.',
+                            targets: ['a[href*="/admin/users"]', 'main nav', 'main .border-b'],
+                        },
+                        {
+                            title: 'Abonnement tab',
+                            description: 'Controleer je plan, limieten en facturatie onder het abonnement onderdeel.',
+                            targets: ['a[href*="/subscription"]', 'main nav', 'main .border-b'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/users(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Gebruikersbeheer',
+                            description: 'Hier maak en beheer je medewerkers en admins binnen je organisatie.',
+                            targets: ['main h1', 'main h2', 'main .rounded-2xl'],
+                        },
+                        {
+                            title: 'Gebruikersoverzicht',
+                            description: 'Gebruik de lijst om snel te filteren, bewerken en rollen te controleren.',
+                            targets: ['table', 'main .grid', 'main .overflow-x-auto'],
+                        },
+                        {
+                            title: 'Nieuwe gebruiker',
+                            description: 'Voeg gebruikers toe met juiste rol, afdeling en locatie voor correcte toewijzingen.',
+                            targets: ['a[href*="/admin/users/create"]', 'main form', 'select[name="role"]'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/admin\/tasks(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Takenbeheer',
+                            description: 'Hier maak of bewerk je taken binnen een lijst met duidelijke instructies en bewijsvorm.',
+                            targets: ['main h1', 'main h2', 'main form'],
+                        },
+                        {
+                            title: 'Taakinhoud',
+                            description: 'Vul titel, beschrijving, instructies en bewijsoptie in zodat medewerkers precies weten wat ze moeten doen.',
+                            targets: ['input[name="title"]', 'textarea[name="description"]', 'select[name="required_proof_type"]'],
+                        },
+                        {
+                            title: 'Checklist en validatie',
+                            description: 'Gebruik checklist-items voor controleerbare uitvoering en consistente kwaliteit.',
+                            targets: ['main form', 'button[type="submit"]'],
+                        },
+                    ],
+                },
+                {
+                    pattern: /^\/subscription(\/.*)?$/,
+                    steps: [
+                        {
+                            title: 'Abonnement instellingen',
+                            description: 'Hier beheer je plan, betaling en facturen voor je organisatie.',
+                            targets: ['main h1', 'main h2'],
+                        },
+                        {
+                            title: 'Plan overzicht',
+                            description: 'Vergelijk plannen en kies wat past bij je team en gebruik.',
+                            targets: ['main .grid', 'main .rounded-2xl'],
+                        },
+                        {
+                            title: 'Facturen en status',
+                            description: 'Controleer je actuele status en open facturen voor administratie.',
+                            targets: ['a[href*="/invoices"]', 'main table', 'main .overflow-x-auto'],
+                        },
+                        {
+                            title: 'Abonnement slim beheren',
+                            description: 'Kies een plan dat past bij gebruikers, locaties en groei, zodat je niet tegen limieten aanloopt.',
+                            targets: ['main .rounded-xl', 'main .grid'],
+                        },
+                    ],
+                },
+            ];
+
+            for (const config of stepsByPattern) {
+                if (config.pattern.test(pathname)) {
+                    return config.steps;
+                }
+            }
+
+            return [];
+        }
+
+        function resolveAdminQuickstartSteps() {
+            const custom = Array.isArray(window.adminQuickstartSteps) ? window.adminQuickstartSteps : [];
+            const pageSpecific = getAdminQuickstartPageSpecificSteps(window.location.pathname);
+            const source = custom.length ? custom : (pageSpecific.length ? pageSpecific : getAdminQuickstartDefaultSteps());
+            const resolved = [];
+
+            source.forEach((step) => {
+                const selectors = Array.isArray(step.targets) ? step.targets : [];
+                let target = null;
+                for (const selector of selectors) {
+                    const candidate = document.querySelector(selector);
+                    if (candidate) {
+                        target = candidate;
+                        break;
+                    }
+                }
+                if (!target) return;
+                resolved.push({
+                    title: step.title || 'Stap',
+                    description: step.description || '',
+                    target,
+                });
+            });
+
+            return resolved;
+        }
+
+        function clearAdminQuickstartHighlight() {
+            if (adminQuickstartState.activeTarget) {
+                adminQuickstartState.activeTarget.classList.remove('admin-quickstart-highlight');
+                adminQuickstartState.activeTarget = null;
+            }
+        }
+
+        function positionAdminQuickstartPanel(target) {
+            const panel = document.getElementById('admin-global-quickstart-panel');
+            if (!panel || !target) return;
+
+            const viewportW = window.innerWidth;
+            const viewportH = window.innerHeight;
+            const rect = target.getBoundingClientRect();
+            const margin = 16;
+            const gap = 20;
+            const panelRectLive = panel.getBoundingClientRect();
+            const panelWidth = Math.min(Math.max(panelRectLive.width || 420, 360), viewportW - (margin * 2));
+            const panelHeight = Math.min(Math.max(panelRectLive.height || 320, 260), viewportH - (margin * 2));
+            const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+            const targetCenterX = rect.left + (rect.width / 2);
+            const targetCenterY = rect.top + (rect.height / 2);
+
+            const candidates = [
+                { left: rect.right + gap, top: targetCenterY - (panelHeight / 2) },
+                { left: rect.left - panelWidth - gap, top: targetCenterY - (panelHeight / 2) },
+                { left: targetCenterX - (panelWidth / 2), top: rect.bottom + gap },
+                { left: targetCenterX - (panelWidth / 2), top: rect.top - panelHeight - gap },
+                { left: viewportW - panelWidth - margin, top: viewportH - panelHeight - margin },
+            ].map((candidate) => ({
+                left: clamp(candidate.left, margin, viewportW - panelWidth - margin),
+                top: clamp(candidate.top, margin, viewportH - panelHeight - margin),
+            }));
+
+            const overlapArea = (panelRect, targetRect) => {
+                const xOverlap = Math.max(0, Math.min(panelRect.right, targetRect.right) - Math.max(panelRect.left, targetRect.left));
+                const yOverlap = Math.max(0, Math.min(panelRect.bottom, targetRect.bottom) - Math.max(panelRect.top, targetRect.top));
+                return xOverlap * yOverlap;
+            };
+
+            const evaluated = candidates.map((candidate) => {
+                const panelRect = {
+                    left: candidate.left,
+                    top: candidate.top,
+                    right: candidate.left + panelWidth,
+                    bottom: candidate.top + panelHeight,
+                };
+                const overlap = overlapArea(panelRect, rect);
+                const distance = Math.abs((panelRect.left + panelWidth / 2) - targetCenterX) + Math.abs((panelRect.top + panelHeight / 2) - targetCenterY);
+                const score = overlap > 0 ? (100000 + overlap + distance) : distance;
+                return { candidate, overlap, distance, score };
+            });
+
+            const nonOverlapping = evaluated
+                .filter((item) => item.overlap === 0)
+                .sort((a, b) => a.distance - b.distance);
+
+            const best = nonOverlapping.length > 0
+                ? nonOverlapping[0].candidate
+                : evaluated.sort((a, b) => a.score - b.score)[0].candidate;
+
+            panel.style.left = `${best.left}px`;
+            panel.style.top = `${best.top}px`;
+        }
+
+        function renderAdminQuickstartStep() {
+            if (!adminQuickstartState.steps.length) return;
+            const step = adminQuickstartState.steps[adminQuickstartState.index];
+            const title = document.getElementById('admin-global-quickstart-title');
+            const description = document.getElementById('admin-global-quickstart-description');
+            const counter = document.getElementById('admin-global-quickstart-counter');
+            const prev = document.getElementById('admin-global-quickstart-prev');
+            const next = document.getElementById('admin-global-quickstart-next');
+
+            if (title) title.textContent = step.title;
+            if (description) description.textContent = step.description;
+            if (counter) counter.textContent = `Stap ${adminQuickstartState.index + 1} van ${adminQuickstartState.steps.length}`;
+            if (prev) {
+                prev.disabled = adminQuickstartState.index === 0;
+                prev.classList.toggle('opacity-50', adminQuickstartState.index === 0);
+            }
+            if (next) next.textContent = adminQuickstartState.index === adminQuickstartState.steps.length - 1 ? 'Afronden' : 'Volgende';
+
+            clearAdminQuickstartHighlight();
+            step.target.classList.add('admin-quickstart-highlight');
+            step.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            adminQuickstartState.activeTarget = step.target;
+            positionAdminQuickstartPanel(step.target);
+        }
+
+        function closeAdminQuickstart(markCompleted = false) {
+            const modal = document.getElementById('admin-global-quickstart-modal');
+            if (markCompleted) {
+                localStorage.setItem(normalizeAdminQuickstartKey(), 'done');
+            }
+            clearAdminQuickstartHighlight();
+            adminQuickstartState.isOpen = false;
+            if (modal) modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function openAdminQuickstart(force = false) {
+            const modal = document.getElementById('admin-global-quickstart-modal');
+            if (!modal) return;
+            if (!force && localStorage.getItem(normalizeAdminQuickstartKey()) === 'done') {
+                return;
+            }
+            adminQuickstartState.steps = resolveAdminQuickstartSteps();
+            if (!adminQuickstartState.steps.length) return;
+            adminQuickstartState.index = 0;
+            adminQuickstartState.isOpen = true;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            renderAdminQuickstartStep();
+        }
+
         const adminRealtimeFeedUrl = @json(route('admin.notifications.realtime-feed', [], false));
         const adminRealtimeStorageKey = `taskcheck:admin:last_notification_id:user:${@json((string) auth()->id())}`;
         const vapidKeyUrl = @json(route('push.vapid-public-key', [], false));
@@ -578,16 +1026,26 @@
                 const notificationId = Number(notification.id || 0);
                 const targetUrl = resolveAdminNotificationTargetUrl(notification);
                 return `
-                    <button
-                        type="button"
-                        class="w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
-                        data-admin-notification-item
-                        data-notification-id="${notificationId}"
-                        data-target-url="${escapeHtml(targetUrl)}"
-                    >
+                    <div class="px-4 py-3 border-b border-slate-100 last:border-b-0">
                         <p class="text-sm font-semibold text-slate-900">${title}</p>
                         <p class="mt-1 text-xs text-slate-600">${message}</p>
-                    </button>
+                        <div class="mt-2 flex items-center gap-2">
+                            <a
+                                href="${escapeHtml(targetUrl)}"
+                                class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+                            >
+                                Openen
+                            </a>
+                            <button
+                                type="button"
+                                class="inline-flex items-center rounded-md border border-emerald-200 px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
+                                data-admin-mark-read-notification
+                                data-notification-id="${notificationId}"
+                            >
+                                Markeer gelezen
+                            </button>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
@@ -738,25 +1196,60 @@
             }
 
             dropdown.addEventListener('click', async (event) => {
-                const item = event.target.closest('[data-admin-notification-item]');
-                if (!item) return;
+                const readButton = event.target.closest('[data-admin-mark-read-notification]');
+                if (!readButton) return;
 
-                const notificationId = Number(item.getAttribute('data-notification-id') || 0);
-                const targetUrl = item.getAttribute('data-target-url') || '/admin/dashboard';
-
-                item.classList.add('opacity-70');
-                item.disabled = true;
+                const notificationId = Number(readButton.getAttribute('data-notification-id') || 0);
+                readButton.disabled = true;
+                readButton.classList.add('opacity-70');
 
                 const readAt = await markAdminNotificationAsRead(notificationId);
                 if (readAt) {
                     adminNotificationState.items = adminNotificationState.items.filter((notification) => Number(notification?.id || 0) !== notificationId);
                     renderAdminNotificationList();
                 } else {
-                    item.classList.remove('opacity-70');
-                    item.disabled = false;
+                    readButton.disabled = false;
+                    readButton.classList.remove('opacity-70');
                 }
+            });
+        }
 
-                window.location.href = targetUrl;
+        function setupAdminProfileMenu() {
+            const root = document.querySelector('[data-admin-profile-root]');
+            const toggle = document.querySelector('[data-admin-profile-toggle]');
+            const dropdown = document.querySelector('[data-admin-profile-dropdown]');
+            if (!root || !toggle || !dropdown) return;
+
+            const closeDropdown = () => {
+                dropdown.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+            };
+
+            const openDropdown = () => {
+                dropdown.classList.remove('hidden');
+                toggle.setAttribute('aria-expanded', 'true');
+            };
+
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const isOpen = !dropdown.classList.contains('hidden');
+                if (isOpen) {
+                    closeDropdown();
+                } else {
+                    openDropdown();
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!root.contains(event.target)) {
+                    closeDropdown();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeDropdown();
+                }
             });
         }
 
@@ -860,16 +1353,22 @@
                     const payload = await response.json();
                     if (!payload || payload.success !== true) return;
 
+                    if (typeof payload.latest_user_notification_id === 'number' && payload.latest_user_notification_id < lastNotificationId) {
+                        lastNotificationId = payload.latest_user_notification_id;
+                        localStorage.setItem(adminRealtimeStorageKey, String(lastNotificationId));
+                        hasExistingCursor = lastNotificationId > 0;
+                    }
+
                     updateAdminUnreadBadge(payload.unread_count || 0);
 
                     const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
                     const unreadNotifications = Array.isArray(payload.unread_notifications) ? payload.unread_notifications : [];
-                    if (!hasExistingCursor && typeof payload.latest_user_notification_id === 'number') {
-                        if (!adminNotificationState.hydratedFromUnread && unreadNotifications.length > 0) {
-                            prependAdminNotificationItems(unreadNotifications);
-                            adminNotificationState.hydratedFromUnread = true;
-                        }
+                    if (!adminNotificationState.hydratedFromUnread && unreadNotifications.length > 0) {
+                        prependAdminNotificationItems(unreadNotifications);
+                        adminNotificationState.hydratedFromUnread = true;
+                    }
 
+                    if (!hasExistingCursor && typeof payload.latest_user_notification_id === 'number') {
                         lastNotificationId = payload.latest_user_notification_id;
                         localStorage.setItem(adminRealtimeStorageKey, String(lastNotificationId));
                         hasExistingCursor = true;
@@ -903,6 +1402,7 @@
             }
 
             setupAdminNotificationBell();
+            setupAdminProfileMenu();
             updateAdminPermissionUi();
             const enableNotificationsButton = document.querySelector('[data-admin-enable-notifications]');
             if (enableNotificationsButton) {
@@ -914,6 +1414,34 @@
             }
 
             startAdminRealtimePolling();
+
+            document.querySelector('[data-admin-quickstart-open]')?.addEventListener('click', function () {
+                openAdminQuickstart(true);
+            });
+            document.getElementById('admin-global-quickstart-prev')?.addEventListener('click', function () {
+                if (adminQuickstartState.index > 0) {
+                    adminQuickstartState.index -= 1;
+                    renderAdminQuickstartStep();
+                }
+            });
+            document.getElementById('admin-global-quickstart-next')?.addEventListener('click', function () {
+                if (adminQuickstartState.index < adminQuickstartState.steps.length - 1) {
+                    adminQuickstartState.index += 1;
+                    renderAdminQuickstartStep();
+                    return;
+                }
+                closeAdminQuickstart(true);
+            });
+            document.getElementById('admin-global-quickstart-skip')?.addEventListener('click', function () {
+                closeAdminQuickstart(true);
+            });
+            window.addEventListener('resize', function () {
+                if (adminQuickstartState.isOpen && adminQuickstartState.activeTarget) {
+                    positionAdminQuickstartPanel(adminQuickstartState.activeTarget);
+                }
+            });
+
+            openAdminQuickstart(false);
 
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
@@ -993,5 +1521,14 @@
             });
         });
     </script>
+    <style>
+        .admin-quickstart-highlight {
+            position: relative;
+            z-index: 130;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.55), 0 18px 35px rgba(15, 23, 42, 0.30);
+            transition: box-shadow 0.25s ease;
+        }
+    </style>
+    @include('partials.google-translate')
 </body>
 </html>

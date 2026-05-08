@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Sjablonen')
+@section('page-title', 'Templates')
 
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
@@ -18,13 +18,13 @@
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Takenlijst-sjablonen</h1>
-                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Maak en beheer sjablonen voor snelle aanmaak van takenlijsten</p>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Takenlijst-templates</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Maak en beheer templates voor snelle aanmaak van takenlijsten</p>
                             </div>
                         </div>
                         <a href="{{ route('admin.templates.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors shadow-sm">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                            Nieuw sjabloon
+                            Nieuw template
                         </a>
                     </div>
                 </div>
@@ -34,7 +34,7 @@
         {{-- Laden --}}
         <div id="loading-templates" class="text-center py-16">
             <div class="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
-            <p class="mt-3 text-sm text-slate-600">Sjablonen laden...</p>
+            <p class="mt-3 text-sm text-slate-600">Templates laden...</p>
         </div>
 
         {{-- Fout --}}
@@ -42,7 +42,7 @@
             <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
-            <h3 class="font-semibold text-slate-900">Kon sjablonen niet laden</h3>
+            <h3 class="font-semibold text-slate-900">Kon templates niet laden</h3>
             <p class="mt-1 text-sm text-slate-500">Vernieuw de pagina of probeer het opnieuw.</p>
             <button type="button" onclick="loadTemplates()" class="mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
@@ -59,7 +59,7 @@
 <div id="createListModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-start justify-center py-8 px-4">
     <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6">
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-bold text-slate-900">Lijst aanmaken van sjabloon</h3>
+            <h3 class="text-lg font-bold text-slate-900">Lijst aanmaken van template</h3>
             <button type="button" onclick="closeCreateListModal()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -91,6 +91,7 @@
 
 <script>
 let isLoading = false;
+let currentTemplates = [];
 
 document.addEventListener('DOMContentLoaded', loadTemplates);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) loadTemplates(); });
@@ -125,6 +126,7 @@ async function loadTemplates() {
 }
 
 function renderTemplates(templates) {
+    currentTemplates = Array.isArray(templates) ? templates : [];
     const contentDiv = document.getElementById('templates-content');
     if (!templates || templates.length === 0) {
         contentDiv.innerHTML = `
@@ -132,11 +134,11 @@ function renderTemplates(templates) {
                 <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                 </div>
-                <h3 class="text-lg font-semibold text-slate-900">Geen sjablonen</h3>
-                <p class="mt-2 text-sm text-slate-500 max-w-sm mx-auto">Maak je eerste sjabloon om snel takenlijsten aan te maken.</p>
+                <h3 class="text-lg font-semibold text-slate-900">Geen templates</h3>
+                <p class="mt-2 text-sm text-slate-500 max-w-sm mx-auto">Maak je eerste template om snel takenlijsten aan te maken.</p>
                 <a href="{{ route('admin.templates.create') }}" class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                    Nieuw sjabloon
+                    Nieuw template
                 </a>
             </div>
         `;
@@ -171,23 +173,27 @@ function renderTemplates(templates) {
                             </span>
                         </div>
                     </a>
-                    <div class="px-5 sm:px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-2">
-                        <a href="/admin/templates/${t.id}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Bekijken
-                        </a>
-                        <a href="/admin/templates/${t.id}/edit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                            Bewerken
-                        </a>
-                        <button type="button" onclick="event.preventDefault();event.stopPropagation();createListFromTemplate(${t.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg text-sm font-medium transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                            Lijst maken
-                        </button>
-                        <button type="button" onclick="event.preventDefault();event.stopPropagation();deleteTemplate(${t.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors ml-auto">
+                    <div class="px-4 sm:px-6 py-4 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-slate-50/60">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();createListFromTemplate(${t.id})" class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-sm font-semibold transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                Lijst maken
+                            </button>
+                            <a href="/admin/templates/${t.id}/edit" class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-sm font-semibold transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                                Bewerken
+                            </a>
+                        </div>
+                        <div class="mt-2.5 flex items-center justify-between gap-2">
+                            <a href="/admin/templates/${t.id}" class="inline-flex items-center gap-1.5 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-slate-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                Bekijken
+                            </a>
+                            <button type="button" onclick="event.preventDefault();event.stopPropagation();deleteTemplate(${t.id})" class="inline-flex items-center gap-1.5 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
                             Verwijderen
                         </button>
+                        </div>
                     </div>
                 </div>
             `}).join('')}
@@ -203,7 +209,7 @@ function escapeHtml(text) {
 }
 
 async function deleteTemplate(templateId) {
-    if (!confirm('Weet je zeker dat je dit sjabloon wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) return;
+    if (!confirm('Weet je zeker dat je dit template wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) return;
     try {
         const res = await fetch(`/admin/templates/${templateId}`, {
             method: 'DELETE',
@@ -214,7 +220,7 @@ async function deleteTemplate(templateId) {
             let body = null;
             try { body = await res.json(); } catch(e) {}
             if (res.status === 422 && body?.message?.includes('being used')) {
-                if (confirm('Dit sjabloon wordt gebruikt door bestaande lijsten. Wil je het ontkoppelen en het sjabloon verwijderen?')) {
+                if (confirm('Dit template wordt gebruikt door bestaande lijsten. Wil je het ontkoppelen en het template verwijderen?')) {
                     const r2 = await fetch(`/admin/templates/${templateId}?force=unlink`, {
                         method: 'DELETE',
                         credentials: 'same-origin',
@@ -238,9 +244,12 @@ async function deleteTemplate(templateId) {
 }
 
 function createListFromTemplate(templateId) {
-    document.getElementById('createListForm').action = `/admin/templates/${templateId}/create-list`;
-    document.getElementById('createListForm').reset();
-    document.getElementById('createListModal').classList.remove('hidden');
+    const template = currentTemplates.find(t => Number(t.id) === Number(templateId));
+    const params = new URLSearchParams();
+    params.set('template_id', templateId);
+    if (template?.name) params.set('title', template.name);
+    if (template?.description) params.set('description', template.description);
+    window.location.href = `/admin/lists/create?${params.toString()}`;
 }
 
 function closeCreateListModal() {

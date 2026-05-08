@@ -45,10 +45,13 @@ class CompanySettingsController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'domain' => ['nullable', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:500'],
-            'phone' => ['required', 'string', 'max:50'],
+            'phone' => ['required', 'string', 'regex:/^[0-9]+$/', 'min:7', 'max:15'],
             'email' => ['required', 'email', 'max:255'],
             'website' => ['nullable', 'url', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'departments_text' => ['nullable', 'string', 'max:4000'],
+            'departments' => ['nullable', 'array'],
+            'departments.*' => ['nullable', 'string', 'max:100'],
             'logo' => [
                 'nullable',
                 'image',
@@ -64,6 +67,26 @@ class CompanySettingsController extends Controller
             $validated['logo_path'] = null;
         }
 
+        // Enforce normalized phone storage (digits only).
+        $validated['phone'] = preg_replace('/\D+/', '', (string) ($validated['phone'] ?? ''));
+
+        $departmentInput = [];
+        if (!empty($validated['departments']) && is_array($validated['departments'])) {
+            $departmentInput = $validated['departments'];
+        } else {
+            $departmentInput = preg_split('/\r\n|\r|\n/', (string) ($validated['departments_text'] ?? ''));
+        }
+
+        $departments = collect($departmentInput)
+            ->map(fn ($item) => trim((string) $item))
+            ->filter()
+            ->map(fn ($item) => mb_substr($item, 0, 100))
+            ->unique()
+            ->values()
+            ->all();
+
+        $validated['departments'] = !empty($departments) ? $departments : null;
+
         // Handle logo upload
         if ($request->hasFile('logo')) {
             // Delete old logo if exists
@@ -75,7 +98,7 @@ class CompanySettingsController extends Controller
             $validated['logo_path'] = $path;
         }
 
-        unset($validated['logo'], $validated['remove_logo']);
+        unset($validated['logo'], $validated['remove_logo'], $validated['departments_text'], $validated['departments']);
         $company->update($validated);
 
         return redirect()->route('admin.settings.edit')

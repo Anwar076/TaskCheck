@@ -21,7 +21,7 @@ class UserController extends Controller
         
         if ($request->wantsJson()) {
             $users = User::where('company_id', $companyId)
-                ->where('role', 'employee')
+                ->whereIn('role', ['employee', 'admin'])
                 ->where('is_active', true)
                 ->select('id', 'name', 'department', 'email')
                 ->orderBy('name')
@@ -39,9 +39,15 @@ class UserController extends Controller
     public function create()
     {
         $companyId = auth()->user()->company_id;
+        $departments = collect(auth()->user()->company?->departments ?? [])
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->values()
+            ->all();
+
         return view('admin.users.create', [
             'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
             'locations' => Location::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get(),
+            'departments' => $departments,
         ]);
     }
 
@@ -50,6 +56,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $companyDepartments = collect(auth()->user()->company?->departments ?? [])
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->values()
+            ->all();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -63,6 +74,12 @@ class UserController extends Controller
                 Rule::exists('locations', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
         ]);
+
+        if (!empty($validated['department']) && !empty($companyDepartments) && !in_array($validated['department'], $companyDepartments, true)) {
+            throw ValidationException::withMessages([
+                'department' => 'Selecteer een geldige afdeling uit de instellingen.',
+            ]);
+        }
 
         $this->ensureRoleLimitNotExceeded(
             auth()->user()->company,
@@ -105,10 +122,16 @@ class UserController extends Controller
         }
         
         $companyId = auth()->user()->company_id;
+        $departments = collect(auth()->user()->company?->departments ?? [])
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->values()
+            ->all();
+
         return view('admin.users.edit', [
             'user' => $user,
             'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
             'locations' => Location::where('company_id', $companyId)->orderByDesc('is_active')->orderBy('name')->get(),
+            'departments' => $departments,
         ]);
     }
 
@@ -122,6 +145,11 @@ class UserController extends Controller
             abort(403, 'Unauthorized access to user.');
         }
         
+        $companyDepartments = collect(auth()->user()->company?->departments ?? [])
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->values()
+            ->all();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -135,6 +163,12 @@ class UserController extends Controller
                 Rule::exists('locations', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
             ],
         ]);
+
+        if (!empty($validated['department']) && !empty($companyDepartments) && !in_array($validated['department'], $companyDepartments, true)) {
+            throw ValidationException::withMessages([
+                'department' => 'Selecteer een geldige afdeling uit de instellingen.',
+            ]);
+        }
 
         if ($validated['role'] !== $user->role) {
             $this->ensureRoleLimitNotExceeded(

@@ -71,6 +71,7 @@
             checkPwaAndRedirect();
         });
     </script>
+    @include('partials.google-translate')
 </body>
 </html>
 

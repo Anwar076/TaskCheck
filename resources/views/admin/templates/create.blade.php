@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Sjabloon aanmaken')
+@section('page-title', 'Template aanmaken')
 
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
@@ -18,13 +18,13 @@
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Nieuw sjabloon</h1>
-                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Maak een herbruikbaar sjabloon voor takenlijsten</p>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Nieuw template</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Maak een herbruikbaar template voor takenlijsten</p>
                             </div>
                         </div>
                         <a href="{{ route('admin.templates.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18.75"/></svg>
-                            Naar sjablonen
+                            Naar templates
                         </a>
                     </div>
                 </div>
@@ -38,11 +38,11 @@
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Basisgegevens</h2>
-                    <p class="text-slate-600 text-sm mt-0.5">Naam en beschrijving van het sjabloon</p>
+                    <p class="text-slate-600 text-sm mt-0.5">Naam en beschrijving van het template</p>
                 </div>
                 <div class="p-4 sm:p-6 space-y-5">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Sjabloonnaam <span class="text-red-500">*</span></label>
+                        <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Templatenaam <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" required value="{{ old('name') }}"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-500 @enderror"
                             placeholder="Bijv. Dagelijkse schoonmaak-checklist">
@@ -52,7 +52,7 @@
                         <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
                         <textarea id="description" name="description" rows="3"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-500 @enderror"
-                            placeholder="Beschrijf waarvoor dit sjabloon gebruikt wordt...">{{ old('description') }}</textarea>
+                            placeholder="Beschrijf waarvoor dit template gebruikt wordt...">{{ old('description') }}</textarea>
                         @error('description')<p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -62,8 +62,8 @@
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">Sjabloon-taken</h2>
-                        <p class="text-slate-600 text-sm mt-0.5">Voeg de taken toe die in dit sjabloon komen</p>
+                        <h2 class="text-lg font-bold text-slate-900">Template-taken</h2>
+                        <p class="text-slate-600 text-sm mt-0.5">Voeg de taken toe die in dit template komen</p>
                     </div>
                     <button type="button" onclick="addTask()"
                         class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
@@ -86,7 +86,7 @@
                 <button type="submit"
                     class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Sjabloon aanmaken
+                    Template aanmaken
                 </button>
             </div>
         </form>
@@ -106,11 +106,14 @@ function addTask() {
     const i = taskIndex++;
     const container = document.getElementById('tasks-container');
     const div = document.createElement('div');
-    div.className = 'task-item bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-100';
+    div.className = 'task-item bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm';
     div.dataset.index = i;
     div.innerHTML = `
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-slate-900">Taak <span class="task-num">${i + 1}</span></h3>
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-blue-600 text-white text-xs font-bold task-num">${i + 1}</span>
+                Taak
+            </h3>
             <div class="flex items-center gap-1">
                 <button type="button" onclick="moveTask(this, 'up')" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors" title="Omhoog">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
@@ -124,20 +127,20 @@ function addTask() {
             </div>
         </div>
         <div class="space-y-4">
-            <div>
+            <div class="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                 <label class="${labelClass}">Taaktitel <span class="text-red-500">*</span></label>
                 <input type="text" name="tasks[${i}][title]" required class="${inputClass}" placeholder="Bijv. Vloeren dweilen">
             </div>
-            <div>
+            <div class="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                 <label class="${labelClass}">Beschrijving</label>
                 <textarea name="tasks[${i}][description]" rows="2" class="${inputClass}" placeholder="Optionele omschrijving..."></textarea>
             </div>
-            <div>
+            <div class="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                 <label class="${labelClass}">Instructies</label>
                 <textarea name="tasks[${i}][instructions]" rows="2" class="${inputClass}" placeholder="Gedetailleerde instructies..."></textarea>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
+                <div class="min-w-0">
                     <label class="${labelClass}">Bewijstype</label>
                     <select name="tasks[${i}][required_proof_type]" required class="${inputClass}">
                         <option value="none">Geen bewijs vereist</option>
@@ -148,7 +151,7 @@ function addTask() {
                         <option value="any">Elk bewijstype</option>
                     </select>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label class="${labelClass}">Verplicht</label>
                     <select name="tasks[${i}][is_required]" class="${inputClass}">
                         <option value="1">Verplicht</option>
@@ -156,7 +159,7 @@ function addTask() {
                     </select>
                 </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                 <div>
                     <label class="${labelClass}">Starttijd</label>
                     <input type="time" name="tasks[${i}][start_time]" class="${inputClass}">
@@ -166,7 +169,7 @@ function addTask() {
                     <input type="time" name="tasks[${i}][end_time]" class="${inputClass}">
                 </div>
             </div>
-            <div>
+            <div class="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                 <label class="${labelClass}">Checklist-items</label>
                 <div class="checklist-container space-y-2">
                     <div class="checklist-item flex gap-2">

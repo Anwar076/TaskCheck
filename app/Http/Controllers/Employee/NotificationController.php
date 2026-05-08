@@ -109,15 +109,16 @@ class NotificationController extends Controller
             $afterId = 0;
         }
 
-        $newNotifications = $user->notifications()
-            ->when($afterId > 0, function ($query) use ($afterId) {
-                $query->where('id', '>', $afterId);
-            })
-            ->orderByDesc('id')
-            ->take(10)
-            ->get(['id', 'title', 'message', 'type', 'read_at', 'created_at'])
-            ->reverse()
-            ->values();
+        $newNotifications = collect();
+        if ($afterId > 0) {
+            $newNotifications = $user->notifications()
+                ->where('id', '>', $afterId)
+                ->orderByDesc('id')
+                ->take(10)
+                ->get(['id', 'title', 'message', 'type', 'read_at', 'created_at'])
+                ->reverse()
+                ->values();
+        }
 
         $unreadNotifications = $user->notifications()
             ->whereNull('read_at')

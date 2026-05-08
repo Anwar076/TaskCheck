@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
+use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
 use App\Services\Ai\SubmissionReviewService;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\NotificationController as EmployeeNotificationController;
@@ -144,11 +145,33 @@ Route::get('/dashboard', function () {
             return redirect()->route('super-admin.dashboard');
         }
 
+        $preferredDashboard = session('dashboard_mode', 'admin');
+        if ($preferredDashboard === 'employee') {
+            return redirect()->route('employee.dashboard');
+        }
+
         return redirect()->route('admin.dashboard');
     }
 
     return redirect()->route('employee.dashboard');
 })->middleware(['auth', 'verified', 'subscription'])->name('dashboard');
+
+Route::post('/dashboard/switch', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'mode' => ['required', 'in:admin,employee'],
+    ]);
+
+    $user = auth()->user();
+    $targetMode = $request->string('mode')->toString();
+
+    if (!$user || !$user->isAdmin() || $user->isSuperAdmin()) {
+        abort(403);
+    }
+
+    session(['dashboard_mode' => $targetMode]);
+
+    return redirect()->route($targetMode === 'employee' ? 'employee.dashboard' : 'admin.dashboard');
+})->middleware(['auth', 'verified', 'subscription'])->name('dashboard.switch');
 
 // Admin Routes
 Route::middleware(['auth', 'verified', 'subscription', 'admin', 'company_profile_complete'])->prefix('admin')->name('admin.')->group(function () {
@@ -198,14 +221,18 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'company_profile
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/lists/{list}/create-daily-sublists', [TaskListController::class, 'createDailySubLists'])->name('lists.create-daily-sublists');
     Route::post('/lists/{list}/create-day-list', [TaskListController::class, 'createDayList'])->name('lists.create-day-list');
+    Route::post('/lists/{list}/sync-template', [TaskListController::class, 'syncTemplate'])->name('lists.sync-template');
     Route::post('/tasks/ai-suggest', [TaskController::class, 'aiSuggest'])->name('tasks.ai-suggest');
     Route::post('/lists/ai-generate', [TaskListController::class, 'aiGenerate'])->name('lists.ai-generate');
     Route::get('/notifications/realtime-feed', [AdminNotificationController::class, 'realtimeFeed'])->name('notifications.realtime-feed');
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/mark-read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     
     // Template routes
     Route::post('/templates/{template}/create-list', [TaskTemplateController::class, 'createFromTemplate'])->name('templates.create-list');
+    Route::post('/templates/global/{template}/import', [TaskTemplateController::class, 'importGlobalTemplate'])->name('templates.global.import');
+    Route::post('/templates/{template}/apply-global-update', [TaskTemplateController::class, 'applyGlobalTemplateUpdate'])->name('templates.apply-global-update');
     
     // Debug routes
     Route::get('/debug/test-assignment', function() {
@@ -217,6 +244,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/invoices/export/csv', [SuperAdminDashboardController::class, 'exportInvoicesCsv'])->name('invoices.export.csv');
     Route::post('/communications/broadcast-mail', [SuperAdminDashboardController::class, 'sendBroadcastMail'])->name('communications.broadcast-mail');
+    Route::post('/communications/broadcast-notification', [SuperAdminDashboardController::class, 'sendBroadcastNotification'])->name('communications.broadcast-notification');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
     Route::get('/errors/feed', [SuperAdminDashboardController::class, 'errorsFeed'])->name('errors.feed');
@@ -224,6 +252,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::get('/incidents/{incident}', [SuperAdminDashboardController::class, 'showIncidentTicket'])->name('incidents.show');
     Route::post('/incidents/{incident}/analyze', [SuperAdminDashboardController::class, 'analyzeIncidentTicket'])->name('incidents.analyze');
     Route::put('/incidents/{incident}/status', [SuperAdminDashboardController::class, 'updateIncidentTicketStatus'])->name('incidents.status.update');
+    Route::resource('templates', SuperAdminTemplateController::class)->except(['show', 'destroy']);
+    Route::post('/templates/{template}/publish', [SuperAdminTemplateController::class, 'publish'])->name('templates.publish');
 });
 
 // Employee Routes
@@ -252,6 +282,24 @@ Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('emp
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/quickstart/complete', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'wizard' => ['required', 'in:admin,employee'],
+        ]);
+
+        $user = auth()->user();
+        $preferences = (array) ($user->preferences ?? []);
+        $wizard = $request->string('wizard')->toString();
+        $preferencesKey = $wizard === 'admin' ? 'quickstart_admin_completed' : 'quickstart_employee_completed';
+        $preferences[$preferencesKey] = true;
+        $preferences[$preferencesKey . '_at'] = now()->toISOString();
+
+        $user->setAttribute('preferences', $preferences);
+        $user->save();
+
+        return response()->json(['success' => true]);
+    })->name('quickstart.complete');
+
     Route::get('/push/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey'])->name('push.vapid-public-key');
     Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');

@@ -7,6 +7,16 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    public function index()
+    {
+        $notifications = auth()->user()
+            ->notifications()
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('admin.notifications.index', compact('notifications'));
+    }
+
     public function markAsRead($id)
     {
         $notification = auth()->user()
@@ -48,15 +58,16 @@ class NotificationController extends Controller
             $afterId = 0;
         }
 
-        $newNotifications = $user->notifications()
-            ->when($afterId > 0, function ($query) use ($afterId) {
-                $query->where('id', '>', $afterId);
-            })
-            ->orderByDesc('id')
-            ->take(10)
-            ->get(['id', 'title', 'message', 'type', 'data', 'read_at', 'created_at'])
-            ->reverse()
-            ->values();
+        $newNotifications = collect();
+        if ($afterId > 0) {
+            $newNotifications = $user->notifications()
+                ->where('id', '>', $afterId)
+                ->orderByDesc('id')
+                ->take(10)
+                ->get(['id', 'title', 'message', 'type', 'data', 'read_at', 'created_at'])
+                ->reverse()
+                ->values();
+        }
 
         $unreadNotifications = $user->unreadNotifications()
             ->orderByDesc('id')

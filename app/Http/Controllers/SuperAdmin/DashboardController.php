@@ -7,6 +7,7 @@ use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
 use App\Models\IncidentTicket;
 use App\Models\Invoice;
+use App\Models\Notification;
 use App\Models\Submission;
 use App\Models\Task;
 use App\Models\TaskList;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
@@ -75,6 +77,31 @@ class DashboardController extends Controller
             ->latest('paid_at')
             ->limit(100)
             ->get();
+        $recentAnnouncementRows = Notification::query()
+            ->where('type', 'platform_announcement')
+            ->whereNotNull('data->campaign_id')
+            ->latest()
+            ->limit(300)
+            ->get();
+        $recentAnnouncements = $recentAnnouncementRows
+            ->groupBy(fn (Notification $notification) => (string) data_get($notification->data, 'campaign_id'))
+            ->map(function ($items) {
+                /** @var \Illuminate\Support\Collection<int, Notification> $itemCollection */
+                $itemCollection = $items instanceof \Illuminate\Support\Collection ? $items : collect([$items]);
+                /** @var Notification|null $first */
+                $first = $itemCollection->first();
+                return [
+                    'title' => (string) ($first?->title ?? 'Platform melding'),
+                    'message' => (string) ($first?->message ?? ''),
+                    'audience' => (string) data_get($first?->data, 'audience', 'all'),
+                    'severity' => (string) data_get($first?->data, 'severity', 'info'),
+                    'sent_at' => $first?->created_at,
+                    'recipients' => $itemCollection->count(),
+                ];
+            })
+            ->sortByDesc('sent_at')
+            ->take(10)
+            ->values();
 
         return view('super-admin.dashboard', compact(
             'companies',
@@ -83,7 +110,8 @@ class DashboardController extends Controller
             'aiUsage',
             'recentErrors',
             'tickets',
-            'invoices'
+            'invoices',
+            'recentAnnouncements'
         ));
     }
 
@@ -234,6 +262,57 @@ class DashboardController extends Controller
         );
     }
 
+    public function sendBroadcastNotification(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:200'],
+            'message' => ['required', 'string', 'max:5000'],
+            'audience' => ['required', Rule::in(['all', 'admins', 'employees'])],
+            'severity' => ['required', Rule::in(['info', 'success', 'warning'])],
+            'include_inactive' => ['nullable', 'boolean'],
+        ]);
+
+        $includeInactive = (bool) ($validated['include_inactive'] ?? false);
+        $audience = (string) $validated['audience'];
+        $campaignId = (string) Str::uuid();
+
+        $usersQuery = User::query()
+            ->when(!$includeInactive, fn ($q) => $q->where('is_active', true))
+            ->when(
+                $audience === 'admins',
+                fn ($q) => $q->whereIn('role', ['admin', 'super_admin'])
+            )
+            ->when(
+                $audience === 'employees',
+                fn ($q) => $q->where('role', 'employee')
+            );
+
+        $users = $usersQuery->select('id', 'role')->get();
+        $sent = 0;
+
+        foreach ($users as $user) {
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'platform_announcement',
+                'title' => (string) $validated['title'],
+                'message' => (string) $validated['message'],
+                'data' => [
+                    'campaign_id' => $campaignId,
+                    'audience' => $audience,
+                    'severity' => (string) $validated['severity'],
+                    'sender' => 'super_admin',
+                    'url' => '/dashboard',
+                ],
+            ]);
+            $sent++;
+        }
+
+        return redirect()->route('super-admin.dashboard', ['tab' => 'communications'])->with(
+            'success',
+            "Platformmelding verstuurd naar {$sent} gebruikers."
+        );
+    }
+
     public function errorsFeed(): JsonResponse
     {
         return response()->json([
@@ -337,7 +416,7 @@ class DashboardController extends Controller
 
         $label = match ($validated['status']) {
             'resolved' => 'afgerond',
-            'ignored' => 'genegeerd',
+            'ignored' => 'gearchiveerd',
             default => 'heropend',
         };
 
@@ -358,6 +437,7 @@ class DashboardController extends Controller
         }
 
         $codeContext = $this->collectStackTraceCodeContext($incident->context ?? '');
+        $heuristicCodeContext = $this->collectHeuristicCodeContext($incident->error_message ?? '', $incident->context ?? '');
 
         $systemPrompt = <<<'PROMPT'
 Je bent een senior Laravel debugging engineer.
@@ -368,6 +448,10 @@ Analyseer incidentdata en geef:
 4) regressie checks/tests
 
 Schrijf in het Nederlands, compact en technisch.
+Als code_context beschikbaar is:
+- noem concrete bestanden + regels/functies
+- geef een patch-richting (wat exact aanpassen)
+- benoem welke checks/tests dit bevestigen
 PROMPT;
 
         $userPayload = [
@@ -383,6 +467,7 @@ PROMPT;
                 'user_agent' => $incident->user_agent,
             ],
             'code_context' => $codeContext,
+            'heuristic_code_context' => $heuristicCodeContext,
         ];
 
         $response = Http::withToken($apiKey)
@@ -488,14 +573,18 @@ PROMPT;
             return [];
         }
 
-        preg_match_all('/([A-Za-z]:\\\\[^:\n]+\.php):(\d+)/', $context, $matches, PREG_SET_ORDER);
+        preg_match_all('/((?:[A-Za-z]:\\\\|\/)[^:\n]+\.php|(?:app|routes|database|resources|tests)\/[^:\n]+\.php):(\d+)/', $context, $matches, PREG_SET_ORDER);
         $snippets = [];
         $seen = [];
 
         foreach ($matches as $match) {
-            $filePath = $match[1] ?? null;
+            $rawPath = $match[1] ?? null;
             $line = isset($match[2]) ? (int) $match[2] : null;
-            if (!$filePath || !$line || isset($seen[$filePath . ':' . $line])) {
+            if (!$rawPath || !$line) {
+                continue;
+            }
+            $filePath = $this->resolveCodePath($rawPath);
+            if (!$filePath || isset($seen[$filePath . ':' . $line])) {
                 continue;
             }
             $seen[$filePath . ':' . $line] = true;
@@ -524,6 +613,85 @@ PROMPT;
 
             if (count($snippets) >= 5) {
                 break;
+            }
+        }
+
+        return $snippets;
+    }
+
+    private function resolveCodePath(string $rawPath): ?string
+    {
+        $normalized = str_replace('/', DIRECTORY_SEPARATOR, $rawPath);
+
+        if (preg_match('/^[A-Za-z]:\\\\/', $normalized) || str_starts_with($normalized, DIRECTORY_SEPARATOR)) {
+            return $normalized;
+        }
+
+        $projectPath = base_path($normalized);
+        if (File::exists($projectPath)) {
+            return $projectPath;
+        }
+
+        return null;
+    }
+
+    private function collectHeuristicCodeContext(string $errorMessage, string $context): array
+    {
+        $haystack = trim($errorMessage . "\n" . $context);
+        if ($haystack === '') {
+            return [];
+        }
+
+        preg_match_all('/\b([A-Z][A-Za-z0-9_]{4,})\b/', $haystack, $matches);
+        $keywords = collect($matches[1] ?? [])
+            ->map(fn (string $value) => trim($value))
+            ->filter(fn (string $value) => !in_array($value, ['Exception', 'Error', 'Class', 'Illuminate', 'Laravel'], true))
+            ->unique()
+            ->take(8)
+            ->values();
+
+        if ($keywords->isEmpty()) {
+            return [];
+        }
+
+        $searchRoots = [
+            app_path(),
+            base_path('routes'),
+            base_path('resources/views'),
+            base_path('database'),
+        ];
+
+        $snippets = [];
+        foreach ($searchRoots as $root) {
+            if (!File::isDirectory($root)) {
+                continue;
+            }
+
+            foreach (File::allFiles($root) as $file) {
+                if ($file->getExtension() !== 'php' && $file->getExtension() !== 'blade.php') {
+                    continue;
+                }
+
+                $contents = @file_get_contents($file->getPathname());
+                if (!is_string($contents) || $contents === '') {
+                    continue;
+                }
+
+                foreach ($keywords as $keyword) {
+                    if (!str_contains($contents, $keyword)) {
+                        continue;
+                    }
+
+                    $snippets[] = [
+                        'file' => $file->getPathname(),
+                        'keyword' => $keyword,
+                    ];
+
+                    if (count($snippets) >= 8) {
+                        return $snippets;
+                    }
+                    break;
+                }
             }
         }
 

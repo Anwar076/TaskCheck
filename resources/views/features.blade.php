@@ -172,7 +172,7 @@
                         <h3 class="text-xl font-semibold mb-3">Slimme taakaanmaak</h3>
                         <p class="text-gray-600">Maak taken met duidelijke omschrijvingen, deadlines, prioriteiten en eigen velden.</p>
                         <ul class="mt-4 text-sm text-gray-600 space-y-1 list-disc list-inside">
-                            <li>Herbruikbare sjablonen voor terugkerende taken</li>
+                            <li>Herbruikbare templates voor terugkerende taken</li>
                             <li>Per taak bewijs-type instellen (foto/video/tekst/bestand)</li>
                             <li>Verplichtingen, checklist-items en handtekeningoptie</li>
                         </ul>
