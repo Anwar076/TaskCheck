@@ -72,6 +72,30 @@
     <div class="grid md:grid-cols-2 gap-8">
 
         <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
+            <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="block overflow-hidden">
+                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+                     alt="Waarom horeca bedrijven stoppen met papieren checklists"
+                     class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
+                     loading="lazy">
+            </a>
+            <div class="p-6 flex-1 flex flex-col">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="rounded-full bg-orange-100 text-orange-700 text-xs font-semibold px-3 py-1">Horeca</span>
+                    <span class="text-xs text-slate-400">5 min lezen</span>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
+                    <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}">Waarom horeca bedrijven stoppen met papieren checklists</a>
+                </h2>
+                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">Het velletje aan de muur werkt niet meer. Waarom steeds meer horecazaken overstappen naar een digitale checklist.</p>
+                <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}"
+                   class="mt-4 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
+                    Lees artikel
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+        </article>
+
+        <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
             <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="block overflow-hidden">
                 <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}"
                      alt="Beste checklist app voor schoonmaakbedrijven"

@@ -87,6 +87,9 @@ Route::get('/blog/beste-checklist-app-voor-schoonmaakbedrijven', function () {
 Route::get('/blog/waarom-bedrijven-stoppen-met-excel-checklists', function () {
     return view('blog.waarom-bedrijven-stoppen-met-excel-checklists');
 })->name('blog.waarom-bedrijven-stoppen-met-excel-checklists');
+Route::get('/blog/waarom-horeca-stopt-met-papieren-checklists', function () {
+    return view('blog.waarom-horeca-stopt-met-papieren-checklists');
+})->name('blog.waarom-horeca-stopt-met-papieren-checklists');
 
 Route::get('/horeca-checklist-app', function () {
     return view('seo.horeca-checklist-app');
@@ -118,6 +121,12 @@ Route::get('/takenlijst-personeel', function () {
 Route::get('/opening-checklist-horeca', function () {
     return view('seo.opening-checklist-horeca');
 })->name('seo.opening-checklist-horeca');
+Route::get('/sluitings-checklist-horeca', function () {
+    return view('seo.sluitings-checklist-horeca');
+})->name('seo.sluitings-checklist-horeca');
+Route::get('/schoonmaak-checklist-voorbeeld', function () {
+    return view('seo.schoonmaak-checklist-voorbeeld');
+})->name('seo.schoonmaak-checklist-voorbeeld');
 
 // Route::get('/careers', function () {
 //     return view('careers');
