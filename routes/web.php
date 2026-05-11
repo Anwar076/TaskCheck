@@ -264,7 +264,10 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::get('/incidents/{incident}', [SuperAdminDashboardController::class, 'showIncidentTicket'])->name('incidents.show');
     Route::post('/incidents/{incident}/analyze', [SuperAdminDashboardController::class, 'analyzeIncidentTicket'])->name('incidents.analyze');
     Route::put('/incidents/{incident}/status', [SuperAdminDashboardController::class, 'updateIncidentTicketStatus'])->name('incidents.status.update');
-    Route::resource('templates', SuperAdminTemplateController::class)->except(['show', 'destroy']);
+    Route::get('/templates/ai-import', [SuperAdminTemplateController::class, 'aiImportPage'])->name('templates.ai-import');
+    Route::post('/templates/ai-import/generate', [SuperAdminTemplateController::class, 'aiImportGenerate'])->name('templates.ai-import.generate');
+    Route::post('/templates/ai-import/store', [SuperAdminTemplateController::class, 'aiImportStore'])->name('templates.ai-import.store');
+    Route::resource('templates', SuperAdminTemplateController::class)->except(['show']);
     Route::post('/templates/{template}/publish', [SuperAdminTemplateController::class, 'publish'])->name('templates.publish');
 });
 

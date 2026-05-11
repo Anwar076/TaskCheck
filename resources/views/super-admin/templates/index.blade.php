@@ -4,6 +4,11 @@
 
 @section('content')
 <div class="space-y-4">
+    @if(session('success'))
+        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+            {{ session('success') }}
+        </div>
+    @endif
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 class="text-xl font-bold text-slate-900">Global templates</h1>
         <div class="flex items-center gap-2">
@@ -15,6 +20,10 @@
                     <option value="other" @selected(($filterType ?? 'all') === 'other')>Anders</option>
                 </select>
             </form>
+            <a href="{{ route('super-admin.templates.ai-import') }}" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-100 text-violet-800 border border-violet-200 px-4 py-2 text-sm font-semibold hover:bg-violet-200">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                AI importeren
+            </a>
             <a href="{{ route('super-admin.templates.create') }}" class="rounded-lg bg-violet-700 text-white px-4 py-2 text-sm font-semibold hover:bg-violet-800">Template toevoegen</a>
         </div>
     </div>
@@ -88,6 +97,14 @@
                                         class="rounded px-3 py-1.5 text-xs text-white {{ $publishDisabled ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700' }}"
                                     >
                                         {{ $publishLabel }}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('super-admin.templates.destroy', $template) }}"
+                                      onsubmit="return confirm('Weet je zeker dat je \'{{ addslashes($template->name) }}\' wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="rounded border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:border-red-300">
+                                        Verwijderen
                                     </button>
                                 </form>
                             </div>
