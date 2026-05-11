@@ -31,6 +31,9 @@
 <!-- Local compiled Tailwind -->
 @vite('resources/css/app.css')
 
+<!-- Contentsquare / Hotjar analytics -->
+<script src="https://t.contentsquare.net/uxa/560a99166a851.js" async></script>
+
 <style> 
     body { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
 
