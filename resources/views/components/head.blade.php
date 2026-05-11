@@ -31,6 +31,15 @@
 <!-- Local compiled Tailwind -->
 @vite('resources/css/app.css')
 
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MV0B108DRY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MV0B108DRY');
+</script>
+
 <!-- Contentsquare / Hotjar analytics -->
 <script src="https://t.contentsquare.net/uxa/560a99166a851.js" async></script>
 
