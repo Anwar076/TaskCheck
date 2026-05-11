@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +24,7 @@ class ContactFormMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            replyTo: [$this->fromEmail => $this->fromName],
+            replyTo: [new Address($this->fromEmail, $this->fromName)],
             subject: "TaskCheck contact: {$this->subjectLabel} — {$this->fromName}",
         );
     }
