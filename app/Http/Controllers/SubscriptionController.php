@@ -737,9 +737,17 @@ class SubscriptionController extends Controller
         return true;
     }
 
+    /**
+     * Test accounts: €1,00 per day instead of the real monthly price.
+     * Add an email here to enable test-mode billing for that account.
+     */
+    private const TEST_BILLING_EMAILS = [
+        'anwar@brancom.nl',
+    ];
+
     private function shouldUseStarterTestOverride(string $email, string $plan): bool
     {
-        return false;
+        return in_array(strtolower(trim($email)), self::TEST_BILLING_EMAILS, true);
     }
 
     private function resolveSubscriptionInterval(string $email, string $plan): string
