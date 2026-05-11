@@ -113,7 +113,24 @@
                 <h2 class="text-2xl font-bold text-slate-900">Stuur ons een bericht</h2>
                 <p class="text-sm text-slate-600 mt-1">Vertel kort wat je zoekt. Dan nemen we snel contact op.</p>
 
-                <form class="mt-6 space-y-5">
+                @if(session('success'))
+                    <div class="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('contact.send') }}" class="mt-6 space-y-5">
+                    @csrf
                     <div class="grid sm:grid-cols-2 gap-4">
                         <div>
                             <label for="firstName" class="block text-sm font-medium text-slate-700 mb-1.5">Voornaam</label>
@@ -154,7 +171,7 @@
                     </div>
 
                     <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 transition">
-                        <span>✉️</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
                         Verstuur bericht
                     </button>
                 </form>

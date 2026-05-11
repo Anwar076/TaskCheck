@@ -47,6 +47,42 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
+Route::post('/contact', function (\Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'firstName' => 'required|string|max:100',
+        'lastName'  => 'required|string|max:100',
+        'email'     => 'required|email|max:255',
+        'company'   => 'nullable|string|max:255',
+        'subject'   => 'nullable|string|max:100',
+        'message'   => 'required|string|max:5000',
+    ]);
+
+    $subjectLabels = [
+        'demo'    => 'Demo aanvragen',
+        'sales'   => 'Verkoopvraag',
+        'support' => 'Technische ondersteuning',
+        'billing' => 'Facturatie',
+        'other'   => 'Overig',
+    ];
+
+    $subjectLabel = $subjectLabels[$validated['subject'] ?? ''] ?? 'Contactformulier';
+    $fromName     = trim($validated['firstName'] . ' ' . $validated['lastName']);
+
+    $body = "Naam: {$fromName}\n"
+        . "E-mail: {$validated['email']}\n"
+        . "Bedrijf: " . ($validated['company'] ?? '—') . "\n"
+        . "Onderwerp: {$subjectLabel}\n\n"
+        . "Bericht:\n{$validated['message']}";
+
+    \Illuminate\Support\Facades\Mail::raw($body, function ($mail) use ($validated, $subjectLabel, $fromName, $body) {
+        $mail->to('anwar.brancom@gmail.com')
+             ->replyTo($validated['email'], $fromName)
+             ->subject("TaskCheck contact: {$subjectLabel} — {$fromName}");
+    });
+
+    return redirect()->route('contact')->with('success', 'Je bericht is verstuurd. We nemen zo snel mogelijk contact op.');
+})->name('contact.send');
+
 // Route::get('/help', function () {
 //     return view('help');
 // })->name('help');

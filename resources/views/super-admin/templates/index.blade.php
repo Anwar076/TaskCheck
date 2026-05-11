@@ -4,11 +4,6 @@
 
 @section('content')
 <div class="space-y-4">
-    @if(session('success'))
-        <div class="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
-            {{ session('success') }}
-        </div>
-    @endif
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 class="text-xl font-bold text-slate-900">Global templates</h1>
         <div class="flex items-center gap-2">
