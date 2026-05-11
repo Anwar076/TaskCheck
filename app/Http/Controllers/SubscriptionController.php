@@ -644,6 +644,13 @@ class SubscriptionController extends Controller
                     return;
                 }
 
+                // Payment is still in progress — stop here and wait for the webhook.
+                // Do NOT scan historical payments: an old paid payment would otherwise
+                // incorrectly reactivate a subscription for a checkout that was never completed.
+                if (in_array($status, ['open', 'pending', 'authorized'], true)) {
+                    return;
+                }
+
                 if (in_array($status, ['failed', 'canceled', 'expired'], true)) {
                     $company->update([
                         'mollie_payment_id' => null,
@@ -664,6 +671,8 @@ class SubscriptionController extends Controller
                     ]);
                 }
                 report($e);
+                // On API error: don't fall through to the historical scan — too risky.
+                return;
             }
         }
 
@@ -708,17 +717,24 @@ class SubscriptionController extends Controller
             return false;
         }
 
-        // A paid webhook for an old/parallel payment should never reactivate
-        // a company that explicitly cancelled and has no active checkout flow.
-        if ($company->pending_subscription_plan) {
-            return false;
-        }
+        // There is an active checkout in progress: only allow activation from
+        // the exact payment that was created for this checkout, not from any
+        // older historical paid payments still in the customer's Mollie history.
+        if ($company->pending_subscription_plan || $company->mollie_payment_id) {
+            $storedId = trim((string) $company->mollie_payment_id);
 
-        if (!$company->mollie_payment_id) {
+            // If this payment is the one we created for the current checkout, allow it.
+            if ($storedId !== '' && $storedId === trim($paymentId)) {
+                return false;
+            }
+
+            // Any other "paid" payment found in the customer history is a historical
+            // payment and must never reactivate a new cancelled+pending checkout.
             return true;
         }
 
-        return trim((string) $company->mollie_payment_id) !== trim($paymentId);
+        // No active checkout: block all activation for cancelled companies.
+        return true;
     }
 
     private function shouldUseStarterTestOverride(string $email, string $plan): bool
