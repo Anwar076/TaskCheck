@@ -68,17 +68,14 @@ Route::post('/contact', function (\Illuminate\Http\Request $request) {
     $subjectLabel = $subjectLabels[$validated['subject'] ?? ''] ?? 'Contactformulier';
     $fromName     = trim($validated['firstName'] . ' ' . $validated['lastName']);
 
-    $body = "Naam: {$fromName}\n"
-        . "E-mail: {$validated['email']}\n"
-        . "Bedrijf: " . ($validated['company'] ?? '—') . "\n"
-        . "Onderwerp: {$subjectLabel}\n\n"
-        . "Bericht:\n{$validated['message']}";
-
-    \Illuminate\Support\Facades\Mail::raw($body, function ($mail) use ($validated, $subjectLabel, $fromName, $body) {
-        $mail->to('anwar.brancom@gmail.com')
-             ->replyTo($validated['email'], $fromName)
-             ->subject("TaskCheck contact: {$subjectLabel} — {$fromName}");
-    });
+    \Illuminate\Support\Facades\Mail::to('anwar.brancom@gmail.com')
+        ->send(new \App\Mail\ContactFormMail(
+            fromName:     $fromName,
+            fromEmail:    $validated['email'],
+            company:      $validated['company'] ?? '',
+            subjectLabel: $subjectLabel,
+            messageBody:  $validated['message'],
+        ));
 
     return redirect()->route('contact')->with('success', 'Je bericht is verstuurd. We nemen zo snel mogelijk contact op.');
 })->name('contact.send');
