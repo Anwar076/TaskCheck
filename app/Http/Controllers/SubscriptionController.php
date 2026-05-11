@@ -240,51 +240,62 @@ class SubscriptionController extends Controller
                     if ($nextPaymentDate !== '') {
                         $accessUntil = Carbon::parse($nextPaymentDate)->endOfDay();
                     }
-                } catch (\Throwable $ignored) {
-                    // If fetch fails, we still continue cancellation.
+                } catch (\Throwable $e) {
+                    report($e); // Log instead of silently ignoring — important for debugging billing issues.
                 }
 
-                $this->mollieService->cancelSubscription(
-                    $company->mollie_customer_id,
-                    $company->mollie_subscription_id
-                );
+                try {
+                    $this->mollieService->cancelSubscription(
+                        $company->mollie_customer_id,
+                        $company->mollie_subscription_id
+                    );
+                } catch (\Throwable $e) {
+                    // Log the failure — if the primary cancel fails we still attempt the full cleanup below.
+                    report($e);
+                }
             }
 
-            // Defensive cleanup: cancel any other active/pending customer subscriptions as well.
-            // This prevents new charges from orphaned or duplicate recurring subscriptions.
+            // Defensive cleanup: cancel ALL active/pending subscriptions for this customer.
+            // This is critical to catch duplicate subscriptions created by race conditions.
             if ($company->mollie_customer_id) {
-                $subscriptions = $this->mollieService->getCustomerSubscriptions((string) $company->mollie_customer_id);
-                foreach ($subscriptions as $subscription) {
-                    $subscriptionId = trim((string) ($subscription['id'] ?? ''));
-                    $status = strtolower(trim((string) ($subscription['status'] ?? '')));
-                    if ($subscriptionId === '' || in_array($status, ['canceled', 'completed'], true)) {
-                        continue;
-                    }
+                try {
+                    $subscriptions = $this->mollieService->getCustomerSubscriptions((string) $company->mollie_customer_id);
+                    foreach ($subscriptions as $subscription) {
+                        $subscriptionId = trim((string) ($subscription['id'] ?? ''));
+                        $status = strtolower(trim((string) ($subscription['status'] ?? '')));
+                        if ($subscriptionId === '' || in_array($status, ['canceled', 'completed'], true)) {
+                            continue;
+                        }
 
-                    try {
-                        $this->mollieService->cancelSubscription((string) $company->mollie_customer_id, $subscriptionId);
-                    } catch (\Throwable $ignored) {
-                        // Keep cancellation resilient if one of the old subscriptions no longer exists.
+                        try {
+                            $this->mollieService->cancelSubscription((string) $company->mollie_customer_id, $subscriptionId);
+                        } catch (\Throwable $e) {
+                            report($e); // Log every failed cancel so we can audit missed subscriptions.
+                        }
                     }
+                } catch (\Throwable $e) {
+                    report($e);
                 }
 
-                // Also cancel recent in-progress customer payments to prevent
-                // additional debits after explicit cancellation.
-                $payments = $this->mollieService->getRecentCustomerPayments((string) $company->mollie_customer_id, 50);
-                foreach ($payments as $payment) {
-                    $paymentId = trim((string) ($payment['id'] ?? ''));
-                    $status = strtolower(trim((string) ($payment['status'] ?? '')));
+                // Cancel any open/pending payments to prevent additional debits after cancellation.
+                try {
+                    $payments = $this->mollieService->getRecentCustomerPayments((string) $company->mollie_customer_id, 50);
+                    foreach ($payments as $payment) {
+                        $openPaymentId = trim((string) ($payment['id'] ?? ''));
+                        $status = strtolower(trim((string) ($payment['status'] ?? '')));
 
-                    if ($paymentId === '' || !in_array($status, ['open', 'pending', 'authorized'], true)) {
-                        continue;
-                    }
+                        if ($openPaymentId === '' || !in_array($status, ['open', 'pending', 'authorized'], true)) {
+                            continue;
+                        }
 
-                    try {
-                        $this->mollieService->cancelPayment($paymentId);
-                    } catch (\Throwable $ignored) {
-                        // Some pending methods cannot be cancelled anymore by API.
-                        // We continue cancellation flow and keep subscription stopped.
+                        try {
+                            $this->mollieService->cancelPayment($openPaymentId);
+                        } catch (\Throwable $e) {
+                            report($e); // Some payment methods cannot be cancelled via API — log it.
+                        }
                     }
+                } catch (\Throwable $e) {
+                    report($e);
                 }
             }
 
@@ -296,6 +307,7 @@ class SubscriptionController extends Controller
                 'mollie_payment_id' => null,
             ]);
         } catch (\Throwable $e) {
+            report($e);
             return redirect()->route('subscription.show')
                 ->with('error', 'Opzeggen via Mollie is mislukt: '.$e->getMessage());
         }
@@ -381,6 +393,8 @@ class SubscriptionController extends Controller
                 }
                 $this->sendPaymentReceiptEmail($company, $payment);
                 if (!$this->isActivationPayment($company, $paymentId, $payment)) {
+                    // Recurring charge for already-active subscription: extend the access window.
+                    $this->extendSubscriptionEndDate($company);
                     return response('ok', 200);
                 }
                 $this->finalizePaidPayment($company, $payment);
@@ -519,36 +533,57 @@ class SubscriptionController extends Controller
 
     private function finalizePaidPayment(Company $company, array $payment): void
     {
-        $plan = $this->resolvePlanFromPayment($company, $payment);
-        if (!$plan || !isset(Company::PLANS[$plan])) {
-            throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
+        $paymentId = trim((string) ($payment['id'] ?? ''));
+
+        // Prevent double activation when webhook and paymentReturn fire simultaneously
+        // for the same Mollie payment (race condition → duplicate subscriptions).
+        $lock = Cache::lock("finalize_payment:{$company->id}:{$paymentId}", 60);
+        if (!$lock->get()) {
+            return;
         }
 
-        $company->activateSubscription($plan);
+        try {
+            // Re-fetch a fresh company state inside the lock to avoid acting on stale data.
+            $company->refresh();
 
-        $updateData = [
-            'mollie_payment_id' => null,
-            'pending_subscription_plan' => null,
-        ];
-
-        if ($company->mollie_customer_id && !$company->mollie_subscription_id) {
-            try {
-                $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
-                $fallbackAmount = $this->shouldUseStarterTestOverride($billingEmail, $plan)
-                    ? '1.00'
-                    : $this->calculateGrossMonthlyAmount((float) Company::PLANS[$plan]['price_monthly']);
-                $amountValue = (string) data_get($payment, 'amount.value', $fallbackAmount);
-                $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval($billingEmail, $plan));
-
-                $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
-
-                $updateData['mollie_subscription_id'] = $subscription['id'] ?? null;
-            } catch (\Throwable $e) {
-                report($e);
+            // If the company was already activated for this payment, skip.
+            if ($company->hasActiveSubscription() && !$company->pending_subscription_plan && !$company->mollie_payment_id) {
+                return;
             }
-        }
 
-        $company->update($updateData);
+            $plan = $this->resolvePlanFromPayment($company, $payment);
+            if (!$plan || !isset(Company::PLANS[$plan])) {
+                throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
+            }
+
+            $company->activateSubscription($plan);
+
+            $updateData = [
+                'mollie_payment_id' => null,
+                'pending_subscription_plan' => null,
+            ];
+
+            if ($company->mollie_customer_id && !$company->mollie_subscription_id) {
+                try {
+                    $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
+                    $fallbackAmount = $this->shouldUseStarterTestOverride($billingEmail, $plan)
+                        ? '1.00'
+                        : $this->calculateGrossMonthlyAmount((float) Company::PLANS[$plan]['price_monthly']);
+                    $amountValue = (string) data_get($payment, 'amount.value', $fallbackAmount);
+                    $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval($billingEmail, $plan));
+
+                    $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
+
+                    $updateData['mollie_subscription_id'] = $subscription['id'] ?? null;
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+
+            $company->update($updateData);
+        } finally {
+            $lock->release();
+        }
     }
 
     private function resolvePlanFromPayment(Company $company, array $payment): ?string
@@ -918,6 +953,25 @@ class SubscriptionController extends Controller
         }
 
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Extend the subscription end date by 1 month + grace period on a successful recurring charge.
+     * This ensures the access window always reflects the latest paid period.
+     */
+    private function extendSubscriptionEndDate(Company $company): void
+    {
+        if (!$company->hasActiveSubscription()) {
+            return;
+        }
+
+        $base = $company->subscription_ends_at && $company->subscription_ends_at->isFuture()
+            ? $company->subscription_ends_at->copy()
+            : now();
+
+        $company->update([
+            'subscription_ends_at' => $base->addMonths(1)->addDays(3),
+        ]);
     }
 
     private function renderInvoicePdf(Invoice $invoice): string

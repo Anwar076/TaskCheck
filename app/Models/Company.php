@@ -167,8 +167,11 @@ class Company extends Model
     // Activate subscription
     public function activateSubscription(string $plan, ?int $months = null): void
     {
-        $endDate = $months ? now()->addMonths($months) : null;
-        
+        // Always set a concrete end date so hasActiveSubscription() has a hard boundary.
+        // For recurring subscriptions this gets extended each billing cycle via the webhook.
+        // Default is 1 month + 3-day grace period to absorb any Mollie processing delays.
+        $endDate = now()->addMonths($months ?? 1)->addDays(3);
+
         $this->update([
             'subscription_plan' => $plan,
             'subscription_status' => 'active',
