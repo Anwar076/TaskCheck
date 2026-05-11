@@ -121,29 +121,34 @@ class TaskListController extends Controller
         unset($validatedData['selected_days']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
 
-        // Create the task list
+        // Decouple from template: store which template was used for reference, but clear
+        // the link so syncToLists() never overwrites the customer's future edits.
+        $usedTemplateId = $validatedData['template_id'] ?? null;
+        $validatedData['template_id'] = null;
+
+        // Create the task list (without template_id so it is independent)
         $taskList = TaskList::create($validatedData);
 
-        // If a template was selected, create tasks from the template
-        if (!empty($validatedData['template_id'])) {
-            $template = \App\Models\TaskTemplate::find($validatedData['template_id']);
+        // If a template was selected, copy its tasks as independent tasks into the new list
+        if (!empty($usedTemplateId)) {
+            $template = \App\Models\TaskTemplate::find($usedTemplateId);
             if ($template) {
                 foreach ($template->templateTasks as $templateTask) {
                     \App\Models\Task::create([
-                        'list_id' => $taskList->id,
-                        'title' => $templateTask->title,
-                        'description' => $templateTask->description,
-                        'instructions' => $templateTask->instructions,
-                        'checklist_items' => $templateTask->checklist_items, // Include checklist items from template
+                        'list_id'             => $taskList->id,
+                        'title'               => $templateTask->title,
+                        'description'         => $templateTask->description,
+                        'instructions'        => $templateTask->instructions,
+                        'checklist_items'     => $templateTask->checklist_items,
                         'required_proof_type' => $templateTask->required_proof_type,
-                        'is_required' => $templateTask->is_required,
-                        'attachments' => $templateTask->attachments,
-                        'validation_rules' => $templateTask->validation_rules,
-                        'start_time' => $templateTask->start_time,
-                        'end_time' => $templateTask->end_time,
-                        'order_index' => $templateTask->sort_order,
-                        'created_by' => auth()->id(),
-                        'weekday' => null, // Tasks can be assigned to specific days later
+                        'is_required'         => $templateTask->is_required,
+                        'attachments'         => $templateTask->attachments,
+                        'validation_rules'    => $templateTask->validation_rules,
+                        'start_time'          => $templateTask->start_time,
+                        'end_time'            => $templateTask->end_time,
+                        'order_index'         => $templateTask->sort_order,
+                        'created_by'          => auth()->id(),
+                        'weekday'             => null,
                     ]);
                 }
             }

@@ -79,26 +79,30 @@ class TaskListController extends Controller
             // Start database transaction
             \DB::beginTransaction();
 
-            // Create task list
+            // Decouple from template: clear the link so syncToLists() never
+            // overwrites the customer's future edits on this list.
+            $usedTemplateId = $validated['template_id'] ?? null;
+            $validated['template_id'] = null;
+
             $validated['company_id'] = auth()->user()->company_id;
             $validated['created_by'] = auth()->id();
             $list = TaskList::create($validated);
 
-            // Copy tasks from template if provided
-            if (!empty($validated['template_id'])) {
-                $template = TaskTemplate::with('templateTasks')->find($validated['template_id']);
+            // Copy tasks from template as independent tasks (no live link to template)
+            if (!empty($usedTemplateId)) {
+                $template = TaskTemplate::with('templateTasks')->find($usedTemplateId);
                 if ($template) {
                     foreach ($template->templateTasks as $templateTask) {
                         Task::create([
-                            'list_id' => $list->id,
-                            'title' => $templateTask->title,
-                            'description' => $templateTask->description,
-                            'instructions' => $templateTask->instructions,
+                            'list_id'             => $list->id,
+                            'title'               => $templateTask->title,
+                            'description'         => $templateTask->description,
+                            'instructions'        => $templateTask->instructions,
                             'required_proof_type' => $templateTask->required_proof_type,
-                            'is_required' => $templateTask->is_required,
-                            'attachments' => $templateTask->attachments,
-                            'validation_rules' => $templateTask->validation_rules,
-                            'order_index' => $templateTask->sort_order,
+                            'is_required'         => $templateTask->is_required,
+                            'attachments'         => $templateTask->attachments,
+                            'validation_rules'    => $templateTask->validation_rules,
+                            'order_index'         => $templateTask->sort_order,
                         ]);
                     }
                 }

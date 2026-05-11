@@ -47,30 +47,32 @@ class TaskTemplate extends Model
      */
     public function createTaskList(array $listData): TaskList
     {
+        // Do NOT store template_id so the list is fully decoupled from the template.
+        // This prevents automatic syncToLists() from overwriting the customer's edits.
         $taskList = TaskList::create([
-            'title' => $listData['title'],
+            'title'       => $listData['title'],
             'description' => $listData['description'] ?? null,
-            'template_id' => $this->id,
-            'is_active' => $listData['is_active'] ?? true,
-            'company_id' => $this->company_id ?? (auth()->check() ? auth()->user()->company_id : null),
+            'template_id' => null,
+            'is_active'   => $listData['is_active'] ?? true,
+            'company_id'  => $this->company_id ?? (auth()->check() ? auth()->user()->company_id : null),
         ]);
 
-        // Copy all template tasks to the new list
+        // Copy all template tasks to the new list as independent tasks
         foreach ($this->templateTasks as $templateTask) {
             Task::create([
-                'list_id' => $taskList->id,
-                'title' => $templateTask->title,
-                'description' => $templateTask->description,
-                'instructions' => $templateTask->instructions,
-                'checklist_items' => $templateTask->checklist_items, // Ensure checklist items are copied
+                'list_id'             => $taskList->id,
+                'title'               => $templateTask->title,
+                'description'         => $templateTask->description,
+                'instructions'        => $templateTask->instructions,
+                'checklist_items'     => $templateTask->checklist_items,
                 'required_proof_type' => $templateTask->required_proof_type,
-                'is_required' => $templateTask->is_required,
-                'attachments' => $templateTask->attachments,
-                'validation_rules' => $templateTask->validation_rules,
-                'start_time' => $templateTask->start_time,
-                'end_time' => $templateTask->end_time,
-                'order_index' => $templateTask->sort_order,
-                'created_by' => auth()->id(), // Add created_by field
+                'is_required'         => $templateTask->is_required,
+                'attachments'         => $templateTask->attachments,
+                'validation_rules'    => $templateTask->validation_rules,
+                'start_time'          => $templateTask->start_time,
+                'end_time'            => $templateTask->end_time,
+                'order_index'         => $templateTask->sort_order,
+                'created_by'          => auth()->id(),
             ]);
         }
 
