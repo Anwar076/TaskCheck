@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Contact form recipient
+    |--------------------------------------------------------------------------
+    |
+    | Inbox for messages submitted via /contact. Defaults to MAIL_FROM_ADDRESS
+    | so production can use info@taskcheck.nl without duplicating env keys.
+    |
+    */
+
+    'contact_to' => env('MAIL_CONTACT_TO') ?: env('MAIL_FROM_ADDRESS'),
+
 ];
