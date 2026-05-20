@@ -40,6 +40,11 @@ return [
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
+            /*
+             * Als dit gezet is (bv. door hosting/Plesk), overschrijft Laravel hiermee
+             * host, username en password — ook als MAIL_USERNAME correct in .env staat.
+             * Gebruik óf een volledige smtp(s)-URL met user info%40domein.nl óf laat dit leeg.
+             */
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),

@@ -47,38 +47,9 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
-Route::post('/contact', function (\Illuminate\Http\Request $request) {
-    $validated = $request->validate([
-        'firstName' => 'required|string|max:100',
-        'lastName'  => 'required|string|max:100',
-        'email'     => 'required|email|max:255',
-        'company'   => 'nullable|string|max:255',
-        'subject'   => 'nullable|string|max:100',
-        'message'   => 'required|string|max:5000',
-    ]);
-
-    $subjectLabels = [
-        'demo'    => 'Demo aanvragen',
-        'sales'   => 'Verkoopvraag',
-        'support' => 'Technische ondersteuning',
-        'billing' => 'Facturatie',
-        'other'   => 'Overig',
-    ];
-
-    $subjectLabel = $subjectLabels[$validated['subject'] ?? ''] ?? 'Contactformulier';
-    $fromName     = trim($validated['firstName'] . ' ' . $validated['lastName']);
-
-    \Illuminate\Support\Facades\Mail::to('anwar.brancom@gmail.com')
-        ->send(new \App\Mail\ContactFormMail(
-            fromName:     $fromName,
-            fromEmail:    $validated['email'],
-            company:      $validated['company'] ?? '',
-            subjectLabel: $subjectLabel,
-            messageBody:  $validated['message'],
-        ));
-
-    return redirect()->route('contact')->with('success', 'Je bericht is verstuurd. We nemen zo snel mogelijk contact op.');
-})->name('contact.send');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'send'])
+    ->middleware('throttle:10,1')
+    ->name('contact.send');
 
 // Route::get('/help', function () {
 //     return view('help');
@@ -123,6 +94,9 @@ Route::get('/blog/waarom-bedrijven-stoppen-met-excel-checklists', function () {
 Route::get('/blog/waarom-horeca-stopt-met-papieren-checklists', function () {
     return view('blog.waarom-horeca-stopt-met-papieren-checklists');
 })->name('blog.waarom-horeca-stopt-met-papieren-checklists');
+Route::get('/blog/nvwa-spoedsluitingen-plaagdieren-2026', function () {
+    return view('blog.nvwa-spoedsluitingen-plaagdieren-2026');
+})->name('blog.nvwa-spoedsluitingen-plaagdieren-2026');
 
 Route::get('/horeca-checklist-app', function () {
     return view('seo.horeca-checklist-app');

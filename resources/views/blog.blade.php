@@ -45,22 +45,28 @@
 
     {{-- FEATURED ARTICLE --}}
     <article class="group lg:grid lg:grid-cols-2 lg:gap-10 lg:items-center mb-14 pb-14 border-b border-slate-100">
-        <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="block overflow-hidden rounded-2xl shadow-md">
-            <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                 alt="Horeca personeel controleren met een checklist app"
-                 class="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-500"
-                 loading="eager">
+        <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}" class="group block overflow-hidden rounded-2xl shadow-md ring-1 ring-slate-200/80">
+            <div class="relative h-72 overflow-hidden">
+                <img src="{{ asset('images/blog-nvwa-plaagdier-situatie.png') }}"
+                     alt="Verwaarloosde ruimte met plaagdierkeutels — illustratie NVWA"
+                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                     loading="eager">
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-3 pt-16">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/95 sm:text-xs">Afbeelding van NVWA</p>
+                </div>
+            </div>
         </a>
         <div class="mt-8 lg:mt-0">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="rounded-full bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1">Horeca</span>
-                <span class="text-xs text-slate-400">8 min lezen</span>
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="rounded-full bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1">Nieuws</span>
+                <span class="rounded-full bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1">Bron: NVWA</span>
+                <span class="text-xs text-slate-400">4 min lezen</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
-                <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}">Hoe horeca personeel beter te controleren met een checklist app</a>
+                <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}">NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren</a>
             </h2>
-            <p class="mt-3 text-slate-500 leading-relaxed">Van openingscheck tot HACCP-rondes: zo richt je een takenlijst personeel in die echt wordt uitgevoerd en waarbij je als manager altijd weet wat er speelt.</p>
-            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
+            <p class="mt-3 text-slate-500 leading-relaxed">22 locaties tijdelijk gesloten in zeven weken — vooral muizen en ratten. Wat inspecteurs verwachten en hoe je met routines en hygiëne risico’s beperkt.</p>
+            <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}"
                class="mt-5 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
                 Lees artikel
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
@@ -70,6 +76,30 @@
 
     {{-- ARTICLE GRID --}}
     <div class="grid md:grid-cols-2 gap-8">
+
+        <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
+            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="block overflow-hidden">
+                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+                     alt="Hoe horeca personeel beter te controleren met een checklist app"
+                     class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
+                     loading="lazy">
+            </a>
+            <div class="p-6 flex-1 flex flex-col">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="rounded-full bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1">Horeca</span>
+                    <span class="text-xs text-slate-400">8 min lezen</span>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
+                    <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}">Hoe horeca personeel beter te controleren met een checklist app</a>
+                </h2>
+                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">Van openingscheck tot HACCP-rondes: zo richt je een takenlijst personeel in die écht wordt uitgevoerd.</p>
+                <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
+                   class="mt-4 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
+                    Lees artikel
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+        </article>
 
         <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
             <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="block overflow-hidden">
