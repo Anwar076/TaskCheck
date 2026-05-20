@@ -21,208 +21,427 @@
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     <meta name="twitter:image" content="{{ $seoImage }}">
+    <style>
+        .blog-scene { isolation: isolate; }
+
+        .blog-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .blog-bg__mesh {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 78% 52% at 12% -8%, rgb(79 107 255 / 0.11), transparent 52%),
+                radial-gradient(ellipse 60% 48% at 92% 4%, rgb(123 97 255 / 0.09), transparent 48%),
+                radial-gradient(ellipse 50% 40% at 50% 100%, rgb(99 102 241 / 0.05), transparent 52%),
+                linear-gradient(180deg, rgb(248 250 252) 0%, rgb(255 255 255) 38%, rgb(248 250 252 / 0.96) 100%);
+        }
+        .blog-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(64px);
+            opacity: 0.78;
+            animation: blog-orb-drift 22s ease-in-out infinite;
+        }
+        .blog-orb--1 {
+            width: min(28rem, 85vw);
+            height: min(28rem, 85vw);
+            right: -18%;
+            top: -6%;
+            background: radial-gradient(circle at 38% 38%, rgb(79 107 255 / 0.22), rgb(123 97 255 / 0.08) 48%, transparent 72%);
+            animation-duration: 26s;
+        }
+        .blog-orb--2 {
+            width: min(22rem, 70vw);
+            height: min(22rem, 70vw);
+            left: -14%;
+            bottom: 18%;
+            background: radial-gradient(circle at center, rgb(16 185 129 / 0.12), transparent 70%);
+            animation-duration: 19s;
+            animation-delay: -7s;
+        }
+
+        @keyframes blog-orb-drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            45% { transform: translate(12px, -14px) scale(1.02); }
+            72% { transform: translate(-10px, 10px) scale(0.99); }
+        }
+
+        .blog-reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .blog-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .blog-reveal-d1.visible { transition-delay: 0.06s; }
+        .blog-reveal-d2.visible { transition-delay: 0.12s; }
+        .blog-reveal-d3.visible { transition-delay: 0.18s; }
+        .blog-reveal-d4.visible { transition-delay: 0.24s; }
+
+        .blog-chip {
+            border-radius: 9999px;
+            border: 1px solid rgb(226 232 240 / 0.95);
+            background: linear-gradient(180deg, rgb(255 255 255 / 0.95), rgb(248 250 252 / 0.9));
+            padding: 0.35rem 0.95rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: rgb(71 85 105);
+            box-shadow: 0 1px 0 rgb(255 255 255 / 0.8) inset;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .blog-chip:hover {
+            border-color: rgb(79 107 255 / 0.22);
+            box-shadow: 0 0 0 1px rgb(79 107 255 / 0.06), 0 4px 20px -8px rgb(15 23 42 / 0.08);
+            transform: translateY(-1px);
+        }
+
+        .blog-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 1.25rem;
+            border: 1px solid rgb(226 232 240 / 0.95);
+            background: linear-gradient(165deg, rgb(255 255 255 / 0.98) 0%, rgb(248 250 252 / 0.92) 100%);
+            box-shadow:
+                0 0 0 1px rgb(255 255 255 / 0.7) inset,
+                0 1px 2px rgb(15 23 42 / 0.04),
+                0 16px 40px -24px rgb(15 23 42 / 0.1);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.25s ease;
+        }
+        .blog-card:hover {
+            transform: translateY(-4px);
+            border-color: rgb(79 107 255 / 0.2);
+            box-shadow:
+                0 0 0 1px rgb(255 255 255 / 0.85) inset,
+                0 4px 6px rgb(15 23 42 / 0.05),
+                0 24px 48px -20px rgb(79 107 255 / 0.12);
+        }
+        .blog-card__media {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: rgb(241 245 249);
+        }
+        .blog-card__media img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+            transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .blog-card:hover .blog-card__media img {
+            transform: scale(1.04);
+        }
+        .blog-link-arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: rgb(29 78 216);
+            transition: color 0.2s ease, gap 0.2s ease;
+        }
+        .blog-link-arrow:hover {
+            color: rgb(30 64 175);
+            gap: 0.5rem;
+        }
+
+        .blog-cta {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.25rem;
+            background: linear-gradient(155deg, rgb(15 23 42) 0%, rgb(15 23 42) 40%, rgb(30 41 59) 100%);
+            border: 1px solid rgb(51 65 85 / 0.5);
+            box-shadow:
+                0 0 0 1px rgb(255 255 255 / 0.06) inset,
+                0 20px 50px -20px rgb(37 99 235 / 0.25);
+        }
+        .blog-cta::before {
+            content: '';
+            position: absolute;
+            width: 24rem;
+            height: 24rem;
+            right: -20%;
+            top: -60%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgb(37 99 235 / 0.22), transparent 65%);
+            pointer-events: none;
+        }
+        .blog-cta::after {
+            content: '';
+            position: absolute;
+            width: 18rem;
+            height: 18rem;
+            left: -10%;
+            bottom: -50%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgb(99 102 241 / 0.12), transparent 68%);
+            pointer-events: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blog-orb { animation: none !important; }
+            .blog-reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+            .blog-card:hover { transform: none; }
+            .blog-card:hover .blog-card__media img { transform: none; }
+            .blog-chip:hover { transform: none; }
+        }
+    </style>
 </head>
-<body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
-@include('components.header')
-
-{{-- PAGE HEADER --}}
-<section class="border-b border-slate-200 bg-white pt-28 pb-12">
-    <div class="max-w-6xl mx-auto px-6">
-        <div class="max-w-2xl">
-            <p class="text-sm font-semibold text-blue-600 uppercase tracking-widest">Blog</p>
-            <h1 class="mt-3 text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">Praktische gidsen voor<br class="hidden sm:block"> teams en managers</h1>
-            <p class="mt-4 text-lg text-slate-500 leading-relaxed">Artikelen over taakbeheer, werkcontrole en hoe bedrijven in horeca en schoonmaak dagelijks beter werken.</p>
-        </div>
-        <div class="mt-6 flex flex-wrap gap-2">
-            @foreach(['Alle artikelen', 'Horeca', 'Schoonmaak', 'Werkcontrole'] as $tag)
-            <span class="rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-sm font-medium text-slate-600 cursor-default">{{ $tag }}</span>
-            @endforeach
-        </div>
+<body class="min-h-screen overflow-x-hidden bg-white font-sans text-slate-900 antialiased">
+    <div class="blog-bg" aria-hidden="true">
+        <div class="blog-bg__mesh"></div>
+        <div class="blog-orb blog-orb--1"></div>
+        <div class="blog-orb blog-orb--2"></div>
     </div>
-</section>
 
-<main class="max-w-6xl mx-auto px-6 py-14">
+    @include('components.header')
 
-    {{-- FEATURED ARTICLE --}}
-    <article class="group lg:grid lg:grid-cols-2 lg:gap-10 lg:items-center mb-14 pb-14 border-b border-slate-100">
-        <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}" class="group block overflow-hidden rounded-2xl shadow-md ring-1 ring-slate-200/80">
-            <div class="relative h-72 overflow-hidden">
-                <img src="{{ asset('images/blog-nvwa-plaagdier-situatie.png') }}"
-                     alt="Verwaarloosde ruimte met plaagdierkeutels — illustratie NVWA"
-                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                     loading="eager">
-                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-3 pt-16">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/95 sm:text-xs">Afbeelding van NVWA</p>
-                </div>
+    {{-- Hero --}}
+    <section class="relative border-b border-slate-200/80 bg-white/55 pt-24 pb-12 backdrop-blur-[2px] sm:pt-28 sm:pb-14 lg:pt-32">
+        <div class="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div class="blog-reveal inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50/90 px-3 py-1.5 text-[11px] font-semibold text-blue-800 shadow-sm ring-1 ring-white/60 sm:px-4 sm:text-xs">
+                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgb(52,211,153,0.6)]"></span>
+                Tips &amp; nieuws voor operationele teams
             </div>
-        </a>
-        <div class="mt-8 lg:mt-0">
-            <div class="flex flex-wrap items-center gap-3 mb-4">
-                <span class="rounded-full bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1">Nieuws</span>
-                <span class="rounded-full bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1">Bron: NVWA</span>
-                <span class="text-xs text-slate-400">4 min lezen</span>
+            <h1 class="blog-reveal blog-reveal-d1 mt-6 max-w-3xl text-3xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:mt-7 sm:text-4xl lg:text-5xl lg:leading-[1.08]">
+                Praktische gidsen voor
+                <span class="mt-1 block bg-gradient-to-r from-[#4F6BFF] via-[#5f6af8] to-[#7B61FF] bg-clip-text text-transparent sm:mt-2">teams en managers</span>
+            </h1>
+            <p class="blog-reveal blog-reveal-d2 mt-4 max-w-2xl text-base leading-relaxed text-slate-600 sm:mt-5 sm:text-lg">
+                Artikelen over taakbeheer, werkcontrole en hoe bedrijven in horeca en schoonmaak dagelijks beter werken.
+            </p>
+            <div class="blog-reveal blog-reveal-d3 mt-6 flex flex-wrap gap-2 sm:mt-8">
+                @foreach(['Alle artikelen', 'Horeca', 'Schoonmaak', 'Werkcontrole'] as $tag)
+                    <span class="blog-chip cursor-default">{{ $tag }}</span>
+                @endforeach
             </div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
-                <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}">NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren</a>
-            </h2>
-            <p class="mt-3 text-slate-500 leading-relaxed">22 locaties tijdelijk gesloten in zeven weken — vooral muizen en ratten. Wat inspecteurs verwachten en hoe je met routines en hygiëne risico’s beperkt.</p>
-            <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}"
-               class="mt-5 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
-                Lees artikel
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-            </a>
         </div>
-    </article>
+    </section>
 
-    {{-- ARTICLE GRID --}}
-    <div class="grid md:grid-cols-2 gap-8">
+    <main class="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 
-        <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
-            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="block overflow-hidden">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                     alt="Hoe horeca personeel beter te controleren met een checklist app"
-                     class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
-                     loading="lazy">
-            </a>
-            <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="rounded-full bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1">Horeca</span>
-                    <span class="text-xs text-slate-400">8 min lezen</span>
+        {{-- Uitgelicht --}}
+        <article class="blog-reveal blog-reveal-d4 group mb-12 border-b border-slate-100 pb-12 sm:mb-14 sm:pb-14 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
+            <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}" class="blog-card block overflow-hidden !shadow-lg ring-1 ring-slate-200/60 lg:ring-slate-200/80">
+                <div class="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10] lg:min-h-[280px]">
+                    <img src="{{ asset('images/blog-nvwa-plaagdier-situatie.png') }}"
+                         alt="Verwaarloosde ruimte met plaagdierkeutels — illustratie NVWA"
+                         class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                         width="1200"
+                         height="800"
+                         loading="eager"
+                         decoding="async">
+                    <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-4 pb-3 pt-20">
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/95 sm:text-xs">Afbeelding van NVWA</p>
+                    </div>
+                    <div class="pointer-events-none absolute left-3 top-3 sm:left-4 sm:top-4">
+                        <span class="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800 shadow-sm ring-1 ring-amber-200/80 backdrop-blur sm:text-xs">Uitgelicht</span>
+                    </div>
                 </div>
-                <h2 class="text-xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
-                    <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}">Hoe horeca personeel beter te controleren met een checklist app</a>
+            </a>
+            <div class="mt-8 min-w-0 lg:mt-0">
+                <div class="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/60">Nieuws</span>
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200/80">Bron: NVWA</span>
+                    <span class="text-xs font-medium text-slate-400">4 min lezen</span>
+                </div>
+                <h2 class="text-2xl font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-3xl">
+                    <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}">NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren</a>
                 </h2>
-                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">Van openingscheck tot HACCP-rondes: zo richt je een takenlijst personeel in die écht wordt uitgevoerd.</p>
-                <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
-                   class="mt-4 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
+                <p class="mt-3 text-slate-600 leading-relaxed">22 locaties tijdelijk gesloten in zeven weken — vooral muizen en ratten. Wat inspecteurs verwachten en hoe je met routines en hygiëne risico’s beperkt.</p>
+                <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}" class="blog-link-arrow mt-5">
                     Lees artikel
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
             </div>
         </article>
 
-        <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
-            <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="block overflow-hidden">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                     alt="Waarom horeca bedrijven stoppen met papieren checklists"
-                     class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
-                     loading="lazy">
-            </a>
-            <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="rounded-full bg-orange-100 text-orange-700 text-xs font-semibold px-3 py-1">Horeca</span>
-                    <span class="text-xs text-slate-400">5 min lezen</span>
+        {{-- Raster --}}
+        <div class="grid gap-6 sm:gap-8 md:grid-cols-2">
+
+            <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+                         alt="Hoe horeca personeel beter te controleren met een checklist app"
+                         loading="lazy"
+                         decoding="async"
+                         width="800"
+                         height="450">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 ring-1 ring-blue-200/60">Horeca</span>
+                        <span class="text-xs text-slate-400">8 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}">Hoe horeca personeel beter te controleren met een checklist app</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Van openingscheck tot HACCP-rondes: zo richt je een takenlijst personeel in die écht wordt uitgevoerd.</p>
+                    <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
                 </div>
-                <h2 class="text-xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
-                    <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}">Waarom horeca bedrijven stoppen met papieren checklists</a>
-                </h2>
-                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">Het velletje aan de muur werkt niet meer. Waarom steeds meer horecazaken overstappen naar een digitale checklist.</p>
-                <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}"
-                   class="mt-4 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
-                    Lees artikel
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </article>
+
+            <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+                         alt="Waarom horeca bedrijven stoppen met papieren checklists"
+                         loading="lazy"
+                         decoding="async"
+                         width="800"
+                         height="450">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-900 ring-1 ring-orange-200/70">Horeca</span>
+                        <span class="text-xs text-slate-400">5 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}">Waarom horeca bedrijven stoppen met papieren checklists</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Het velletje aan de muur werkt niet meer. Waarom steeds meer horecazaken overstappen naar een digitale checklist.</p>
+                    <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </article>
+
+            <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}"
+                         alt="Beste checklist app voor schoonmaakbedrijven"
+                         loading="lazy"
+                         decoding="async"
+                         width="800"
+                         height="450">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200/70">Schoonmaak</span>
+                        <span class="text-xs text-slate-400">6 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}">Beste checklist app voor schoonmaakbedrijven</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Kwaliteitscontrole per locatie met bewijs per taak en realtime inzicht voor planners en leidinggevenden.</p>
+                    <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </article>
+
+            <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/taskcheck-excel-blog-hero.webp') }}"
+                         alt="Waarom bedrijven stoppen met Excel en overstappen op checklist apps"
+                         loading="lazy"
+                         decoding="async"
+                         width="800"
+                         height="450">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200/90">Algemeen</span>
+                        <span class="text-xs text-slate-400">7 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}">Waarom bedrijven stoppen met Excel en overstappen op checklist apps</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Waarom losse spreadsheets zorgen voor fouten en hoe een werkcontrole app processen schaalbaar maakt.</p>
+                    <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="blog-reveal my-14 border-t border-slate-100 sm:my-16"></div>
+
+        {{-- Onderwerpen --}}
+        <div class="blog-reveal mb-14 sm:mb-16">
+            <h2 class="text-lg font-extrabold text-slate-900 sm:text-xl">Meer lezen per onderwerp</h2>
+            <p class="mt-1 max-w-2xl text-sm text-slate-600">Diepgaande pagina’s over hoe TaskCheck in jouw sector helpt.</p>
+            <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                <a href="{{ route('seo.horeca-checklist-app') }}"
+                   class="group flex flex-col gap-1 rounded-2xl border border-slate-200/95 bg-white/90 p-5 shadow-sm ring-1 ring-white/60 transition hover:-translate-y-0.5 hover:border-blue-300/80 hover:bg-blue-50/40 hover:shadow-md">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-blue-600">Horeca</span>
+                    <h3 class="font-bold text-slate-900 transition group-hover:text-blue-800">Horeca checklist app</h3>
+                    <p class="text-sm leading-relaxed text-slate-600">Dagelijkse controle voor restaurants, keukens en teams.</p>
+                </a>
+                <a href="{{ route('seo.horeca-app-personeel') }}"
+                   class="group flex flex-col gap-1 rounded-2xl border border-slate-200/95 bg-white/90 p-5 shadow-sm ring-1 ring-white/60 transition hover:-translate-y-0.5 hover:border-blue-300/80 hover:bg-blue-50/40 hover:shadow-md">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-blue-600">Horeca</span>
+                    <h3 class="font-bold text-slate-900 transition group-hover:text-blue-800">Horeca app personeel</h3>
+                    <p class="text-sm leading-relaxed text-slate-600">Taken per shift aansturen met realtime werkcontrole.</p>
+                </a>
+                <a href="{{ route('seo.checklist-app-schoonmaak') }}"
+                   class="group flex flex-col gap-1 rounded-2xl border border-slate-200/95 bg-white/90 p-5 shadow-sm ring-1 ring-white/60 transition hover:-translate-y-0.5 hover:border-emerald-300/80 hover:bg-emerald-50/35 hover:shadow-md">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Schoonmaak</span>
+                    <h3 class="font-bold text-slate-900 transition group-hover:text-emerald-800">Checklist app schoonmaak</h3>
+                    <p class="text-sm leading-relaxed text-slate-600">Rondes, bewijs en rapportage per gebouw of opdrachtgever.</p>
                 </a>
             </div>
-        </article>
+        </div>
 
-        <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
-            <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="block overflow-hidden">
-                <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}"
-                     alt="Beste checklist app voor schoonmaakbedrijven"
-                     class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
-                     loading="lazy">
-            </a>
-            <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1">Schoonmaak</span>
-                    <span class="text-xs text-slate-400">6 min lezen</span>
-                </div>
-                <h2 class="text-xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
-                    <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}">Beste checklist app voor schoonmaakbedrijven</a>
-                </h2>
-                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">Kwaliteitscontrole per locatie met bewijs per taak en realtime inzicht voor planners en leidinggevenden.</p>
-                <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}"
-                   class="mt-4 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
-                    Lees artikel
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        {{-- CTA --}}
+        <div class="blog-reveal blog-cta relative z-0 flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-9 lg:p-10">
+            <div class="relative z-[1]">
+                <h2 class="text-xl font-bold text-white sm:text-2xl">Wil je dit direct toepassen in jouw team?</h2>
+                <p class="mt-2 max-w-lg text-sm leading-relaxed text-slate-300">Start met TaskCheck en zet je eerste digitale checklist live in minuten. Inclusief bewijs, voortgang en realtime inzicht.</p>
+            </div>
+            <div class="relative z-[1] flex flex-shrink-0 flex-col gap-3 sm:flex-row">
+                <a href="{{ route('pricing') }}"
+                   class="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-center text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition hover:bg-blue-500 sm:min-h-10">
+                    Bekijk prijzen
+                </a>
+                <a href="{{ route('contact') }}"
+                   class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/25 bg-white/10 px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-white/15 sm:min-h-10">
+                    Plan een demo
                 </a>
             </div>
-        </article>
-
-        <article class="group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition">
-            <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="block overflow-hidden">
-                <img src="{{ asset('images/taskcheck-excel-blog-hero.webp') }}"
-                     alt="Waarom bedrijven stoppen met Excel en overstappen op checklist apps"
-                     class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
-                     loading="lazy">
-            </a>
-            <div class="p-6 flex-1 flex flex-col">
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="rounded-full bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1">Algemeen</span>
-                    <span class="text-xs text-slate-400">7 min lezen</span>
-                </div>
-                <h2 class="text-xl font-bold text-slate-900 leading-snug group-hover:text-blue-700 transition">
-                    <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}">Waarom bedrijven stoppen met Excel en overstappen op checklist apps</a>
-                </h2>
-                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">Waarom losse spreadsheets zorgen voor fouten en hoe een werkcontrole app processen schaalbaar maakt.</p>
-                <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}"
-                   class="mt-4 inline-flex items-center gap-2 text-blue-700 font-semibold text-sm hover:text-blue-800 transition">
-                    Lees artikel
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                </a>
-            </div>
-        </article>
-
-    </div>
-
-    {{-- DIVIDER --}}
-    <div class="my-14 border-t border-slate-100"></div>
-
-    {{-- RELATED PAGES --}}
-    <div class="mb-14">
-        <h2 class="text-lg font-bold text-slate-900 mb-5">Meer lezen per onderwerp</h2>
-        <div class="grid sm:grid-cols-3 gap-4">
-            <a href="{{ route('seo.horeca-checklist-app') }}"
-               class="group flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300 hover:bg-blue-50/30 transition">
-                <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">Horeca</span>
-                <h3 class="font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Horeca checklist app</h3>
-                <p class="text-sm text-slate-500 leading-relaxed">Dagelijkse controle voor restaurants, keukens en teams.</p>
-            </a>
-            <a href="{{ route('seo.horeca-app-personeel') }}"
-               class="group flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300 hover:bg-blue-50/30 transition">
-                <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">Horeca</span>
-                <h3 class="font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Horeca app personeel</h3>
-                <p class="text-sm text-slate-500 leading-relaxed">Taken per shift aansturen met realtime werkcontrole.</p>
-            </a>
-            <a href="{{ route('seo.checklist-app-schoonmaak') }}"
-               class="group flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300 hover:bg-blue-50/30 transition">
-                <span class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Schoonmaak</span>
-                <h3 class="font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Checklist app schoonmaak</h3>
-                <p class="text-sm text-slate-500 leading-relaxed">Rondes, bewijs en rapportage per gebouw of opdrachtgever.</p>
-            </a>
         </div>
-    </div>
 
-    {{-- CTA --}}
-    <div class="rounded-2xl bg-slate-900 p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div>
-            <h2 class="text-xl font-bold text-white">Wil je dit direct toepassen in jouw team?</h2>
-            <p class="mt-1 text-slate-400 text-sm leading-relaxed max-w-lg">Start met TaskCheck en zet je eerste digitale checklist live in minuten. Inclusief bewijs, voortgang en realtime inzicht.</p>
-        </div>
-        <div class="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-            <a href="{{ route('pricing') }}"
-               class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-white font-semibold text-sm hover:bg-blue-500 transition whitespace-nowrap">
-                Bekijk prijzen
-            </a>
-            <a href="{{ route('contact') }}"
-               class="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-white font-semibold text-sm hover:bg-white/20 transition whitespace-nowrap">
-                Plan een demo
-            </a>
-        </div>
-    </div>
+    </main>
 
-</main>
+    @include('components.footer')
 
-@include('components.footer')
+    <script>
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelectorAll('.blog-reveal').forEach(function (el) { el.classList.add('visible'); });
+                return;
+            }
+            if (!('IntersectionObserver' in window)) {
+                document.querySelectorAll('.blog-reveal').forEach(function (el) { el.classList.add('visible'); });
+                return;
+            }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    e.target.classList.add('visible');
+                    io.unobserve(e.target);
+                });
+            }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+            document.querySelectorAll('.blog-reveal').forEach(function (el) { io.observe(el); });
+        })();
+    </script>
 </body>
 </html>

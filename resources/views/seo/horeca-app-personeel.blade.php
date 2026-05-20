@@ -17,159 +17,297 @@
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ $seoUrl }}">
     <meta property="og:image" content="{{ $seoImage }}">
+    <style>
+        .cta-btn { background: linear-gradient(135deg, #2563eb, #4f46e5); }
+        .cta-btn:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca); }
+    </style>
 </head>
-<body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
+<body class="bg-white text-slate-900 antialiased overflow-x-hidden">
+
 @include('components.header')
 
-{{-- HERO --}}
-<section class="relative bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 text-white overflow-hidden pt-28 pb-20">
-    <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-0 left-0 w-72 h-72 bg-amber-300 rounded-full -translate-x-1/3 -translate-y-1/3"></div>
-        <div class="absolute bottom-0 right-0 w-80 h-80 bg-red-300 rounded-full translate-x-1/3 translate-y-1/3"></div>
+<section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="seo-horeca-pers-dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="1.2" fill="#334155"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#seo-horeca-pers-dots)"/>
+        </svg>
+        <div class="absolute max-md:-right-[280px] max-md:top-[-200px] md:-right-[200px] md:-top-[300px] h-[min(520px,120vw)] w-[min(520px,120vw)] md:h-[800px] md:w-[800px] rounded-full bg-[radial-gradient(circle,rgba(99,102,241,.1)_0%,transparent_65%)]"></div>
+        <div class="absolute max-md:-left-[120px] max-md:bottom-[-80px] md:bottom-0 md:left-[-100px] h-[280px] w-[280px] md:h-[400px] md:w-[400px] rounded-full bg-[radial-gradient(circle,rgba(37,99,235,.06)_0%,transparent_65%)]"></div>
     </div>
-    <div class="relative max-w-6xl mx-auto px-6">
-        <div class="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
-            <div>
-                <span class="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">Horeca app personeel</span>
-                <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight">Horeca app personeel voor dagelijkse taken en controle</h1>
-                <p class="mt-5 text-lg text-amber-100 leading-relaxed max-w-xl">TaskCheck helpt horeca teams om taken per dienst duidelijk te verdelen, uit te voeren en te controleren. Per rol, per shift, met bewijs.</p>
-                <div class="mt-8 flex flex-col sm:flex-row gap-3">
-                    <a href="{{ route('login') }}" class="inline-flex justify-center items-center gap-2 rounded-xl bg-white text-orange-700 font-bold px-6 py-3 hover:bg-orange-50 transition shadow-lg">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Start 14 dagen gratis
-                    </a>
-                    <a href="{{ route('pricing') }}" class="inline-flex justify-center items-center gap-2 rounded-xl border border-white/30 bg-white/10 text-white font-semibold px-6 py-3 hover:bg-white/20 transition">
+
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div class="min-w-0">
+                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+                    <span class="text-left leading-snug">Checklists &amp; werkcontrole voor horecateams</span>
+                </div>
+
+                <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.25rem]">
+                    Horeca app personeel voor
+                    <span class="relative inline-block">
+                        <span style="background:linear-gradient(135deg,#2563eb,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">taken en controle</span>
+                        <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" preserveAspectRatio="none" style="height:5px" aria-hidden="true">
+                            <path d="M1 6 C75 1, 225 1, 299 6" stroke="url(#seo-horeca-pers-ul)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            <defs>
+                                <linearGradient id="seo-horeca-pers-ul" x1="0" y1="0" x2="300" y2="0">
+                                    <stop offset="0%" stop-color="#2563eb"/>
+                                    <stop offset="100%" stop-color="#6366f1"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </span>
+                </h1>
+
+                <p class="mt-5 max-w-xl text-base leading-relaxed text-slate-500 sm:mt-6 sm:text-lg">
+                    TaskCheck helpt horecateams om taken per dienst duidelijk te verdelen, uit te voeren en te controleren. Per rol, per shift, met bewijs waar het telt.
+                </p>
+
+                <div class="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                            Naar dashboard
+                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                        </a>
+                    @else
+                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                            Start 14 dagen gratis
+                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                        </a>
+                    @endauth
+                    <a href="{{ route('pricing') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
                         Bekijk prijzen
                     </a>
                 </div>
-                <p class="mt-4 text-sm text-amber-200">Geen creditcard nodig · Direct aan de slag</p>
+
+                <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 sm:mt-6 sm:gap-x-6">
+                    @foreach(['Per rol in te richten', 'Shift-proof workflows', 'Bewijs bij controles', 'Geen creditcard proefperiode'] as $b)
+                    <span class="flex items-center gap-1.5 text-xs text-slate-500">
+                        <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                        {{ $b }}
+                    </span>
+                    @endforeach
+                </div>
             </div>
-            <div class="mt-12 lg:mt-0">
-                <div class="rounded-2xl overflow-hidden shadow-2xl ring-4 ring-white/20">
-                    <img src="{{ asset('images/taskcheck-horeca-personeel-seo-hero.webp') }}"
-                         alt="Horeca app personeel – TaskCheck takenlijsten voor keuken, bar en bediening"
-                         class="w-full object-cover" loading="eager">
+
+            <div class="relative mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none">
+                <div class="rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_24px_56px_-24px_rgba(37,99,235,.2),0_0_0_1px_rgba(241,245,249,.9)_inset] sm:p-3">
+                    <div class="overflow-hidden rounded-xl ring-1 ring-slate-100">
+                        <img src="{{ asset('images/taskcheck-horeca-personeel-seo-hero.webp') }}"
+                             alt="Horeca app personeel – TaskCheck takenlijsten voor keuken, bar en bediening"
+                             class="h-auto w-full object-cover"
+                             width="1200"
+                             height="800"
+                             loading="eager"
+                             fetchpriority="high">
+                    </div>
+                </div>
+                <p class="mt-3 text-center text-xs text-slate-400 lg:text-left">Dezelfde afspraken voor iedere dienst — minder misverstanden op de vloer.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="border-b border-slate-200 bg-slate-50/80">
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="flex gap-4">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/25">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.813-2.292M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-extrabold text-slate-900">Per rol</p>
+                    <p class="mt-0.5 text-sm text-slate-500">keuken · bar · bediening</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-indigo-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-extrabold text-slate-900">Per shift</p>
+                    <p class="mt-0.5 text-sm text-slate-500">opening · service · sluiting</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-sky-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-extrabold text-slate-900">HACCP</p>
+                    <p class="mt-0.5 text-sm text-slate-500">aantoonbaar vastgelegd</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-emerald-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-extrabold text-slate-900">Realtime</p>
+                    <p class="mt-0.5 text-sm text-slate-500">bijsturen zonder te bellen</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-{{-- STATS --}}
-<section class="bg-slate-50 border-b border-slate-200">
-    <div class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-        <div><p class="text-3xl font-extrabold text-orange-600">Per rol</p><p class="text-sm text-slate-500 mt-1">keuken · bar · bediening</p></div>
-        <div><p class="text-3xl font-extrabold text-orange-600">Per shift</p><p class="text-sm text-slate-500 mt-1">opening · service · sluiting</p></div>
-        <div><p class="text-3xl font-extrabold text-orange-600">HACCP</p><p class="text-sm text-slate-500 mt-1">aantoonbaar gedocumenteerd</p></div>
-        <div><p class="text-3xl font-extrabold text-orange-600">Realtime</p><p class="text-sm text-slate-500 mt-1">bijsturen zonder te bellen</p></div>
-    </div>
-</section>
-
 <main class="pb-20">
-    <div class="max-w-6xl mx-auto px-6">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        {{-- HOE HET WERKT --}}
-        <section class="mt-16">
-            <div class="text-center max-w-2xl mx-auto">
-                <span class="text-orange-600 text-sm font-semibold uppercase tracking-wide">Werkwijze</span>
-                <h2 class="mt-2 text-3xl font-bold text-slate-900">Een horeca check app die op de vloer werkt</h2>
+        <section class="mt-16 sm:mt-20">
+            <div class="mx-auto max-w-2xl text-center">
+                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Werkwijze</span>
+                <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Een horeca check app die op de vloer werkt</h2>
                 <p class="mt-3 text-slate-500">In een restaurant wisselt de druk per moment. Vaste workflows houden kwaliteit stabiel.</p>
             </div>
-            <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                @php $hoe = [['⚙️','Workflows instellen','Opening, mise-en-place, service en sluiting als vaste workflows.'],['👤','Taken toewijzen','Medewerkers zien direct hun verantwoordelijkheden per dienst.'],['📸','Bewijs toevoegen','Foto of tekst bij kritieke taken: temperatuur, schoonmaak, voorraad.'],['👁️','Live bijsturen','Teamleiders zien direct waar taken blijven liggen.'],['📊','Trends bekijken','Zie welke taken vaak te laat of onvolledig zijn.'],['🎓','Snel inwerken','Nieuwe medewerkers volgen dezelfde workflows.']]; @endphp
+            <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @php
+                $hoe = [
+                    ['t' => 'Workflows instellen', 'd' => 'Opening, mise-en-place, service en sluiting als vaste workflows.', 'c' => 'text-blue-600', 'bg' => 'bg-blue-50', 'paths' => ['M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z']],
+                    ['t' => 'Taken toewijzen', 'd' => 'Medewerkers zien direct hun verantwoordelijkheden per dienst.', 'c' => 'text-indigo-600', 'bg' => 'bg-indigo-50', 'paths' => ['M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z', 'M4.501 20.118a8.287 8.287 0 0 1 15.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z']],
+                    ['t' => 'Bewijs toevoegen', 'd' => 'Foto of tekst bij kritieke taken: temperatuur, schoonmaak, voorraad.', 'c' => 'text-sky-600', 'bg' => 'bg-sky-50', 'paths' => ['M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z', 'M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z']],
+                    ['t' => 'Live bijsturen', 'd' => 'Teamleiders zien direct waar taken blijven liggen.', 'c' => 'text-emerald-600', 'bg' => 'bg-emerald-50', 'paths' => ['M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z']],
+                    ['t' => 'Trends bekijken', 'd' => 'Zie welke taken vaak te laat of onvolledig zijn.', 'c' => 'text-blue-700', 'bg' => 'bg-blue-50', 'paths' => ['M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z']],
+                    ['t' => 'Snel inwerken', 'd' => 'Nieuwe medewerkers volgen dezelfde workflows.', 'c' => 'text-slate-700', 'bg' => 'bg-slate-100', 'paths' => ['M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z']],
+                ];
+                @endphp
                 @foreach($hoe as $h)
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center hover:border-orange-200 hover:shadow-md transition">
-                    <span class="text-2xl">{{ $h[0] }}</span>
-                    <h3 class="mt-2 font-bold text-slate-900 text-sm">{{ $h[1] }}</h3>
-                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ $h[2] }}</p>
+                <div class="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm transition hover:border-blue-200 hover:shadow-md">
+                    <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-xl {{ $h['bg'] }}">
+                        <svg class="h-5 w-5 {{ $h['c'] }}" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+                            @foreach($h['paths'] as $d)
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $d }}"/>
+                            @endforeach
+                        </svg>
+                    </div>
+                    <h3 class="mt-3 text-sm font-bold text-slate-900">{{ $h['t'] }}</h3>
+                    <p class="mt-1 text-xs leading-relaxed text-slate-500">{{ $h['d'] }}</p>
                 </div>
                 @endforeach
             </div>
         </section>
 
-        {{-- RESTAURANT CHECKLIST --}}
-        <section class="mt-20 bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-8 sm:p-12">
-            <div class="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+        <section class="mt-20 rounded-3xl bg-gradient-to-br from-slate-50 to-blue-50/60 p-8 sm:p-12 sm:mt-24">
+            <div class="lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
                 <div>
-                    <span class="text-orange-600 text-sm font-semibold uppercase tracking-wide">Per afdeling</span>
-                    <h2 class="mt-2 text-3xl font-bold text-slate-900">Restaurant checklist app voor keuken, bar en bediening</h2>
-                    <p class="mt-4 text-slate-600 leading-relaxed">Per taak kun je instructies, deadlines en verplicht bewijs instellen. Temperatuurcontrole, HACCP-rondes, schoonmaak van werkstations en voorraadcontrole.</p>
-                    <p class="mt-3 text-slate-600 leading-relaxed">Bewijs wordt centraal opgeslagen. Handig bij kwaliteitsgesprekken, audits en onboarding van nieuw personeel.</p>
+                    <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Per afdeling</span>
+                    <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Restaurant checklist app voor keuken, bar en bediening</h2>
+                    <p class="mt-4 leading-relaxed text-slate-600">Per taak kun je instructies, deadlines en verplicht bewijs instellen. Denk aan temperatuurcontrole, HACCP-rondes, schoonmaak van werkstations en voorraad.</p>
+                    <p class="mt-3 leading-relaxed text-slate-600">Bewijs wordt centraal opgeslagen — handig bij kwaliteitsgesprekken, audits en onboarding van nieuw personeel.</p>
                 </div>
-                <div class="mt-8 lg:mt-0 grid grid-cols-2 gap-3">
-                    @foreach(['🍳 Keuken','🍸 Bar','🍽️ Bediening','🔑 Opening','🌙 Sluiting','🔍 HACCP'] as $afd)
-                    <div class="bg-white rounded-xl border border-orange-100 shadow-sm px-4 py-3 text-center font-semibold text-slate-800 text-sm hover:border-orange-300 transition">{{ $afd }}</div>
+                <div class="mt-8 grid grid-cols-2 gap-3 lg:mt-0">
+                    @php
+                    $afdelingen = [
+                        ['label' => 'Keuken', 'c' => 'text-orange-600', 'bg' => 'bg-orange-50', 'paths' => ['M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z', 'M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-1.313-.352 5.99 5.99 0 0 0 2.743-2.334Z']],
+                        ['label' => 'Bar', 'c' => 'text-indigo-600', 'bg' => 'bg-indigo-50', 'paths' => ['M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104v5.714a2.25 2.25 0 0 0 .659 1.591M5 14.5a2.25 2.25 0 0 0-2.25 2.219V17.5A2.25 2.25 0 0 0 5 19.5h14a2.25 2.25 0 0 0 2.25-2.25v-1.781a2.25 2.25 0 0 0-2.25-2.25M5 14.5l2.25-2.25M19.8 15.3 14.25 12.75 14.25 9.336m1.5-6.231a24.32 24.32 0 0 1 0 5.696m-1.5-6.231V9.75']],
+                        ['label' => 'Bediening', 'c' => 'text-blue-600', 'bg' => 'bg-blue-50', 'paths' => ['M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z']],
+                        ['label' => 'Opening', 'c' => 'text-amber-600', 'bg' => 'bg-amber-50', 'paths' => ['M12 3v2.25m6.364 1.636-1.591 1.591M21 12h-2.25m-3.636 0-1.591 1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773-1.591-1.591M12 7.5V9m0 5.25V18.75']],
+                        ['label' => 'Sluiting', 'c' => 'text-slate-600', 'bg' => 'bg-slate-100', 'paths' => ['M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z']],
+                        ['label' => 'HACCP', 'c' => 'text-emerald-600', 'bg' => 'bg-emerald-50', 'paths' => ['M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z']],
+                    ];
+                    @endphp
+                    @foreach($afdelingen as $a)
+                    <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-white px-4 py-3 shadow-sm transition hover:border-blue-300">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $a['bg'] }}">
+                            <svg class="h-5 w-5 {{ $a['c'] }}" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+                                @foreach($a['paths'] as $d)
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $d }}"/>
+                                @endforeach
+                            </svg>
+                        </span>
+                        <span class="text-sm font-semibold text-slate-800">{{ $a['label'] }}</span>
+                    </div>
                     @endforeach
                 </div>
             </div>
         </section>
 
-        {{-- REVIEW --}}
-        <section class="mt-20">
-            <div class="text-center max-w-2xl mx-auto mb-8">
-                <span class="text-orange-600 text-sm font-semibold uppercase tracking-wide">Ervaringen</span>
+        <section class="mt-20 sm:mt-24">
+            <div class="mx-auto mb-10 max-w-2xl text-center">
+                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Ervaringen</span>
                 <h2 class="mt-2 text-3xl font-bold text-slate-900">Wat zeggen horeca teams?</h2>
             </div>
-            <div class="grid sm:grid-cols-2 gap-5">
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <p class="text-slate-700 italic leading-relaxed">"Alle medewerkers werken nu hetzelfde. Geen discussies meer over wie wat gedaan heeft."</p>
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <svg class="mb-3 h-8 w-8 text-blue-200" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                    <p class="italic leading-relaxed text-slate-700">&ldquo;Alle medewerkers werken nu hetzelfde. Geen discussies meer over wie wat gedaan heeft.&rdquo;</p>
                     <div class="mt-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-sm">J</div>
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">J</div>
                         <div><p class="text-sm font-semibold text-slate-900">Jasper, restaurantmanager</p><p class="text-xs text-slate-500">3 vestigingen</p></div>
                     </div>
                 </div>
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <p class="text-slate-700 italic leading-relaxed">"Bij onze inspectie hadden we alles gedocumenteerd. Dat gaf ons veel vertrouwen."</p>
+                <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <svg class="mb-3 h-8 w-8 text-indigo-200" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+                    <p class="italic leading-relaxed text-slate-700">&ldquo;Bij onze inspectie hadden we alles gedocumenteerd. Dat gaf ons veel vertrouwen.&rdquo;</p>
                     <div class="mt-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold text-sm">A</div>
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">A</div>
                         <div><p class="text-sm font-semibold text-slate-900">Anita, horecaondernemer</p><p class="text-xs text-slate-500">Hotel restaurant</p></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        {{-- CTA --}}
-        <section class="mt-20 text-center">
-            <div class="bg-gradient-to-r from-amber-600 to-orange-600 rounded-3xl p-10 sm:p-14 text-white shadow-xl">
-                <h2 class="text-3xl sm:text-4xl font-extrabold">Klaar voor meer controle?</h2>
-                <p class="mt-3 text-lg text-amber-100 max-w-xl mx-auto">Probeer TaskCheck 14 dagen gratis en zie direct het verschil.</p>
-                <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
-                    <a href="{{ route('login') }}" class="inline-flex justify-center items-center gap-2 rounded-xl bg-white text-orange-700 font-bold px-8 py-4 text-lg hover:bg-orange-50 transition shadow-lg">Start 14 dagen gratis</a>
-                    <a href="{{ route('pricing') }}" class="inline-flex justify-center items-center rounded-xl border-2 border-white/40 text-white font-semibold px-8 py-4 text-lg hover:bg-white/10 transition">Bekijk prijzen</a>
+        <section class="mt-20 text-center sm:mt-24">
+            <div class="rounded-3xl bg-gradient-to-r from-[#2563eb] to-[#4f46e5] px-6 py-12 text-white shadow-xl shadow-blue-500/20 sm:px-12 sm:py-16">
+                <h2 class="text-3xl font-extrabold sm:text-4xl">Klaar voor meer controle?</h2>
+                <p class="mx-auto mt-3 max-w-xl text-lg text-white/90">Probeer TaskCheck 14 dagen gratis en zie direct het verschil.</p>
+                <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Naar dashboard</a>
+                    @else
+                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Start 14 dagen gratis</a>
+                    @endauth
+                    <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border-2 border-white/40 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/10">Bekijk prijzen</a>
                 </div>
+                <p class="mt-4 text-sm text-white/80">Geen verplichtingen · Geen creditcard · Direct starten</p>
             </div>
         </section>
 
-        {{-- FAQ --}}
-        <section class="mt-20">
-            <div class="text-center max-w-2xl mx-auto">
-                <span class="text-orange-600 text-sm font-semibold uppercase tracking-wide">FAQ</span>
+        <section class="mt-20 sm:mt-24">
+            <div class="mx-auto max-w-2xl text-center">
+                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">FAQ</span>
                 <h2 class="mt-2 text-3xl font-bold text-slate-900">Veelgestelde vragen</h2>
             </div>
-            <div class="mt-8 max-w-3xl mx-auto space-y-3">
-                @php $faqs = [['Wat is een horeca app voor personeel precies?','Een digitale takenomgeving waarin medewerkers per dienst zien wat er moet gebeuren. Denk aan opening, keukencontrole, schoonmaak en sluiting met duidelijke deadlines en bewijs per taak.'],['Kan ik keuken, bar en bediening apart aansturen?','Ja. In TaskCheck kun je takenlijsten opdelen per rol, team of locatie. Elk team ziet alleen de taken die voor die dienst relevant zijn.'],['Helpt dit ook bij HACCP en kwaliteitscontroles?','Ja. Je kunt bewijs zoals foto, video en notities verplicht maken voor kritieke controles. Daardoor heb je aantoonbaar overzicht bij audits.'],['Hoe snel kan ik starten?','Direct. Na registratie maak je je eerste checklist in een paar minuten. Geen installatie of training nodig.']]; @endphp
+            <div class="mx-auto mt-10 max-w-3xl space-y-3">
+                @php
+                $faqs = [
+                    ['Wat is een horeca app voor personeel precies?','Een digitale takenomgeving waarin medewerkers per dienst zien wat er moet gebeuren. Denk aan opening, keukencontrole, schoonmaak en sluiting met duidelijke deadlines en bewijs per taak.'],
+                    ['Kan ik keuken, bar en bediening apart aansturen?','Ja. In TaskCheck kun je takenlijsten opdelen per rol, team of locatie. Elk team ziet de taken die voor die dienst relevant zijn.'],
+                    ['Helpt dit ook bij HACCP en kwaliteitscontroles?','Ja. Je kunt bewijs zoals foto, video en notities verplicht maken voor kritieke controles. Zo heb je aantoonbaar overzicht bij audits.'],
+                    ['Hoe snel kan ik starten?','Direct. Na registratie maak je je eerste checklist in een paar minuten. Geen installatie of lange training nodig.'],
+                ];
+                @endphp
                 @foreach($faqs as $faq)
-                <details class="group bg-white border border-slate-200 rounded-2xl px-6 py-4 cursor-pointer hover:border-orange-200 transition">
-                    <summary class="flex justify-between items-center font-semibold text-slate-900 list-none">
-                        {{ $faq[0] }}
-                        <svg class="w-5 h-5 text-slate-400 flex-shrink-0 group-open:rotate-45 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <details class="group cursor-pointer rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-blue-200 sm:px-6">
+                    <summary class="flex list-none items-center justify-between gap-3 font-semibold text-slate-900">
+                        <span class="text-left">{{ $faq[0] }}</span>
+                        <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     </summary>
-                    <p class="mt-3 text-slate-600 leading-relaxed text-sm">{{ $faq[1] }}</p>
+                    <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $faq[1] }}</p>
                 </details>
                 @endforeach
             </div>
         </section>
 
-        {{-- INTERNE LINKS --}}
-        <section class="mt-16 mb-4">
-            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-6">
-                <p class="font-semibold text-slate-900 mb-3">Gerelateerde pagina's</p>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('seo.horeca-checklist-app') }}" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-blue-700 font-medium hover:border-blue-300 hover:bg-blue-50 transition">Horeca checklist app</a>
-                    <a href="{{ route('seo.takenlijst-personeel') }}" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-blue-700 font-medium hover:border-blue-300 hover:bg-blue-50 transition">Takenlijst personeel</a>
-                    <a href="{{ route('seo.werkcontrole-app') }}" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-blue-700 font-medium hover:border-blue-300 hover:bg-blue-50 transition">Werkcontrole app</a>
-                    <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-blue-700 font-medium hover:border-blue-300 hover:bg-blue-50 transition">Blog: personeel controleren</a>
-                </div>
+        <section class="mb-4 mt-16 border-t border-slate-200 pt-12 sm:mt-20">
+            <p class="text-center text-sm font-semibold text-slate-900">Gerelateerde pagina&rsquo;s</p>
+            <div class="mx-auto mt-5 flex max-w-4xl flex-wrap justify-center gap-2">
+                @foreach([
+                    ['Horeca checklist app', route('seo.horeca-checklist-app')],
+                    ['Takenlijst personeel', route('seo.takenlijst-personeel')],
+                    ['Werkcontrole app', route('seo.werkcontrole-app')],
+                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],
+                ] as $link)
+                <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
+                    {{ $link[0] }}
+                    <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                </a>
+                @endforeach
             </div>
         </section>
     </div>
