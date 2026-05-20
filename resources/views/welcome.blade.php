@@ -111,6 +111,18 @@
             .hero-v-card{ transform:none; }
             .hero-v-orbit::after{ display:none; }
         }
+        /* Mobiel: vloeiende horizontale scroll voor brede tabellen */
+        .welcome-table-scroll {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .welcome-table-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        .welcome-table-scroll::-webkit-scrollbar-thumb {
+            border-radius: 9999px;
+            background: rgb(203 213 225);
+        }
     </style>
 </head>
 <body class="bg-white text-slate-900 antialiased overflow-x-hidden">
@@ -120,63 +132,63 @@
 {{-- ══════════════════════════════════════
      HERO — 2 kolommen: tekst links, screenshot rechts
 ══════════════════════════════════════ --}}
-<section class="relative overflow-hidden bg-white pt-28 pb-16">
+<section class="relative overflow-hidden bg-white pt-24 pb-12 sm:pt-28 sm:pb-16">
     {{-- Achtergrond --}}
     <div class="absolute inset-0 pointer-events-none">
         <svg class="absolute inset-0 w-full h-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
             <defs><pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1.2" fill="#334155"/></pattern></defs>
             <rect width="100%" height="100%" fill="url(#dots)"/>
         </svg>
-        <div style="position:absolute;width:800px;height:800px;top:-300px;right:-200px;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 65%)"></div>
-        <div style="position:absolute;width:400px;height:400px;bottom:0;left:-100px;background:radial-gradient(circle,rgba(16,185,129,.07) 0%,transparent 65%)"></div>
+        <div class="absolute max-md:-right-[280px] max-md:top-[-200px] md:-right-[200px] md:-top-[300px] h-[min(520px,120vw)] w-[min(520px,120vw)] md:h-[800px] md:w-[800px] rounded-full bg-[radial-gradient(circle,rgba(99,102,241,.1)_0%,transparent_65%)]"></div>
+        <div class="absolute max-md:-left-[120px] max-md:bottom-[-80px] md:bottom-0 md:left-[-100px] h-[280px] w-[280px] md:h-[400px] md:w-[400px] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,.07)_0%,transparent_65%)]"></div>
     </div>
 
-    <div class="relative max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
 
             {{-- LINKS: tekst --}}
-            <div>
-                <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-700 mb-7">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Werkcontrole voor operationele teams
+            <div class="min-w-0">
+                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-left leading-snug">Werkcontrole voor operationele teams</span>
                 </div>
 
-                <h1 class="text-4xl sm:text-5xl xl:text-[3.4rem] font-extrabold text-slate-900 leading-[1.06] tracking-tight">
+                <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.4rem]">
                     Nooit meer discussie over
-                    <span class="relative inline-block mt-1">
+                    <span class="relative mt-1 inline-block">
                         <span style="background:linear-gradient(135deg,#2563eb,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">uitgevoerd werk</span>
-                        <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" preserveAspectRatio="none" style="height:5px">
+                        <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" preserveAspectRatio="none" style="height:5px" aria-hidden="true">
                             <path d="M1 6 C75 1, 225 1, 299 6" stroke="url(#ul)" stroke-width="3" stroke-linecap="round" fill="none"/>
                             <defs><linearGradient id="ul" x1="0" y1="0" x2="300" y2="0"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>
                         </svg>
                     </span>
                 </h1>
 
-                <p class="mt-6 text-slate-500 text-lg leading-relaxed max-w-lg">
+                <p class="mt-5 max-w-lg text-base leading-relaxed text-slate-500 sm:mt-6 sm:text-lg">
                     Leg taken vast, verzamel bewijs en houd realtime controle over je team. Voor horeca, schoonmaak en andere operationele bedrijven.
                 </p>
 
-                <div class="mt-8 flex flex-wrap gap-3">
+                <div class="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg shadow-blue-200/60">
+                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Naar dashboard
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="cta-btn inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg shadow-blue-200/60">
+                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Start gratis trial
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @endauth
-                    <a href="{{ route('contact') }}" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 transition-colors shadow-sm">
+                    <a href="{{ route('contact') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
                         Plan een demo
                     </a>
                 </div>
 
-                <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+                <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 sm:mt-6 sm:gap-x-6">
                     @foreach(['14 dagen gratis','Geen creditcard','Binnen 10 min live','AVG-proof'] as $b)
                     <span class="flex items-center gap-1.5 text-xs text-slate-500">
-                        <svg class="h-3.5 w-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                        <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                         {{ $b }}
                     </span>
                     @endforeach
@@ -184,12 +196,12 @@
             </div>
 
             {{-- RECHTS: geanimeerde illustratie (CSS/SVG, geen afbeelding) --}}
-            <div class="relative flex min-h-[300px] items-center justify-center lg:min-h-[400px]" aria-hidden="true">
-                <div class="hero-v-blob -right-[15%] top-[8%] h-[200px] w-[240px] bg-gradient-to-br from-blue-400/50 via-indigo-400/35 to-violet-400/25"></div>
-                <div class="hero-v-blob hero-v-blob--2 -left-[20%] bottom-[5%] h-[180px] w-[200px] bg-gradient-to-tr from-emerald-400/35 via-cyan-400/20 to-transparent"></div>
+            <div class="relative flex min-h-[260px] items-center justify-center sm:min-h-[300px] lg:min-h-[400px]" aria-hidden="true">
+                <div class="hero-v-blob right-0 top-[6%] h-[min(180px,45vw)] w-[min(220px,55vw)] max-md:opacity-90 sm:-right-[10%] sm:top-[8%] sm:h-[200px] sm:w-[240px] bg-gradient-to-br from-blue-400/50 via-indigo-400/35 to-violet-400/25"></div>
+                <div class="hero-v-blob hero-v-blob--2 -left-[12%] bottom-[2%] h-[min(160px,40vw)] w-[min(180px,45vw)] sm:-left-[20%] sm:bottom-[5%] sm:h-[180px] sm:w-[200px] bg-gradient-to-tr from-emerald-400/35 via-cyan-400/20 to-transparent"></div>
                 <div class="hero-v-orbit hidden sm:block"></div>
 
-                <div class="hero-v-card rounded-2xl border border-slate-200/90 bg-white/75 p-5 shadow-[0_24px_48px_-20px_rgba(37,99,235,.15),0_0_0_1px_rgba(255,255,255,.8)_inset] backdrop-blur-xl sm:p-6">
+                <div class="hero-v-card w-full max-w-[min(100%,380px)] rounded-2xl border border-slate-200/90 bg-white/75 p-4 shadow-[0_24px_48px_-20px_rgba(37,99,235,.15),0_0_0_1px_rgba(255,255,255,.8)_inset] backdrop-blur-xl sm:p-6">
                     <div class="mb-5 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                         <div class="flex items-center gap-2">
                             <span class="relative flex h-2 w-2">
@@ -244,7 +256,7 @@
      TRUST BAR
 ══════════════════════════════════════ --}}
 <section class="border-y border-slate-100 bg-slate-50 py-7">
-    <div class="max-w-6xl mx-auto px-6 lg:px-8 text-center">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Vertrouwd door operationele teams in Nederland</p>
         <div class="flex flex-wrap justify-center gap-2.5">
             @foreach(['Horeca','Restaurants','Schoonmaak','Facilitair','Logistiek','Retail','Technisch beheer'] as $s)
@@ -257,9 +269,9 @@
 {{-- ══════════════════════════════════════
      PROBLEEM
 ══════════════════════════════════════ --}}
-<section class="py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
+<section class="py-14 sm:py-20 lg:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div class="fade-up">
                 <p class="text-sm font-bold text-red-500 uppercase tracking-wider mb-3">Herkenbaar?</p>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Werk dat niet aantoonbaar is, bestaat niet</h2>
@@ -291,9 +303,9 @@
         </div>
     </div>
 </section>
-<section class="py-24 bg-slate-50 border-t border-slate-100">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="max-w-xl mb-14 fade-up">
+<section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-xl mb-10 sm:mb-14 fade-up">
             <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Branches</p>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Ontworpen voor operationele teams</h2>
             <p class="mt-4 text-slate-500 text-lg">Voor elk operationeel team een passende aanpak.</p>
@@ -333,24 +345,24 @@
 {{-- ══════════════════════════════════════
      VERGELIJKING
 ══════════════════════════════════════ --}}
-<section class="py-24 bg-slate-50 border-y border-slate-100">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+<section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="text-center max-w-2xl mx-auto mb-16 fade-up">
+        <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-16 fade-up">
             <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Vergelijk</p>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Waarom teams kiezen voor TaskCheck</h2>
             <p class="mt-4 text-slate-500 text-lg">Excel, WhatsApp en papier zijn niet gebouwd voor werkcontrole. TaskCheck wel.</p>
         </div>
 
         {{-- Stat row --}}
-        <div class="stagger grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+        <div class="stagger grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10 sm:mb-16">
             @foreach([
                 ['-90%','Vergeten taken','Checklists zorgen dat geen stap wordt gemist.','#2563eb'],
                 ['-87%','Klachten bewijs','Elk stuk werk is altijd aantoonbaar.','#059669'],
                 ['-75%','Controletijd','Managers zien realtime wat er speelt.','#7c3aed'],
                 ['3×','Sneller klaar audit','Alle bewijzen staan direct klaar.','#d97706'],
             ] as [$num,$title,$desc,$col])
-            <div class="s-item bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="s-item bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
                 <div class="text-4xl font-black mb-1.5 leading-none" style="color:{{ $col }}">{{ $num }}</div>
                 <p class="font-bold text-slate-900 text-sm mb-1">{{ $title }}</p>
                 <p class="text-slate-500 text-xs leading-relaxed">{{ $desc }}</p>
@@ -358,11 +370,12 @@
             @endforeach
         </div>
 
-        <div class="grid lg:grid-cols-2 gap-12 items-start">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-12 items-start">
 
             {{-- Comparison table --}}
-            <div class="fade-up bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                <table class="w-full text-sm" style="border-collapse:collapse">
+            <div class="fade-up min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="welcome-table-scroll overflow-x-auto">
+                    <table class="w-full min-w-[32rem] text-sm" style="border-collapse:collapse">
                     <thead>
                         <tr style="border-bottom:2px solid #e2e8f0">
                             <th class="text-left py-4 pl-5 pr-3 text-slate-500 font-medium text-xs uppercase tracking-wider">Functie</th>
@@ -401,11 +414,12 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
                 <div class="px-5 py-3 border-t border-slate-100 text-xs text-slate-400 bg-slate-50">— = beperkt of handmatig beschikbaar</div>
             </div>
 
             {{-- Before/After bars --}}
-            <div class="fade-up delay-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-7">
+            <div class="fade-up delay-2 min-w-0 bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-6 sm:space-y-7">
                 <div>
                     <p class="font-bold text-slate-900 mb-1">Effect na implementatie</p>
                     <p class="text-xs text-slate-400">Illustratief — veelgehoorde resultaten bij operationele teams.</p>
@@ -419,21 +433,21 @@
                 ];
                 @endphp
                 @foreach($metrics as [$label,$before,$after,$col])
-                <div class="metric-bar">
-                    <div class="flex justify-between items-baseline mb-2.5">
-                        <span class="text-sm font-semibold text-slate-800">{{ $label }}</span>
+                <div class="metric-bar min-w-0">
+                    <div class="flex justify-between items-baseline mb-2.5 gap-2 min-w-0">
+                        <span class="text-sm font-semibold text-slate-800 break-words min-w-0">{{ $label }}</span>
                         <span class="text-sm font-extrabold text-emerald-600">-{{ $before-$after }}%</span>
                     </div>
                     <div class="space-y-1.5">
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-slate-400 w-16 shrink-0 text-right">Zonder</span>
+                        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <span class="text-[10px] sm:text-xs text-slate-400 w-11 sm:w-16 shrink-0 text-right leading-tight">Zonder</span>
                             <div class="flex-1 h-3 bar-track rounded-full overflow-hidden">
                                 <div class="bar-before h-full rounded-full transition-all duration-[1100ms] ease-out" style="background:{{ $col }};width:0%;opacity:.75" data-w="{{ $before }}%"></div>
                             </div>
                             <span class="text-xs tabular-nums text-slate-500 w-8">{{ $before }}%</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-bold text-emerald-600 w-16 shrink-0 text-right">TaskCheck</span>
+                        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <span class="text-[10px] sm:text-xs font-bold text-emerald-600 w-11 sm:w-16 shrink-0 text-right leading-tight">TaskCheck</span>
                             <div class="flex-1 h-3 bar-track rounded-full overflow-hidden">
                                 <div class="bar-after h-full rounded-full transition-all duration-[1100ms] ease-out" style="background:#10b981;width:0%" data-w="{{ $after }}%"></div>
                             </div>
@@ -450,9 +464,9 @@
 {{-- ══════════════════════════════════════
      OPLOSSING
 ══════════════════════════════════════ --}}
-<section class="py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
+<section class="py-14 sm:py-20 lg:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div class="fade-up order-2 lg:order-1">
                 <img src="{{ asset('images/oplossing-taskcheck-platform.png') }}"
                      alt="TaskCheck oplossing: platform op laptop en mobiel in een professionele keukenomgeving, met voordelen zoals checklists per locatie, bewijs met foto en video, live dashboard en audit-klaar rapportage"
@@ -483,7 +497,7 @@
                 </ul>
                 <div class="mt-9">
                     @guest
-                    <a href="{{ route('register') }}" class="cta-btn inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm shadow-md shadow-blue-200 transition-all">
+                    <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                         Probeer 14 dagen gratis
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                     </a>
@@ -499,7 +513,7 @@
 ══════════════════════════════════════ --}}
 <section class="py-16 sm:py-20 border-t border-slate-100/90 bg-gradient-to-b from-slate-50 via-white to-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto mb-16 fade-up">
+        <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-16 fade-up">
             <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Zo werkt TaskCheck</p>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">
                 In 3 stappen
@@ -687,16 +701,16 @@
 {{-- ══════════════════════════════════════
      FEATURES
 ══════════════════════════════════════ --}}
-<section class="py-24 bg-slate-50 border-t border-slate-100">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-16 items-start">
+<section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <div class="fade-up lg:sticky lg:top-28">
                 <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Functies</p>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Alles wat je nodig hebt om werk onder controle te houden</h2>
                 <p class="mt-4 text-slate-500 text-lg leading-relaxed">Van bewijs per taak tot AI-checklists en rapportages — gebouwd voor teams die resultaat willen aantonen.</p>
                 <div class="mt-8">
                     @guest
-                    <a href="{{ route('register') }}" class="cta-btn inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm shadow-md shadow-blue-200 transition-all">
+                    <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                         Start gratis trial
                     </a>
                     @endguest
@@ -713,7 +727,7 @@
                     ['Mobiele webapp','Werkt op telefoon, tablet en desktop — ook installeerbaar.'],
                     ['Rollen en rechten','Admin, manager en medewerker elk met de juiste toegang.'],
                 ] as [$title,$desc])
-                <div class="flex items-start gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+                <div class="flex items-start gap-4 px-4 py-4 sm:px-6 hover:bg-slate-50 transition-colors">
                     <svg class="h-5 w-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <div>
                         <p class="font-semibold text-slate-900 text-sm">{{ $title }}</p>
@@ -729,8 +743,8 @@
 {{-- ══════════════════════════════════════
      SEO TEKST
 ══════════════════════════════════════ --}}
-<section class="py-20 bg-slate-50 border-t border-slate-100">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+<section class="py-14 sm:py-20 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-3 gap-10 lg:gap-16 items-start fade-up">
 
             {{-- Tekst --}}
@@ -787,9 +801,9 @@
 {{-- ══════════════════════════════════════
      FAQ
 ══════════════════════════════════════ --}}
-<section class="py-24 bg-slate-50 border-t border-slate-100">
-    <div class="max-w-3xl mx-auto px-6 lg:px-8">
-        <div class="text-center mb-12 fade-up">
+<section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8 sm:mb-12 fade-up">
             <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">FAQ</p>
             <h2 class="text-3xl font-extrabold text-slate-900">Veelgestelde vragen</h2>
         </div>
@@ -802,11 +816,11 @@
                 ['Kan ik TaskCheck gebruiken op mobiel?','Ja, TaskCheck werkt volledig op mobiel, tablet en desktop. Er is ook een installeerbare webapp voor iOS en Android.'],
             ] as [$q,$a])
             <div>
-                <button class="faq-trigger w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-slate-50 transition-colors" aria-expanded="false">
-                    <span class="font-semibold text-slate-900 text-sm">{{ $q }}</span>
+                <button type="button" class="faq-trigger flex min-h-[3rem] w-full touch-manipulation items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-slate-50 sm:min-h-0 sm:px-6 sm:py-5" aria-expanded="false">
+                    <span class="break-words text-sm font-semibold text-slate-900 pr-2">{{ $q }}</span>
                     <svg class="faq-icon h-5 w-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 </button>
-                <div class="faq-body px-6 pb-5 text-sm text-slate-600 leading-relaxed">{{ $a }}</div>
+                <div class="faq-body px-4 pb-4 text-sm leading-relaxed text-slate-600 sm:px-6 sm:pb-5">{{ $a }}</div>
             </div>
             @endforeach
         </div>
@@ -816,7 +830,7 @@
 {{-- ══════════════════════════════════════
      FINAL CTA — enige donkere sectie
 ══════════════════════════════════════ --}}
-<section class="relative overflow-hidden py-32" style="background:#030712">
+<section class="relative overflow-hidden py-20 sm:py-28 lg:py-32" style="background:#030712">
     {{-- Glow blobs --}}
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div class="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-25" style="background:radial-gradient(circle,#2563eb,transparent 70%)"></div>
@@ -826,7 +840,7 @@
         <div class="absolute inset-0 opacity-[.04]" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px"></div>
     </div>
 
-    <div class="relative max-w-3xl mx-auto px-6 lg:px-8 text-center fade-up">
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-up">
 
         {{-- Badge --}}
         <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-blue-300 mb-8"
@@ -835,33 +849,33 @@
             14 dagen gratis proberen
         </div>
 
-        <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.04] tracking-tight">
+        <h2 class="text-3xl font-extrabold leading-[1.06] tracking-tight text-white sm:text-4xl sm:leading-[1.04] lg:text-5xl xl:text-6xl">
             Voorkom fouten.<br>
             <span style="background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Begin vandaag.</span>
         </h2>
 
-        <p class="mt-6 text-lg text-slate-400 leading-relaxed max-w-lg mx-auto">
+        <p class="mx-auto mt-5 max-w-lg text-base leading-relaxed text-slate-400 sm:mt-6 sm:text-lg">
             Geen lange implementatie. Geen creditcard. Binnen 10 minuten live met je eerste checklist.
         </p>
 
-        <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <div class="mt-8 flex flex-col items-stretch justify-center gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             @auth
                 <a href="{{ url('/dashboard') }}"
-                   class="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl text-slate-900 font-extrabold text-base transition-all"
+                   class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2.5 rounded-2xl px-8 py-4 text-base font-extrabold text-slate-900 transition-all touch-manipulation sm:w-auto sm:min-h-0"
                    style="background:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.12),0 16px 40px rgba(37,99,235,.3)">
                     Naar dashboard
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                 </a>
             @else
                 <a href="{{ route('register') }}"
-                   class="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl text-white font-extrabold text-base transition-all hover:scale-[1.02]"
+                   class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2.5 rounded-2xl px-8 py-4 text-base font-extrabold text-white transition-all hover:scale-[1.02] touch-manipulation sm:w-auto sm:min-h-0"
                    style="background:linear-gradient(135deg,#2563eb,#6366f1);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 16px 40px rgba(37,99,235,.4)">
                     Start gratis trial
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
                 </a>
             @endauth
             <a href="{{ route('contact') }}"
-               class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base text-white transition-all hover:bg-white/10"
+               class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-bold text-white transition-all hover:bg-white/10 touch-manipulation sm:w-auto sm:min-h-0"
                style="border:1.5px solid rgba(255,255,255,.18)">
                 Plan een demo
             </a>
