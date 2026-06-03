@@ -333,6 +333,58 @@
                             @enderror
                         </div>
                     </div>
+
+                    @php
+                        $oldMetricType = old('metric_type');
+                        $oldMetricUnit = old('metric_unit');
+                        $oldMetricMin = old('metric_min');
+                        $oldMetricMax = old('metric_max');
+                        $oldMetricComparison = old('metric_comparison', 'lte');
+                    @endphp
+                    <div class="mt-6 pt-6 border-t border-slate-200">
+                        <h4 class="text-sm font-semibold text-slate-900 mb-4">Meting (temperatuur / pH) - optioneel</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="metric_type" class="block text-sm font-medium text-slate-700 mb-2">Type meting</label>
+                                <select id="metric_type" name="metric_type" class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                    <option value="">Geen meting</option>
+                                    <option value="temperature" {{ $oldMetricType === 'temperature' ? 'selected' : '' }}>Temperatuur</option>
+                                    <option value="ph" {{ $oldMetricType === 'ph' ? 'selected' : '' }}>pH</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="metric_unit" class="block text-sm font-medium text-slate-700 mb-2">Eenheid</label>
+                                <input type="text" id="metric_unit" name="metric_unit" value="{{ $oldMetricUnit }}" placeholder="bijv. °C of pH" class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                @error('metric_unit')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="metric_min" class="block text-sm font-medium text-slate-700 mb-2">Minimum norm (optioneel)</label>
+                                <input type="number" step="0.1" id="metric_min" name="metric_min" value="{{ $oldMetricMin }}" class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                @error('metric_min')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="metric_max" class="block text-sm font-medium text-slate-700 mb-2">Maximum norm (optioneel)</label>
+                                <input type="number" step="0.1" id="metric_max" name="metric_max" value="{{ $oldMetricMax }}" class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                @error('metric_max')
+                                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="metric_comparison" class="block text-sm font-medium text-slate-700 mb-2">Bij maximum: vergelijking</label>
+                            <select id="metric_comparison" name="metric_comparison" class="block w-full md:w-72 px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="lte" {{ $oldMetricComparison === 'lte' ? 'selected' : '' }}>Waarde mag maximaal gelijk zijn (<= max)</option>
+                                <option value="lt" {{ $oldMetricComparison === 'lt' ? 'selected' : '' }}>Waarde moet lager zijn (< max)</option>
+                            </select>
+                        </div>
+                        <p class="mt-3 text-sm text-slate-600 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            Stel hier de norm in. Medewerkers vullen de meting in en bij review zie je norm en gemeten waarde naast elkaar.
+                        </p>
+                    </div>
                     
                     <!-- Time Slots -->
                     <div class="mt-6">

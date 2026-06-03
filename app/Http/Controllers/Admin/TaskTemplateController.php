@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\MetricValidationHelper;
 use App\Models\TaskTemplate;
 use App\Models\TemplateTask;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class TaskTemplateController extends Controller
         // Force fresh data from database
         $templates = TaskTemplate::with(['templateTasks', 'taskLists'])->orderBy('name')->get();
         $globalTemplatesQuery = TaskTemplate::withoutGlobalScopes()
-            ->whereNull('company_id');
+            ->publishedGlobal();
 
         if (Schema::hasColumn('task_templates', 'target_company_type')) {
             $globalTemplatesQuery->where(function ($query) {
@@ -106,7 +107,22 @@ class TaskTemplateController extends Controller
             'tasks.*.checklist_items' => 'nullable|array',
             'tasks.*.start_time' => 'nullable|date_format:H:i',
             'tasks.*.end_time' => 'nullable|date_format:H:i|after:tasks.*.start_time',
+            'tasks.*.metric_type' => 'nullable|in:temperature,ph',
+            'tasks.*.metric_unit' => 'nullable|string|max:20',
+            'tasks.*.metric_min' => 'nullable|numeric',
+            'tasks.*.metric_max' => 'nullable|numeric',
+            'tasks.*.metric_comparison' => 'nullable|in:lt,lte',
         ]);
+
+        $metricErrors = [];
+        foreach ($validated['tasks'] as $index => $taskData) {
+            foreach (MetricValidationHelper::validateFormData($taskData, "tasks.{$index}") as $key => $message) {
+                $metricErrors[$key] = $message;
+            }
+        }
+        if ($metricErrors !== []) {
+            return back()->withErrors($metricErrors)->withInput();
+        }
 
         $template = TaskTemplate::create([
             'name' => $validated['name'],
@@ -127,6 +143,7 @@ class TaskTemplateController extends Controller
             }
             
             TemplateTask::create([
+                'validation_rules' => MetricValidationHelper::buildFromFormData($taskData),
                 'template_id' => $template->id,
                 'title' => $taskData['title'],
                 'description' => $taskData['description'],
@@ -183,7 +200,22 @@ class TaskTemplateController extends Controller
             'tasks.*.checklist_items' => 'nullable|array',
             'tasks.*.start_time' => 'nullable|date_format:H:i',
             'tasks.*.end_time' => 'nullable|date_format:H:i|after:tasks.*.start_time',
+            'tasks.*.metric_type' => 'nullable|in:temperature,ph',
+            'tasks.*.metric_unit' => 'nullable|string|max:20',
+            'tasks.*.metric_min' => 'nullable|numeric',
+            'tasks.*.metric_max' => 'nullable|numeric',
+            'tasks.*.metric_comparison' => 'nullable|in:lt,lte',
         ]);
+
+        $metricErrors = [];
+        foreach ($validated['tasks'] as $index => $taskData) {
+            foreach (MetricValidationHelper::validateFormData($taskData, "tasks.{$index}") as $key => $message) {
+                $metricErrors[$key] = $message;
+            }
+        }
+        if ($metricErrors !== []) {
+            return back()->withErrors($metricErrors)->withInput();
+        }
 
         // Update template
         $template->update([
@@ -213,6 +245,7 @@ class TaskTemplateController extends Controller
                 // Update existing task
                 TemplateTask::where('id', $taskData['id'])
                     ->update([
+                        'validation_rules' => MetricValidationHelper::buildFromFormData($taskData),
                         'title' => $taskData['title'],
                         'description' => $taskData['description'],
                         'instructions' => $taskData['instructions'] ?? null,
@@ -226,6 +259,7 @@ class TaskTemplateController extends Controller
             } else {
                 // Create new task
                 TemplateTask::create([
+                    'validation_rules' => MetricValidationHelper::buildFromFormData($taskData),
                     'template_id' => $template->id,
                     'title' => $taskData['title'],
                     'description' => $taskData['description'],
@@ -365,6 +399,14 @@ class TaskTemplateController extends Controller
                 'company_id' => $companyId,
                 'source_template_id' => $template->id,
                 'source_updated_at' => $template->updated_at,
+                'category' => $template->category,
+                'icon' => $template->icon,
+                'frequency_label' => $template->frequency_label,
+                'frequency_type' => $template->frequency_type,
+                'is_starter_pack' => (bool) $template->is_starter_pack,
+                'starter_pack_group' => $template->starter_pack_group,
+                'khn_reference' => $template->khn_reference,
+                'compliance_rules' => $template->compliance_rules,
             ]);
 
             foreach ($template->templateTasks as $task) {
@@ -406,6 +448,14 @@ class TaskTemplateController extends Controller
                 'name' => $sourceTemplate->name,
                 'description' => $sourceTemplate->description,
                 'source_updated_at' => $sourceTemplate->updated_at,
+                'category' => $sourceTemplate->category,
+                'icon' => $sourceTemplate->icon,
+                'frequency_label' => $sourceTemplate->frequency_label,
+                'frequency_type' => $sourceTemplate->frequency_type,
+                'is_starter_pack' => (bool) $sourceTemplate->is_starter_pack,
+                'starter_pack_group' => $sourceTemplate->starter_pack_group,
+                'khn_reference' => $sourceTemplate->khn_reference,
+                'compliance_rules' => $sourceTemplate->compliance_rules,
             ]);
 
             $existingBySortOrder = $template->templateTasks()->get()->keyBy('sort_order');
@@ -449,4 +499,5 @@ class TaskTemplateController extends Controller
         return redirect()->route('admin.templates.index')
             ->with('success', 'Template update toegepast op je takenlijsten.');
     }
+
 }

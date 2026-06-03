@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <section data-tab-panel="communications" class="sa-tab-panel hidden space-y-4">
+    <section data-tab-panel="communications" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'communications' ? 'hidden' : '' }}">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Communicatie</h2>
@@ -114,6 +114,116 @@
                 </div>
             </form>
             <p class="text-xs text-slate-500 mt-2">Per bedrijf wordt de bedrijfsmail gebruikt, of anders de eerste actieve admin e-mail.</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-3" id="mail-tracklinks">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m7.07-7.07l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-slate-900">Mail tracklinks</h2>
+                        <p class="text-sm text-slate-500">Tracking op de achtergrond; in je mail toon je gewoon <strong>taskcheck.nl</strong> als linktekst (kant-en-klare HTML hieronder).</p>
+                    </div>
+                </div>
+            </div>
+
+            @if($errors->any() && old('name'))
+                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    <ul class="list-disc pl-5 space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('super-admin.marketing-links.store') }}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
+                @csrf
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Campagnenaam</label>
+                    <input name="name" value="{{ old('name') }}" class="w-full rounded-xl border-slate-300 text-sm focus:border-amber-400 focus:ring-amber-400" placeholder="Bijv. Nieuwsbrief juni 2026" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Code (optioneel)</label>
+                    <input name="code" value="{{ old('code') }}" class="w-full rounded-xl border-slate-300 text-sm focus:border-amber-400 focus:ring-amber-400" placeholder="juni-mail-2026" pattern="[a-z0-9]+(-[a-z0-9]+)*">
+                    <p class="text-xs text-slate-500 mt-1">Alleen kleine letters, cijfers, streepjes.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Doel-URL</label>
+                    <input name="destination_url" type="url" value="{{ old('destination_url', config('services.marketing_link.default_destination')) }}" class="w-full rounded-xl border-slate-300 text-sm focus:border-amber-400 focus:ring-amber-400" placeholder="https://taskcheck.nl">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 text-white px-4 py-2.5 text-sm font-semibold hover:bg-amber-700 shadow-sm">
+                        Tracklink aanmaken
+                    </button>
+                </div>
+            </form>
+
+            @if($marketingLinks->isEmpty())
+                <p class="text-sm text-slate-500 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">Nog geen tracklinks. Maak er een aan en plak de URL in je mail naar taskcheck.nl.</p>
+            @else
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3">Campagne</th>
+                                <th class="px-4 py-3">Voor in je mail</th>
+                                <th class="px-4 py-3 text-right">Kliks</th>
+                                <th class="px-4 py-3 text-right">Uniek</th>
+                                <th class="px-4 py-3">Laatste klik</th>
+                                <th class="px-4 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($marketingLinks as $link)
+                                <tr class="{{ $link->is_active ? '' : 'opacity-50 bg-slate-50' }}">
+                                    <td class="px-4 py-3 align-top">
+                                        <p class="font-semibold text-slate-900">{{ $link->name }}</p>
+                                        <p class="text-xs text-slate-500 mt-0.5">→ {{ $link->destination_url }}</p>
+                                        @unless($link->is_active)
+                                            <span class="inline-block mt-1 text-xs font-medium text-slate-500">Gedeactiveerd</span>
+                                        @endunless
+                                    </td>
+                                    <td class="px-4 py-3 align-top max-w-md">
+                                        <p class="text-sm mb-2">
+                                            Lezer ziet:
+                                            <a href="{{ $link->tracking_url }}" class="font-semibold text-violet-700 underline" target="_blank" rel="noopener">{{ $link->mail_link_text }}</a>
+                                        </p>
+                                        <div class="flex flex-wrap gap-2 mb-2">
+                                            <button type="button" class="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-100" data-copy-text="{{ $link->mail_link_html }}">Kopieer HTML</button>
+                                            <button type="button" class="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50" data-copy-target="track-url-{{ $link->id }}">Kopieer track-URL</button>
+                                        </div>
+                                        <code class="text-xs break-all text-slate-500 block" id="track-url-{{ $link->id }}" title="Alleen nodig als je zelf een hyperlink maakt">{{ $link->tracking_url }}</code>
+                                    </td>
+                                    <td class="px-4 py-3 text-right align-top font-bold text-slate-900 tabular-nums">{{ number_format($link->clicks_count, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right align-top font-semibold text-slate-700 tabular-nums">{{ number_format($link->unique_clicks_count, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 align-top text-slate-600 whitespace-nowrap">
+                                        {{ $link->last_clicked_at?->timezone(config('app.timezone'))->format('d-m-Y H:i') ?? '—' }}
+                                    </td>
+                                    <td class="px-4 py-3 align-top text-right">
+                                        @if($link->is_active)
+                                            <form method="POST" action="{{ route('super-admin.marketing-links.destroy', $link) }}" onsubmit="return confirm('Tracklink deactiveren? De URL werkt dan niet meer.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-800">Uitzetten</button>
+                                            </form>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+            <p class="text-xs text-slate-500 mt-3">
+                In Gmail/Outlook: tekst selecteren → link invoegen → plak de <strong>track-URL</strong> als adres en zet de weergavetekst op <strong>taskcheck.nl</strong>.
+                Of gebruik <strong>Kopieer HTML</strong> in een HTML-mail. De bezoeker ziet alleen taskcheck.nl; klikken worden wel geteld.
+                <code class="text-violet-700">APP_URL</code> moet op je live domein staan (bijv. https://taskcheck.nl).
+            </p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-3">
@@ -272,7 +382,7 @@
     </div>
     </section>
 
-    <section data-tab-panel="companies" class="sa-tab-panel hidden space-y-4">
+    <section data-tab-panel="companies" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'companies' ? 'hidden' : '' }}">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Bedrijven</h2>
@@ -404,13 +514,72 @@
     </div>
     </section>
 
-    <section data-tab-panel="monitoring" class="sa-tab-panel hidden space-y-4">
-    <div class="flex items-center justify-between">
+    <section data-tab-panel="monitoring" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'monitoring' ? 'hidden' : '' }}">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Monitoring</h2>
-            <p class="text-sm text-slate-500">Bekijk errors, maak incident tickets en gebruik AI-analyse.</p>
+            <p class="text-sm text-slate-500">Platformbelasting, e-mailalerts bij drempels, errors en incident tickets.</p>
         </div>
+        <form method="POST" action="{{ route('super-admin.platform-alerts.test') }}">
+            @csrf
+            <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-800 hover:bg-violet-100">
+                Test alert-mail nu
+            </button>
+        </form>
     </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">Platformbelasting (live)</h3>
+                <p class="text-xs text-slate-500">Actief = sessie in de laatste {{ $platformHealth['metrics']['session_window_minutes'] }} minuten. E-mail bij overschrijding drempel (max. 1× per {{ config('platform_alerts.cooldown_minutes') }} min per type).</p>
+            </div>
+            <p class="text-xs text-slate-400">Laatste check: {{ \Carbon\Carbon::parse($platformHealth['metrics']['checked_at'])->timezone(config('app.timezone'))->format('d-m-Y H:i:s') }}</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+            @foreach($platformHealth['alerts'] as $alert)
+                <div class="rounded-xl border p-4 {{ $alert['exceeded'] ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-slate-50' }}">
+                    <p class="text-xs font-medium text-slate-500">{{ $alert['label'] }}</p>
+                    <p class="text-2xl font-bold mt-1 {{ $alert['exceeded'] ? 'text-red-700' : 'text-slate-900' }}">{{ number_format($alert['value'], 0, ',', '.') }}</p>
+                    <p class="text-xs mt-1 {{ $alert['exceeded'] ? 'text-red-600 font-semibold' : 'text-slate-500' }}">
+                        Drempel: {{ number_format($alert['threshold'], 0, ',', '.') }}
+                        @if($alert['exceeded']) · alert @endif
+                    </p>
+                </div>
+            @endforeach
+        </div>
+        @if($recentPlatformAlerts->isNotEmpty())
+            <div class="mt-4 border-t border-slate-100 pt-4">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Recent verstuurde alert-mails</p>
+                <ul class="space-y-1 text-sm text-slate-600">
+                    @foreach($recentPlatformAlerts as $log)
+                        <li>
+                            {{ config('platform_alerts.labels.'.$log->alert_key, $log->alert_key) }}:
+                            {{ number_format($log->metric_value, 0, ',', '.') }} / {{ number_format($log->threshold, 0, ',', '.') }}
+                            · {{ $log->sent_at->timezone(config('app.timezone'))->format('d-m-Y H:i') }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        @php
+            $platformAlertRecipients = collect(explode(',', (string) config('platform_alerts.recipients')))
+                ->map(fn ($email) => trim($email))
+                ->filter()
+                ->values();
+            if ($platformAlertRecipients->isEmpty()) {
+                $platformAlertRecipients = collect(config('app.super_admin_emails', []))->filter()->values();
+            }
+            $platformAlertRecipientsLabel = $platformAlertRecipients->isNotEmpty()
+                ? $platformAlertRecipients->implode(', ')
+                : 'niet geconfigureerd';
+        @endphp
+        <p class="text-xs text-slate-500 mt-4">
+            Ontvangers: {{ $platformAlertRecipientsLabel }}.
+            Productie: zet cron op <code class="text-violet-700">* * * * * php artisan schedule:run</code>.
+        </p>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="bg-white border border-slate-200 rounded-xl p-4">
             <div class="flex items-center justify-between mb-3">
@@ -517,7 +686,7 @@
     </div>
     </section>
 
-    <section data-tab-panel="invoices" class="sa-tab-panel hidden space-y-4">
+    <section data-tab-panel="invoices" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'invoices' ? 'hidden' : '' }}">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Facturen</h2>
@@ -573,7 +742,7 @@
     </div>
     </section>
 
-    <section data-tab-panel="templates" class="sa-tab-panel hidden space-y-4">
+    <section data-tab-panel="templates" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'templates' ? 'hidden' : '' }}">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Templates</h2>
@@ -675,9 +844,12 @@
 <script>
 (() => {
     const tabPanels = Array.from(document.querySelectorAll('.sa-tab-panel'));
-    const tabFromQuery = new URLSearchParams(window.location.search).get('tab') || 'communications';
+    const tabFromQuery = new URLSearchParams(window.location.search).get('tab');
     const allowedTabs = new Set(['communications', 'companies', 'monitoring', 'invoices', 'templates']);
-    const initialTab = allowedTabs.has(tabFromQuery) ? tabFromQuery : 'communications';
+    const serverTab = @json($activeDashboardTab);
+    const initialTab = (tabFromQuery && allowedTabs.has(tabFromQuery))
+        ? tabFromQuery
+        : (allowedTabs.has(serverTab) ? serverTab : 'communications');
 
     const activateTab = (name) => {
         tabPanels.forEach((panel) => {
@@ -959,6 +1131,40 @@
 
     bindTicketButtons();
     setInterval(refresh, 8000);
+
+    const copyFeedback = (btn, okLabel = 'Gekopieerd') => {
+        const prev = btn.textContent;
+        btn.textContent = okLabel;
+        setTimeout(() => { btn.textContent = prev; }, 1500);
+    };
+
+    document.querySelectorAll('[data-copy-target]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-copy-target');
+            const el = id ? document.getElementById(id) : null;
+            const text = el?.textContent?.trim() ?? '';
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                copyFeedback(btn);
+            } catch {
+                window.prompt('Kopieer deze URL:', text);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-copy-text]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const text = btn.getAttribute('data-copy-text') ?? '';
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                copyFeedback(btn);
+            } catch {
+                window.prompt('Kopieer deze HTML:', text);
+            }
+        });
+    });
 })();
 </script>
 @endpush

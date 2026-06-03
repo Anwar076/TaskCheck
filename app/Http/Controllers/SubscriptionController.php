@@ -902,20 +902,20 @@ class SubscriptionController extends Controller
             $pdfBytes = $this->renderInvoicePdf($invoice);
             $invoicesUrl = route('subscription.show');
 
-            Mail::send('emails.taskcheck-notification', [
-                'greetingName' => $company->name,
-                'title' => 'Factuur en betaling bevestigd',
-                'bodyText' => $body,
-                'ctaLabel' => 'Bekijk al je facturen',
-                'ctaUrl' => $invoicesUrl,
-                'metaText' => 'Dit is je officiële factuurmail van TaskCheck.',
-            ], function ($mail) use ($recipient, $description, $invoice, $pdfBytes): void {
-                $mail->to($recipient)
-                    ->subject('Factuur - ' . $description)
-                    ->attachData($pdfBytes, $invoice->invoice_number . '.pdf', [
-                        'mime' => 'application/pdf',
-                    ]);
-            });
+            Mail::to($recipient)->send(
+                (new \App\Mail\TaskCheckNotificationMail(
+                    subjectLine: 'Factuur - ' . $description,
+                    greetingName: $company->name,
+                    title: 'Factuur en betaling bevestigd',
+                    bodyText: $body,
+                    ctaLabel: 'Bekijk al je facturen',
+                    ctaUrl: $invoicesUrl,
+                    metaText: 'Dit is je officiële factuurmail van TaskCheck.',
+                    showMarketing: false
+                ))->attachData($pdfBytes, $invoice->invoice_number . '.pdf', [
+                    'mime' => 'application/pdf',
+                ])
+            );
 
             Cache::put($sentCacheKey, true, now()->addDays(7));
         } catch (\Throwable $e) {

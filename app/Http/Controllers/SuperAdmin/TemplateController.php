@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\MetricValidationHelper;
 use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
 use App\Models\Notification;
@@ -156,6 +157,13 @@ class TemplateController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'target_company_type' => 'nullable|in:cleaning,horeca,other',
+            'category' => 'nullable|string|max:100',
+            'icon' => 'nullable|string|max:100',
+            'frequency_label' => 'nullable|string|max:100',
+            'frequency_type' => 'nullable|in:daily,weekly,monthly,quarterly,per_batch,per_production,none',
+            'is_starter_pack' => 'nullable|boolean',
+            'starter_pack_group' => 'nullable|string|max:100',
+            'khn_reference' => 'nullable|string|max:255',
             'tasks' => 'required|array|min:1',
             'tasks.*.title' => 'required|string|max:255',
             'tasks.*.description' => 'nullable|string',
@@ -166,7 +174,22 @@ class TemplateController extends Controller
             'tasks.*.checklist_items_text' => 'nullable|string',
             'tasks.*.start_time' => 'nullable|date_format:H:i',
             'tasks.*.end_time' => 'nullable|date_format:H:i',
+            'tasks.*.metric_type' => 'nullable|in:temperature,ph',
+            'tasks.*.metric_unit' => 'nullable|string|max:20',
+            'tasks.*.metric_min' => 'nullable|numeric',
+            'tasks.*.metric_max' => 'nullable|numeric',
+            'tasks.*.metric_comparison' => 'nullable|in:lt,lte',
         ]);
+
+        $metricErrors = [];
+        foreach ($validated['tasks'] as $index => $taskData) {
+            foreach (MetricValidationHelper::validateFormData($taskData, "tasks.{$index}") as $key => $message) {
+                $metricErrors[$key] = $message;
+            }
+        }
+        if ($metricErrors !== []) {
+            return back()->withErrors($metricErrors)->withInput();
+        }
 
         DB::transaction(function () use ($validated) {
             $payload = [
@@ -174,6 +197,13 @@ class TemplateController extends Controller
                 'description' => $validated['description'] ?? null,
                 'is_active' => true,
                 'company_id' => null,
+                'category' => $validated['category'] ?? null,
+                'icon' => $validated['icon'] ?? null,
+                'frequency_label' => $validated['frequency_label'] ?? null,
+                'frequency_type' => $validated['frequency_type'] ?? null,
+                'is_starter_pack' => (bool) ($validated['is_starter_pack'] ?? false),
+                'starter_pack_group' => $validated['starter_pack_group'] ?? null,
+                'khn_reference' => $validated['khn_reference'] ?? null,
             ];
 
             if (Schema::hasColumn('task_templates', 'target_company_type')) {
@@ -201,6 +231,7 @@ class TemplateController extends Controller
                     'checklist_items' => !empty($checklistItems) ? $checklistItems : null,
                     'start_time' => !empty($taskData['start_time']) ? $taskData['start_time'] : null,
                     'end_time' => !empty($taskData['end_time']) ? $taskData['end_time'] : null,
+                    'validation_rules' => MetricValidationHelper::buildFromFormData($taskData),
                     'sort_order' => $index,
                     'is_active' => true,
                 ]);
@@ -229,6 +260,13 @@ class TemplateController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'target_company_type' => 'nullable|in:cleaning,horeca,other',
+            'category' => 'nullable|string|max:100',
+            'icon' => 'nullable|string|max:100',
+            'frequency_label' => 'nullable|string|max:100',
+            'frequency_type' => 'nullable|in:daily,weekly,monthly,quarterly,per_batch,per_production,none',
+            'is_starter_pack' => 'nullable|boolean',
+            'starter_pack_group' => 'nullable|string|max:100',
+            'khn_reference' => 'nullable|string|max:255',
             'tasks' => 'required|array|min:1',
             'tasks.*.id' => 'nullable|exists:template_tasks,id',
             'tasks.*.title' => 'required|string|max:255',
@@ -240,12 +278,34 @@ class TemplateController extends Controller
             'tasks.*.checklist_items_text' => 'nullable|string',
             'tasks.*.start_time' => 'nullable|date_format:H:i',
             'tasks.*.end_time' => 'nullable|date_format:H:i',
+            'tasks.*.metric_type' => 'nullable|in:temperature,ph',
+            'tasks.*.metric_unit' => 'nullable|string|max:20',
+            'tasks.*.metric_min' => 'nullable|numeric',
+            'tasks.*.metric_max' => 'nullable|numeric',
+            'tasks.*.metric_comparison' => 'nullable|in:lt,lte',
         ]);
+
+        $metricErrors = [];
+        foreach ($validated['tasks'] as $index => $taskData) {
+            foreach (MetricValidationHelper::validateFormData($taskData, "tasks.{$index}") as $key => $message) {
+                $metricErrors[$key] = $message;
+            }
+        }
+        if ($metricErrors !== []) {
+            return back()->withErrors($metricErrors)->withInput();
+        }
 
         DB::transaction(function () use ($template, $validated) {
             $templatePayload = [
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
+                'category' => $validated['category'] ?? null,
+                'icon' => $validated['icon'] ?? null,
+                'frequency_label' => $validated['frequency_label'] ?? null,
+                'frequency_type' => $validated['frequency_type'] ?? null,
+                'is_starter_pack' => (bool) ($validated['is_starter_pack'] ?? false),
+                'starter_pack_group' => $validated['starter_pack_group'] ?? null,
+                'khn_reference' => $validated['khn_reference'] ?? null,
             ];
 
             if (Schema::hasColumn('task_templates', 'target_company_type')) {
@@ -275,6 +335,7 @@ class TemplateController extends Controller
                     'checklist_items' => !empty($checklistItems) ? $checklistItems : null,
                     'start_time' => !empty($taskData['start_time']) ? $taskData['start_time'] : null,
                     'end_time' => !empty($taskData['end_time']) ? $taskData['end_time'] : null,
+                    'validation_rules' => MetricValidationHelper::buildFromFormData($taskData),
                     'sort_order' => $index,
                     'is_active' => true,
                 ];
@@ -418,6 +479,14 @@ class TemplateController extends Controller
                 'description' => $globalTemplate->description,
                 'source_template_id' => $globalTemplate->id,
                 'source_updated_at' => $globalTemplate->updated_at,
+                'category' => $globalTemplate->category,
+                'icon' => $globalTemplate->icon,
+                'frequency_label' => $globalTemplate->frequency_label,
+                'frequency_type' => $globalTemplate->frequency_type,
+                'is_starter_pack' => $globalTemplate->is_starter_pack,
+                'starter_pack_group' => $globalTemplate->starter_pack_group,
+                'khn_reference' => $globalTemplate->khn_reference,
+                'compliance_rules' => $globalTemplate->compliance_rules,
             ]);
 
             $linkedTemplate->templateTasks()->delete();
@@ -463,6 +532,14 @@ class TemplateController extends Controller
             'company_id' => $company->id,
             'source_template_id' => $globalTemplate->id,
             'source_updated_at' => $globalTemplate->updated_at,
+            'category' => $globalTemplate->category,
+            'icon' => $globalTemplate->icon,
+            'frequency_label' => $globalTemplate->frequency_label,
+            'frequency_type' => $globalTemplate->frequency_type,
+            'is_starter_pack' => $globalTemplate->is_starter_pack,
+            'starter_pack_group' => $globalTemplate->starter_pack_group,
+            'khn_reference' => $globalTemplate->khn_reference,
+            'compliance_rules' => $globalTemplate->compliance_rules,
         ]);
 
         foreach ($globalTemplate->templateTasks as $task) {
@@ -860,5 +937,6 @@ PROMPT;
             ]);
         }
     }
+
 }
 

@@ -236,12 +236,114 @@
 
                             <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6" id="task-form-{{ $task->id }}" data-required-proof-type="{{ $task->required_proof_type }}">
                                 @csrf
+                                @php
+                                    $validationRules = is_array($task->validation_rules) ? $task->validation_rules : [];
+                                    $metricType = $validationRules['metric'] ?? null;
+                                    $hasMetricRule = in_array($metricType, ['temperature', 'ph'], true);
+                                    $metricUnit = $validationRules['unit'] ?? ($metricType === 'ph' ? 'pH' : '°C');
+                                    $metricMin = $validationRules['min'] ?? null;
+                                    $metricMax = $validationRules['max'] ?? null;
+                                    $metricComparison = $validationRules['comparison'] ?? null;
+                                @endphp
                                 
                                 <!-- Hidden field for checklist progress -->
                                 <input type="hidden" name="checklist_progress" id="checklist-progress-{{ $task->id }}" value="">
 
+                                @if($hasMetricRule)
+                                    <input type="hidden" name="proof_text" id="metric-proof-text-{{ $task->id }}" value="">
+                                    <div class="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                        <div class="mb-2 flex items-center justify-between gap-2">
+                                            <label for="metric-input-{{ $task->id }}" class="text-sm font-semibold text-blue-900">
+                                                {{ $metricType === 'ph' ? 'pH meting' : 'Temperatuur meting' }}
+                                            </label>
+                                            <span class="text-xs font-semibold text-blue-700">
+                                                @if(!is_null($metricMin) && !is_null($metricMax))
+                                                    Norm: {{ $metricMin }} - {{ $metricMax }} {{ $metricUnit }}
+                                                @elseif(!is_null($metricMin))
+                                                    Norm: ≥ {{ $metricMin }} {{ $metricUnit }}
+                                                @elseif(!is_null($metricMax))
+                                                    Norm: {{ $metricComparison === 'lte' ? '≤' : 'max' }} {{ $metricMax }} {{ $metricUnit }}
+                                                @endif
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                id="metric-input-{{ $task->id }}"
+                                                class="block w-full rounded-xl border border-blue-300 px-4 py-3 text-base shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="{{ $metricType === 'ph' ? 'Bijv. 4.3' : 'Bijv. 6.5' }}"
+                                                required
+                                                data-min="{{ $metricMin }}"
+                                                data-max="{{ $metricMax }}"
+                                                data-comparison="{{ $metricComparison }}"
+                                                data-unit="{{ $metricUnit }}"
+                                                data-status-id="metric-status-{{ $task->id }}"
+                                                data-proof-id="metric-proof-text-{{ $task->id }}"
+                                            >
+                                            <span class="text-sm font-semibold text-blue-800">{{ $metricUnit }}</span>
+                                        </div>
+                                        <p id="metric-status-{{ $task->id }}" class="mt-2 text-sm font-medium text-blue-700">
+                                            Vul de meting in om direct te zien of deze binnen norm valt.
+                                        </p>
+                                    </div>
+                                    <script>
+                                        (function () {
+                                            const input = document.getElementById('metric-input-{{ $task->id }}');
+                                            if (!input) return;
+                                            const statusEl = document.getElementById(input.dataset.statusId);
+                                            const proofEl = document.getElementById(input.dataset.proofId);
+                                            const min = input.dataset.min !== '' ? Number(input.dataset.min) : null;
+                                            const max = input.dataset.max !== '' ? Number(input.dataset.max) : null;
+                                            const comparison = input.dataset.comparison || '';
+                                            const unit = input.dataset.unit || '';
+
+                                            const updateMetricStatus = () => {
+                                                const value = Number(input.value);
+                                                if (Number.isNaN(value)) {
+                                                    input.classList.remove('border-red-400', 'bg-red-50', 'border-green-400', 'bg-green-50');
+                                                    input.classList.add('border-blue-300');
+                                                    statusEl.textContent = 'Vul de meting in om direct te zien of deze binnen norm valt.';
+                                                    statusEl.className = 'mt-2 text-sm font-medium text-blue-700';
+                                                    if (proofEl) proofEl.value = '';
+                                                    return;
+                                                }
+
+                                                let inRange = true;
+                                                if (min !== null && value < min) inRange = false;
+                                                if (max !== null) {
+                                                    if (comparison === 'lt') {
+                                                        inRange = inRange && value < max;
+                                                    } else {
+                                                        inRange = inRange && value <= max;
+                                                    }
+                                                }
+
+                                                if (inRange) {
+                                                    input.classList.remove('border-red-400', 'bg-red-50', 'border-blue-300');
+                                                    input.classList.add('border-green-400', 'bg-green-50');
+                                                    statusEl.textContent = `Binnen norm: ${value} ${unit}`;
+                                                    statusEl.className = 'mt-2 text-sm font-semibold text-green-700';
+                                                } else {
+                                                    input.classList.remove('border-green-400', 'bg-green-50', 'border-blue-300');
+                                                    input.classList.add('border-red-400', 'bg-red-50');
+                                                    statusEl.textContent = `Afwijking: ${value} ${unit} valt buiten norm`;
+                                                    statusEl.className = 'mt-2 text-sm font-semibold text-red-700';
+                                                }
+
+                                                if (proofEl) {
+                                                    proofEl.value = `${value} ${unit}`.trim();
+                                                }
+                                            };
+
+                                            input.addEventListener('input', updateMetricStatus);
+                                            updateMetricStatus();
+                                        })();
+                                    </script>
+                                @endif
+
                                 <!-- Text Proof -->
-                                @if(in_array($task->required_proof_type, ['text', 'any']) || $task->required_proof_type === 'none')
+                                @if((in_array($task->required_proof_type, ['text', 'any']) || $task->required_proof_type === 'none') && !$hasMetricRule)
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             Notities/Opmerkingen

@@ -169,6 +169,35 @@ function addTask() {
                     <input type="time" name="tasks[${i}][end_time]" class="${inputClass}">
                 </div>
             </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
+                <div>
+                    <label class="${labelClass}">Metingstype</label>
+                    <select name="tasks[${i}][metric_type]" class="${inputClass}">
+                        <option value="">Geen</option>
+                        <option value="temperature">Temperatuur</option>
+                        <option value="ph">pH</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="${labelClass}">Eenheid</label>
+                    <input type="text" name="tasks[${i}][metric_unit]" class="${inputClass}" placeholder="°C of pH">
+                </div>
+                <div>
+                    <label class="${labelClass}">Min norm</label>
+                    <input type="number" step="0.1" name="tasks[${i}][metric_min]" class="${inputClass}">
+                </div>
+                <div>
+                    <label class="${labelClass}">Max norm</label>
+                    <input type="number" step="0.1" name="tasks[${i}][metric_max]" class="${inputClass}">
+                </div>
+                <div>
+                    <label class="${labelClass}">Max vergelijking</label>
+                    <select name="tasks[${i}][metric_comparison]" class="${inputClass}">
+                        <option value="lte"><= max</option>
+                        <option value="lt">< max</option>
+                    </select>
+                </div>
+            </div>
             <div class="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                 <label class="${labelClass}">Checklist-items</label>
                 <div class="checklist-container space-y-2">

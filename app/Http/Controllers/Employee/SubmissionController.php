@@ -286,6 +286,12 @@ class SubmissionController extends Controller
                 $rules['proof_text'] = 'required|string|min:3';
             }
 
+            $validationRules = is_array($task->validation_rules) ? $task->validation_rules : [];
+            if (!empty($validationRules['metric'])) {
+                $rules['proof_text'] = 'required|string|min:1';
+                $messages['proof_text.required'] = 'Vul de meting in (temperatuur of pH).';
+            }
+
             // Add digital signature validation if required
             if ($task->requires_signature) {
                 $rules['digital_signature'] = 'required|string';

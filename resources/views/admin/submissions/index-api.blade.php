@@ -344,6 +344,9 @@ function renderSubmissions(items) {
         const submitted = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('nl-NL', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
         const viewUrl = "{{ url('admin/submissions') }}/" + s.id;
         const reviewUrl = "{{ url('admin/submissions') }}/" + s.id;
+        const deviationDot = s.has_metric_deviation
+            ? '<span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500" title="Bevat kritieke afwijking"></span>'
+            : '';
         return `
         <tr class="hover:bg-slate-50 transition-colors">
             <td class="px-4 sm:px-6 py-4">
@@ -359,7 +362,10 @@ function renderSubmissions(items) {
             </td>
             <td class="px-4 sm:px-6 py-4">
                 <div class="min-w-0 max-w-[200px]">
-                    <div class="text-sm font-medium text-slate-900 truncate">${listTitle}</div>
+                    <div class="flex items-center gap-2">
+                        ${deviationDot}
+                        <div class="text-sm font-medium text-slate-900 truncate">${listTitle}</div>
+                    </div>
                     ${listDesc ? `<div class="text-xs text-slate-500 truncate">${listDesc}</div>` : ''}
                 </div>
             </td>

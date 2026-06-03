@@ -58,6 +58,48 @@
                         <textarea id="description" name="description" rows="3"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('description') border-red-500 @enderror">{{ old('description', $template->description) }}</textarea>
                     </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-slate-700 mb-1.5">Categorie</label>
+                            <input type="text" id="category" name="category" value="{{ old('category', $template->category) }}"
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="icon" class="block text-sm font-medium text-slate-700 mb-1.5">Icoon</label>
+                            <input type="text" id="icon" name="icon" value="{{ old('icon', $template->icon) }}"
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="frequency_label" class="block text-sm font-medium text-slate-700 mb-1.5">Frequentie label</label>
+                            <input type="text" id="frequency_label" name="frequency_label" value="{{ old('frequency_label', $template->frequency_label) }}"
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="frequency_type" class="block text-sm font-medium text-slate-700 mb-1.5">Frequentie type</label>
+                            <select id="frequency_type" name="frequency_type" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                                @php $frequencyType = old('frequency_type', $template->frequency_type ?? 'none'); @endphp
+                                @foreach(['daily' => 'Dagelijks', 'weekly' => 'Wekelijks', 'monthly' => 'Maandelijks', 'quarterly' => 'Per kwartaal', 'per_batch' => 'Per batch', 'per_production' => 'Per productie', 'none' => 'Geen'] as $value => $label)
+                                    <option value="{{ $value }}" @selected($frequencyType === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="starter_pack_group" class="block text-sm font-medium text-slate-700 mb-1.5">Starter pack groep</label>
+                            <input type="text" id="starter_pack_group" name="starter_pack_group" value="{{ old('starter_pack_group', $template->starter_pack_group) }}"
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="khn_reference" class="block text-sm font-medium text-slate-700 mb-1.5">KHN referentie</label>
+                            <input type="text" id="khn_reference" name="khn_reference" value="{{ old('khn_reference', $template->khn_reference) }}"
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                            <input type="checkbox" name="is_starter_pack" value="1" @checked((bool) old('is_starter_pack', $template->is_starter_pack))>
+                            Opnemen in Starter Pack
+                        </label>
+                    </div>
                 </div>
             </div>
 

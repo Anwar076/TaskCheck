@@ -58,17 +58,17 @@ class RegisteredUserController extends Controller
             $this->seedDefaultTemplatesForCompany($company);
 
             // Create user as admin for the company
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
                 'role' => 'admin',
                 'company_id' => $company->id,
-        ]);
+            ]);
 
-        event(new Registered($user));
+            event(new Registered($user));
 
-        Auth::login($user);
+            Auth::login($user);
 
             DB::commit();
 
@@ -360,7 +360,7 @@ class RegisteredUserController extends Controller
         }
 
         $globalTemplates = TaskTemplate::withoutGlobalScopes()
-            ->whereNull('company_id')
+            ->publishedGlobal()
             ->where(function ($query) use ($company) {
                 $query->whereNull('target_company_type')
                     ->orWhere('target_company_type', $company->company_type);
@@ -380,7 +380,15 @@ class RegisteredUserController extends Controller
                 'is_active' => true,
                 'company_id' => $company->id,
                 'source_template_id' => $globalTemplate->id,
-                'source_updated_at' => $globalTemplate->updated_at,
+                'source_updated_at' => $globalTemplate->source_updated_at,
+                'category' => $globalTemplate->category,
+                'icon' => $globalTemplate->icon,
+                'frequency_label' => $globalTemplate->frequency_label,
+                'frequency_type' => $globalTemplate->frequency_type,
+                'is_starter_pack' => (bool) $globalTemplate->is_starter_pack,
+                'starter_pack_group' => $globalTemplate->starter_pack_group,
+                'khn_reference' => $globalTemplate->khn_reference,
+                'compliance_rules' => $globalTemplate->compliance_rules,
             ]);
 
             foreach ($globalTemplate->templateTasks as $task) {

@@ -247,6 +247,20 @@
                         $taskStatusColors = ['completed' => 'bg-amber-100 text-amber-800 border-amber-200', 'approved' => 'bg-emerald-100 text-emerald-800 border-emerald-200', 'rejected' => 'bg-red-100 text-red-800 border-red-200', 'redo_requested' => 'bg-orange-100 text-orange-800 border-orange-200', 'pending' => 'bg-slate-100 text-slate-800 border-slate-200'];
                         $ts = $submissionTask->status;
                         $aiTask = $taskReviewsById[$submissionTask->task->id] ?? null;
+                        $validationRules = $submissionTask->task->validation_rules ?? [];
+                        $proofText = (string) ($submissionTask->proof_text ?? '');
+                        $hasMetricRule = is_array($validationRules) && !empty($validationRules['metric']);
+                        $metricValue = null;
+                        if ($hasMetricRule && preg_match('/-?\d+(?:[.,]\d+)?/', $proofText, $metricMatches)) {
+                            $metricValue = (float) str_replace(',', '.', $metricMatches[0]);
+                        }
+                        $metricMin = isset($validationRules['min']) && is_numeric($validationRules['min']) ? (float) $validationRules['min'] : null;
+                        $metricMax = isset($validationRules['max']) && is_numeric($validationRules['max']) ? (float) $validationRules['max'] : null;
+                        $metricComparison = $validationRules['comparison'] ?? null;
+                        $isCriticalDeviation = \App\Helpers\MetricValidationHelper::isDeviation(
+                            $hasMetricRule ? $validationRules : null,
+                            $proofText
+                        );
                     @endphp
                     <div class="p-4 sm:p-6 lg:p-8 hover:bg-slate-50/50 transition-colors submission-task" data-submission-task-id="{{ $submissionTask->id }}">
                         <div class="flex flex-col lg:flex-row lg:items-start lg:gap-8">
@@ -291,6 +305,12 @@
                                                     {{ $aiLabel }}
                                                 </span>
                                             @endif
+                                            @if($isCriticalDeviation)
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border bg-red-100 text-red-800 border-red-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                                    Kritieke afwijking
+                                                </span>
+                                            @endif
                                         </div>
                                         @if($submissionTask->task->description)
                                             <p class="text-slate-600 leading-relaxed">{{ $submissionTask->task->description }}</p>
@@ -303,6 +323,38 @@
                                                         <p class="text-sm font-medium text-blue-900">Instructies</p>
                                                         <p class="text-sm text-blue-800 mt-1 whitespace-pre-line">{{ $submissionTask->task->instructions }}</p>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        @if($hasMetricRule)
+                                            @php
+                                                $metricUnit = $validationRules['unit'] ?? '';
+                                                $metricLabel = ($validationRules['metric'] ?? '') === 'ph' ? 'pH meting' : 'Temperatuur meting';
+                                            @endphp
+                                            <div class="mt-3 p-4 rounded-xl border {{ $isCriticalDeviation ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200' }}">
+                                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                                    <p class="text-sm font-semibold {{ $isCriticalDeviation ? 'text-red-900' : 'text-emerald-900' }}">{{ $metricLabel }}</p>
+                                                    <span class="text-xs font-semibold {{ $isCriticalDeviation ? 'text-red-700' : 'text-emerald-700' }}">
+                                                        @if(!is_null($metricMin) && !is_null($metricMax))
+                                                            Norm: {{ $metricMin }} - {{ $metricMax }} {{ $metricUnit }}
+                                                        @elseif(!is_null($metricMin))
+                                                            Norm: >= {{ $metricMin }} {{ $metricUnit }}
+                                                        @elseif(!is_null($metricMax))
+                                                            Norm: {{ $metricComparison === 'lt' ? '<' : '<=' }} {{ $metricMax }} {{ $metricUnit }}
+                                                        @else
+                                                            Norm niet ingesteld
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                                <div class="mt-2 text-sm">
+                                                    <span class="font-semibold {{ $isCriticalDeviation ? 'text-red-900' : 'text-emerald-900' }}">Gemeten:</span>
+                                                    <span class="{{ $isCriticalDeviation ? 'text-red-800' : 'text-emerald-800' }}">
+                                                        @if(!is_null($metricValue))
+                                                            {{ $metricValue }} {{ $metricUnit }}
+                                                        @else
+                                                            Niet ingevuld
+                                                        @endif
+                                                    </span>
                                                 </div>
                                             </div>
                                         @endif

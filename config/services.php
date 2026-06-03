@@ -53,4 +53,12 @@ return [
         ],
     ],
 
+    'expo' => [
+        'enabled' => env('EXPO_PUSH_ENABLED', true),
+    ],
+
+    'marketing_link' => [
+        'default_destination' => env('MARKETING_LINK_DEFAULT_URL', 'https://taskcheck.nl'),
+    ],
+
 ];

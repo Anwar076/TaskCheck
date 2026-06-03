@@ -28,6 +28,8 @@
             <thead class="bg-slate-50">
                 <tr class="text-left text-slate-500">
                     <th class="px-4 py-3">Template</th>
+                    <th class="px-4 py-3">Categorie</th>
+                    <th class="px-4 py-3">Frequentie</th>
                     <th class="px-4 py-3">Doelgroep</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Taken</th>
@@ -59,9 +61,16 @@
                     @endphp
                     <tr class="border-t border-slate-100">
                         <td class="px-4 py-3">
-                            <p class="font-semibold text-slate-900">{{ $template->name }}</p>
+                            <p class="font-semibold text-slate-900">
+                                @if(!empty($template->icon))
+                                    <span class="text-slate-500">{{ $template->icon }}</span> ·
+                                @endif
+                                {{ $template->name }}
+                            </p>
                             <p class="text-xs text-slate-500">{{ $template->description }}</p>
                         </td>
+                        <td class="px-4 py-3">{{ $template->category ?: '—' }}</td>
+                        <td class="px-4 py-3">{{ $template->frequency_label ?: '—' }}</td>
                         <td class="px-4 py-3">
                             @if(!$template->target_company_type)
                                 Alle bedrijven
@@ -107,7 +116,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-slate-500">Nog geen global templates.</td>
+                        <td colspan="8" class="px-4 py-8 text-center text-slate-500">Nog geen global templates.</td>
                     </tr>
                 @endforelse
             </tbody>

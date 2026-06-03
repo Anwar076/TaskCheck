@@ -5,6 +5,10 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
+use App\Models\MarketingLinkCampaign;
+use App\Models\PlatformAlertLog;
+use App\Services\Platform\PlatformAlertService;
+use App\Services\Platform\PlatformHealthService;
 use App\Models\IncidentTicket;
 use App\Models\Invoice;
 use App\Models\Notification;
@@ -103,6 +107,24 @@ class DashboardController extends Controller
             ->take(10)
             ->values();
 
+        $marketingLinks = MarketingLinkCampaign::query()
+            ->with('creator:id,name')
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        $platformHealth = app(PlatformHealthService::class)->snapshot();
+        $recentPlatformAlerts = PlatformAlertLog::query()
+            ->orderByDesc('sent_at')
+            ->limit(10)
+            ->get();
+
+        $allowedTabs = ['communications', 'companies', 'monitoring', 'invoices', 'templates'];
+        $activeDashboardTab = request()->query('tab', 'communications');
+        if (!in_array($activeDashboardTab, $allowedTabs, true)) {
+            $activeDashboardTab = 'communications';
+        }
+
         return view('super-admin.dashboard', compact(
             'companies',
             'totals',
@@ -111,8 +133,27 @@ class DashboardController extends Controller
             'recentErrors',
             'tickets',
             'invoices',
-            'recentAnnouncements'
+            'recentAnnouncements',
+            'marketingLinks',
+            'activeDashboardTab',
+            'platformHealth',
+            'recentPlatformAlerts'
         ));
+    }
+
+    public function sendPlatformAlertTest(PlatformAlertService $alerts): RedirectResponse
+    {
+        $recipients = $alerts->sendTestNotification();
+
+        if ($recipients === []) {
+            return redirect()
+                ->route('super-admin.dashboard', ['tab' => 'monitoring'])
+                ->with('error', 'Geen alert-e-mailadressen geconfigureerd (PLATFORM_ALERT_EMAIL of SUPER_ADMIN_EMAILS).');
+        }
+
+        return redirect()
+            ->route('super-admin.dashboard', ['tab' => 'monitoring'])
+            ->with('success', 'Testmelding verstuurd naar: '.implode(', ', $recipients));
     }
 
     public function storeCompany(Request $request): RedirectResponse
@@ -246,7 +287,8 @@ class DashboardController extends Controller
                     bodyText: (string) $validated['message'],
                     ctaLabel: 'Open TaskCheck',
                     ctaUrl: config('app.url'),
-                    metaText: 'Je ontvangt dit bericht omdat je beheercontact bent van een TaskCheck organisatie.'
+                    metaText: 'Je ontvangt dit bericht omdat je beheercontact bent van een TaskCheck organisatie.',
+                    showMarketing: true
                 ));
 
                 $sent++;

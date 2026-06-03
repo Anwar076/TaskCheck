@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,8 +24,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'pwa' => \App\Http\Middleware\RedirectPwaToLogin::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,
             'company_profile_complete' => \App\Http\Middleware\EnsureCompanyInvoiceDetailsComplete::class,
+            'mobile.admin' => \App\Http\Middleware\EnsureMobileAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('platform:check-alerts')->everyFiveMinutes();
+    })
+    ->create();

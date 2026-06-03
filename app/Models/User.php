@@ -130,6 +130,11 @@ class User extends Authenticatable
         return $this->hasMany(PushSubscription::class);
     }
 
+    public function devicePushTokens()
+    {
+        return $this->hasMany(DevicePushToken::class);
+    }
+
     public function unreadNotifications()
     {
         return $this->hasMany(Notification::class)->whereNull('read_at');

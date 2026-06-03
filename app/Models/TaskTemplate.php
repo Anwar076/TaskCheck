@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -19,16 +20,54 @@ class TaskTemplate extends Model
         'source_template_id',
         'source_updated_at',
         'target_company_type',
+        'category',
+        'icon',
+        'frequency_label',
+        'frequency_type',
+        'is_starter_pack',
+        'starter_pack_group',
+        'khn_reference',
+        'compliance_rules',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'source_updated_at' => 'datetime',
+        'is_starter_pack' => 'boolean',
+        'compliance_rules' => 'array',
     ];
 
     /**
      * Get the template tasks for this template
      */
+    /**
+     * Global super-admin template that has been published and has no pending draft edits.
+     */
+    public function isPublishedGlobal(): bool
+    {
+        if ($this->company_id !== null) {
+            return true;
+        }
+
+        if ($this->source_updated_at === null) {
+            return false;
+        }
+
+        return $this->updated_at === null || !$this->updated_at->gt($this->source_updated_at);
+    }
+
+    /**
+     * @param  Builder<TaskTemplate>  $query
+     * @return Builder<TaskTemplate>
+     */
+    public function scopePublishedGlobal(Builder $query): Builder
+    {
+        return $query
+            ->whereNull('company_id')
+            ->whereNotNull('source_updated_at')
+            ->whereColumn('updated_at', '<=', 'source_updated_at');
+    }
+
     public function templateTasks(): HasMany
     {
         return $this->hasMany(TemplateTask::class, 'template_id')->orderBy('sort_order');

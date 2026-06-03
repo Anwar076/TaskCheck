@@ -135,6 +135,11 @@ function addTask(existing = null) {
     const checklist = Array.isArray(t.checklist_items) ? t.checklist_items : [];
     const startTime = t.start_time ?? '';
     const endTime = t.end_time ?? '';
+    const metricType = t.validation_rules?.metric ?? '';
+    const metricUnit = esc(t.validation_rules?.unit ?? '');
+    const metricMin = t.validation_rules?.min ?? '';
+    const metricMax = t.validation_rules?.max ?? '';
+    const metricComparison = t.validation_rules?.comparison ?? 'lte';
 
     const container = document.getElementById('tasks-container');
     const div = document.createElement('div');
@@ -221,6 +226,35 @@ function addTask(existing = null) {
                 <div>
                     <label class="${labelClass}">Eindtijd</label>
                     <input type="time" name="tasks[${i}][end_time]" value="${esc(endTime)}" class="${inputClass}">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                    <label class="${labelClass}">Metingstype</label>
+                    <select name="tasks[${i}][metric_type]" class="${inputClass}">
+                        <option value="" ${metricType === '' ? 'selected' : ''}>Geen</option>
+                        <option value="temperature" ${metricType === 'temperature' ? 'selected' : ''}>Temperatuur</option>
+                        <option value="ph" ${metricType === 'ph' ? 'selected' : ''}>pH</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="${labelClass}">Eenheid</label>
+                    <input type="text" name="tasks[${i}][metric_unit]" value="${metricUnit}" class="${inputClass}" placeholder="°C of pH">
+                </div>
+                <div>
+                    <label class="${labelClass}">Min norm</label>
+                    <input type="number" step="0.1" name="tasks[${i}][metric_min]" value="${metricMin}" class="${inputClass}">
+                </div>
+                <div>
+                    <label class="${labelClass}">Max norm</label>
+                    <input type="number" step="0.1" name="tasks[${i}][metric_max]" value="${metricMax}" class="${inputClass}">
+                </div>
+                <div>
+                    <label class="${labelClass}">Max vergelijking</label>
+                    <select name="tasks[${i}][metric_comparison]" class="${inputClass}">
+                        <option value="lte" ${metricComparison === 'lte' ? 'selected' : ''}><= max</option>
+                        <option value="lt" ${metricComparison === 'lt' ? 'selected' : ''}>< max</option>
+                    </select>
                 </div>
             </div>
             <div>

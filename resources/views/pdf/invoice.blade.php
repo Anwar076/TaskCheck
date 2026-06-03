@@ -4,238 +4,203 @@
     <meta charset="UTF-8">
     <title>Factuur {{ $invoice->invoice_number }}</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: DejaVu Sans, sans-serif;
-            color: #0f172a;
-            font-size: 12px;
+            color: #1e293b;
+            font-size: 11px;
+            line-height: 1.45;
             margin: 0;
-            padding: 28px 28px 170px;
-            background: #ffffff;
+            padding: 36px 40px 130px;
         }
-        .top-accent {
-            height: 10px;
-            background: #0f5bd3;
-            margin: -28px -28px 24px;
+        .brand-bar {
+            height: 6px;
+            background: #4f46e5;
+            margin: -36px -40px 28px;
         }
-        .header-table,
-        .meta-table,
-        .line-table,
-        .totals-table {
-            width: 100%;
-            border-collapse: collapse;
+        table { border-collapse: collapse; }
+        .w-100 { width: 100%; }
+        .logo {
+            height: 44px;
+            width: auto;
+            margin-bottom: 8px;
         }
-        .header-left .title {
-            font-size: 24px;
+        .doc-label {
+            font-size: 28px;
             font-weight: bold;
             color: #0f172a;
-            margin: 6px 0 2px;
+            letter-spacing: -0.5px;
+            margin: 0;
         }
-        .header-left .subtitle {
-            color: #3b82f6;
-            font-size: 12px;
-            font-weight: bold;
+        .doc-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
         }
-        .header-right {
-            text-align: right;
-        }
-        .logo {
-            height: 52px;
-            width: auto;
-            display: block;
-        }
-        .pill {
+        .status {
             display: inline-block;
             background: #dcfce7;
             color: #166534;
             border: 1px solid #86efac;
-            border-radius: 999px;
-            padding: 5px 12px;
+            padding: 6px 14px;
             font-size: 10px;
             font-weight: bold;
-            letter-spacing: 0.3px;
             text-transform: uppercase;
-        }
-        .spacer-20 { height: 20px; }
-        .spacer-14 { height: 14px; }
-        .box {
-            border: 1px solid #dbe2ea;
-            border-radius: 8px;
-            padding: 12px;
-            vertical-align: top;
-            width: 48%;
-        }
-        .box-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #475569;
-            margin-bottom: 8px;
-            letter-spacing: 0.3px;
-            font-weight: bold;
-        }
-        .muted { color: #64748b; }
-        .meta-table td {
-            padding: 4px 0;
-            vertical-align: top;
-        }
-        .meta-key {
-            color: #64748b;
-            width: 120px;
-        }
-        .line-table {
-            border: 1px solid #dbe2ea;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .line-table th {
-            background: #eaf2ff;
-            color: #0f5bd3;
-            text-transform: uppercase;
-            font-size: 11px;
             letter-spacing: 0.4px;
-            padding: 10px 12px;
-            border-bottom: 1px solid #d7e6ff;
         }
-        .line-table td {
-            padding: 10px 12px;
+        .panel {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 14px 16px;
+            vertical-align: top;
+        }
+        .panel-title {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin: 0 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .panel p { margin: 0 0 4px; }
+        .panel strong { color: #0f172a; }
+        .muted { color: #64748b; }
+        .lines {
+            width: 100%;
+            margin-top: 22px;
+            border: 1px solid #e2e8f0;
+        }
+        .lines th {
+            background: #4f46e5;
+            color: #ffffff;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .lines th.right,
+        .lines td.right { text-align: right; }
+        .lines td {
+            padding: 11px 14px;
             border-bottom: 1px solid #eef2f7;
+            vertical-align: top;
         }
-        .line-table tr:last-child td {
-            border-bottom: none;
+        .lines tr:last-child td { border-bottom: none; }
+        .totals-wrap {
+            width: 100%;
+            margin-top: 16px;
         }
-        .right { text-align: right; }
-        .totals-table {
-            margin-top: 14px;
-            width: 48%;
+        .totals {
+            width: 260px;
             margin-left: auto;
-            border: 1px solid #dbe2ea;
-            border-radius: 8px;
-            overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
-        .totals-table td {
-            padding: 9px 12px;
+        .totals td {
+            padding: 9px 14px;
             border-bottom: 1px solid #eef2f7;
         }
-        .totals-table tr:last-child td {
-            border-bottom: none;
-            background: #0f5bd3;
+        .totals tr.grand td {
+            background: #4f46e5;
             color: #ffffff;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
+            border-bottom: none;
         }
-        .thanks-note {
-            margin-top: 10px;
-            width: 48%;
+        .note {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #64748b;
+            line-height: 1.5;
+            text-align: right;
+            width: 260px;
             margin-left: auto;
-            font-size: 11px;
-            color: #64748b;
-            line-height: 1.45;
         }
-        .footer-note {
+        .footer {
             position: fixed;
-            left: 28px;
-            right: 28px;
-            bottom: 24px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 10px;
-            color: #64748b;
-            font-size: 11px;
-            line-height: 1.35;
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 12px;
-        }
-        .footer-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+            left: 40px;
+            right: 40px;
+            bottom: 28px;
+            border-top: 2px solid #4f46e5;
+            padding-top: 12px;
         }
         .footer-table td {
             vertical-align: top;
             width: 50%;
-            padding: 0;
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.5;
         }
-        .footer-title {
-            color: #0f5bd3;
+        .footer-brand {
+            font-size: 12px;
             font-weight: bold;
+            color: #4f46e5;
             margin-bottom: 4px;
-            font-size: 13px;
         }
         .footer-legal {
             text-align: right;
+            color: #64748b;
         }
     </style>
 </head>
 <body>
     @php
         $logoPath = public_path('logos/taskcheck-logo.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('taskcheck-logo.png');
+        }
+        $paidAt = optional($invoice->paid_at)->timezone('Europe/Amsterdam');
     @endphp
-    <div class="top-accent"></div>
 
-    <table class="header-table">
+    <div class="brand-bar"></div>
+
+    <table class="w-100">
         <tr>
-            <td class="header-left">
+            <td width="58%" style="vertical-align: top;">
                 @if(file_exists($logoPath))
                     <img src="{{ $logoPath }}" alt="TaskCheck" class="logo">
                 @endif
-                <div class="title">TaskCheck Factuur</div>
-                <div class="subtitle">TaskCheck - Slimme kwaliteitscontrole</div>
+                <p class="doc-label">Factuur</p>
+                <p class="doc-sub">TaskCheck · Slimme checklist &amp; kwaliteitscontrole</p>
             </td>
-            <td class="header-right">
-                <span class="pill">Betaald</span>
+            <td width="42%" style="vertical-align: top; text-align: right;">
+                <span class="status">Betaald</span>
             </td>
         </tr>
     </table>
 
-    <div class="spacer-20"></div>
-
-    <table class="meta-table">
+    <table class="w-100" style="margin-top: 24px;">
         <tr>
-            <td class="box">
-                <div class="box-title">Factuurgegevens</div>
-                <table class="meta-table">
-                    <tr>
-                        <td class="meta-key">Factuurnummer</td>
-                        <td><strong>{{ $invoice->invoice_number }}</strong></td>
-                    </tr>
-                    <tr>
-                        <td class="meta-key">Factuurdatum</td>
-                        <td>{{ optional($invoice->paid_at)->timezone('Europe/Amsterdam')->format('d-m-Y') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="meta-key">Betaald op</td>
-                        <td>{{ optional($invoice->paid_at)->timezone('Europe/Amsterdam')->format('d-m-Y H:i') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="meta-key">Payment ID</td>
-                        <td>{{ $invoice->payment_id }}</td>
-                    </tr>
-                </table>
+            <td width="48%" class="panel">
+                <p class="panel-title">Factuurgegevens</p>
+                <p><strong>Factuurnummer</strong><br>{{ $invoice->invoice_number }}</p>
+                <p style="margin-top:8px;"><strong>Factuurdatum</strong><br>{{ $paidAt ? $paidAt->format('d-m-Y') : '—' }}</p>
+                <p style="margin-top:8px;"><strong>Betaald op</strong><br>{{ $paidAt ? $paidAt->format('d-m-Y H:i') : '—' }}</p>
+                @if($invoice->payment_id)
+                    <p style="margin-top:8px;" class="muted"><strong>Betaling</strong><br>{{ $invoice->payment_id }}</p>
+                @endif
             </td>
-            <td style="width: 4%"></td>
-            <td class="box">
-                <div class="box-title">Klant</div>
-                <table class="meta-table">
-                    <tr>
-                        <td><strong>{{ $company->name }}</strong></td>
-                    </tr>
-                    <tr>
-                        <td class="muted">{{ $company->email ?: 'Geen e-mailadres bekend' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="muted">{{ $company->address ?: 'Geen adres opgegeven' }}</td>
-                    </tr>
-                </table>
+            <td width="4%"></td>
+            <td width="48%" class="panel">
+                <p class="panel-title">Factuuradres</p>
+                <p><strong>{{ $company->name }}</strong></p>
+                @if($company->address)
+                    <p class="muted">{{ $company->address }}</p>
+                @endif
+                @if($company->email)
+                    <p class="muted" style="margin-top:6px;">{{ $company->email }}</p>
+                @endif
             </td>
         </tr>
     </table>
 
-    <div class="spacer-14"></div>
-
-    <table class="line-table">
+    <table class="lines">
         <thead>
             <tr>
-                <th>Omschrijving</th>
-                <th class="right">Bedrag</th>
+                <th style="width:70%;">Omschrijving</th>
+                <th class="right" style="width:30%;">Bedrag</th>
             </tr>
         </thead>
         <tbody>
@@ -244,47 +209,50 @@
                 <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->amount_ex_vat, 2, ',', '.') }}</td>
             </tr>
             <tr>
-                <td>BTW ({{ number_format((float) $invoice->vat_rate, 2, ',', '.') }}%)</td>
+                <td>BTW ({{ number_format((float) $invoice->vat_rate, 0) }}%)</td>
                 <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->vat_amount, 2, ',', '.') }}</td>
             </tr>
         </tbody>
     </table>
 
-    <table class="totals-table">
+    <table class="totals-wrap">
         <tr>
-            <td>Subtotaal excl. BTW</td>
-            <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->amount_ex_vat, 2, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td>BTW ({{ number_format((float) $invoice->vat_rate, 2, ',', '.') }}%)</td>
-            <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->vat_amount, 2, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td>Totaal incl. BTW</td>
-            <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->amount, 2, ',', '.') }}</td>
+            <td>
+                <table class="totals">
+                    <tr>
+                        <td>Subtotaal excl. BTW</td>
+                        <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->amount_ex_vat, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td>BTW</td>
+                        <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->vat_amount, 2, ',', '.') }}</td>
+                    </tr>
+                    <tr class="grand">
+                        <td>Totaal incl. BTW</td>
+                        <td class="right">{{ $invoice->currency }} {{ number_format((float) $invoice->amount, 2, ',', '.') }}</td>
+                    </tr>
+                </table>
+                <p class="note">
+                    Bedankt voor je vertrouwen in TaskCheck. Deze factuur is automatisch gegenereerd en geldt als betalingsbevestiging.
+                </p>
+            </td>
         </tr>
     </table>
 
-    <div class="thanks-note">
-        Bedankt voor je vertrouwen in TaskCheck. Deze factuur is automatisch gegenereerd en geldt als betalingsbevestiging.
-    </div>
-
-    <div class="footer-note">
-        <table class="footer-table">
+    <div class="footer">
+        <table class="footer-table w-100">
             <tr>
                 <td>
-                    <div class="footer-title">Taskcheck</div>
-                    <div>Deventerseweg 73</div>
-                    <div>2994 LE Barendrecht</div>
-                    <div>The Netherlands</div>
-                    <br>
-                    <div>E info@taskcheck.nl</div>
-                    <div>W www.taskcheck.nl</div>
-                    <div>T +31 (0)88 1900 999</div>
+                    <div class="footer-brand">TaskCheck</div>
+                    Deventerseweg 73<br>
+                    2994 LE Barendrecht<br>
+                    Nederland<br><br>
+                    info@taskcheck.nl · www.taskcheck.nl<br>
+                    +31 (0)88 1900 999
                 </td>
                 <td class="footer-legal">
-                    <div>BTW NL850541268B01</div>
-                    <div>KVK 52661830</div>
+                    BTW NL850541268B01<br>
+                    KVK 52661830
                 </td>
             </tr>
         </table>

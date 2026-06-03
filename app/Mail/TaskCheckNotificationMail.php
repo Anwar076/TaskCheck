@@ -19,7 +19,8 @@ class TaskCheckNotificationMail extends Mailable
         public string $bodyText,
         public ?string $ctaLabel = null,
         public ?string $ctaUrl = null,
-        public ?string $metaText = null
+        public ?string $metaText = null,
+        public bool $showMarketing = false
     ) {}
 
     public function envelope(): Envelope
@@ -40,6 +41,7 @@ class TaskCheckNotificationMail extends Mailable
                 'ctaLabel' => $this->ctaLabel,
                 'ctaUrl' => $this->ctaUrl,
                 'metaText' => $this->metaText,
+                'showMarketing' => $this->showMarketing,
             ],
         );
     }

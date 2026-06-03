@@ -84,6 +84,8 @@ class DashboardController extends Controller
             // Task statistics
             'most_used_proof_type' => $this->getMostUsedProofType($companyId, $selectedLocationId),
             'tasks_requiring_signature' => (clone $tasksQuery)->where('requires_signature', true)->count(),
+            'hygiene_completion_percentage' => $this->getHorecaHygieneCompletionPercentage($companyId, $selectedLocationId),
+            'critical_deviations' => $this->getHorecaCriticalDeviationsCount($companyId, $selectedLocationId),
         ];
 
         // Recent submissions for review
@@ -234,6 +236,43 @@ class DashboardController extends Controller
             ->first();
 
         return $proofType ? ucfirst($proofType->required_proof_type) : 'None';
+    }
+
+    private function getHorecaHygieneCompletionPercentage(int $companyId, ?int $selectedLocationId = null): float
+    {
+        $query = Submission::query()
+            ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->whereHas('taskList', function ($taskListQuery) use ($companyId, $selectedLocationId) {
+                $taskListQuery->where('company_id', $companyId)
+                    ->where('category', 'Horeca');
+                if ($selectedLocationId) {
+                    $taskListQuery->where('location_id', $selectedLocationId);
+                }
+            });
+
+        $total = (clone $query)->count();
+        $completed = (clone $query)->whereIn('status', ['completed', 'reviewed'])->count();
+
+        return $total > 0 ? round(($completed / $total) * 100, 1) : 0.0;
+    }
+
+    private function getHorecaCriticalDeviationsCount(int $companyId, ?int $selectedLocationId = null): int
+    {
+        return SubmissionTask::query()
+            ->whereIn('status', ['rejected', 'redo_requested'])
+            ->whereHas('task', function ($taskQuery) use ($companyId, $selectedLocationId) {
+                $taskQuery->whereHas('taskList', function ($taskListQuery) use ($companyId, $selectedLocationId) {
+                    $taskListQuery->where('company_id', $companyId)
+                        ->where('category', 'Horeca');
+                    if ($selectedLocationId) {
+                        $taskListQuery->where('location_id', $selectedLocationId);
+                    }
+                })->where(function ($validationQuery) {
+                    $validationQuery->where('validation_rules', 'like', '%"critical":true%')
+                        ->orWhere('validation_rules', 'like', '%"critical": true%');
+                });
+            })
+            ->count();
     }
 
     public function liveMonitoring(Request $request)

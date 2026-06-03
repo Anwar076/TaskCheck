@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\MetricValidationHelper;
 use App\Models\TaskList;
 use App\Models\Task;
 use App\Models\User;
@@ -48,6 +49,11 @@ class TaskController extends Controller
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'checklist_items' => 'nullable|array',
             'checklist_items.*' => 'string|max:500',
+            'metric_type' => 'nullable|in:temperature,ph',
+            'metric_unit' => 'nullable|string|max:20',
+            'metric_min' => 'nullable|numeric',
+            'metric_max' => 'nullable|numeric',
+            'metric_comparison' => 'nullable|in:lt,lte',
         ]);
 
         // Determine the target list (weekday sublist or main list)
@@ -72,9 +78,21 @@ class TaskController extends Controller
                 $validated['checklist_items'] = null;
             }
         }
+
+        $metricErrors = MetricValidationHelper::validateFormData($validated);
+        if ($metricErrors !== []) {
+            return back()->withErrors($metricErrors)->withInput();
+        }
+
+        if (!empty($validated['metric_type'])) {
+            $validated['validation_rules'] = MetricValidationHelper::buildFromFormData($validated);
+        } else {
+            $validated['validation_rules'] = null;
+        }
         
         // Remove target_list_id from validated data as it's not a Task field
         unset($validated['target_list_id']);
+        unset($validated['metric_type'], $validated['metric_unit'], $validated['metric_min'], $validated['metric_max'], $validated['metric_comparison']);
 
         // Handle weekday assignment for tasks in the new agenda system
         if (in_array($list->schedule_type, ['daily', 'weekly', 'custom']) && isset($validated['weekdays']) && !empty($validated['weekdays'])) {
@@ -142,6 +160,11 @@ class TaskController extends Controller
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'checklist_items' => 'nullable|array',
             'checklist_items.*' => 'string|max:500',
+            'metric_type' => 'nullable|in:temperature,ph',
+            'metric_unit' => 'nullable|string|max:20',
+            'metric_min' => 'nullable|numeric',
+            'metric_max' => 'nullable|numeric',
+            'metric_comparison' => 'nullable|in:lt,lte',
         ]);
 
         $validated['is_required'] = $request->has('is_required');
@@ -157,6 +180,17 @@ class TaskController extends Controller
             if (empty($validated['checklist_items'])) {
                 $validated['checklist_items'] = null;
             }
+        }
+
+        $metricErrors = MetricValidationHelper::validateFormData($validated);
+        if ($metricErrors !== []) {
+            return back()->withErrors($metricErrors)->withInput();
+        }
+
+        if (!empty($validated['metric_type'])) {
+            $validated['validation_rules'] = MetricValidationHelper::buildFromFormData($validated);
+        } else {
+            $validated['validation_rules'] = null;
         }
 
         // Handle weekdays for the new agenda system
@@ -175,6 +209,7 @@ class TaskController extends Controller
         
         // Remove weekdays from validated data as it's not a Task field
         unset($validated['weekdays']);
+        unset($validated['metric_type'], $validated['metric_unit'], $validated['metric_min'], $validated['metric_max'], $validated['metric_comparison']);
 
         // Order/position is managed via drag-and-drop in the list view, not in the form
         unset($validated['order_index']);

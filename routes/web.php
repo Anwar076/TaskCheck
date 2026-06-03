@@ -47,6 +47,9 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
+Route::get('/go/{code}', \App\Http\Controllers\MarketingLinkRedirectController::class)
+    ->name('marketing-link.redirect');
+
 Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'send'])
     ->middleware('throttle:10,1')
     ->name('contact.send');
@@ -264,6 +267,9 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::get('/invoices/export/csv', [SuperAdminDashboardController::class, 'exportInvoicesCsv'])->name('invoices.export.csv');
     Route::post('/communications/broadcast-mail', [SuperAdminDashboardController::class, 'sendBroadcastMail'])->name('communications.broadcast-mail');
     Route::post('/communications/broadcast-notification', [SuperAdminDashboardController::class, 'sendBroadcastNotification'])->name('communications.broadcast-notification');
+    Route::post('/marketing-links', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'store'])->name('marketing-links.store');
+    Route::delete('/marketing-links/{marketingLink}', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'destroy'])->name('marketing-links.destroy');
+    Route::post('/platform-alerts/test', [SuperAdminDashboardController::class, 'sendPlatformAlertTest'])->name('platform-alerts.test');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
     Route::get('/errors/feed', [SuperAdminDashboardController::class, 'errorsFeed'])->name('errors.feed');

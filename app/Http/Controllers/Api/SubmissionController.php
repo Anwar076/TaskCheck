@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\MetricValidationHelper;
 use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -72,6 +73,13 @@ class SubmissionController extends Controller
             $submissions->getCollection()->transform(function ($submission) {
                 $totalTasks = $submission->submissionTasks->count();
                 $completedTasks = $submission->submissionTasks->where('status', 'completed')->count();
+                $hasMetricDeviation = $submission->submissionTasks->contains(function ($submissionTask) {
+                    $rules = is_array($submissionTask->task->validation_rules)
+                        ? $submissionTask->task->validation_rules
+                        : null;
+
+                    return MetricValidationHelper::isDeviation($rules, $submissionTask->proof_text);
+                });
                 
                 $submission->progress_percentage = $totalTasks > 0 
                     ? round(($completedTasks / $totalTasks) * 100) 
@@ -79,6 +87,7 @@ class SubmissionController extends Controller
                     
                 $submission->total_tasks = $totalTasks;
                 $submission->completed_tasks = $completedTasks;
+                $submission->has_metric_deviation = $hasMetricDeviation;
                 
                 return $submission;
             });
