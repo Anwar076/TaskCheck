@@ -101,6 +101,27 @@ Route::get('/blog/nvwa-spoedsluitingen-plaagdieren-2026', function () {
     return view('blog.nvwa-spoedsluitingen-plaagdieren-2026');
 })->name('blog.nvwa-spoedsluitingen-plaagdieren-2026');
 
+Route::get('/haccp-app', function () {
+    return view('seo.haccp-app');
+})->name('seo.haccp-app');
+Route::get('/haccp-checklist-app', function () {
+    return view('seo.haccp-checklist-app');
+})->name('seo.haccp-checklist-app');
+Route::get('/digitale-haccp-registratie', function () {
+    return view('seo.digitale-haccp-registratie');
+})->name('seo.digitale-haccp-registratie');
+Route::redirect('/sluitingschecklist-horeca', '/sluitings-checklist-horeca', 301);
+Route::get('/temperatuurregistratie-horeca', function () {
+    return view('seo.temperatuurregistratie-horeca');
+})->name('seo.temperatuurregistratie-horeca');
+Route::get('/schoonmaakrooster-horeca', function () {
+    return view('seo.coming-soon', [
+        'seoTitle' => 'Schoonmaakrooster horeca | TaskCheck',
+        'seoDescription' => 'Digitaal schoonmaakrooster voor horeca — binnenkort beschikbaar. Beheer schoonmaaktaken en bewijs met TaskCheck.',
+        'seoUrl' => route('seo.schoonmaakrooster-horeca'),
+        'pageTitle' => 'Schoonmaakrooster horeca',
+    ]);
+})->name('seo.schoonmaakrooster-horeca');
 Route::get('/horeca-checklist-app', function () {
     return view('seo.horeca-checklist-app');
 })->name('seo.horeca-checklist-app');
@@ -119,6 +140,33 @@ Route::get('/checklist-app-voor-bedrijven', function () {
 Route::get('/wat-is-een-checklist-app', function () {
     return view('seo.wat-is-een-checklist-app');
 })->name('seo.wat-is-een-checklist-app');
+Route::get('/schoonmaak-checklist', function () {
+    return view('seo.schoonmaak-checklist');
+})->name('seo.schoonmaak-checklist');
+Route::get('/schoonmaak-controle-app', function () {
+    return view('seo.coming-soon', [
+        'seoTitle' => 'Schoonmaak controle app | TaskCheck',
+        'seoDescription' => 'Schoonmaak controle app — binnenkort beschikbaar. Controleer schoonmaakwerkzaamheden digitaal met TaskCheck.',
+        'seoUrl' => route('seo.schoonmaak-controle-app'),
+        'pageTitle' => 'Schoonmaak controle app',
+    ]);
+})->name('seo.schoonmaak-controle-app');
+Route::get('/checklist-app-met-foto-bewijs', function () {
+    return view('seo.coming-soon', [
+        'seoTitle' => 'Checklist app met foto bewijs | TaskCheck',
+        'seoDescription' => 'Checklist app met foto bewijs — binnenkort beschikbaar. Leg werkzaamheden aantoonbaar vast met TaskCheck.',
+        'seoUrl' => route('seo.checklist-app-met-foto-bewijs'),
+        'pageTitle' => 'Checklist app met foto bewijs',
+    ]);
+})->name('seo.checklist-app-met-foto-bewijs');
+Route::get('/digitale-checklist-app', function () {
+    return view('seo.coming-soon', [
+        'seoTitle' => 'Digitale checklist app | TaskCheck',
+        'seoDescription' => 'Digitale checklist app — binnenkort beschikbaar. Werk met digitale checklists en bewijs per taak via TaskCheck.',
+        'seoUrl' => route('seo.digitale-checklist-app'),
+        'pageTitle' => 'Digitale checklist app',
+    ]);
+})->name('seo.digitale-checklist-app');
 Route::get('/checklist-app-schoonmaak', function () {
     return view('seo.checklist-app-schoonmaak');
 })->name('seo.checklist-app-schoonmaak');

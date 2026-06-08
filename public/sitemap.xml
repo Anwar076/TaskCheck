@@ -2,121 +2,161 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://taskcheck.nl/</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://taskcheck.nl/pricing</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://taskcheck.nl/contact</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/about</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://taskcheck.nl/blog</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- HACCP & voedselveiligheid -->
+  <url>
+    <loc>https://taskcheck.nl/haccp-app</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/haccp-checklist-app</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/digitale-haccp-registratie</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/temperatuurregistratie-horeca</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Horeca checklists -->
   <url>
     <loc>https://taskcheck.nl/horeca-checklist-app</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/werkcontrole-app</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/takenlijst-personeel</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://taskcheck.nl/horeca-app-personeel</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://taskcheck.nl/checklist-app-voor-bedrijven</loc>
-    <lastmod>2026-04-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/wat-is-een-checklist-app</loc>
-    <lastmod>2026-04-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/checklist-app-schoonmaak</loc>
-    <lastmod>2026-04-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/beste-checklist-app-2026</loc>
-    <lastmod>2026-04-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/blog/horeca-personeel-controleren-checklist-app</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/blog/beste-checklist-app-voor-schoonmaakbedrijven</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://taskcheck.nl/blog/waarom-bedrijven-stoppen-met-excel-checklists</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://taskcheck.nl/opening-checklist-horeca</loc>
-    <lastmod>2026-05-09</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://taskcheck.nl/sluitings-checklist-horeca</loc>
-    <lastmod>2026-05-09</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- Schoonmaak -->
+  <url>
+    <loc>https://taskcheck.nl/schoonmaak-checklist</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/checklist-app-schoonmaak</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://taskcheck.nl/schoonmaak-checklist-voorbeeld</loc>
-    <lastmod>2026-05-09</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Checklist & werkcontrole -->
+  <url>
+    <loc>https://taskcheck.nl/checklist-app-voor-bedrijven</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/wat-is-een-checklist-app</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/beste-checklist-app-2026</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/werkcontrole-app</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/takenlijst-personeel</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Blog -->
+  <url>
+    <loc>https://taskcheck.nl/blog/horeca-personeel-controleren-checklist-app</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/blog/beste-checklist-app-voor-schoonmaakbedrijven</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/blog/waarom-bedrijven-stoppen-met-excel-checklists</loc>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url>
     <loc>https://taskcheck.nl/blog/waarom-horeca-stopt-met-papieren-checklists</loc>
-    <lastmod>2026-05-09</lastmod>
+    <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/blog/nvwa-spoedsluitingen-plaagdieren-2026</loc>
+    <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
