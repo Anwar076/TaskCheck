@@ -25,16 +25,16 @@ class CompanyUsageService
         $since7 = $now->copy()->subDays(7);
         $since30 = $now->copy()->subDays(30);
 
-        $listStats = TaskList::query()
+        // Super admins have company_id set; TaskList global scope would hide other tenants.
+        $listStats = TaskList::withoutGlobalScopes()
             ->whereIn('company_id', $companyIds)
             ->where(function ($q) {
                 $q->where('is_template', false)->orWhereNull('is_template');
             })
-            ->whereNull('parent_list_id')
             ->groupBy('company_id')
             ->selectRaw('company_id')
-            ->selectRaw('COUNT(*) as task_lists_count')
-            ->selectRaw('SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_lists_count')
+            ->selectRaw('COUNT(DISTINCT COALESCE(parent_list_id, id)) as task_lists_count')
+            ->selectRaw('COUNT(DISTINCT CASE WHEN is_active = 1 THEN COALESCE(parent_list_id, id) END) as active_lists_count')
             ->get()
             ->keyBy('company_id');
 
@@ -61,7 +61,7 @@ class CompanyUsageService
             ->get()
             ->keyBy('company_id');
 
-        $submissionRows = Submission::query()
+        $submissionRows = Submission::withoutGlobalScopes()
             ->whereIn('company_id', $companyIds)
             ->groupBy('company_id')
             ->selectRaw('company_id')
@@ -73,7 +73,7 @@ class CompanyUsageService
             ->get()
             ->keyBy('company_id');
 
-        $activeUsers = Submission::query()
+        $activeUsers = Submission::withoutGlobalScopes()
             ->whereIn('company_id', $companyIds)
             ->where('updated_at', '>=', $since30)
             ->groupBy('company_id')
@@ -100,11 +100,15 @@ class CompanyUsageService
                 ? Carbon::parse($subs->last_activity_at)
                 : null;
 
+            $assignedListsCount = (int) ($assignments?->assigned_lists_count ?? 0);
+            $tasksCount = (int) ($tasks?->tasks_count ?? 0);
+
             $engagement = $this->resolveEngagement(
-                $taskListsCount,
+                max($taskListsCount, $assignedListsCount),
                 $submissionsTotal,
                 $submissions7d,
-                $submissions30d
+                $submissions30d,
+                $tasksCount
             );
 
             $result[$companyId] = [
@@ -196,10 +200,14 @@ class CompanyUsageService
     /**
      * @return array{key: string, label: string, color: string}
      */
-    private function resolveEngagement(int $lists, int $total, int $last7, int $last30): array
+    private function resolveEngagement(int $lists, int $total, int $last7, int $last30, int $tasks = 0): array
     {
-        if ($lists === 0) {
+        if ($lists === 0 && $tasks === 0) {
             return ['key' => 'inactive', 'label' => 'Geen lijsten', 'color' => 'slate'];
+        }
+
+        if ($lists === 0 && $tasks > 0) {
+            return ['key' => 'not_started', 'label' => 'Nog geen gebruik', 'color' => 'amber'];
         }
 
         if ($total === 0) {
