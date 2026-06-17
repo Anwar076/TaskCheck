@@ -74,7 +74,7 @@
 
         <h2>Wat een checklist app anders doet</h2>
         <p>Een checklist app vervangt niet alleen een spreadsheet, maar verandert hoe teams samenwerken. Taken krijgen eigenaarschap, deadlines en bewijsregels. Managers zien status per team, locatie en proces. Medewerkers hebben duidelijke instructies op mobiel.</p>
-        <p>Daardoor wordt werkcontrole onderdeel van de dagelijkse operatie in plaats van een losse administratieve stap. Voor sectoren zoals horeca en schoonmaak is dit extra waardevol: je werkt met hoge frequentie, strakke timing en direct klantcontact. Kleine fouten hebben snel impact.</p>
+        <p>Daardoor wordt werkcontrole onderdeel van de dagelijkse operatie in plaats van een losse administratieve stap. Voor sectoren zoals <a href="{{ route('seo.horeca-app') }}">horeca</a> en <a href="{{ route('seo.app-schoonmaakbedrijf') }}">schoonmaak</a> is dit extra waardevol: je werkt met hoge frequentie, strakke timing en direct klantcontact. Kleine fouten hebben snel impact.</p>
 
         <h2>Wanneer is overstappen slim?</h2>
         <p>Er zijn duidelijke signalen dat Excel niet meer past bij je operatie:</p>
@@ -104,9 +104,17 @@
 
         <h2>Conclusie</h2>
         <p>Excel is uitstekend voor analyses en planning, maar minder geschikt als dagelijks uitvoeringssysteem voor teams. Een checklist app biedt realtime status, bewijs, opvolging en schaalbaarheid. Daarom stappen steeds meer organisaties over zodra processen complexer worden of kwaliteitsdruk toeneemt.</p>
-        <p>Wil je de overstap slim aanpakken? Bekijk onze pagina's over <a href="{{ route('seo.werkcontrole-app') }}">werkcontrole app</a> en <a href="{{ route('seo.takenlijst-personeel') }}">takenlijst personeel</a>, en check daarna de <a href="{{ route('pricing') }}">prijzen</a> om direct te starten met een proefperiode.</p>
+        <p>Wil je de overstap slim aanpakken? Bekijk onze pagina's over <a href="{{ route('seo.werkcontrole-app') }}">werkcontrole app</a>, <a href="{{ route('seo.takenlijst-personeel') }}">takenlijst personeel</a> en <a href="{{ route('seo.checklist-app-voor-bedrijven') }}">checklist app voor bedrijven</a>, en check daarna de <a href="{{ route('pricing') }}">prijzen</a> om direct te starten met een proefperiode.</p>
 
     </article>
+
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            ['Checklist App Voor Bedrijven', 'Digitale checklists voor operationele teams.', 'seo.checklist-app-voor-bedrijven'],
+            ['Werkcontrole App', 'Live status en kwaliteitscontrole per locatie.', 'seo.werkcontrole-app'],
+            ['Takenlijst Personeel', 'Heldere takenlijsten per shift en medewerker.', 'seo.takenlijst-personeel'],
+        ],
+    ])
 
     {{-- DIVIDER --}}
     <div class="border-t border-slate-100 my-12"></div>

@@ -53,7 +53,7 @@
 
         <h2>Waarom een schoonmaakbedrijf een gespecialiseerde checklist app nodig heeft</h2>
         <p>In de praktijk werken veel schoonmaakteams nog met papieren rondelijsten of Excel-bestanden. Dat lijkt eenvoudig, maar bij meerdere panden, verschillende frequenties en wisselende teams ontstaat snel ruis. Taken verdwijnen tussen shifts, kwaliteitsissues worden te laat ontdekt en rapportages kosten veel handmatig werk.</p>
-        <p>Daarom zoeken steeds meer organisaties naar de beste checklist app voor schoonmaakbedrijven: een oplossing die niet alleen taken toont, maar ook controle, bewijs en opvolging combineert. Een goede werkcontrole app voor schoonmaak moet passen bij operationeel werk op locatie — mobiel gebruiken, snel afvinken, foto's toevoegen en direct laten zien wat nog openstaat.</p>
+        <p>Daarom zoeken steeds meer organisaties naar de beste checklist app voor schoonmaakbedrijven: een oplossing die niet alleen taken toont, maar ook controle, bewijs en opvolging combineert. Een goede <a href="{{ route('seo.app-schoonmaakbedrijf') }}">app voor schoonmaakbedrijven</a> moet passen bij operationeel werk op locatie — mobiel gebruiken, snel afvinken, foto's toevoegen en direct laten zien wat nog openstaat.</p>
 
         <h2>De 7 functies die echt verschil maken</h2>
 
@@ -93,9 +93,17 @@
 
         <h2>Conclusie: kies op operationele waarde, niet op features alleen</h2>
         <p>De beste checklist app voor schoonmaakbedrijven is de app die dagelijkse uitvoering aantoonbaar beter maakt. Denk in operationele termen: minder gemiste taken, betere bewijsvoering, snellere opvolging en hogere klanttevredenheid. Als je die resultaten verbetert, volgt de rest vanzelf.</p>
-        <p>Wil je direct kijken welke aanpak past bij jouw teams? Bekijk onze pagina <a href="{{ route('seo.checklist-app-schoonmaak') }}">checklist app schoonmaak</a>, lees ook over <a href="{{ route('seo.werkcontrole-app') }}">werkcontrole app</a> toepassingen en start via de <a href="{{ route('pricing') }}">prijzenpagina</a> met een proefperiode.</p>
+        <p>Wil je direct kijken welke aanpak past bij jouw teams? Bekijk onze <a href="{{ route('seo.app-schoonmaakbedrijf') }}">app schoonmaakbedrijf</a>, <a href="{{ route('seo.schoonmaak-checklist') }}">schoonmaak checklist</a>, <a href="{{ route('seo.checklist-app-schoonmaak') }}">checklist app schoonmaak</a> en <a href="{{ route('seo.werkcontrole-app') }}">werkcontrole app</a>, en start via de <a href="{{ route('pricing') }}">prijzenpagina</a> met een proefperiode.</p>
 
     </article>
+
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            ['App Schoonmaakbedrijf', 'Werkcontrole, foto bewijs en rapportages voor teams.', 'seo.app-schoonmaakbedrijf'],
+            ['Schoonmaak Checklist', 'Digitale checklists per locatie en objecttype.', 'seo.schoonmaak-checklist'],
+            ['Werkcontrole App', 'Realtime overzicht en kwaliteitscontrole op locatie.', 'seo.werkcontrole-app'],
+        ],
+    ])
 
     {{-- DIVIDER --}}
     <div class="border-t border-slate-100 my-12"></div>

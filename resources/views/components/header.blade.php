@@ -4,13 +4,13 @@
         <div class="flex justify-between items-center h-20 sm:h-24">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 <img
-                    src="{{ asset('logos/taskcheck-logo.svg') }}"
-                    alt="TaskCheck logo"
-                    width="320"
-                    height="96"
+                    src="{{ asset('logos/taskcheck-logo.png') }}"
+                    alt="TaskCheck — Maak elke controle aantoonbaar"
+                    width="640"
+                    height="160"
                     fetchpriority="high"
                     decoding="async"
-                    class="h-16 sm:h-20 w-auto shrink-0 transition-transform group-hover:scale-[1.03]"
+                    class="h-16 sm:h-20 w-auto shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03]"
                 >
             </a>
 

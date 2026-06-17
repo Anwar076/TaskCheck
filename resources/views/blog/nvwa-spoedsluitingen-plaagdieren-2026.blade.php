@@ -98,15 +98,23 @@
 
         <div class="callout">
             <p class="font-semibold text-slate-900 mb-1">Wat betekent dit voor jouw operationeel proces?</p>
-            <p>Plaagdierbeheer en hygiëne horen vast te zitten in je dagelijkse routines: denk aan schoonmaak na sluiting, correcte opslag, afvalstromen en vastlegging van controles. Met vaste digitale checklists en bewijs per ronde maak je aantoonbaar dat je het proces serieus neemt — handig bij interne kwaliteit en als je moet verantwoorden wat er wél gedaan wordt om risico’s te beperken.</p>
+            <p>Plaagdierbeheer en hygiëne horen vast te zitten in je dagelijkse routines: denk aan schoonmaak na sluiting, correcte opslag, afvalstromen en vastlegging van controles. Met vaste <a href="{{ route('seo.restaurant-checklist-app') }}">digitale checklists</a>, <a href="{{ route('seo.haccp-formulieren') }}">HACCP formulieren</a> en bewijs per ronde maak je aantoonbaar dat je het proces serieus neemt — handig bij interne kwaliteit en als je moet verantwoorden wat er wél gedaan wordt om risico’s te beperken.</p>
         </div>
 
         <h2>Meer informatie bij de NVWA</h2>
         <p>Consumenten en bedrijven kunnen contact opnemen met het Klantcontactcentrum van de NVWA. Journalisten kunnen voor vragen over dit soort nieuwsberichten terecht bij de persvoorlichters van de NVWA — zie <a href="https://www.nvwa.nl/" rel="noopener noreferrer" target="_blank">nvwa.nl</a> voor actuele contactgegevens en publicaties.</p>
 
-        <p>Zoals altijd: bij twijfel voor interpretatie van regelgeving of maatregelen is de NVWA of een gespecialiseerde adviseur leidend; dit blogartikel is geen juridisch advies.</p>
+        <p>Zoals altijd: bij twijfel voor interpretatie van regelgeving of maatregelen is de NVWA of een gespecialiseerde adviseur leidend; dit blogartikel is geen juridisch advies. Lees ook onze pagina's over de <a href="{{ route('seo.horeca-app') }}">horeca app</a> en <a href="{{ route('seo.opening-checklist-horeca') }}">opening checklist horeca</a>.</p>
 
     </article>
+
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            ['Horeca App', 'Hygiëne, checklists en werkcontrole voor horeca.', 'seo.horeca-app'],
+            ['HACCP Formulieren', 'Digitale registratie voor voedselveiligheid.', 'seo.haccp-formulieren'],
+            ['Restaurant Checklist App', 'Opening, sluiting en hygiënerondes vastleggen.', 'seo.restaurant-checklist-app'],
+        ],
+    ])
 
     <div class="border-t border-slate-100 my-12"></div>
 

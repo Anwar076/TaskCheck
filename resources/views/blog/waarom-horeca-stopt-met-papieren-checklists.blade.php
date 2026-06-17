@@ -72,7 +72,7 @@
 
         <p>Een gemiste taak op de checklist lijkt klein. Maar de gevolgen kunnen groot zijn.</p>
 
-        <p>Stel: een medewerker vergeet de koeltemperatuur te noteren. Als er de volgende dag een klacht is over een product, heb je niks om op terug te vallen. Geen bewijs, geen registratie. Bij een HACCP-controle is dat een serieus probleem.</p>
+        <p>Stel: een medewerker vergeet de koeltemperatuur te noteren. Als er de volgende dag een klacht is over een product, heb je niks om op terug te vallen. Geen bewijs, geen registratie. Bij een HACCP-controle is dat een serieus probleem. Met een <a href="{{ route('seo.temperatuurregistratie-app') }}">temperatuurregistratie app</a> of <a href="{{ route('seo.haccp-formulieren') }}">digitale HACCP formulieren</a> voorkom je dat.</p>
 
         <p>Of een andere situatie: de manager werkt niet die avond. De sluiting wordt overhaast gedaan. Alarm staat niet aan, terras is niet afgesloten, kassa klopt niet. De volgende ochtend begint met opruimen in plaats van openingsmaken.</p>
 
@@ -116,7 +116,7 @@
 
         <p>TaskCheck werkt voor restaurants, cafés, hotels, cateringbedrijven en horecaketens. Klein team of groot — de app schaalt mee zonder dat het ingewikkelder wordt.</p>
 
-        <p>Bekijk ook onze pagina over de <a href="{{ route('seo.horeca-checklist-app') }}">horeca checklist app</a> of lees meer over de <a href="{{ route('seo.opening-checklist-horeca') }}">opening checklist horeca</a> en de <a href="{{ route('seo.sluitings-checklist-horeca') }}">sluitings checklist horeca</a>.</p>
+        <p>Bekijk ook onze <a href="{{ route('seo.horeca-app') }}">horeca app</a>, de pagina over de <a href="{{ route('seo.restaurant-checklist-app') }}">restaurant checklist app</a>, <a href="{{ route('seo.horeca-checklist-app') }}">horeca checklist app</a>, <a href="{{ route('seo.opening-checklist-horeca') }}">opening checklist horeca</a> en de <a href="{{ route('seo.sluitings-checklist-horeca') }}">sluitings checklist horeca</a>.</p>
 
         <h2>Conclusie</h2>
 
@@ -127,6 +127,14 @@
         <p>Een digitale checklist is daarvoor een simpele en betaalbare stap. Je hoeft niet alles in één keer om te gooien. Begin met één lijst — de opening of de sluiting — en merk zelf het verschil.</p>
 
     </article>
+
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            ['Horeca App', 'Checklists, werkcontrole en HACCP voor horeca teams.', 'seo.horeca-app'],
+            ['Restaurant Checklist App', 'Opening, sluiting en HACCP digitaal afvinken.', 'seo.restaurant-checklist-app'],
+            ['HACCP Formulieren', 'Papieren formulieren vervangen door digitale registratie.', 'seo.haccp-formulieren'],
+        ],
+    ])
 
     {{-- DIVIDER --}}
     <div class="border-t border-slate-100 my-12"></div>

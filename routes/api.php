@@ -123,6 +123,7 @@ Route::prefix('mobile')->group(function () {
             Route::post('/task-lists', [MobileAdminTaskListController::class, 'store']);
             Route::get('/task-lists/{id}', [MobileAdminTaskListController::class, 'show']);
             Route::put('/task-lists/{id}', [MobileAdminTaskListController::class, 'update']);
+            Route::delete('/task-lists/{id}', [MobileAdminTaskListController::class, 'destroy']);
             Route::post('/task-lists/{id}/assign', [MobileAdminTaskListController::class, 'assign']);
 
             Route::post('/task-lists/{listId}/tasks', [MobileAdminTaskController::class, 'store']);

@@ -343,6 +343,37 @@
     </div>
 </section>
 {{-- ══════════════════════════════════════
+     POPULAIRE OPLOSSINGEN
+══════════════════════════════════════ --}}
+<section class="py-14 sm:py-20 lg:py-24 bg-white border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-xl mb-10 sm:mb-14 fade-up">
+            <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Populaire oplossingen</p>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Kies de oplossing voor jouw team</h2>
+            <p class="mt-4 text-slate-500 text-lg">Direct naar onze meest bezochte pagina&rsquo;s voor horeca en schoonmaak.</p>
+        </div>
+        <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+            @foreach([
+                ['Horeca App', 'Personeel, checklists en werkcontrole voor restaurants en cafés.', 'seo.horeca-app', '#2563eb'],
+                ['Restaurant Checklist App', 'Opening, sluiting en HACCP digitaal afvinken.', 'seo.restaurant-checklist-app', '#4f46e5'],
+                ['HACCP Formulieren', 'Stop met papier — registreer controles digitaal.', 'seo.haccp-formulieren', '#059669'],
+                ['Temperatuurregistratie App', 'Koeling, vriezer en producten met foto bewijs.', 'seo.temperatuurregistratie-app', '#0891b2'],
+                ['App Schoonmaakbedrijf', 'Werkcontrole en rapportages voor schoonmaakteams.', 'seo.app-schoonmaakbedrijf', '#0d9488'],
+            ] as [$title, $desc, $route, $col])
+            <div class="s-item flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all">
+                <h3 class="font-extrabold text-slate-900 text-base leading-snug">{{ $title }}</h3>
+                <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">{{ $desc }}</p>
+                <a href="{{ route($route) }}"
+                   class="cta-btn mt-5 inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-all touch-manipulation">
+                    Bekijk oplossing
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+{{-- ══════════════════════════════════════
      VERGELIJKING
 ══════════════════════════════════════ --}}
 <section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-y border-slate-100">

@@ -100,6 +100,9 @@ Route::get('/blog/waarom-horeca-stopt-met-papieren-checklists', function () {
 Route::get('/blog/nvwa-spoedsluitingen-plaagdieren-2026', function () {
     return view('blog.nvwa-spoedsluitingen-plaagdieren-2026');
 })->name('blog.nvwa-spoedsluitingen-plaagdieren-2026');
+Route::get('/blog/waarom-restaurants-steeds-vaker-werken-met-digitale-checklists', function () {
+    return view('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
+})->name('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
 
 Route::get('/haccp-app', function () {
     return view('seo.haccp-app');
@@ -110,10 +113,16 @@ Route::get('/haccp-checklist-app', function () {
 Route::get('/digitale-haccp-registratie', function () {
     return view('seo.digitale-haccp-registratie');
 })->name('seo.digitale-haccp-registratie');
+Route::get('/haccp-formulieren', function () {
+    return view('seo.haccp-formulieren');
+})->name('seo.haccp-formulieren');
 Route::redirect('/sluitingschecklist-horeca', '/sluitings-checklist-horeca', 301);
 Route::get('/temperatuurregistratie-horeca', function () {
     return view('seo.temperatuurregistratie-horeca');
 })->name('seo.temperatuurregistratie-horeca');
+Route::get('/temperatuurregistratie-app', function () {
+    return view('seo.temperatuurregistratie-app');
+})->name('seo.temperatuurregistratie-app');
 Route::get('/schoonmaakrooster-horeca', function () {
     return view('seo.coming-soon', [
         'seoTitle' => 'Schoonmaakrooster horeca | TaskCheck',
@@ -125,6 +134,15 @@ Route::get('/schoonmaakrooster-horeca', function () {
 Route::get('/horeca-checklist-app', function () {
     return view('seo.horeca-checklist-app');
 })->name('seo.horeca-checklist-app');
+Route::get('/horeca-app', function () {
+    return view('seo.horeca-app');
+})->name('seo.horeca-app');
+Route::get('/restaurant-checklist-app', function () {
+    return view('seo.restaurant-checklist-app');
+})->name('seo.restaurant-checklist-app');
+Route::get('/mise-en-place-lijst-maken', function () {
+    return view('seo.mise-en-place-lijst-maken');
+})->name('seo.mise-en-place-lijst-maken');
 Route::get('/schoonmaak-checklist-app', function () {
     return redirect()->route('seo.checklist-app-schoonmaak', [], 301);
 })->name('seo.schoonmaak-checklist-app');
@@ -170,6 +188,9 @@ Route::get('/digitale-checklist-app', function () {
 Route::get('/checklist-app-schoonmaak', function () {
     return view('seo.checklist-app-schoonmaak');
 })->name('seo.checklist-app-schoonmaak');
+Route::get('/app-schoonmaakbedrijf', function () {
+    return view('seo.app-schoonmaakbedrijf');
+})->name('seo.app-schoonmaakbedrijf');
 Route::get('/beste-checklist-app-2026', function () {
     return view('seo.beste-checklist-app-2026');
 })->name('seo.beste-checklist-app-2026');

@@ -52,7 +52,7 @@
     <article class="prose-article">
 
         <h2>Waarom traditionele controles in horeca tekortschieten</h2>
-        <p>In veel restaurants wordt nog gewerkt met losse papieren lijstjes, mondelinge afspraken en WhatsApp-berichten. Dat werkt zolang het team klein is en iedereen hetzelfde ritme heeft. Maar zodra je meerdere shifts draait, met parttimers werkt of meerdere locaties hebt, sluipen fouten snel naar binnen. Denk aan koelingen die niet op tijd worden gecontroleerd, schoonmaakrondes die half worden uitgevoerd of mise en place die niet compleet is voor de avondspits.</p>
+        <p>In veel restaurants wordt nog gewerkt met losse papieren lijstjes, mondelinge afspraken en WhatsApp-berichten. Dat werkt zolang het team klein is en iedereen hetzelfde ritme heeft. Maar zodra je meerdere shifts draait, met parttimers werkt of meerdere locaties hebt, sluipen fouten snel naar binnen. Denk aan koelingen die niet op tijd worden gecontroleerd, schoonmaakrondes die half worden uitgevoerd of <a href="{{ route('seo.mise-en-place-lijst-maken') }}">mise en place</a> die niet compleet is voor de avondspits.</p>
         <p>Het gevolg is altijd hetzelfde: stress, extra herstelwerk en discussie achteraf over wie wat had moeten doen. Met een goede checklist app voor bedrijven voorkom je dat. Je maakt taken zichtbaar, koppelt deadlines aan verantwoordelijkheden en ziet live welke controles al gedaan zijn.</p>
 
         <h2>Zo richt je een takenlijst personeel in per shift</h2>
@@ -81,7 +81,7 @@
         </div>
 
         <h2>Bewijs verzamelen is cruciaal voor kwaliteit en audits</h2>
-        <p>Voor horeca is bewijs per taak geen luxe, maar noodzaak. Bij interne kwaliteitscontroles en externe audits wil je kunnen aantonen dat processen zijn gevolgd. Met foto- en videobewijs bouw je automatisch een dossier op. Denk aan schoonmaak na sluiting, temperatuurmetingen of controle van allergeneninformatie.</p>
+        <p>Voor horeca is bewijs per taak geen luxe, maar noodzaak. Bij interne kwaliteitscontroles en externe audits wil je kunnen aantonen dat processen zijn gevolgd. Met foto- en videobewijs bouw je automatisch een dossier op. Denk aan schoonmaak na sluiting, <a href="{{ route('seo.temperatuurregistratie-app') }}">temperatuurmetingen</a> of controle van allergeneninformatie.</p>
         <p>Een digitale checklist app koppelt bewijs direct aan taak, datum en medewerker. Daardoor kun je snel terugzoeken. Dat bespaart tijd bij incidenten en maakt rapporteren richting management eenvoudiger.</p>
 
         <h2>Van losse taken naar een schaalbaar horecaproces</h2>
@@ -93,9 +93,17 @@
 
         <h2>Conclusie</h2>
         <p>Wie horeca personeel beter wil controleren, moet zorgen voor duidelijkheid en opvolging. Een checklist app maakt taken zichtbaar, structureert verantwoordelijkheid en levert bewijs dat je direct kunt gebruiken voor kwaliteitsbewaking. Het resultaat: minder chaos, minder discussies en een team dat consistenter presteert, ook op drukke dagen.</p>
-        <p>Wil je dit praktisch toepassen? Bekijk dan ook onze pagina <a href="{{ route('seo.horeca-checklist-app') }}">horeca checklist app</a> en vergelijk plannen op de <a href="{{ route('pricing') }}">prijzenpagina</a>.</p>
+        <p>Wil je dit praktisch toepassen? Bekijk dan onze <a href="{{ route('seo.horeca-app') }}">horeca app</a>, <a href="{{ route('seo.horeca-checklist-app') }}">horeca checklist app</a> en <a href="{{ route('seo.horeca-app-personeel') }}">horeca app personeel</a>, en vergelijk plannen op de <a href="{{ route('pricing') }}">prijzenpagina</a>.</p>
 
     </article>
+
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            ['Horeca App', 'Personeel, checklists en werkcontrole in één app.', 'seo.horeca-app'],
+            ['Restaurant Checklist App', 'Opening, sluiting en HACCP per shift.', 'seo.restaurant-checklist-app'],
+            ['Temperatuurregistratie App', 'Koeling en vriezer met foto bewijs registreren.', 'seo.temperatuurregistratie-app'],
+        ],
+    ])
 
     {{-- DIVIDER --}}
     <div class="border-t border-slate-100 my-12"></div>
