@@ -32,26 +32,27 @@
         @csrf
 
         <div>
-            <label for="name" class="mb-1.5 block text-sm font-medium text-slate-700">Naam locatie</label>
+            <x-form-label for="name" help="Bijv. Hoofdvestiging of Filiaal Amsterdam. Deze naam zie je bij lijsten en gebruikers.">Naam locatie</x-form-label>
             <input id="name" name="name" type="text" value="{{ old('name') }}" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
             @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
         <div>
-            <label for="address" class="mb-1.5 block text-sm font-medium text-slate-700">Adres</label>
+            <x-form-label for="address" help="Het fysieke adres van deze vestiging.">Adres</x-form-label>
             <input id="address" name="address" type="text" value="{{ old('address') }}" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
             @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
         <div>
-            <label for="notes" class="mb-1.5 block text-sm font-medium text-slate-700">Notities</label>
+            <x-form-label for="notes" help="Extra informatie over deze locatie, alleen zichtbaar voor beheerders.">Notities</x-form-label>
             <textarea id="notes" name="notes" rows="4" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">{{ old('notes') }}</textarea>
             @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
         <label class="flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" name="is_active" value="1" checked class="rounded border-slate-300 text-blue-600">
-            Actief
+            <span>Actief</span>
+            <x-field-help>Alleen actieve locaties kun je koppelen aan lijsten en gebruikers.</x-field-help>
         </label>
 
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">

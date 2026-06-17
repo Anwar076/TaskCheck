@@ -137,280 +137,19 @@
             </div>
         </div>
 
-        @if(in_array($list->schedule_type, ['daily', 'weekly', 'custom']))
-            {{-- Agenda-overzicht --}}
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
-                <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">
-                                @if($list->schedule_type === 'daily')
-                                    Dagelijkse planning
-                                @elseif($list->schedule_type === 'weekly')
-                                    Wekelijkse planning
-                                @else
-                                    Aangepaste planning
-                                @endif
-                            </h2>
-                            <p class="text-sm text-slate-600">
-                                @if($list->schedule_type === 'daily')
-                                    Deze lijst verschijnt elke dag. Taken kunnen per weekdag worden toegewezen.
-                                @elseif($list->schedule_type === 'weekly')
-                                    @php $showOnDays = $list->getShowOnDays(); $dayLabels = ['monday'=>'Ma','tuesday'=>'Di','wednesday'=>'Wo','thursday'=>'Do','friday'=>'Vr','saturday'=>'Za','sunday'=>'Zo']; @endphp
-                                    Dagen: {{ implode(', ', array_map(fn($d) => $dayLabels[$d] ?? ucfirst($d), $showOnDays)) }}
-                                @else
-                                    Aangepaste planningconfiguratie.
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-                    <a href="{{ route('admin.lists.edit', $list) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                        Planning bewerken
-                    </a>
-                </div>
-                    
-                <div class="p-6">
-                    @php
-                        $weekdays = ['monday' => 'Ma', 'tuesday' => 'Di', 'wednesday' => 'Wo', 'thursday' => 'Do', 'friday' => 'Vr', 'saturday' => 'Za', 'sunday' => 'Zo'];
-                        $showOnDays = $list->getShowOnDays();
-                        $tasksByDay = [];
-                        $generalTasks = [];
-                        foreach ($list->tasks as $task) {
-                            if ($task->weekday) {
-                                if (!isset($tasksByDay[$task->weekday])) $tasksByDay[$task->weekday] = [];
-                                $tasksByDay[$task->weekday][] = $task;
-                            } else {
-                                $generalTasks[] = $task;
-                            }
-                        }
-                    @endphp
+        @include('admin.lists.partials.task-calendar', [
+            'list' => $list,
+            'calendar' => $calendar,
+            'calendarView' => $calendarView,
+            'selectedDay' => $selectedDay,
+            'miniMonth' => $miniMonth,
+            'weekStart' => $weekStart,
+        ])
 
-                    <div class="p-4 sm:p-6">
-                    <div class="bg-slate-50 rounded-xl p-4 sm:p-5 mb-6 border border-slate-100">
-                        <h4 class="text-sm font-semibold text-slate-900 mb-3">Overzicht dagen</h4>
-                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4">
-                            @foreach($weekdays as $dayKey => $dayLabel)
-                                @php
-                                    $isActive = in_array($dayKey, $showOnDays);
-                                    $tasksForDay = $tasksByDay[$dayKey] ?? [];
-                                    $taskCount = count($tasksForDay);
-                                @endphp
-                                <div class="relative flex flex-col items-center p-2 sm:p-3 rounded-xl border-2 transition-colors
-                                    @if($isActive) border-blue-300 bg-blue-50 @else border-slate-200 bg-slate-50 @endif">
-                                    <div class="relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1
-                                        @if($isActive) bg-blue-600 @else bg-slate-400 @endif">
-                                        <span class="text-white font-bold text-xs">{{ $dayLabel }}</span>
-                                        @if($taskCount > 0)
-                                            <span class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 bg-amber-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">{{ $taskCount }}</span>
-                                        @endif
-                                    </div>
-                                    @if($isActive && $taskCount > 0)
-                                        <span class="text-[10px] text-slate-600">{{ $taskCount }} taak{{ $taskCount > 1 ? 'en' : '' }}</span>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                        <p class="text-sm text-slate-600">{{ $list->tasks->count() }} taken totaal ({{ count($generalTasks) }} algemeen, {{ $list->tasks->whereNotNull('weekday')->count() }} per dag)</p>
-                    </div>
-
-                    <div class="space-y-6">
-                        @if(count($generalTasks) > 0)
-                            <div class="bg-slate-50 rounded-xl p-4 sm:p-6 border border-slate-100">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h4 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                                        <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        </div>
-                                        Algemene taken (elke dag)
-                                    </h4>
-                                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-medium">{{ count($generalTasks) }} taken</span>
-                                </div>
-                                <div id="sortable-general-tasks" class="space-y-3">
-                                    @foreach($generalTasks as $task)
-                                        <div class="task-item flex items-center justify-between p-3 sm:p-4 bg-white rounded-xl border border-slate-100 hover:border-slate-200 transition-colors group cursor-grab" data-task-id="{{ $task->id }}" title="Slepen om volgorde te wijzigen">
-                                            <div class="flex items-center gap-3 min-w-0 flex-1">
-                                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 -ml-1 rounded text-slate-400 hover:text-slate-600 touch-manipulation" title="Slepen om te sorteren">
-                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/></svg>
-                                                </div>
-                                                <div class="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                    <span class="text-white font-bold text-xs">{{ $task->order_index ?? '#' }}</span>
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <h5 class="font-semibold text-slate-900 truncate">{{ $task->title }}</h5>
-                                                    @if($task->description)
-                                                        <p class="text-sm text-slate-600 truncate">{{ Str::limit($task->description, 50) }}</p>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-2 flex-shrink-0">
-                                                @if($task->is_required)
-                                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Verplicht</span>
-                                                @endif
-                                                <a href="{{ route('admin.tasks.edit', $task) }}" class="p-2 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        @if(count($tasksByDay) > 0)
-                            <div class="bg-slate-50 rounded-xl p-4 sm:p-6 border border-slate-100">
-                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                    <div class="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                                    </div>
-                                    Dag-specifieke taken
-                                </h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    @foreach($weekdays as $dayKey => $dayLabel)
-                                        @if(isset($tasksByDay[$dayKey]) && count($tasksByDay[$dayKey]) > 0)
-                                            <div class="bg-white rounded-xl p-4 border border-slate-100">
-                                                <div class="flex items-center justify-between mb-3">
-                                                    <h5 class="font-bold text-slate-900">{{ $dayLabel }}</h5>
-                                                    <span class="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-xs font-medium">{{ count($tasksByDay[$dayKey]) }} taken</span>
-                                                </div>
-                                                <div id="sortable-day-{{ $dayKey }}" class="space-y-2 task-day-list">
-                                                    @foreach($tasksByDay[$dayKey] as $task)
-                                                        <div class="task-item flex items-center justify-between p-2 bg-slate-50 rounded-lg group cursor-grab" data-task-id="{{ $task->id }}" title="Slepen om volgorde te wijzigen">
-                                                            <div class="flex items-center gap-2 min-w-0 flex-1">
-                                                                <div class="drag-handle cursor-grab active:cursor-grabbing p-0.5 -ml-0.5 rounded text-slate-400 hover:text-slate-600 touch-manipulation flex-shrink-0" title="Slepen om te sorteren">
-                                                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/></svg>
-                                                                </div>
-                                                                <p class="font-medium text-slate-900 text-sm truncate">{{ $task->title }}</p>
-                                                                @if($task->is_required)
-                                                                    <span class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium flex-shrink-0">Verplicht</span>
-                                                                @endif
-                                                            </div>
-                                                            <a href="{{ route('admin.tasks.edit', $task) }}" class="p-1.5 text-slate-500 hover:text-blue-600 rounded flex-shrink-0">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                                                            </a>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        <div class="text-center py-6">
-                            <a href="{{ route('admin.lists.tasks.create', $list) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                Taak toevoegen
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        @if(!in_array($list->schedule_type, ['daily', 'weekly', 'custom']))
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
-                <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">
-                                @if($list->schedule_type === 'once')
-                                    Eenmalige takenlijst
-                                @elseif($list->schedule_type === 'monthly')
-                                    Maandelijkse takenlijst
-                                @else
-                                    Taken
-                                @endif
-                            </h2>
-                            <p class="text-sm text-slate-600">{{ $list->tasks->count() }} taken @if($list->schedule_type === 'once') • eenmalig @elseif($list->schedule_type === 'monthly') • herhaalt maandelijks @endif</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('admin.lists.tasks.create', $list) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                        Taak toevoegen
-                    </a>
-                </div>
-                    
-                <div class="p-4 sm:p-6">
-                    @php $allTasks = $list->tasks->sortBy('order_index'); @endphp
-                    @if($allTasks->count() > 0)
-                        <div id="sortable-tasks" class="space-y-3">
-                            @foreach($allTasks as $task)
-                                <div class="task-item bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-100 hover:border-slate-200 transition-colors group cursor-grab" data-task-id="{{ $task->id }}" title="Slepen om volgorde te wijzigen">
-                                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-center gap-3 mb-2">
-                                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 -ml-1 rounded text-slate-400 hover:text-slate-600 touch-manipulation flex-shrink-0" title="Slepen om te sorteren">
-                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/></svg>
-                                                </div>
-                                                <div class="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                    <span class="text-white font-bold text-xs">{{ $task->order_index }}</span>
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <h4 class="font-semibold text-slate-900">{{ $task->title }}</h4>
-                                                    @if($task->description)
-                                                        <p class="text-sm text-slate-600 mt-0.5">{{ $task->description }}</p>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-wrap gap-2 mt-2">
-                                                @if($task->is_required)
-                                                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Verplicht</span>
-                                                @endif
-                                                @if($task->required_proof_type && $task->required_proof_type !== 'none')
-                                                    <span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{{ ucfirst($task->required_proof_type) }}</span>
-                                                @endif
-                                            </div>
-                                            @if($task->instructions)
-                                                <div class="mt-3 p-3 bg-white rounded-lg border border-slate-100">
-                                                    <p class="text-sm text-slate-600">{{ $task->instructions }}</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="flex gap-2 flex-shrink-0">
-                                            <a href="{{ route('admin.tasks.edit', $task) }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                                                Bewerken
-                                            </a>
-                                            <form method="POST" action="{{ route('admin.tasks.destroy', $task) }}" class="inline" onsubmit="return confirm('Weet je zeker dat je deze taak wilt verwijderen?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
-                                                    Verwijderen
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-12">
-                            <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                            </div>
-                            <h3 class="font-semibold text-slate-900 mb-2">Nog geen taken</h3>
-                            <p class="text-slate-600 text-sm mb-4">Voeg taken toe om te beginnen</p>
-                            <a href="{{ route('admin.lists.tasks.create', $list) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                Taak toevoegen
-                            </a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        @endif
+        @include('admin.tasks.partials.task-create-modal', ['list' => $list])
 
         {{-- Toewijzingen --}}
-        <div id="assignments-container" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div id="assignments-container" data-onboarding-target="list-assignments" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center">
@@ -421,7 +160,7 @@
                         <p class="text-sm text-slate-600">Wie heeft toegang tot deze lijst</p>
                     </div>
                 </div>
-                <button type="button" onclick="showAssignModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                <button type="button" data-onboarding-target="assign-list" onclick="showAssignModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                     Lijst toewijzen
                 </button>
@@ -528,7 +267,7 @@
                         </div>
                         <h3 class="font-semibold text-slate-900 mb-2">Nog geen toewijzingen</h3>
                         <p class="text-slate-600 text-sm mb-4">Wijs deze lijst toe aan medewerkers of afdelingen</p>
-                        <button type="button" onclick="showAssignModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
+                        <button type="button" data-onboarding-target="assign-list" onclick="showAssignModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             Lijst toewijzen
                         </button>
@@ -540,7 +279,7 @@
 </div>
 
 <!-- Assignment Modal -->
-<div id="assignModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="assign-modal-title" aria-modal="true" role="dialog">
+<div id="assignModal" class="fixed inset-0 z-[245] hidden overflow-y-auto" aria-labelledby="assign-modal-title" aria-modal="true" role="dialog">
     <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeAssignModal()" aria-hidden="true"></div>
         <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 transition-all">
@@ -595,7 +334,7 @@
                     </div>
 
                     {{-- User select --}}
-                    <div id="userAssignment" data-users-empty="{{ $users->isEmpty() ? '1' : '0' }}">
+                    <div id="userAssignment" data-onboarding-target="assign-user-field" data-users-empty="{{ $users->isEmpty() ? '1' : '0' }}">
                         <label for="user_ids" class="block text-sm font-semibold text-slate-900 mb-1.5">
                             Gebruiker <span class="text-red-500">*</span>
                         </label>
@@ -657,7 +396,7 @@
                         class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 transition-colors">
                         Annuleren
                     </button>
-                    <button type="submit" id="submitAssignmentBtn"
+                    <button type="submit" id="submitAssignmentBtn" data-onboarding-target="assign-save"
                         class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -685,6 +424,7 @@ function showAssignModal() {
     if (modal) {
         modal.classList.remove('hidden');
         toggleAssignmentType();
+        document.dispatchEvent(new CustomEvent('onboarding:modal-opened'));
     }
 }
 

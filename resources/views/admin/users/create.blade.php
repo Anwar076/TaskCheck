@@ -34,6 +34,7 @@
         <form method="POST" action="{{ route('admin.users.store') }}">
             @csrf
 
+            <div class="space-y-6" data-onboarding-target="user-fields">
             {{-- Basisgegevens --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
@@ -51,7 +52,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Volledige naam <span class="text-red-500">*</span></label>
+                            <x-form-label for="name" help="De volledige naam van de medewerker of beheerder zoals die in de app wordt getoond.">Volledige naam <span class="text-red-500">*</span></x-form-label>
                             <input type="text" name="name" id="name" required
                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    value="{{ old('name') }}" placeholder="Jan Jansen">
@@ -60,7 +61,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">E-mailadres <span class="text-red-500">*</span></label>
+                            <x-form-label for="email" help="Het loginadres van de gebruiker. Hier ontvangt hij ook meldingen.">E-mailadres <span class="text-red-500">*</span></x-form-label>
                             <input type="email" name="email" id="email" required
                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    value="{{ old('email') }}" placeholder="jan@voorbeeld.nl">
@@ -81,7 +82,7 @@
                 <div class="p-4 sm:p-6 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">Wachtwoord <span class="text-red-500">*</span></label>
+                            <x-form-label for="password" help="Minimaal 8 tekens. Deel het wachtwoord veilig met de medewerker.">Wachtwoord <span class="text-red-500">*</span></x-form-label>
                             <input type="password" name="password" id="password" required
                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="Minimaal 8 tekens">
@@ -90,7 +91,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-slate-700 mb-1.5">Wachtwoord bevestigen <span class="text-red-500">*</span></label>
+                            <x-form-label for="password_confirmation" help="Typ hetzelfde wachtwoord nogmaals ter controle.">Wachtwoord bevestigen <span class="text-red-500">*</span></x-form-label>
                             <input type="password" name="password_confirmation" id="password_confirmation" required
                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    placeholder="Herhaal het wachtwoord">
@@ -108,7 +109,7 @@
                 <div class="p-4 sm:p-6 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label for="role" class="block text-sm font-medium text-slate-700 mb-1.5">Rol <span class="text-red-500">*</span></label>
+                            <x-form-label for="role" help="Medewerkers voeren taken uit. Beheerders kunnen lijsten, gebruikers en instellingen beheren.">Rol <span class="text-red-500">*</span></x-form-label>
                             <select name="role" id="role" required
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="employee" {{ old('role', 'employee') === 'employee' ? 'selected' : '' }}>Medewerker</option>
@@ -119,7 +120,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="department" class="block text-sm font-medium text-slate-700 mb-1.5">Afdeling</label>
+                            <x-form-label for="department" help="Koppel de gebruiker aan een afdeling voor overzicht en toewijzing.">Afdeling</x-form-label>
                             <select name="department" id="department"
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="">Geen afdeling</option>
@@ -137,7 +138,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="location_id" class="block text-sm font-medium text-slate-700 mb-1.5">Locatie</label>
+                            <x-form-label for="location_id" help="Optioneel: koppel de gebruiker aan een specifieke vestiging.">Locatie</x-form-label>
                             <select name="location_id" id="location_id"
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="">Geen locatie</option>
@@ -154,6 +155,7 @@
                     </div>
                 </div>
             </div>
+            </div>
 
             {{-- Extra opties --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
@@ -163,7 +165,7 @@
                 </div>
                 <div class="p-4 sm:p-6 space-y-5">
                     <div>
-                        <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">Telefoonnummer</label>
+                        <x-form-label for="phone" help="Optioneel contactnummer van de medewerker.">Telefoonnummer</x-form-label>
                         <input type="tel" name="phone" id="phone"
                                class="block w-full sm:max-w-xs px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                value="{{ old('phone') }}" placeholder="+31 6 12345678">
@@ -174,8 +176,9 @@
                     <div class="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
                         <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}
                                class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded">
-                        <label for="is_active" class="text-sm text-slate-700">
-                            Account is actief (gebruiker kan inloggen)
+                        <label for="is_active" class="flex items-center gap-1.5 text-sm text-slate-700">
+                            <span>Account is actief (gebruiker kan inloggen)</span>
+                            <x-field-help>Uitgeschakelde accounts kunnen niet inloggen totdat je dit weer aanzet.</x-field-help>
                         </label>
                     </div>
                 </div>
@@ -203,7 +206,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     Annuleren
                 </a>
-                <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+                <button type="submit" data-onboarding-target="user-save" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                     Gebruiker aanmaken
                 </button>

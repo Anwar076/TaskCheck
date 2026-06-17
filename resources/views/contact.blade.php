@@ -451,12 +451,12 @@
             <div class="relative mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
                 <div class="contact-reveal inline-flex items-center gap-2 rounded-full border border-[#4F6BFF]/20 bg-white/85 px-4 py-2 text-xs font-semibold text-slate-700 shadow-[0_8px_30px_-12px_rgba(79,107,255,0.25)] ring-1 ring-white/60 backdrop-blur-md">
                     <span class="relative flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.65)]"></span>
-                    We helpen je graag verder
-                </div>
+                We helpen je graag verder
+            </div>
                 <h1 class="contact-reveal contact-reveal-d1 mx-auto mt-8 max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.15rem] lg:leading-[1.06]">
-                    Neem contact op met
+                Neem contact op met
                     <span class="mt-3 block bg-gradient-to-r from-[#4F6BFF] via-[#5f6af8] to-[#7B61FF] bg-clip-text text-transparent sm:mt-4">het TaskCheck team</span>
-                </h1>
+            </h1>
                 <p class="contact-reveal contact-reveal-d2 mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg sm:leading-relaxed">
                     Vraag een demo aan, stel je vraag of laat ons meedenken over je operationele proces. We reageren meestal binnen één werkdag.
                 </p>
@@ -474,8 +474,8 @@
                         Persoonlijk contact
                     </span>
                 </div>
-            </div>
-        </section>
+        </div>
+    </section>
 
         <section class="relative pb-20 sm:pb-24 lg:pb-28">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -573,7 +573,7 @@
                                         <span class="relative z-[1]">Verstuur bericht</span>
                                     </button>
                                     <p class="text-center text-xs leading-relaxed text-slate-500 sm:text-left sm:max-w-xs">Je gegevens gebruiken we alleen om je vraag te beantwoorden — nooit voor spam.</p>
-                                </div>
+                        </div>
                             </form>
                         </div>
                     </div>
@@ -587,11 +587,11 @@
                                 <div class="min-w-0">
                                     <h3 class="text-base font-bold text-slate-900">Direct per e-mail</h3>
                                     <div class="mt-3 space-y-3 text-sm">
-                                        <div>
+                        <div>
                                             <p class="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Algemeen &amp; verkoop</p>
                                             <a href="mailto:info@taskcheck.nl" class="mt-1 block font-semibold text-[#4F6BFF] transition hover:text-[#3d56cc]">info@taskcheck.nl</a>
-                                        </div>
-                                        <div>
+                        </div>
+                        <div>
                                             <p class="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Technische ondersteuning</p>
                                             <a href="mailto:support@taskcheck.nl" class="mt-1 block font-semibold text-[#4F6BFF] transition hover:text-[#3d56cc]">support@taskcheck.nl</a>
                                         </div>
@@ -610,9 +610,9 @@
                                     <a href="tel:+31881900999" class="mt-2 block text-lg font-bold tracking-tight text-[#4F6BFF] transition hover:text-[#3d56cc]">088 190 0999</a>
                                     <p class="mt-2 text-sm font-medium text-slate-700">Maandag t/m vrijdag</p>
                                     <p class="mt-0.5 text-sm text-slate-600">09:00 – 17:00 (CET)</p>
-                                </div>
-                            </div>
-                        </div>
+                    </div>
+                    </div>
+                    </div>
 
                         <div class="contact-side-card contact-side-card--links p-5 sm:p-6">
                             <div class="relative flex items-start gap-4">
@@ -639,14 +639,14 @@
                                             <svg class="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[#4F6BFF]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
                                         </a>
                                     </nav>
-                                </div>
-                            </div>
-                        </div>
+            </div>
+                </div>
+                </div>
                     </div>
                 </div>
             </div>
         </section>
-    </div>
+        </div>
 
     @include('components.footer')
 

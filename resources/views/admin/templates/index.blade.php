@@ -51,7 +51,7 @@
         </div>
 
         {{-- Inhoud --}}
-        <div id="templates-content"></div>
+        <div id="templates-content" data-onboarding-target="templates-grid"></div>
     </div>
 </div>
 
@@ -146,7 +146,7 @@ function renderTemplates(templates) {
     }
     contentDiv.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            ${templates.map(t => {
+            ${templates.map((t) => {
                 const taskCount = t.template_tasks ? t.template_tasks.length : 0;
                 const listCount = t.task_lists ? t.task_lists.length : 0;
                 const desc = t.description ? (t.description.length > 80 ? t.description.substring(0, 80) + '…' : t.description) : '';
@@ -175,7 +175,7 @@ function renderTemplates(templates) {
                     </a>
                     <div class="px-4 sm:px-6 py-4 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-slate-50/60">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <button type="button" onclick="event.preventDefault();event.stopPropagation();createListFromTemplate(${t.id})" class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-sm font-semibold transition-colors shadow-sm">
+                            <button type="button" data-onboarding-target="template-create-btn" onclick="event.preventDefault();event.stopPropagation();createListFromTemplate(${t.id})" class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-sm font-semibold transition-colors shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                 Lijst maken
                             </button>
@@ -199,6 +199,7 @@ function renderTemplates(templates) {
             `}).join('')}
         </div>
     `;
+    document.dispatchEvent(new CustomEvent('onboarding:targets-updated'));
 }
 
 function escapeHtml(text) {

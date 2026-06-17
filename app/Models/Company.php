@@ -34,11 +34,24 @@ class Company extends Model
         'max_locations',
         'max_storage_gb',
         'is_active',
+        'onboarding_step',
+        'onboarding_list_mode',
+        'onboarding_list_id',
+        'onboarding_completed_at',
     ];
+
+    public const ONBOARDING_STEP_WELCOME = 'welcome';
+    public const ONBOARDING_STEP_ORGANIZATION = 'organization';
+    public const ONBOARDING_STEP_USERS = 'users';
+    public const ONBOARDING_STEP_LIST_CHOICE = 'list_choice';
+    public const ONBOARDING_STEP_LIST_CREATE = 'list_create';
+    public const ONBOARDING_STEP_ASSIGN = 'assign';
+    public const ONBOARDING_STEP_COMPLETED = 'completed';
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
         'subscription_ends_at' => 'datetime',
+        'onboarding_completed_at' => 'datetime',
         'billing_required' => 'boolean',
         'is_active' => 'boolean',
         'departments' => 'array',
@@ -274,6 +287,44 @@ class Company extends Model
     public function clearStorageCache(): void
     {
         \Illuminate\Support\Facades\Cache::forget("company_{$this->id}_storage_used_bytes");
+    }
+
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->onboarding_completed_at !== null;
+    }
+
+    public function needsOnboarding(): bool
+    {
+        return !$this->hasCompletedOnboarding();
+    }
+
+    public function advanceOnboardingTo(string $step): void
+    {
+        $this->update(['onboarding_step' => $step]);
+    }
+
+    public function completeOnboarding(): void
+    {
+        $this->update([
+            'onboarding_step' => self::ONBOARDING_STEP_COMPLETED,
+            'onboarding_completed_at' => now(),
+            'onboarding_list_mode' => null,
+            'onboarding_list_id' => null,
+        ]);
+    }
+
+    public function onboardingRouteName(): string
+    {
+        return app(\App\Services\Platform\AdminOnboardingService::class)->redirectRoute($this);
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    public function onboardingRouteParameters(): array
+    {
+        return app(\App\Services\Platform\AdminOnboardingService::class)->redirectRouteParameters($this);
     }
 }
 

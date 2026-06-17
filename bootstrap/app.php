@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'pwa' => \App\Http\Middleware\RedirectPwaToLogin::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,
             'company_profile_complete' => \App\Http\Middleware\EnsureCompanyInvoiceDetailsComplete::class,
+            'onboarding_complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
             'mobile.admin' => \App\Http\Middleware\EnsureMobileAdmin::class,
         ]);
     })

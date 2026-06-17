@@ -24,6 +24,9 @@
                                     @if(isset($selectedWeekday))
                                         · <span>{{ ['monday'=>'Ma','tuesday'=>'Di','wednesday'=>'Wo','thursday'=>'Do','friday'=>'Vr','saturday'=>'Za','sunday'=>'Zo'][$selectedWeekday] ?? ucfirst($selectedWeekday) }}</span>
                                     @endif
+                                    @if(!empty($selectedStartTime))
+                                        · <span>{{ $selectedStartTime }}@if(!empty($selectedEndTime)) – {{ $selectedEndTime }}@endif</span>
+                                    @endif
                                 </p>
                             </div>
                         </div>
@@ -291,7 +294,7 @@
                             </div>
                             <h3 class="text-lg sm:text-xl font-bold text-slate-900">Taakconfiguratie</h3>
                         </div>
-                        <p class="text-slate-600 ml-11 text-sm">Configureer bewijsvereisten en tijdslot</p>
+                        <p class="text-slate-600 ml-11 text-sm">Configureer bewijsvereisten voor deze taak.</p>
                     </div>
                     
                     <div>
@@ -383,46 +386,6 @@
                         </div>
                         <p class="mt-3 text-sm text-slate-600 bg-purple-50 border border-purple-200 rounded-lg p-3">
                             Stel hier de norm in. Medewerkers vullen de meting in en bij review zie je norm en gemeten waarde naast elkaar.
-                        </p>
-                    </div>
-                    
-                    <!-- Time Slots -->
-                    <div class="mt-6">
-                        <h4 class="text-sm font-semibold text-slate-900 mb-4">Tijdslot (optioneel)</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="group">
-                                <label for="start_time" class="block text-sm font-medium text-slate-700 mb-2">Starttijd</label>
-                                <div class="relative">
-                                    <input type="time" name="start_time" id="start_time" 
-                                           class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl shadow-sm bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 group-hover:border-slate-300 group-hover:shadow-md" 
-                                           value="{{ old('start_time') }}">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="group">
-                                <label for="end_time" class="block text-sm font-medium text-slate-700 mb-2">Eindtijd</label>
-                                <div class="relative">
-                                    <input type="time" name="end_time" id="end_time" 
-                                           class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl shadow-sm bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 group-hover:border-slate-300 group-hover:shadow-md" 
-                                           value="{{ old('end_time') }}">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="mt-3 text-sm text-slate-600 bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-start">
-                            <svg class="w-4 h-4 text-purple-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Geef een tijdslot op wanneer deze taak uitgevoerd moet worden (bijvoorbeeld 10:30 - 10:45).
                         </p>
                     </div>
                 </div>

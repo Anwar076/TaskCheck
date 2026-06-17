@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
+use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
 use App\Services\Ai\SubmissionReviewService;
@@ -264,8 +265,14 @@ Route::post('/dashboard/switch', function (\Illuminate\Http\Request $request) {
     return redirect()->route($targetMode === 'employee' ? 'employee.dashboard' : 'admin.dashboard');
 })->middleware(['auth', 'verified', 'subscription'])->name('dashboard.switch');
 
+Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/onboarding/start', [OnboardingController::class, 'start'])->name('onboarding.start');
+    Route::post('/onboarding/users/continue', [OnboardingController::class, 'continueUsers'])->name('onboarding.users.continue');
+    Route::post('/onboarding/list-choice', [OnboardingController::class, 'chooseList'])->name('onboarding.list-choice');
+});
+
 // Admin Routes
-Route::middleware(['auth', 'verified', 'subscription', 'admin', 'company_profile_complete'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_complete', 'company_profile_complete'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/live-monitoring', [AdminDashboardController::class, 'liveMonitoring'])->name('live-monitoring');
     
@@ -284,6 +291,11 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'company_profile
     Route::get('/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('lists.ai-import');
     Route::post('/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
     Route::post('/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('lists.ai-import.store');
+    Route::get('/lists/calendar', [TaskListController::class, 'calendar'])->name('lists.calendar');
+    Route::put('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'updateScheduleTimeSlot'])->name('lists.schedule-slot.update');
+    Route::delete('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'destroyScheduleTimeSlot'])->name('lists.schedule-slot.destroy');
+    Route::post('/lists/{list}/schedule-slot', [TaskListController::class, 'scheduleTimeSlot'])->name('lists.schedule-slot');
+    Route::post('/lists/{list}/tasks/quick', [TaskController::class, 'quickStore'])->name('lists.tasks.quick-store');
 
     // Regular routes for create/edit/show
     Route::resource('lists', TaskListController::class)->except(['index']);

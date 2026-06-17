@@ -11,7 +11,9 @@ use App\Models\Notification;
 use App\Models\Location;
 use App\Models\Task;
 use App\Models\TaskTemplate;
+use App\Services\Admin\ListCalendarService;
 use App\Services\Ai\AiUsageLogger;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -54,13 +56,6 @@ class TaskListController extends Controller
     public function create()
     {
         $companyId = auth()->user()->company_id;
-        
-        // Get parent lists for the dropdown (same company only)
-        $parentLists = TaskList::where('company_id', $companyId)
-            ->whereNull('parent_list_id')
-            ->where('is_active', true)
-            ->orderBy('title')
-            ->get();
 
         // Get available templates (same company only)
         $templates = \App\Models\TaskTemplate::where('company_id', $companyId)
@@ -70,7 +65,7 @@ class TaskListController extends Controller
 
         $locations = Location::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.lists.create', compact('parentLists', 'templates', 'locations'));
+        return view('admin.lists.create', compact('templates', 'locations'));
     }
 
     public function store(Request $request)
@@ -196,11 +191,16 @@ class TaskListController extends Controller
             }
         }
 
+        $company = auth()->user()->company;
+        if ($company) {
+            app(\App\Services\Platform\AdminOnboardingService::class)->handleListCreated($company, $taskList);
+        }
+
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($validatedData['template_id'] ? ' Taken uit template zijn toegevoegd.' : '') . ($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
+            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($usedTemplateId ? ' Taken uit template zijn toegevoegd.' : '') . ($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
     }
 
-    public function show(TaskList $list)
+    public function show(Request $request, TaskList $list)
     {
         // Explicitly load assignments with user relationships for debugging
         $list->load(['assignments.user', 'tasks', 'submissions', 'location']);
@@ -242,8 +242,218 @@ class TaskListController extends Controller
                 ];
             })->toArray()
         ]);
+
+        $calendarService = app(ListCalendarService::class);
+        $viewParam = $request->query('view', 'week');
+        $calendarView = in_array($viewParam, ['week', 'day', 'month'], true) ? $viewParam : 'week';
+        $selectedDay = $request->query('day', strtolower(now()->format('l')));
+
+        if ($calendarView === 'month') {
+            $monthStart = Carbon::parse($request->query('month', now()->format('Y-m-01')))->startOfMonth();
+            $calendar = $calendarService->buildMonth($list, $monthStart);
+            $weekStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
+        } else {
+            $weekStart = Carbon::parse($request->query('week', now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d')))
+                ->startOfWeek(Carbon::MONDAY);
+            $calendar = $calendarService->buildWeek($list, $weekStart);
+            $validDayKeys = collect($calendar['days'])->pluck('key')->all();
+            if (! in_array($selectedDay, $validDayKeys, true)) {
+                $selectedDay = strtolower(now()->format('l'));
+            }
+        }
+
+        $miniMonth = $calendarService->buildMonth(
+            $list,
+            $calendarView === 'month'
+                ? Carbon::parse($calendar['month_start'])
+                : Carbon::parse($request->query('month', $weekStart->copy()->startOfMonth()->format('Y-m-01')))->startOfMonth()
+        );
         
-        return view('admin.lists.show', compact('list', 'users', 'departments'));
+        return view('admin.lists.show', compact('list', 'users', 'departments', 'calendar', 'calendarView', 'selectedDay', 'miniMonth', 'weekStart'));
+    }
+
+    public function calendar(Request $request)
+    {
+        $companyId = auth()->user()->company_id;
+        $calendarService = app(ListCalendarService::class);
+        $viewParam = $request->query('view', 'week');
+        $calendarView = in_array($viewParam, ['week', 'day', 'month'], true) ? $viewParam : 'week';
+        $selectedDay = $request->query('day', strtolower(now()->format('l')));
+
+        $locationId = null;
+        if ($request->filled('location_id')) {
+            $candidateLocationId = (int) $request->get('location_id');
+            if (Location::where('company_id', $companyId)->where('id', $candidateLocationId)->exists()) {
+                $locationId = $candidateLocationId;
+            }
+        }
+
+        $lists = TaskList::withCount('tasks')
+            ->with('tasks')
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
+            ->orderBy('title')
+            ->get();
+
+        if ($calendarView === 'month') {
+            $monthStart = Carbon::parse($request->query('month', now()->format('Y-m-01')))->startOfMonth();
+            $calendar = $calendarService->buildCompanyMonth($lists, $monthStart);
+            $weekStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
+        } else {
+            $weekStart = Carbon::parse($request->query('week', now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d')))
+                ->startOfWeek(Carbon::MONDAY);
+            $calendar = $calendarService->buildCompanyWeek($lists, $weekStart);
+            $validDayKeys = collect($calendar['days'])->pluck('key')->all();
+            if (! in_array($selectedDay, $validDayKeys, true)) {
+                $selectedDay = strtolower(now()->format('l'));
+            }
+        }
+
+        $miniMonth = $calendarService->buildCompanyMonth(
+            $lists,
+            $calendarView === 'month'
+                ? Carbon::parse($calendar['month_start'])
+                : Carbon::parse($request->query('month', $weekStart->copy()->startOfMonth()->format('Y-m-01')))->startOfMonth()
+        );
+
+        $locations = Location::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.lists.calendar', compact(
+            'calendar',
+            'calendarView',
+            'selectedDay',
+            'miniMonth',
+            'weekStart',
+            'lists',
+            'locations',
+            'locationId'
+        ));
+    }
+
+    public function scheduleTimeSlot(Request $request, TaskList $list)
+    {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        $validated = $request->validate([
+            'weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+        ]);
+
+        $startTime = $validated['start_time'];
+        $endTime = ! empty($validated['end_time']) ? $validated['end_time'] : null;
+
+        if ($endTime && $endTime <= $startTime) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Eindtijd moet na starttijd liggen.',
+                'errors' => ['end_time' => ['Eindtijd moet na starttijd liggen.']],
+            ], 422);
+        }
+
+        app(ListCalendarService::class)->assignListTimeSlot(
+            $list,
+            $validated['weekday'],
+            $startTime,
+            $endTime
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "Lijst '{$list->title}' is gekoppeld aan het tijdslot.",
+            'list' => [
+                'id' => $list->id,
+                'title' => $list->title,
+                'show_url' => route('admin.lists.show', [$list, 'view' => 'week', 'day' => $validated['weekday']]),
+            ],
+        ]);
+    }
+
+    public function updateScheduleTimeSlot(Request $request, TaskList $list, string $slot)
+    {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        $validated = $request->validate([
+            'weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'target_list_id' => 'nullable|integer|exists:task_lists,id',
+        ]);
+
+        $startTime = $validated['start_time'];
+        $endTime = ! empty($validated['end_time']) ? $validated['end_time'] : null;
+
+        if ($endTime && $endTime <= $startTime) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Eindtijd moet na starttijd liggen.',
+                'errors' => ['end_time' => ['Eindtijd moet na starttijd liggen.']],
+            ], 422);
+        }
+
+        $service = app(ListCalendarService::class);
+
+        if (! $service->findListTimeSlot($list, $slot)) {
+            abort(404, 'Tijdslot niet gevonden.');
+        }
+
+        $targetListId = isset($validated['target_list_id']) ? (int) $validated['target_list_id'] : null;
+        $resultList = $list;
+
+        if ($slot === 'default') {
+            if ($targetListId && $targetListId !== $list->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Standaard tijdslot kan niet naar een andere lijst verplaatst worden.',
+                ], 422);
+            }
+
+            $service->setDefaultTimeSlot($list, $startTime, $endTime);
+        } elseif ($targetListId && $targetListId !== $list->id) {
+            $target = TaskList::where('company_id', auth()->user()->company_id)->findOrFail($targetListId);
+            $service->moveListTimeSlot($list, $slot, $target, $validated['weekday'], $startTime, $endTime);
+            $resultList = $target;
+        } else {
+            $service->updateListTimeSlot($list, $slot, $validated['weekday'], $startTime, $endTime);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Tijdslot voor '{$resultList->title}' is bijgewerkt.",
+            'list' => [
+                'id' => $resultList->id,
+                'title' => $resultList->title,
+                'show_url' => route('admin.lists.show', [$resultList, 'view' => 'week', 'day' => $validated['weekday']]),
+            ],
+        ]);
+    }
+
+    public function destroyScheduleTimeSlot(TaskList $list, string $slot)
+    {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        $service = app(ListCalendarService::class);
+
+        if ($slot === 'default') {
+            $service->removeDefaultTimeSlot($list);
+        } else {
+            $service->removeListTimeSlot($list, $slot);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Tijdslot voor '{$list->title}' is verwijderd.",
+        ]);
     }
 
     public function edit(TaskList $list)
@@ -253,19 +463,16 @@ class TaskListController extends Controller
             abort(403, 'Unauthorized access to task list.');
         }
         
-        // Get parent lists for the dropdown (exclude current list and its children)
-        $parentLists = TaskList::whereNull('parent_list_id')
-            ->where('is_active', true)
-            ->where('id', '!=', $list->id)
-            ->orderBy('title')
-            ->get();
-
         $locations = Location::where('is_active', true)
             ->orWhere('id', $list->location_id)
             ->orderBy('name')
             ->get();
 
-        return view('admin.lists.edit', compact('list', 'parentLists', 'locations'));
+        $calendarService = app(ListCalendarService::class);
+        $timeSlots = $calendarService->getTimeSlots($list);
+        $defaultTimeSlot = $calendarService->getDefaultTimeSlot($list);
+
+        return view('admin.lists.edit', compact('list', 'locations', 'timeSlots', 'defaultTimeSlot'));
     }
 
     public function update(Request $request, TaskList $list)
@@ -295,12 +502,25 @@ class TaskListController extends Controller
                     $query->where('company_id', auth()->user()->company_id);
                 }),
             ],
+            'default_time_slot_enabled' => 'boolean',
+            'default_time_slot_start' => 'nullable|date_format:H:i|required_if:default_time_slot_enabled,1',
+            'default_time_slot_end' => 'nullable|date_format:H:i',
         ]);
 
+        if ($request->boolean('default_time_slot_enabled')
+            && $request->filled('default_time_slot_start')
+            && $request->filled('default_time_slot_end')
+            && $request->input('default_time_slot_end') <= $request->input('default_time_slot_start')) {
+            return back()
+                ->withErrors(['default_time_slot_end' => 'Eindtijd moet na starttijd liggen.'])
+                ->withInput();
+        }
+
         // Handle improved schedule configuration
+        $existingConfig = is_array($list->schedule_config) ? $list->schedule_config : [];
+        $scheduleConfig = array_merge($existingConfig, $validatedData['schedule_config'] ?? []);
+
         if (in_array($validatedData['schedule_type'], ['daily', 'weekly', 'custom'])) {
-            $scheduleConfig = $validatedData['schedule_config'] ?? [];
-            
             if ($validatedData['schedule_type'] === 'daily') {
                 // Daily means all days of the week
                 $scheduleConfig['show_on_days'] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -308,12 +528,26 @@ class TaskListController extends Controller
                 // Weekly with specific days selected
                 $scheduleConfig['show_on_days'] = $validatedData['selected_days'];
             }
-            
-            $validatedData['schedule_config'] = $scheduleConfig;
         }
+
+        if (isset($existingConfig['time_slots'])) {
+            $scheduleConfig['time_slots'] = $existingConfig['time_slots'];
+        }
+
+        if ($request->boolean('default_time_slot_enabled') && $request->filled('default_time_slot_start')) {
+            $scheduleConfig['default_time_slot'] = [
+                'start_time' => $request->input('default_time_slot_start'),
+                'end_time' => $request->filled('default_time_slot_end') ? $request->input('default_time_slot_end') : null,
+            ];
+        } else {
+            unset($scheduleConfig['default_time_slot']);
+        }
+
+        $validatedData['schedule_config'] = $scheduleConfig;
 
         // Remove selected_days from the main data as it's now in schedule_config
         unset($validatedData['selected_days']);
+        unset($validatedData['default_time_slot_enabled'], $validatedData['default_time_slot_start'], $validatedData['default_time_slot_end']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
 
         // Update the task list
@@ -1174,6 +1408,31 @@ PROMPT,
             $message = 'Takenlijst succesvol toegewezen aan ' . count($assignments) . ' toewijzing(en).';
             if ($skippedAssignments > 0) {
                 $message .= ' ' . $skippedAssignments . ' duplicaat toewijzing(en) overgeslagen.';
+            }
+
+            if (count($assignments) > 0) {
+                $company = auth()->user()->company;
+                if ($company) {
+                    app(\App\Services\Platform\AdminOnboardingService::class)->handleAssignmentCreated($company, (int) $list->id);
+                    if ($company->fresh()->hasCompletedOnboarding()) {
+                        if (request()->ajax() || request()->wantsJson()) {
+                            return response()->json([
+                                'success' => true,
+                                'message' => $message,
+                                'assignments_created' => count($assignments),
+                                'assignments_skipped' => $skippedAssignments,
+                                'onboarding_completed' => true,
+                                'redirect' => route('admin.lists.show', $list),
+                            ]);
+                        }
+
+                        return redirect()->route('admin.lists.show', $list)
+                            ->with('onboarding_completed', [
+                                'list_title' => $list->title,
+                                'list_id' => $list->id,
+                            ]);
+                    }
+                }
             }
 
             // Check if it's an AJAX request

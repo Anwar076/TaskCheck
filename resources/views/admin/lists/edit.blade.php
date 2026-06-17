@@ -44,7 +44,7 @@
                 </div>
                 <div class="p-4 sm:p-6 space-y-5">
                     <div>
-                        <label for="title" class="block text-sm font-medium text-slate-700 mb-1.5">Titel <span class="text-red-500">*</span></label>
+                        <x-form-label for="title" help="Een duidelijke naam voor de checklist, bijv. Dagelijkse keukencontrole.">Titel <span class="text-red-500">*</span></x-form-label>
                         <input type="text" name="title" id="title" required
                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                value="{{ old('title', $list->title) }}"
@@ -54,7 +54,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
+                        <x-form-label for="description" help="Optioneel: leg uit wanneer en door wie deze lijst wordt gebruikt.">Beschrijving</x-form-label>
                         <textarea name="description" id="description" rows="3"
                                   class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   placeholder="Beschrijf waarvoor deze takenlijst dient...">{{ old('description', $list->description) }}</textarea>
@@ -74,7 +74,7 @@
                 <div class="p-4 sm:p-6 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label for="category" class="block text-sm font-medium text-slate-700 mb-1.5">Categorie</label>
+                            <x-form-label for="category" help="Groepeer lijsten, bijv. Schoonmaak, HACCP of Veiligheid.">Categorie</x-form-label>
                             <input type="text" name="category" id="category"
                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                    value="{{ old('category', $list->category) }}"
@@ -84,7 +84,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="priority" class="block text-sm font-medium text-slate-700 mb-1.5">Prioriteit <span class="text-red-500">*</span></label>
+                            <x-form-label for="priority" help="Hoe belangrijk taken uit deze lijst zijn voor je team.">Prioriteit <span class="text-red-500">*</span></x-form-label>
                             <select name="priority" id="priority" required
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="low" {{ old('priority', $list->priority) === 'low' ? 'selected' : '' }}>Laag</option>
@@ -97,7 +97,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="location_id" class="block text-sm font-medium text-slate-700 mb-1.5">Locatie</label>
+                            <x-form-label for="location_id" help="Koppel de lijst aan één locatie of laat leeg voor alle locaties.">Locatie</x-form-label>
                             <select name="location_id" id="location_id"
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="">Alle locaties / algemeen</option>
@@ -113,7 +113,7 @@
                         </div>
                     </div>
                     <div>
-                        <label for="schedule_type" class="block text-sm font-medium text-slate-700 mb-1.5">Herhalingen <span class="text-red-500">*</span></label>
+                        <x-form-label for="schedule_type" help="Bepaal hoe vaak deze lijst beschikbaar is voor medewerkers.">Herhalingen <span class="text-red-500">*</span></x-form-label>
                         <select name="schedule_type" id="schedule_type" required
                                 class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 onchange="toggleScheduleConfig()">
@@ -158,7 +158,7 @@
                         </div>
                         <div id="monthly-config" class="hidden">
                             @php $scheduleCfg = is_array($list->schedule_config) ? $list->schedule_config : []; @endphp
-                            <label for="day_of_month" class="block text-sm font-medium text-slate-700 mb-1.5">Dag van de maand</label>
+                            <x-form-label for="day_of_month" help="Op welke dag van de maand deze lijst actief is.">Dag van de maand</x-form-label>
                             <select name="schedule_config[day_of_month]" id="day_of_month"
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
                                 @for($i = 1; $i <= 31; $i++)
@@ -171,7 +171,7 @@
                         <div id="custom-config" class="hidden space-y-4">
                             @php $cfg = $scheduleCfg; @endphp
                             <div>
-                                <label for="custom_type" class="block text-sm font-medium text-slate-700 mb-1.5">Type planning</label>
+                                <x-form-label for="custom_type" help="Kies hoe je aangepaste planning wilt instellen.">Type planning</x-form-label>
                                 <select name="schedule_config[type]" id="custom_type"
                                         class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
                                         onchange="toggleCustomType()">
@@ -196,13 +196,13 @@
                             </div>
                             <div id="custom-interval" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="interval_days" class="block text-sm font-medium text-slate-700 mb-1.5">Elke X dagen</label>
+                                    <x-form-label for="interval_days" help="De lijst keert terug na dit aantal dagen.">Elke X dagen</x-form-label>
                                     <input type="number" name="schedule_config[interval_days]" id="interval_days" min="1" max="365"
                                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
                                            value="{{ old('schedule_config.interval_days', $cfg['interval_days'] ?? 1) }}">
                                 </div>
                                 <div>
-                                    <label for="interval_start" class="block text-sm font-medium text-slate-700 mb-1.5">Startdatum</label>
+                                    <x-form-label for="interval_start" help="Vanaf welke datum de herhaling begint.">Startdatum</x-form-label>
                                     <input type="date" name="schedule_config[start_date]" id="interval_start"
                                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
                                            value="{{ old('schedule_config.start_date', $cfg['start_date'] ?? '') }}">
@@ -210,13 +210,13 @@
                             </div>
                             <div id="custom-date-range" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="range_start" class="block text-sm font-medium text-slate-700 mb-1.5">Startdatum</label>
+                                    <x-form-label for="range_start" help="Eerste dag waarop de lijst actief is.">Startdatum</x-form-label>
                                     <input type="date" name="schedule_config[start_date]" id="range_start"
                                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
                                            value="{{ old('schedule_config.start_date', $cfg['start_date'] ?? '') }}">
                                 </div>
                                 <div>
-                                    <label for="range_end" class="block text-sm font-medium text-slate-700 mb-1.5">Einddatum</label>
+                                    <x-form-label for="range_end" help="Laatste dag waarop de lijst actief is.">Einddatum</x-form-label>
                                     <input type="date" name="schedule_config[end_date]" id="range_end"
                                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
                                            value="{{ old('schedule_config.end_date', $cfg['end_date'] ?? '') }}">
@@ -224,6 +224,12 @@
                             </div>
                         </div>
                     </div>
+
+                    @include('admin.lists.partials.list-edit-time-slots', [
+                        'list' => $list,
+                        'timeSlots' => $timeSlots ?? [],
+                        'defaultTimeSlot' => $defaultTimeSlot ?? null,
+                    ])
                 </div>
             </div>
 
@@ -232,47 +238,23 @@
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Extra opties</h2>
                 </div>
-                <div class="p-4 sm:p-6 space-y-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <label for="due_date" class="block text-sm font-medium text-slate-700 mb-1.5">Uiterste datum</label>
-                            <input type="datetime-local" name="due_date" id="due_date"
-                                   class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
-                                   value="{{ old('due_date', $list->due_date ? $list->due_date->format('Y-m-d\TH:i') : '') }}">
-                            @error('due_date')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label for="parent_list_id" class="block text-sm font-medium text-slate-700 mb-1.5">Bovenliggende lijst</label>
-                            <select name="parent_list_id" id="parent_list_id"
-                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
-                                <option value="">Geen — dit is een hoofdlijst</option>
-                                @foreach($parentLists as $parentList)
-                                    @if($parentList->id !== $list->id)
-                                    <option value="{{ $parentList->id }}" {{ old('parent_list_id', $list->parent_list_id) == $parentList->id ? 'selected' : '' }}>
-                                        {{ $parentList->title }}
-                                    </option>
-                                    @endif
-                                @endforeach
-                            </select>
-                            @error('parent_list_id')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-2">
-                        <label class="flex items-start gap-3 cursor-pointer">
+                <div class="p-4 sm:p-6 space-y-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" name="requires_signature" value="1" {{ old('requires_signature', $list->requires_signature) ? 'checked' : '' }}
                                    class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-slate-700">Digitale handtekening vereist bij afronding</span>
+                            <span class="flex items-center gap-1.5 text-sm text-slate-700">
+                                <span>Digitale handtekening vereist bij afronding</span>
+                                <x-field-help>De medewerker moet tekenen wanneer de lijst is afgerond.</x-field-help>
+                            </span>
                         </label>
                         <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $list->is_active) ? 'checked' : '' }}
                                    class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-slate-700">Actief — medewerkers kunnen deze lijst zien en uitvoeren</span>
+                            <span class="flex items-center gap-1.5 text-sm text-slate-700">
+                                <span>Actief — medewerkers kunnen deze lijst zien en uitvoeren</span>
+                                <x-field-help>Alleen actieve lijsten zijn zichtbaar voor medewerkers.</x-field-help>
+                            </span>
                         </label>
-                    </div>
                 </div>
             </div>
 

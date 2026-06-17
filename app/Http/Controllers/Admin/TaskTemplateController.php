@@ -361,6 +361,11 @@ class TaskTemplateController extends Controller
 
         $taskList = $template->createTaskList($validated);
 
+        $company = auth()->user()->company;
+        if ($company) {
+            app(\App\Services\Platform\AdminOnboardingService::class)->handleListCreated($company, $taskList);
+        }
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,

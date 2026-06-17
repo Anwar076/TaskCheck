@@ -1,5 +1,7 @@
 import './bootstrap';
 
+import { initCalendarSlotPicker } from './calendar-slot-picker.js';
+import { initTaskCreateModal } from './task-create-modal.js';
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
@@ -10,6 +12,19 @@ Alpine.start();
 document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('[data-sortable-reorder-url]')) {
         import('./list-sortable.js').then(({ initListSortable }) => initListSortable());
+    }
+
+    if (document.querySelector('[data-calendar-slot-grid]')) {
+        initCalendarSlotPicker();
+    }
+
+    if (document.querySelector('[data-task-create-modal]')) {
+        initTaskCreateModal();
+    }
+
+    const tourRoot = document.getElementById('onboarding-tour-root') || document.getElementById('admin-help-tour-root');
+    if (tourRoot) {
+        import('./onboarding-tour.js').then(({ initOnboardingTour }) => initOnboardingTour(tourRoot));
     }
 });
 

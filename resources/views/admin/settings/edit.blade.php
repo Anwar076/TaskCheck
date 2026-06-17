@@ -38,10 +38,12 @@
                     <strong>Belangrijk:</strong> Organisatienaam, adres, telefoon en e-mail zijn verplicht voor correcte facturen.
                 </div>
 
-    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-8">
+    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-8" data-onboarding-target="org-form">
         @csrf
         @method('PUT')
 
+        <!-- Logo & Naam + contact (onboarding highlight) -->
+        <div class="space-y-8" data-onboarding-target="org-fields">
         <!-- Logo & Naam Sectie -->
         <div class="border-b border-gray-200 pb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -53,7 +55,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Logo upload -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                    <x-form-label help="Upload het logo van je organisatie. Dit kan op facturen en in de app verschijnen.">Logo</x-form-label>
                     <div class="flex flex-col items-start gap-4">
                         <div class="relative w-32 h-32 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden group">
                             <div class="text-center p-4 {{ $company->logo_path ? 'hidden' : '' }}" id="logo-placeholder">
@@ -91,7 +93,7 @@
                 <!-- Naam & Domain -->
                 <div class="space-y-6">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Organisatienaam <span class="text-red-500">*</span></label>
+                        <x-form-label for="name" help="De officiële naam van je bedrijf. Deze staat op facturen en in de app.">Organisatienaam <span class="text-red-500">*</span></x-form-label>
                         <input type="text" name="name" id="name" required
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                             value="{{ old('name', $company->name) }}" placeholder="bijv. JAYAS Organisatie">
@@ -113,7 +115,7 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Adres <span class="text-red-500">*</span></label>
+                    <x-form-label for="address" help="Het vestigingsadres van je organisatie. Verplicht voor correcte facturatie.">Adres <span class="text-red-500">*</span></x-form-label>
                     <input type="text" name="address" id="address" required
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         value="{{ old('address', $company->address) }}" placeholder="Straat, nummer, postcode, plaats">
@@ -122,7 +124,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefoon <span class="text-red-500">*</span></label>
+                    <x-form-label for="phone" help="Het contacttelefoonnummer van je organisatie. Alleen cijfers, maximaal 15 tekens.">Telefoon <span class="text-red-500">*</span></x-form-label>
                     <input type="text" name="phone" id="phone" required
                         inputmode="numeric" pattern="[0-9]*" maxlength="15"
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -133,7 +135,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail <span class="text-red-500">*</span></label>
+                    <x-form-label for="email" help="Het algemene e-mailadres van je organisatie voor facturen en contact.">E-mail <span class="text-red-500">*</span></x-form-label>
                     <input type="email" name="email" id="email" required
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         value="{{ old('email', $company->email) }}" placeholder="info@bedrijf.nl">
@@ -142,6 +144,7 @@
                     @enderror
                 </div>
             </div>
+        </div>
         </div>
 
         <!-- Afdelingen Sectie -->
@@ -153,7 +156,7 @@
                 Afdelingen
             </h2>
             <div>
-                <label for="departments_text" class="block text-sm font-medium text-gray-700 mb-1">Welke afdelingen zijn er binnen jouw bedrijf?</label>
+                <x-form-label for="departments_text" help="Voeg afdelingen toe zoals Keuken of Schoonmaak. Je kiest ze later bij het aanmaken van gebruikers.">Welke afdelingen zijn er binnen jouw bedrijf?</x-form-label>
                 <div class="rounded-lg border border-gray-300 bg-white p-3">
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="text" id="department_input"
@@ -192,7 +195,7 @@
         <!-- Opslaan -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
             <p class="text-sm text-gray-500">Wijzigingen worden direct opgeslagen voor alle gebruikers van uw organisatie.</p>
-            <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-colors min-h-[44px] touch-manipulation">
+            <button type="submit" data-onboarding-target="org-save" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-colors min-h-[44px] touch-manipulation">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>

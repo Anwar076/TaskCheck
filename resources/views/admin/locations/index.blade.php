@@ -42,6 +42,8 @@
             </div>
         </div>
 
+        @include('admin.settings.tabs', ['activeTab' => 'locations'])
+
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-100">

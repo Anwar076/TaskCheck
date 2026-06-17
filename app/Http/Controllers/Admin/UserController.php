@@ -92,6 +92,11 @@ class UserController extends Controller
 
         $user = User::create($validated);
 
+        if (auth()->user()->company?->needsOnboarding()) {
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Gebruiker succesvol aangemaakt. Voeg er gerust nog een toe, of ga door naar je eerste lijst.');
+        }
+
         return redirect()->route('admin.users.index', ['updated' => time()])
             ->with('success', 'Gebruiker succesvol aangemaakt.');
     }

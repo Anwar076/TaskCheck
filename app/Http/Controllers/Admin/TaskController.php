@@ -20,13 +20,17 @@ class TaskController extends Controller
      */
     public function create(Request $request, TaskList $list)
     {
-        $selectedWeekday = $request->get('weekday');
-        
-        // With the new agenda system, we always work with the main list
-        // Tasks can be assigned to specific days using the weekday field
-        $targetList = $list;
-        
-        return view('admin.tasks.create', compact('list', 'targetList', 'selectedWeekday'));
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        $params = ['list' => $list, 'addTask' => 1];
+
+        if ($request->filled('weekday')) {
+            $params['weekday'] = $request->query('weekday');
+        }
+
+        return redirect()->route('admin.lists.show', $params);
     }
 
     /**
@@ -34,6 +38,10 @@ class TaskController extends Controller
      */
     public function store(Request $request, TaskList $list)
     {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -42,8 +50,6 @@ class TaskController extends Controller
             'is_required' => 'boolean',
             'requires_signature' => 'boolean',
             'order_index' => 'nullable|integer|min:1',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
             'target_list_id' => 'nullable|exists:lists,id', // For weekday specific creation
             'weekdays' => 'nullable|array', // For weekly structure
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
@@ -63,12 +69,12 @@ class TaskController extends Controller
         }
 
         $validated['list_id'] = $targetList->id;
-        $validated['is_required'] = $request->has('is_required');
-        $validated['requires_signature'] = $request->has('requires_signature');
-        $validated['order_index'] = $validated['order_index'] ?? ($targetList->tasks()->max('order_index') + 1);
-        $validated['start_time'] = !empty($validated['start_time']) ? $validated['start_time'] : null;
-        $validated['end_time'] = !empty($validated['end_time']) ? $validated['end_time'] : null;
-        
+        $validated['is_required'] = $request->boolean('is_required', true);
+        $validated['requires_signature'] = $request->boolean('requires_signature');
+        $validated['order_index'] = $validated['order_index'] ?? (($targetList->tasks()->max('order_index') ?? 0) + 1);
+        $validated['start_time'] = null;
+        $validated['end_time'] = null;
+
         // Clean up checklist items (remove empty items)
         if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {
             $validated['checklist_items'] = array_values(array_filter($validated['checklist_items'], function($item) {
@@ -81,6 +87,14 @@ class TaskController extends Controller
 
         $metricErrors = MetricValidationHelper::validateFormData($validated);
         if ($metricErrors !== []) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => collect($metricErrors)->flatten()->first() ?? 'Validatiefout.',
+                    'errors' => $metricErrors,
+                ], 422);
+            }
+
             return back()->withErrors($metricErrors)->withInput();
         }
 
@@ -111,26 +125,131 @@ class TaskController extends Controller
             }
             
             $dayLabels = ['monday'=>'Maandag','tuesday'=>'Dinsdag','wednesday'=>'Woensdag','thursday'=>'Donderdag','friday'=>'Vrijdag','saturday'=>'Zaterdag','sunday'=>'Zondag'];
-            $daysList = implode(', ', array_map(fn($d) => $dayLabels[$d] ?? ucfirst($d), $weekdays));
-            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-                ->with('success', "Taak '{$validated['title']}' is aangemaakt voor: {$daysList}. Deze taak verschijnt ALLEEN op deze geselecteerde dagen.");
-        } else {
-            // Single task creation (general task available every day the list is active)
-            $validated['created_by'] = auth()->id();
-            $validated['order'] = $validated['order_index']; // Use order_index as order
-            
-            // If no weekdays selected, this is a general task (weekday = null)
-            // This means the task will appear every day the list is available
-            $validated['weekday'] = null;
-            
-            // Remove weekdays from validated data as it's not a Task field
-            unset($validated['weekdays']);
-            
-            $task = Task::create($validated);
-            
-            return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
-                ->with('success', "Algemene taak '{$validated['title']}' is toegevoegd. Deze taak verschijnt ELKE dag dat deze lijst actief is (geen specifieke dagen geselecteerd).");
+            $daysList = implode(', ', array_map(fn ($d) => $dayLabels[$d] ?? ucfirst($d), $weekdays));
+            $message = "Taak '{$validated['title']}' is aangemaakt voor: {$daysList}.";
+
+            return $this->storeTaskResponse($request, $list, $message);
         }
+
+        // Single task creation (general task available every day the list is active)
+        $validated['created_by'] = auth()->id();
+        $validated['order'] = $validated['order_index'];
+
+        // If no weekdays selected, this is a general task (weekday = null)
+        $validated['weekday'] = null;
+        unset($validated['weekdays']);
+
+        Task::create($validated);
+
+        $message = "Taak '{$validated['title']}' is toegevoegd.";
+
+        return $this->storeTaskResponse($request, $list, $message);
+    }
+
+    private function storeTaskResponse(Request $request, TaskList $list, string $message)
+    {
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect' => route('admin.lists.show', ['list' => $list->id, 'updated' => time()]),
+            ]);
+        }
+
+        return redirect()->route('admin.lists.show', ['list' => $list->id, 'updated' => time()])
+            ->with('success', $message);
+    }
+
+    public function quickStore(Request $request, TaskList $list)
+    {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        $validated = $request->validate([
+            'task_id' => 'nullable|integer|exists:tasks,id',
+            'title' => 'required_without:task_id|nullable|string|max:255',
+            'description' => 'nullable|string',
+            'instructions' => 'nullable|string',
+            'required_proof_type' => 'nullable|in:none,photo,video,text,file,any',
+            'is_required' => 'boolean',
+            'requires_signature' => 'boolean',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'weekday' => 'nullable|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+        ]);
+
+        $validated['start_time'] = ! empty($validated['start_time']) ? $validated['start_time'] : null;
+        $validated['end_time'] = ! empty($validated['end_time']) ? $validated['end_time'] : null;
+
+        if ($validated['start_time'] && $validated['end_time'] && $validated['end_time'] <= $validated['start_time']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Eindtijd moet na starttijd liggen.',
+                'errors' => ['end_time' => ['Eindtijd moet na starttijd liggen.']],
+            ], 422);
+        }
+
+        if (! empty($validated['task_id'])) {
+            $task = Task::where('id', $validated['task_id'])
+                ->where('list_id', $list->id)
+                ->first();
+
+            if (! $task || $list->company_id !== auth()->user()->company_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Taak niet gevonden.',
+                ], 404);
+            }
+
+            $task->update([
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'weekday' => $validated['weekday'] ?? $task->weekday,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Taak '{$task->title}' is gekoppeld aan het tijdslot.",
+                'task' => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'edit_url' => route('admin.tasks.edit', $task),
+                ],
+            ]);
+        }
+
+        $validated['required_proof_type'] = $validated['required_proof_type'] ?? 'none';
+        $validated['is_required'] = $request->boolean('is_required', true);
+        $validated['requires_signature'] = $request->boolean('requires_signature');
+
+        $orderIndex = ($list->tasks()->max('order_index') ?? 0) + 1;
+
+        $task = Task::create([
+            'list_id' => $list->id,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'instructions' => $validated['instructions'] ?? null,
+            'required_proof_type' => $validated['required_proof_type'],
+            'is_required' => $validated['is_required'],
+            'requires_signature' => $validated['requires_signature'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'weekday' => $validated['weekday'] ?? null,
+            'order_index' => $orderIndex,
+            'order' => $orderIndex,
+            'created_by' => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Taak '{$task->title}' is toegevoegd.",
+            'task' => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'edit_url' => route('admin.tasks.edit', $task),
+            ],
+        ]);
     }
 
     /**
@@ -154,8 +273,6 @@ class TaskController extends Controller
             'is_required' => 'boolean',
             'requires_signature' => 'boolean',
             'order_index' => 'nullable|integer|min:1',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
             'weekdays' => 'nullable|array', // For weekly structure
             'weekdays.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'checklist_items' => 'nullable|array',
@@ -169,8 +286,6 @@ class TaskController extends Controller
 
         $validated['is_required'] = $request->has('is_required');
         $validated['requires_signature'] = $request->has('requires_signature');
-        $validated['start_time'] = !empty($validated['start_time']) ? $validated['start_time'] : null;
-        $validated['end_time'] = !empty($validated['end_time']) ? $validated['end_time'] : null;
 
         // Clean up checklist items (remove empty items)
         if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {

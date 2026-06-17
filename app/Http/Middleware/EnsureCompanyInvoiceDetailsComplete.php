@@ -16,12 +16,19 @@ class EnsureCompanyInvoiceDetailsComplete
             return $next($request);
         }
 
-        if ($request->routeIs('admin.settings.*')) {
+        if ($request->routeIs('admin.settings.*') || $request->routeIs('admin.onboarding.*')) {
             return $next($request);
         }
 
         $company = $user->company;
         if (!$company) {
+            return $next($request);
+        }
+
+        if ($company->needsOnboarding() && in_array($company->onboarding_step, [
+            \App\Models\Company::ONBOARDING_STEP_WELCOME,
+            \App\Models\Company::ONBOARDING_STEP_ORGANIZATION,
+        ], true)) {
             return $next($request);
         }
 

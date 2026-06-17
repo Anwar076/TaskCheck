@@ -174,7 +174,7 @@
                         </div>
                         <h2 class="text-lg sm:text-xl font-bold text-slate-900">Taakconfiguratie</h2>
                     </div>
-                    <p class="text-slate-600 ml-11 text-sm">Bewijsvereisten en tijdslot instellen.</p>
+                    <p class="text-slate-600 ml-11 text-sm">Bewijsvereisten instellen. Tijden stel je in via de agenda.</p>
                 </div>
                 <div>
                     <label for="required_proof_type" class="block text-sm font-semibold text-slate-700 mb-2">Bewijstype <span class="text-red-500">*</span></label>
@@ -241,30 +241,6 @@
                         </select>
                     </div>
                     <p class="mt-3 text-sm text-slate-500">Hiermee stel je de norm in die je later in de submission-review terugziet.</p>
-                </div>
-                <div class="mt-6 pt-6 border-t border-slate-100">
-                    <h4 class="text-base font-semibold text-slate-900 mb-4">Tijdslot (optioneel)</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="start_time" class="block text-sm font-semibold text-slate-700 mb-2">Starttijd</label>
-                            <input type="time" name="start_time" id="start_time" 
-                                   class="block w-full px-4 py-3 border border-slate-200 rounded-xl text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white min-h-[44px] hover:border-slate-300" 
-                                   value="{{ old('start_time', $task->start_time ? \Carbon\Carbon::parse($task->start_time)->format('H:i') : '') }}">
-                            @error('start_time')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label for="end_time" class="block text-sm font-semibold text-slate-700 mb-2">Eindtijd</label>
-                            <input type="time" name="end_time" id="end_time" 
-                                   class="block w-full px-4 py-3 border border-slate-200 rounded-xl text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white min-h-[44px] hover:border-slate-300" 
-                                   value="{{ old('end_time', $task->end_time ? \Carbon\Carbon::parse($task->end_time)->format('H:i') : '') }}">
-                            @error('end_time')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
-                    <p class="mt-3 text-sm text-slate-500">Geef een tijdslot op wanneer deze taak uitgevoerd moet worden (bijv. 10:30–10:45).</p>
                 </div>
             </div>
 

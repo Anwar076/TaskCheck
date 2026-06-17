@@ -82,7 +82,7 @@ class RegisteredUserController extends Controller
                 ]);
             }
 
-            return redirect()->route('dashboard')->with('success', 'Welcome! You have started your 14-day free trial.');
+            return redirect()->route('admin.dashboard')->with('success', 'Welkom bij TaskCheck! Je proefperiode van 14 dagen is gestart.');
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
@@ -413,3 +413,4 @@ class RegisteredUserController extends Controller
         return true;
     }
 }
+
