@@ -231,11 +231,11 @@ Route::middleware(['auth'])->prefix('subscription')->name('subscription.')->grou
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    if ($user->isAdmin()) {
-        if ($user->isSuperAdmin()) {
-            return redirect()->route('super-admin.dashboard');
-        }
+    if ($user->isSuperAdmin()) {
+        return redirect()->route('super-admin.dashboard');
+    }
 
+    if ($user->isAdmin()) {
         $preferredDashboard = session('dashboard_mode', 'admin');
         if ($preferredDashboard === 'employee') {
             return redirect()->route('employee.dashboard');

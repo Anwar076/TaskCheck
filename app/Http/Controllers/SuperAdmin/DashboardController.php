@@ -7,6 +7,7 @@ use App\Mail\TaskCheckNotificationMail;
 use App\Models\Company;
 use App\Models\MarketingLinkCampaign;
 use App\Models\PlatformAlertLog;
+use App\Services\Platform\CompanyUsageService;
 use App\Services\Platform\PlatformAlertService;
 use App\Services\Platform\PlatformHealthService;
 use App\Models\IncidentTicket;
@@ -119,11 +120,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $allowedTabs = ['communications', 'companies', 'monitoring', 'invoices', 'templates'];
+        $allowedTabs = ['communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates'];
         $activeDashboardTab = request()->query('tab', 'communications');
         if (!in_array($activeDashboardTab, $allowedTabs, true)) {
             $activeDashboardTab = 'communications';
         }
+
+        $usageFilter = request()->query('usage_filter', 'all');
+        $usageOverview = app(CompanyUsageService::class)->buildUsageOverview(
+            $usageFilter !== 'all' ? $usageFilter : null
+        );
 
         return view('super-admin.dashboard', compact(
             'companies',
@@ -137,7 +143,9 @@ class DashboardController extends Controller
             'marketingLinks',
             'activeDashboardTab',
             'platformHealth',
-            'recentPlatformAlerts'
+            'recentPlatformAlerts',
+            'usageOverview',
+            'usageFilter'
         ));
     }
 

@@ -20,6 +20,10 @@ class CheckSubscription
         }
 
         $user = auth()->user();
+
+        if ($user->isSuperAdmin()) {
+            return $next($request);
+        }
         
         // If user has no company, they should register one
         if (!$user->company_id) {

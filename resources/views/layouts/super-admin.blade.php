@@ -28,7 +28,7 @@
 <body class="font-sans antialiased bg-slate-100 text-slate-900">
     @php
         $superAdminDashboardTab = request()->string('tab')->toString();
-        $allowedSuperAdminTabs = ['communications', 'companies', 'monitoring', 'invoices', 'templates'];
+        $allowedSuperAdminTabs = ['communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates'];
         if (!in_array($superAdminDashboardTab, $allowedSuperAdminTabs, true)) {
             $superAdminDashboardTab = 'communications';
         }
@@ -64,6 +64,11 @@
                        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'companies' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
                         <span class="h-2 w-2 rounded-full bg-violet-300/80"></span>
                         Bedrijven
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'usage' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
+                        <span class="h-2 w-2 rounded-full bg-emerald-300/80"></span>
+                        Gebruik
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}"
                        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'monitoring' ? 'bg-white/15 text-white' : 'text-violet-100/90 hover:bg-white/10' }}">
@@ -147,6 +152,7 @@
                 <a href="{{ route('super-admin.dashboard') }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Dashboard</a>
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'communications']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Communicatie</a>
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'companies']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Bedrijven</a>
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Gebruik</a>
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Monitoring</a>
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Templates</a>
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'invoices']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-white/10">Facturen</a>

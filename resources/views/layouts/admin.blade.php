@@ -68,7 +68,7 @@
                         </svg>
                         Super Admin
                     </a>
-                    @endif
+                    @else
                     <a href="{{ route('admin.dashboard') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.dashboard') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -76,6 +76,7 @@
                         </svg>
                         Dashboard
                     </a>
+                    @endif
                     
                     <a href="{{ route('admin.lists.index') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.lists.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">

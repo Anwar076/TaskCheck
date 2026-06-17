@@ -89,6 +89,18 @@ class User extends Authenticatable
         return $emails->contains(strtolower((string) $this->email));
     }
 
+    /**
+     * Primary dashboard URL for this user (marketing header, post-login, etc.).
+     */
+    public function homeDashboardUrl(): string
+    {
+        if ($this->isSuperAdmin()) {
+            return route('super-admin.dashboard');
+        }
+
+        return route('dashboard');
+    }
+
     // Relationships
     public function createdLists()
     {

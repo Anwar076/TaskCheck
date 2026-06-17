@@ -11,6 +11,9 @@
                 <p class="mt-1 text-violet-100/90">Alle bedrijven, gebruikers, lijsten en inzendingen op 1 plek.</p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
+                    Gebruik
+                </a>
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}" class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20">
                     Monitoring
                 </a>
@@ -514,6 +517,156 @@
     </div>
     </section>
 
+    <section data-tab-panel="usage" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'usage' ? 'hidden' : '' }}">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Gebruik per bedrijf</h2>
+            <p class="text-sm text-slate-500">Zie of bedrijven lijsten hebben, toewijzingen doen en daadwerkelijk inzendingen maken.</p>
+        </div>
+    </div>
+
+    @php
+        $usageSummary = $usageOverview['summary'] ?? [];
+        $usageCompanies = $usageOverview['companies'] ?? collect();
+        $engagementFilters = [
+            'all' => 'Alle',
+            'power' => 'Zwaar gebruik',
+            'active' => 'Actief',
+            'low' => 'Weinig actief',
+            'not_started' => 'Nog geen gebruik',
+            'dormant' => 'Slapend',
+            'inactive' => 'Geen lijsten',
+        ];
+        $badgeColors = [
+            'slate' => 'bg-slate-100 text-slate-700 ring-slate-200',
+            'amber' => 'bg-amber-100 text-amber-800 ring-amber-200',
+            'orange' => 'bg-orange-100 text-orange-800 ring-orange-200',
+            'violet' => 'bg-violet-100 text-violet-800 ring-violet-200',
+            'blue' => 'bg-blue-100 text-blue-800 ring-blue-200',
+            'emerald' => 'bg-emerald-100 text-emerald-800 ring-emerald-200',
+        ];
+    @endphp
+
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 shadow-sm">
+            <p class="text-xs font-medium text-emerald-700">Actief / zwaar</p>
+            <p class="mt-1 text-2xl font-bold text-emerald-900">{{ ($usageSummary['active'] ?? 0) }}</p>
+        </div>
+        <div class="rounded-2xl border border-violet-200 bg-violet-50/80 p-4 shadow-sm">
+            <p class="text-xs font-medium text-violet-700">Weinig actief</p>
+            <p class="mt-1 text-2xl font-bold text-violet-900">{{ $usageSummary['low'] ?? 0 }}</p>
+        </div>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
+            <p class="text-xs font-medium text-amber-800">Nog geen gebruik</p>
+            <p class="mt-1 text-2xl font-bold text-amber-900">{{ $usageSummary['not_started'] ?? 0 }}</p>
+        </div>
+        <div class="rounded-2xl border border-orange-200 bg-orange-50/80 p-4 shadow-sm">
+            <p class="text-xs font-medium text-orange-800">Slapend (30d+)</p>
+            <p class="mt-1 text-2xl font-bold text-orange-900">{{ $usageSummary['dormant'] ?? 0 }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Geen lijsten</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900">{{ $usageSummary['inactive'] ?? 0 }}</p>
+        </div>
+        <div class="rounded-2xl border border-blue-200 bg-blue-50/80 p-4 shadow-sm">
+            <p class="text-xs font-medium text-blue-700">Zwaar gebruik</p>
+            <p class="mt-1 text-2xl font-bold text-blue-900">{{ $usageSummary['power'] ?? 0 }}</p>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+        @foreach($engagementFilters as $key => $label)
+            <a href="{{ route('super-admin.dashboard', ['tab' => 'usage', 'usage_filter' => $key]) }}"
+               class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition {{ ($usageFilter ?? 'all') === $key ? 'bg-violet-700 text-white ring-violet-700' : 'bg-white text-slate-600 ring-slate-200 hover:ring-violet-300 hover:text-violet-800' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full text-sm">
+            <thead>
+                <tr class="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+                    <th class="py-3 px-3 pr-4 font-medium">Bedrijf</th>
+                    <th class="py-3 pr-4 font-medium">Status</th>
+                    <th class="py-3 pr-4 font-medium">Plan</th>
+                    <th class="py-3 pr-4 font-medium">Lijsten</th>
+                    <th class="py-3 pr-4 font-medium">Toegewezen</th>
+                    <th class="py-3 pr-4 font-medium">Taken</th>
+                    <th class="py-3 pr-4 font-medium">Inzendingen</th>
+                    <th class="py-3 pr-4 font-medium">7 dagen</th>
+                    <th class="py-3 pr-4 font-medium">30 dagen</th>
+                    <th class="py-3 pr-4 font-medium">Medewerkers (30d)</th>
+                    <th class="py-3 px-3 font-medium">Laatste activiteit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($usageCompanies as $company)
+                    @php $u = $company->usage ?? []; @endphp
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                        <td class="py-3 px-3 pr-4">
+                            <p class="font-semibold text-slate-900">{{ $company->name }}</p>
+                            <p class="text-xs text-slate-500">{{ $company->total_users }} gebruikers · sinds {{ $company->created_at?->format('d-m-Y') }}</p>
+                        </td>
+                        <td class="py-3 pr-4">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 {{ $badgeColors[$u['engagement_color'] ?? 'slate'] ?? $badgeColors['slate'] }}">
+                                {{ $u['engagement_label'] ?? '—' }}
+                            </span>
+                        </td>
+                        <td class="py-3 pr-4">
+                            <span class="text-slate-700">{{ ucfirst($company->subscription_plan ?? 'geen') }}</span>
+                            @if($company->subscription_status === 'trial' && $company->trial_ends_at)
+                                <p class="text-[11px] text-amber-600">Trial t/m {{ $company->trial_ends_at->format('d-m') }}</p>
+                            @endif
+                        </td>
+                        <td class="py-3 pr-4">
+                            <span class="font-medium text-slate-900">{{ $u['active_lists_count'] ?? 0 }}</span>
+                            <span class="text-slate-400">/</span>
+                            <span class="text-slate-600">{{ $u['task_lists_count'] ?? 0 }}</span>
+                            <p class="text-[11px] text-slate-500">actief / totaal</p>
+                        </td>
+                        <td class="py-3 pr-4">
+                            {{ $u['assigned_lists_count'] ?? 0 }}
+                            <span class="text-xs text-slate-400">({{ $u['assignments_count'] ?? 0 }} toew.)</span>
+                        </td>
+                        <td class="py-3 pr-4">{{ number_format($u['tasks_count'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="py-3 pr-4 font-medium">{{ number_format($u['submissions_total'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="py-3 pr-4 {{ ($u['submissions_7d'] ?? 0) > 0 ? 'font-semibold text-emerald-700' : 'text-slate-500' }}">
+                            {{ $u['submissions_7d'] ?? 0 }}
+                        </td>
+                        <td class="py-3 pr-4">{{ $u['submissions_30d'] ?? 0 }}</td>
+                        <td class="py-3 pr-4">{{ $u['active_users_30d'] ?? 0 }} <span class="text-xs text-slate-400">/ {{ $company->employee_users ?? 0 }}</span></td>
+                        <td class="py-3 px-3 whitespace-nowrap text-slate-600">
+                            @if(!empty($u['last_activity_at']))
+                                {{ $u['last_activity_at']->timezone('Europe/Amsterdam')->format('d-m-Y H:i') }}
+                                <p class="text-[11px] text-slate-400">{{ $u['last_activity_at']->diffForHumans() }}</p>
+                            @else
+                                <span class="text-slate-400">—</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="11" class="py-10 text-center text-slate-500">Geen bedrijven voor dit filter.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600 leading-relaxed">
+        <p class="font-semibold text-slate-800">Legenda</p>
+        <ul class="mt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+            <li><strong>Geen lijsten</strong> — nog geen hoofdlijsten aangemaakt</li>
+            <li><strong>Nog geen gebruik</strong> — lijsten bestaan, maar nog geen inzendingen</li>
+            <li><strong>Slapend</strong> — wel historie, maar geen activiteit in 30 dagen</li>
+            <li><strong>Weinig actief</strong> — 1–4 inzendingen in 30 dagen</li>
+            <li><strong>Actief</strong> — 5+ inzendingen in 30 dagen of 2+ in 7 dagen</li>
+            <li><strong>Zwaar gebruik</strong> — 20+ inzendingen in 30 dagen of 10+ in 7 dagen</li>
+        </ul>
+    </div>
+    </section>
+
     <section data-tab-panel="monitoring" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'monitoring' ? 'hidden' : '' }}">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -845,7 +998,7 @@
 (() => {
     const tabPanels = Array.from(document.querySelectorAll('.sa-tab-panel'));
     const tabFromQuery = new URLSearchParams(window.location.search).get('tab');
-    const allowedTabs = new Set(['communications', 'companies', 'monitoring', 'invoices', 'templates']);
+    const allowedTabs = new Set(['communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates']);
     const serverTab = @json($activeDashboardTab);
     const initialTab = (tabFromQuery && allowedTabs.has(tabFromQuery))
         ? tabFromQuery
