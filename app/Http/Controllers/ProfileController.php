@@ -16,8 +16,18 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $layout = 'layouts.employee';
+
+        if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+            $layout = 'layouts.super-admin';
+        } elseif (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            $layout = 'layouts.admin';
+        }
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'profileLayout' => $layout,
         ]);
     }
 

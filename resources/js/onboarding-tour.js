@@ -87,6 +87,58 @@ export function initOnboardingTour(root) {
         }
     };
 
+    const shouldScrollToTarget = (target) => {
+        if (!target) {
+            return false;
+        }
+
+        const rect = target.getBoundingClientRect();
+        const viewportPadding = 96;
+
+        return rect.top < viewportPadding
+            || rect.bottom > window.innerHeight - viewportPadding
+            || rect.left < 16
+            || rect.right > window.innerWidth - 16;
+    };
+
+    const blockTourScroll = (event) => {
+        if (!open) {
+            return;
+        }
+
+        if (event.target?.closest?.('[data-tour-popover]')) {
+            return;
+        }
+
+        event.preventDefault();
+    };
+
+    const blockTourScrollKeys = (event) => {
+        if (!open) {
+            return;
+        }
+
+        if (event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) {
+            return;
+        }
+
+        if ([' ', 'PageUp', 'PageDown', 'End', 'Home', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+            event.preventDefault();
+        }
+    };
+
+    const lockScroll = () => {
+        window.addEventListener('wheel', blockTourScroll, { passive: false });
+        window.addEventListener('touchmove', blockTourScroll, { passive: false });
+        window.addEventListener('keydown', blockTourScrollKeys, true);
+    };
+
+    const unlockScroll = () => {
+        window.removeEventListener('wheel', blockTourScroll);
+        window.removeEventListener('touchmove', blockTourScroll);
+        window.removeEventListener('keydown', blockTourScrollKeys, true);
+    };
+
     const hideTargetUi = () => {
         Object.values(masks).forEach((el) => el?.classList.add('hidden'));
         ring?.classList.add('hidden');
@@ -490,8 +542,8 @@ export function initOnboardingTour(root) {
 
         const paint = () => paintTarget(slide, target, { focusField: scrollToTarget });
 
-        if (target && scrollToTarget) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        if (target && scrollToTarget && shouldScrollToTarget(target)) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
             window.setTimeout(paint, 400);
         } else {
             paint();
@@ -516,8 +568,10 @@ export function initOnboardingTour(root) {
         }
 
         if (open) {
+            lockScroll();
             renderSlide();
         } else {
+            unlockScroll();
             hideTargetUi();
         }
     };

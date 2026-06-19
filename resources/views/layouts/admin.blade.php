@@ -1067,6 +1067,7 @@
     @elseif(!empty($onboarding['active']))
         <x-admin-onboarding-tour :onboarding="$onboarding" />
     @endif
+    @stack('scripts')
     @include('partials.google-translate')
 </body>
 </html>

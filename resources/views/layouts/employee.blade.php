@@ -724,6 +724,7 @@
             }, 5000);
         });
     </script>
+    @stack('scripts')
     @include('partials.google-translate')
 </body>
 </html>
