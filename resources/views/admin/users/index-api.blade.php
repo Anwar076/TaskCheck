@@ -2,6 +2,11 @@
 
 @section('page-title', 'Gebruikersbeheer')
 
+@section('breadcrumbs')
+    <span class="text-slate-500">/</span>
+    <span class="text-slate-900 font-semibold truncate">Gebruikers</span>
+@endsection
+
 @section('content')
 @php
     $companyId = auth()->user()->company_id ?? null;

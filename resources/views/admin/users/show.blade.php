@@ -2,6 +2,13 @@
 
 @section('page-title', $user->name)
 
+@section('breadcrumbs')
+    <span class="text-slate-500">/</span>
+    <a href="{{ route('admin.users.index') }}" class="text-slate-500 hover:text-slate-700 font-medium transition-colors">Gebruikers</a>
+    <span class="text-slate-400">/</span>
+    <span class="text-slate-900 font-semibold truncate">{{ $user->name }}</span>
+@endsection
+
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
     {{-- Hero / Header --}}

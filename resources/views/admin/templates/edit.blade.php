@@ -2,6 +2,15 @@
 
 @section('page-title', 'Template bewerken')
 
+@section('breadcrumbs')
+    <span class="text-slate-500">/</span>
+    <a href="{{ route('admin.templates.index') }}" class="text-slate-500 hover:text-slate-700 font-medium transition-colors">Templates</a>
+    <span class="text-slate-400">/</span>
+    <a href="{{ route('admin.templates.show', $template) }}" class="text-slate-500 hover:text-slate-700 font-medium transition-colors truncate">{{ $template->name }}</a>
+    <span class="text-slate-400">/</span>
+    <span class="text-slate-900 font-semibold truncate">Bewerken</span>
+@endsection
+
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8">

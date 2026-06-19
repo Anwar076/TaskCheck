@@ -2,6 +2,11 @@
 
 @section('page-title', 'Inzendingen')
 
+@section('breadcrumbs')
+    <span class="text-slate-500">/</span>
+    <span class="text-slate-900 font-semibold truncate">Inzendingen</span>
+@endsection
+
 @section('head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection

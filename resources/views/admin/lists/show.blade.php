@@ -2,6 +2,13 @@
 
 @section('page-title', $list->title)
 
+@section('breadcrumbs')
+    <span class="text-slate-500">/</span>
+    <a href="{{ route('admin.lists.index') }}" class="text-slate-500 hover:text-slate-700 font-medium transition-colors">Takenlijsten</a>
+    <span class="text-slate-400">/</span>
+    <span class="text-slate-900 font-semibold truncate">{{ $list->title }}</span>
+@endsection
+
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden" data-sortable-reorder-url="{{ route('admin.lists.tasks.reorder', $list) }}">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
