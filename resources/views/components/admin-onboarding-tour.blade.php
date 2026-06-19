@@ -93,7 +93,7 @@
          aria-live="polite">
 
         <div data-tour-chip @class([
-            'fixed bottom-5 left-5 z-[260]',
+            'fixed bottom-5 left-5 z-[290]',
             'admin-help-fab-wait' => $helpAnimate,
             'hidden' => !$isHelp && !$helpAnimate,
         ])>
@@ -106,7 +106,7 @@
             </button>
         </div>
 
-        <div data-tour-overlay class="fixed inset-0 z-[240] hidden pointer-events-none">
+        <div data-tour-overlay class="fixed inset-0 z-[280] hidden pointer-events-none">
             <div data-tour-backdrop class="pointer-events-none absolute inset-0 bg-slate-950/70 backdrop-blur-[3px]"></div>
 
             <div data-tour-mask-top class="pointer-events-none absolute bg-slate-950/72 backdrop-blur-[2px] transition-all duration-150"></div>
@@ -117,14 +117,14 @@
             <div data-tour-ring class="onboarding-tour-ring pointer-events-none fixed hidden rounded-xl border-[3px] border-blue-500 bg-white/[0.04]"></div>
             <div data-tour-ring-inner class="onboarding-tour-ring-inner pointer-events-none fixed hidden rounded-xl"></div>
 
-            <div data-tour-badge class="onboarding-tour-badge pointer-events-none fixed hidden z-[252]">
+            <div data-tour-badge class="onboarding-tour-badge pointer-events-none fixed hidden z-[285]">
                 <span class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-xl ring-4 ring-blue-400/30">
                     <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0L19 5"/></svg>
                     Klik hier
                 </span>
             </div>
 
-            <div data-tour-popover class="pointer-events-auto fixed z-[255] w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/25">
+            <div data-tour-popover class="pointer-events-auto fixed z-[286] w-[min(26rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/25">
                 <div data-tour-arrow class="absolute h-3.5 w-3.5 rotate-45 border border-slate-200 bg-white hidden"></div>
                 <div class="relative p-5 sm:p-6">
                     <div class="flex items-start justify-between gap-3">
@@ -158,7 +158,7 @@
 
     @if(!$isHelp)
         @error('users')
-            <div class="fixed bottom-20 left-1/2 z-[270] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-lg">{{ $message }}</div>
+            <div class="fixed bottom-20 left-1/2 z-[295] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-lg">{{ $message }}</div>
         @enderror
     @endif
 @endif

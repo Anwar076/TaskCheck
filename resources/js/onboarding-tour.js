@@ -21,6 +21,7 @@ export function initOnboardingTour(root) {
     let waitTimer = null;
     let repaintTimer = null;
     let activeTarget = null;
+    let hiddenTitleElements = [];
 
     const overlay = root.querySelector('[data-tour-overlay]');
     const backdrop = root.querySelector('[data-tour-backdrop]');
@@ -85,6 +86,33 @@ export function initOnboardingTour(root) {
             activeTarget.classList.remove('onboarding-tour-focus', 'onboarding-tour-clickable');
             activeTarget = null;
         }
+
+        hiddenTitleElements.forEach((el) => {
+            if (el.dataset.tourOriginalTitle !== undefined) {
+                el.setAttribute('title', el.dataset.tourOriginalTitle);
+                delete el.dataset.tourOriginalTitle;
+            }
+        });
+        hiddenTitleElements = [];
+    };
+
+    const hideNativeTooltips = (el) => {
+        hiddenTitleElements.forEach((node) => {
+            if (node.dataset.tourOriginalTitle !== undefined) {
+                node.setAttribute('title', node.dataset.tourOriginalTitle);
+                delete node.dataset.tourOriginalTitle;
+            }
+        });
+
+        hiddenTitleElements = [...el.querySelectorAll('[title]')];
+        if (el.hasAttribute('title')) {
+            hiddenTitleElements.unshift(el);
+        }
+
+        hiddenTitleElements.forEach((node) => {
+            node.dataset.tourOriginalTitle = node.getAttribute('title') || '';
+            node.removeAttribute('title');
+        });
     };
 
     const shouldScrollToTarget = (target) => {
@@ -157,6 +185,49 @@ export function initOnboardingTour(root) {
         bottom: rect.bottom + pad,
         right: rect.right + pad,
     });
+
+    const visibleRect = (rect) => {
+        const margin = 12;
+        const top = Math.min(Math.max(rect.top, margin), window.innerHeight - margin);
+        const left = Math.min(Math.max(rect.left, margin), window.innerWidth - margin);
+        const right = Math.max(left, Math.min(rect.right, window.innerWidth - margin));
+        const bottom = Math.max(top, Math.min(rect.bottom, window.innerHeight - margin));
+
+        return {
+            top,
+            left,
+            right,
+            bottom,
+            width: right - left,
+            height: bottom - top,
+        };
+    };
+
+    const displayRectFor = (rect, slide) => {
+        const maxWidth = slide.maxHighlightWidth || Math.min(window.innerWidth - 48, 960);
+        const maxHeight = slide.maxHighlightHeight || Math.min(window.innerHeight - 96, 520);
+        const clipped = visibleRect(rect);
+
+        if (clipped.width <= maxWidth && clipped.height <= maxHeight) {
+            return clipped;
+        }
+
+        const width = Math.min(clipped.width, maxWidth);
+        const height = Math.min(clipped.height, maxHeight);
+        const centerX = Math.min(Math.max(rect.left + rect.width / 2, clipped.left + width / 2), clipped.right - width / 2);
+        const centerY = Math.min(Math.max(rect.top + rect.height / 2, clipped.top + height / 2), clipped.bottom - height / 2);
+        const left = centerX - width / 2;
+        const top = centerY - height / 2;
+
+        return {
+            top,
+            left,
+            width,
+            height,
+            right: left + width,
+            bottom: top + height,
+        };
+    };
 
     const updateMask = (box) => {
         const vw = window.innerWidth;
@@ -240,12 +311,13 @@ export function initOnboardingTour(root) {
         clearActiveTarget();
         activeTarget = el;
         el.classList.add('onboarding-tour-focus');
+        hideNativeTooltips(el);
 
         if (slide.clickTarget !== false) {
             el.classList.add('onboarding-tour-clickable');
         }
 
-        const rect = el.getBoundingClientRect();
+        const rect = displayRectFor(el.getBoundingClientRect(), slide);
         const box = padRect(rect, slide.highlightPad ?? 10);
 
         updateMask(box);
@@ -568,7 +640,9 @@ export function initOnboardingTour(root) {
         }
 
         if (open) {
-            lockScroll();
+            if (!isHelpMode) {
+                lockScroll();
+            }
             renderSlide();
         } else {
             unlockScroll();

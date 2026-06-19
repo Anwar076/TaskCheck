@@ -44,7 +44,7 @@
 
 <div class="mb-6 sm:mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" data-onboarding-target="list-tasks">
     {{-- Google Calendar toolbar --}}
-    <div class="flex flex-col gap-3 border-b border-slate-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+    <div class="flex flex-col gap-3 border-b border-slate-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4" data-onboarding-target="list-calendar-toolbar">
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <a href="{{ $todayLink }}"
                class="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">

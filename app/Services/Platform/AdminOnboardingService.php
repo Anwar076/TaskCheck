@@ -292,18 +292,18 @@ class AdminOnboardingService
                 'cta' => 'Kies de weergave die het best past.',
             ],
             [
-                'target' => '[data-onboarding-target="calendar-main"]',
+                'target' => '[data-onboarding-target="calendar-toolbar"]',
                 'title' => 'Alle lijsten in één agenda',
                 'body' => 'Hier zie je welke takenlijsten gepland staan. Klik op een lijst om taken te beheren. Filter eventueel op locatie bovenaan de pagina.',
-                'placement' => 'left',
+                'placement' => 'bottom',
                 'clickTarget' => false,
-                'cta' => 'Bekijk het gemarkeerde agenda-overzicht.',
+                'cta' => 'Gebruik de knoppen boven de agenda om te navigeren.',
             ],
             [
-                'target' => '[data-onboarding-target="calendar-schedule-grid"]',
+                'target' => '[data-onboarding-target="calendar-schedule-help"]',
                 'title' => 'Lijsten op tijd plannen',
                 'body' => 'In week- of dagweergave kun je klikken of slepen in het tijdschema om een lijst aan een tijdslot te koppelen. Lijsten zonder vaste tijd staan op de rij Hele dag.',
-                'placement' => 'left',
+                'placement' => 'bottom',
                 'clickTarget' => false,
                 'cta' => 'Open week- of dagweergave om het tijdschema te gebruiken.',
             ],
@@ -339,12 +339,12 @@ class AdminOnboardingService
 
         return [
             [
-                'target' => '[data-onboarding-target="list-tasks"]',
+                'target' => '[data-onboarding-target="list-calendar-toolbar"]',
                 'title' => 'Agenda van je lijst',
                 'body' => 'Je lijst heeft een ingebouwde agenda. Geplande dagen en tijden zie je hier; in dagweergave staan taken van die dag eronder.',
-                'placement' => 'left',
+                'placement' => 'bottom',
                 'clickTarget' => false,
-                'cta' => 'Bekijk het gemarkeerde agenda-blok.',
+                'cta' => 'Gebruik de kalender bovenaan om de planning te bekijken.',
             ],
             [
                 'target' => '[data-onboarding-target="calendar-view-switch"]',

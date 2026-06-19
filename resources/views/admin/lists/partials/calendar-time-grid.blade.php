@@ -106,7 +106,7 @@
      data-slot-minutes="{{ $slotMinutes }}">
     <div class="{{ $wrapperClass }}">
         @unless($singleDay)
-            <p class="border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            <p class="border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500" data-onboarding-target="calendar-schedule-help">
                 Klik of sleep in het tijdschema om een <span class="font-medium">lijst aan een tijdslot</span> te koppelen.
                 Klik op een bestaand blok om tijd of lijst aan te passen. Meerdere lijsten kunnen op hetzelfde tijdslot staan.
                 Lijsten zonder vaste tijd staan op de rij &ldquo;Hele dag&rdquo;.
