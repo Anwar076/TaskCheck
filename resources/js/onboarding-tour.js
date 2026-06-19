@@ -374,6 +374,12 @@ export function initOnboardingTour(root) {
                 left = Math.min(Math.max(margin, left), window.innerWidth - popRect.width - margin);
                 top = Math.min(Math.max(margin, top), window.innerHeight - popRect.height - margin);
 
+                if (rect.bottom > window.innerHeight - popRect.height / 2) {
+                    top = Math.max(margin, rect.top - popRect.height - gap);
+                } else if (rect.top < popRect.height / 2) {
+                    top = Math.min(window.innerHeight - popRect.height - margin, rect.bottom + gap);
+                }
+
                 if (arrow) {
                     arrow.classList.remove('hidden');
                     arrow.classList.add(effectivePlacement === 'left' ? 'tour-arrow-right' : 'tour-arrow-left');

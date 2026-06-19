@@ -363,12 +363,12 @@ class AdminOnboardingService
                 'cta' => 'Optioneel: voeg extra taken toe.',
             ],
             [
-                'target' => '[data-onboarding-target="list-assignments"]',
+                'target' => '[data-onboarding-target="assignment-summary"]',
                 'title' => 'Medewerker toewijzen',
                 'body' => 'Je lijst is klaar. Wijs hem toe aan een medewerker — pas dan kan hij de checklist invullen in de app.',
-                'placement' => 'left',
+                'placement' => 'right',
                 'clickTarget' => false,
-                'cta' => 'Ga naar het toewijzingsblok hieronder.',
+                'cta' => 'Dit blok toont wie toegang heeft tot deze lijst.',
             ],
             [
                 'target' => '[data-onboarding-target="assign-list"]',
