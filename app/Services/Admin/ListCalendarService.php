@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\Task;
 use App\Models\TaskList;
+use App\Models\Company;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -12,7 +13,7 @@ class ListCalendarService
 {
     public const DAY_START_HOUR = 6;
 
-    public const DAY_END_HOUR = 22;
+    public const DAY_END_HOUR = 21;
 
     public const DEFAULT_TASK_DURATION_MINUTES = 30;
     public const LIST_COLORS = [
@@ -43,10 +44,11 @@ class ListCalendarService
         'sunday' => 'Zondag',
     ];
 
-    public function buildWeek(TaskList $list, Carbon $weekStart): array
+    public function buildWeek(TaskList $list, Carbon $weekStart, ?array $visibleDayKeys = null): array
     {
         $weekStart = $weekStart->copy()->startOfWeek(Carbon::MONDAY);
         $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $axis = $this->timeAxisForCompany($list->company, $visibleDayKeys ?? array_keys(self::WEEKDAY_LABELS));
 
         $generalTasks = $list->tasks->whereNull('weekday')->values();
         $tasksByDay = $list->tasks->whereNotNull('weekday')->groupBy('weekday');
@@ -61,7 +63,7 @@ class ListCalendarService
                 ? $generalTasks->concat($daySpecific)->sortBy('order_index')->values()
                 : collect();
             $listSchedule = $isListActive
-                ? $this->aggregateListDaySchedule(collect([$list]), $dayKey)
+                ? $this->aggregateListDaySchedule(collect([$list]), $dayKey, $axis)
                 : ['all_day_lists' => collect(), 'timed_lists' => collect()];
 
             $days[] = [
@@ -79,6 +81,7 @@ class ListCalendarService
                 'tasks' => $visibleTasks,
                 'all_day_lists' => $listSchedule['all_day_lists'],
                 'timed_lists' => $listSchedule['timed_lists'],
+                'working_hours' => $this->workingHoursForDay($list->company, $dayKey),
             ];
         }
 
@@ -96,7 +99,8 @@ class ListCalendarService
             'days' => $days,
             'general_tasks' => $generalTasks,
             'schedule_summary' => $this->scheduleSummary($list),
-            'time_hours' => $this->timeAxisHours(),
+            'time_hours' => $this->timeAxisHours($axis),
+            'time_axis' => $axis,
         ];
     }
 
@@ -239,17 +243,18 @@ class ListCalendarService
     /**
      * @param  Collection<int, TaskList>  $lists
      */
-    public function buildCompanyWeek(Collection $lists, Carbon $weekStart): array
+    public function buildCompanyWeek(Collection $lists, Carbon $weekStart, ?Company $company = null, ?array $visibleDayKeys = null): array
     {
         $weekStart = $weekStart->copy()->startOfWeek(Carbon::MONDAY);
         $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $axis = $this->timeAxisForCompany($company, $visibleDayKeys ?? array_keys(self::WEEKDAY_LABELS));
 
         $days = [];
         for ($i = 0; $i < 7; $i++) {
             $date = $weekStart->copy()->addDays($i);
             $dayKey = strtolower($date->format('l'));
             $dayLists = $this->activeListsForDate($lists, $date);
-            $daySchedule = $this->aggregateListDaySchedule($dayLists, $dayKey);
+            $daySchedule = $this->aggregateListDaySchedule($dayLists, $dayKey, $axis);
 
             $days[] = [
                 'key' => $dayKey,
@@ -263,6 +268,7 @@ class ListCalendarService
                 'list_count' => $dayLists->count(),
                 'all_day_lists' => $daySchedule['all_day_lists'],
                 'timed_lists' => $daySchedule['timed_lists'],
+                'working_hours' => $this->workingHoursForDay($company, $dayKey),
             ];
         }
 
@@ -279,7 +285,8 @@ class ListCalendarService
             'today' => now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d'),
             'days' => $days,
             'total_lists' => $lists->count(),
-            'time_hours' => $this->timeAxisHours(),
+            'time_hours' => $this->timeAxisHours($axis),
+            'time_axis' => $axis,
         ];
     }
 
@@ -307,8 +314,9 @@ class ListCalendarService
      * @param  Collection<int, TaskList>  $lists
      * @return array{all_day_lists: Collection<int, TaskList>, timed_lists: Collection<int, array<string, mixed>>}
      */
-    public function aggregateListDaySchedule(Collection $lists, string $dayKey): array
+    public function aggregateListDaySchedule(Collection $lists, string $dayKey, ?array $axis = null): array
     {
+        $axis ??= $this->defaultTimeAxis();
         $allDayLists = collect();
         $timedLists = collect();
 
@@ -318,7 +326,7 @@ class ListCalendarService
             if ($slots !== []) {
                 foreach ($slots as $slot) {
                     $timedLists->push(array_merge(
-                        $this->mapTimedListSlot($list, $slot),
+                        $this->mapTimedListSlot($list, $slot, $axis),
                         ['list' => $list, 'color' => $this->listColor($list->id)]
                     ));
                 }
@@ -710,8 +718,9 @@ class ListCalendarService
     /**
      * @return array<string, mixed>
      */
-    private function mapTimedListSlot(TaskList $list, array $slot): array
+    private function mapTimedListSlot(TaskList $list, array $slot, ?array $axis = null): array
     {
+        $axis ??= $this->defaultTimeAxis();
         $startMinutes = $this->timeToMinutes($this->normalizeTime($slot['start_time']));
         $endMinutes = ! empty($slot['end_time'])
             ? $this->timeToMinutes($this->normalizeTime($slot['end_time']))
@@ -721,10 +730,10 @@ class ListCalendarService
             $endMinutes = $startMinutes + self::DEFAULT_TASK_DURATION_MINUTES;
         }
 
-        $gridStart = self::DAY_START_HOUR * 60;
-        $gridEnd = self::DAY_END_HOUR * 60;
+        $gridStart = (int) $axis['start_minutes'];
+        $gridEnd = (int) $axis['end_minutes'];
         $totalMinutes = max(1, $gridEnd - $gridStart);
-        $hourCount = self::DAY_END_HOUR - self::DAY_START_HOUR;
+        $hourCount = max(1, (int) $axis['end_hour'] - (int) $axis['start_hour']);
         $gridRowStart = max(1, min($hourCount, (int) floor(($startMinutes - $gridStart) / 60) + 1));
         $gridRowEnd = max($gridRowStart + 1, min($hourCount + 1, (int) floor(($endMinutes - $gridStart) / 60) + 1));
 
@@ -792,14 +801,41 @@ class ListCalendarService
     /**
      * @return array<int, string>
      */
-    public function timeAxisHours(): array
+    public function timeAxisHours(?array $axis = null): array
     {
+        $axis ??= $this->defaultTimeAxis();
         $hours = [];
-        for ($hour = self::DAY_START_HOUR; $hour < self::DAY_END_HOUR; $hour++) {
+        for ($hour = (int) $axis['start_hour']; $hour < (int) $axis['end_hour']; $hour++) {
             $hours[] = sprintf('%02d:00', $hour);
         }
 
         return $hours;
+    }
+
+    public function timeAxisForCompany(?Company $company, array $dayKeys): array
+    {
+        if ($company) {
+            return $company->workingHoursForDays($dayKeys);
+        }
+
+        return $this->defaultTimeAxis();
+    }
+
+    private function workingHoursForDay(?Company $company, string $dayKey): array
+    {
+        return $company?->normalizedWorkingHours()[$dayKey]
+            ?? Company::defaultWorkingHours()[$dayKey]
+            ?? ['enabled' => true, 'start' => '06:00', 'end' => '21:00'];
+    }
+
+    private function defaultTimeAxis(): array
+    {
+        return [
+            'start_hour' => self::DAY_START_HOUR,
+            'end_hour' => self::DAY_END_HOUR,
+            'start_minutes' => self::DAY_START_HOUR * 60,
+            'end_minutes' => self::DAY_END_HOUR * 60,
+        ];
     }
 
     /**

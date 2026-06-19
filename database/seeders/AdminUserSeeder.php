@@ -16,6 +16,10 @@ class AdminUserSeeder extends Seeder
             ['name' => 'Demo Organisatie'],
             [
                 'company_type' => 'cleaning',
+                'address' => 'Demostraat 1, 1011 AB Amsterdam',
+                'phone' => '0201234567',
+                'email' => 'demo@taskcheck.test',
+                'working_hours' => \App\Models\Company::defaultWorkingHours(),
                 'subscription_plan' => 'starter',
                 'subscription_status' => 'trial',
                 'trial_ends_at' => now()->addDays(14),
@@ -23,6 +27,8 @@ class AdminUserSeeder extends Seeder
                 'max_locations' => \App\Models\Company::PLANS['starter']['max_locations'],
                 'max_storage_gb' => \App\Models\Company::PLANS['starter']['max_storage_gb'],
                 'is_active' => true,
+                'onboarding_step' => \App\Models\Company::ONBOARDING_STEP_COMPLETED,
+                'onboarding_completed_at' => now(),
             ]
         );
 

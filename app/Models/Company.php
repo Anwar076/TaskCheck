@@ -21,6 +21,7 @@ class Company extends Model
         'website',
         'description',
         'departments',
+        'working_hours',
         'subscription_plan',
         'pending_subscription_plan',
         'subscription_status',
@@ -55,6 +56,17 @@ class Company extends Model
         'billing_required' => 'boolean',
         'is_active' => 'boolean',
         'departments' => 'array',
+        'working_hours' => 'array',
+    ];
+
+    public const WEEKDAYS = [
+        'monday' => 'Maandag',
+        'tuesday' => 'Dinsdag',
+        'wednesday' => 'Woensdag',
+        'thursday' => 'Donderdag',
+        'friday' => 'Vrijdag',
+        'saturday' => 'Zaterdag',
+        'sunday' => 'Zondag',
     ];
 
     // Plan configurations
@@ -289,6 +301,91 @@ class Company extends Model
         \Illuminate\Support\Facades\Cache::forget("company_{$this->id}_storage_used_bytes");
     }
 
+    public static function defaultWorkingHours(): array
+    {
+        return collect(array_keys(self::WEEKDAYS))
+            ->mapWithKeys(fn ($day) => [$day => [
+                'enabled' => true,
+                'start' => '06:00',
+                'end' => '21:00',
+            ]])
+            ->all();
+    }
+
+    public function normalizedWorkingHours(): array
+    {
+        $configured = is_array($this->working_hours) ? $this->working_hours : [];
+
+        return collect(self::defaultWorkingHours())
+            ->mapWithKeys(function (array $defaults, string $day) use ($configured) {
+                $dayConfig = is_array($configured[$day] ?? null) ? $configured[$day] : [];
+                $enabled = array_key_exists('enabled', $dayConfig)
+                    ? (bool) $dayConfig['enabled']
+                    : (bool) $defaults['enabled'];
+                $start = $this->normalizeWorkingHourTime($dayConfig['start'] ?? $defaults['start']);
+                $end = $this->normalizeWorkingHourTime($dayConfig['end'] ?? $defaults['end']);
+
+                if ($end <= $start) {
+                    $start = $defaults['start'];
+                    $end = $defaults['end'];
+                }
+
+                return [$day => [
+                    'enabled' => $enabled,
+                    'start' => $start,
+                    'end' => $end,
+                ]];
+            })
+            ->all();
+    }
+
+    public function workingHoursForDays(array $dayKeys): array
+    {
+        $hours = $this->normalizedWorkingHours();
+        $selected = array_values(array_filter($dayKeys, fn ($day) => isset($hours[$day])));
+
+        if ($selected === []) {
+            $selected = array_keys(self::WEEKDAYS);
+        }
+
+        $enabled = array_values(array_filter(
+            array_intersect_key($hours, array_flip($selected)),
+            fn (array $day) => (bool) ($day['enabled'] ?? true)
+        ));
+
+        if ($enabled === []) {
+            $enabled = array_values(array_intersect_key($hours, array_flip($selected)));
+        }
+
+        $startHour = min(array_map(fn (array $day) => (int) substr($day['start'], 0, 2), $enabled));
+        $endHour = max(array_map(function (array $day) {
+            [$hour, $minute] = array_map('intval', explode(':', $day['end']));
+
+            return $minute > 0 ? $hour + 1 : $hour;
+        }, $enabled));
+
+        $startHour = max(0, min(23, $startHour));
+        $endHour = max($startHour + 1, min(24, $endHour));
+
+        return [
+            'start_hour' => $startHour,
+            'end_hour' => $endHour,
+            'start_minutes' => $startHour * 60,
+            'end_minutes' => $endHour * 60,
+        ];
+    }
+
+    private function normalizeWorkingHourTime(mixed $value): string
+    {
+        $time = is_string($value) ? $value : '';
+
+        if (! preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $time)) {
+            return '06:00';
+        }
+
+        return $time;
+    }
+
     public function hasCompletedOnboarding(): bool
     {
         return $this->onboarding_completed_at !== null;
@@ -327,4 +424,3 @@ class Company extends Model
         return app(\App\Services\Platform\AdminOnboardingService::class)->redirectRouteParameters($this);
     }
 }
-

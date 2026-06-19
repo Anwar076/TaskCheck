@@ -215,7 +215,8 @@ class TaskListController extends Controller
             ->orderBy('name')
             ->get();
 
-        $departments = collect(auth()->user()->company?->departments ?? [])
+        $company = auth()->user()->company;
+        $departments = collect($company?->departments ?? [])
             ->filter(fn ($item) => is_string($item) && trim($item) !== '')
             ->values()
             ->all();
@@ -247,6 +248,9 @@ class TaskListController extends Controller
         $viewParam = $request->query('view', 'week');
         $calendarView = in_array($viewParam, ['week', 'day', 'month'], true) ? $viewParam : 'week';
         $selectedDay = $request->query('day', strtolower(now()->format('l')));
+        if (! array_key_exists($selectedDay, ListCalendarService::WEEKDAY_LABELS)) {
+            $selectedDay = strtolower(now()->format('l'));
+        }
 
         if ($calendarView === 'month') {
             $monthStart = Carbon::parse($request->query('month', now()->format('Y-m-01')))->startOfMonth();
@@ -255,7 +259,11 @@ class TaskListController extends Controller
         } else {
             $weekStart = Carbon::parse($request->query('week', now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d')))
                 ->startOfWeek(Carbon::MONDAY);
-            $calendar = $calendarService->buildWeek($list, $weekStart);
+            $calendar = $calendarService->buildWeek(
+                $list,
+                $weekStart,
+                $calendarView === 'day' ? [$selectedDay] : null
+            );
             $validDayKeys = collect($calendar['days'])->pluck('key')->all();
             if (! in_array($selectedDay, $validDayKeys, true)) {
                 $selectedDay = strtolower(now()->format('l'));
@@ -275,10 +283,14 @@ class TaskListController extends Controller
     public function calendar(Request $request)
     {
         $companyId = auth()->user()->company_id;
+        $company = auth()->user()->company;
         $calendarService = app(ListCalendarService::class);
         $viewParam = $request->query('view', 'week');
         $calendarView = in_array($viewParam, ['week', 'day', 'month'], true) ? $viewParam : 'week';
         $selectedDay = $request->query('day', strtolower(now()->format('l')));
+        if (! array_key_exists($selectedDay, ListCalendarService::WEEKDAY_LABELS)) {
+            $selectedDay = strtolower(now()->format('l'));
+        }
 
         $locationId = null;
         if ($request->filled('location_id')) {
@@ -303,7 +315,12 @@ class TaskListController extends Controller
         } else {
             $weekStart = Carbon::parse($request->query('week', now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d')))
                 ->startOfWeek(Carbon::MONDAY);
-            $calendar = $calendarService->buildCompanyWeek($lists, $weekStart);
+            $calendar = $calendarService->buildCompanyWeek(
+                $lists,
+                $weekStart,
+                $company,
+                $calendarView === 'day' ? [$selectedDay] : null
+            );
             $validDayKeys = collect($calendar['days'])->pluck('key')->all();
             if (! in_array($selectedDay, $validDayKeys, true)) {
                 $selectedDay = strtolower(now()->format('l'));

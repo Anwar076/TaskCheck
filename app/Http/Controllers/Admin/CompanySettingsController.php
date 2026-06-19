@@ -7,6 +7,7 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use App\Services\Platform\AdminOnboardingService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class CompanySettingsController extends Controller
 {
@@ -53,6 +54,10 @@ class CompanySettingsController extends Controller
             'departments_text' => ['nullable', 'string', 'max:4000'],
             'departments' => ['nullable', 'array'],
             'departments.*' => ['nullable', 'string', 'max:100'],
+            'working_hours' => ['nullable', 'array'],
+            'working_hours.*.enabled' => ['nullable', 'boolean'],
+            'working_hours.*.start' => ['required', 'date_format:H:i'],
+            'working_hours.*.end' => ['required', 'date_format:H:i'],
             'logo' => [
                 'nullable',
                 'image',
@@ -61,6 +66,16 @@ class CompanySettingsController extends Controller
             ],
             'remove_logo' => ['nullable', 'boolean'],
         ]);
+
+        foreach (Company::WEEKDAYS as $day => $label) {
+            $defaults = Company::defaultWorkingHours()[$day];
+            $hours = array_merge($defaults, $validated['working_hours'][$day] ?? []);
+            if ($hours['end'] <= $hours['start']) {
+                throw ValidationException::withMessages([
+                    "working_hours.{$day}.end" => "De eindtijd voor {$label} moet na de starttijd liggen.",
+                ]);
+            }
+        }
 
         // Handle logo removal
         if ($request->boolean('remove_logo') && $company->logo_path) {
@@ -87,6 +102,17 @@ class CompanySettingsController extends Controller
             ->all();
 
         $validated['departments'] = !empty($departments) ? $departments : null;
+        $validated['working_hours'] = collect(Company::defaultWorkingHours())
+            ->mapWithKeys(function (array $defaults, string $day) use ($validated) {
+                $input = $validated['working_hours'][$day] ?? [];
+
+                return [$day => [
+                    'enabled' => (bool) ($input['enabled'] ?? false),
+                    'start' => $input['start'] ?? $defaults['start'],
+                    'end' => $input['end'] ?? $defaults['end'],
+                ]];
+            })
+            ->all();
 
         // Handle logo upload
         if ($request->hasFile('logo')) {

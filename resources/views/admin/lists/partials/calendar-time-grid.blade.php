@@ -2,6 +2,10 @@
     use App\Services\Admin\ListCalendarService;
 
     $timeHours = $timeHours ?? ($calendar['time_hours'] ?? []);
+    $timeAxis = $calendar['time_axis'] ?? [
+        'start_hour' => ListCalendarService::DAY_START_HOUR,
+        'end_hour' => ListCalendarService::DAY_END_HOUR,
+    ];
     $hourCount = max(count($timeHours), 1);
     $gridHeight = $hourCount * 3;
     $scope = $scope ?? 'list';
@@ -97,8 +101,8 @@
 <div class="overflow-x-auto"
      data-calendar-slot-grid
      data-onboarding-target="calendar-schedule-grid"
-     data-day-start-hour="{{ ListCalendarService::DAY_START_HOUR }}"
-     data-day-end-hour="{{ ListCalendarService::DAY_END_HOUR }}"
+     data-day-start-hour="{{ $timeAxis['start_hour'] ?? ListCalendarService::DAY_START_HOUR }}"
+     data-day-end-hour="{{ $timeAxis['end_hour'] ?? ListCalendarService::DAY_END_HOUR }}"
      data-slot-minutes="{{ $slotMinutes }}">
     <div class="{{ $wrapperClass }}">
         @unless($singleDay)

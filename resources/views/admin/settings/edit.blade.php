@@ -10,6 +10,7 @@
                 ->filter(fn($item) => is_string($item) && trim($item) !== '')
                 ->values()
                 ->all();
+            $workingHours = $company->normalizedWorkingHours();
         @endphp
         <div class="mb-6 sm:mb-8">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
@@ -189,6 +190,68 @@
                 @error('departments')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+            </div>
+        </div>
+
+        <!-- Werktijden Sectie -->
+        <div class="border-b border-gray-200 pb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
+                </svg>
+                Werktijden agenda
+            </h2>
+            <p class="mb-4 text-sm text-gray-500">Deze tijden bepalen welke uren zichtbaar zijn in de agenda. Standaard is elke dag 06:00 tot 21:00.</p>
+
+            <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <div class="grid grid-cols-[1fr_7rem_7rem_5rem] gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <span>Dag</span>
+                    <span>Start</span>
+                    <span>Eind</span>
+                    <span class="text-right">Actief</span>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    @foreach(\App\Models\Company::WEEKDAYS as $dayKey => $dayLabel)
+                        @php
+                            $dayHours = $workingHours[$dayKey] ?? \App\Models\Company::defaultWorkingHours()[$dayKey];
+                            $enabledValue = old("working_hours.$dayKey.enabled", $dayHours['enabled'] ? '1' : '0');
+                        @endphp
+                        <div class="grid grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-[1fr_7rem_7rem_5rem] sm:items-center">
+                            <div class="font-medium text-slate-800">{{ $dayLabel }}</div>
+                            <div>
+                                <label for="working-hours-{{ $dayKey }}-start" class="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Start</label>
+                                <input type="time"
+                                       id="working-hours-{{ $dayKey }}-start"
+                                       name="working_hours[{{ $dayKey }}][start]"
+                                       value="{{ old("working_hours.$dayKey.start", $dayHours['start']) }}"
+                                       class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("working_hours.$dayKey.start")
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="working-hours-{{ $dayKey }}-end" class="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Eind</label>
+                                <input type="time"
+                                       id="working-hours-{{ $dayKey }}-end"
+                                       name="working_hours[{{ $dayKey }}][end]"
+                                       value="{{ old("working_hours.$dayKey.end", $dayHours['end']) }}"
+                                       class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("working_hours.$dayKey.end")
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <label class="flex items-center justify-between gap-3 sm:justify-end">
+                                <span class="text-sm text-slate-600 sm:hidden">Dag tonen</span>
+                                <input type="hidden" name="working_hours[{{ $dayKey }}][enabled]" value="0">
+                                <input type="checkbox"
+                                       name="working_hours[{{ $dayKey }}][enabled]"
+                                       value="1"
+                                       @checked((string) $enabledValue === '1')
+                                       class="rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
 

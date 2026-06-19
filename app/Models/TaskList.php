@@ -88,6 +88,11 @@ class TaskList extends Model
         return $this->belongsTo(Location::class);
     }
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {
