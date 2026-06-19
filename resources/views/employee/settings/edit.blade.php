@@ -1,14 +1,14 @@
 @extends('layouts.employee')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 pt-6">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+<div class="min-h-screen bg-gray-50 py-8 sm:py-10 lg:py-12">
+    <div>
         <div class="mb-8 sm:mb-10">
             <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Instellingen</h1>
             <p class="mt-2 text-base sm:text-lg text-gray-600">Beheer je accountgegevens en beveiliging</p>
         </div>
 
-        <div class="space-y-8">
+        <div class="grid gap-8 xl:grid-cols-2 xl:items-start">
             {{-- Profielgegevens --}}
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 px-6 sm:px-8 py-5 sm:py-6">
