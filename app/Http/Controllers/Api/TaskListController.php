@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\TaskList;
-use App\Models\TaskTemplate;
-use App\Models\Task;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\TaskTemplate;
+use App\Models\Checklist\Task;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 

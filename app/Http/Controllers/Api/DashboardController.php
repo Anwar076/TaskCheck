@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\TaskList;
-use App\Models\Submission;
-use App\Models\TaskTemplate;
+use App\Models\Organisation\User;
+use App\Models\Checklist\TaskList;
+use App\Models\Submissions\Submission;
+use App\Models\Checklist\TaskTemplate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -229,7 +229,7 @@ class DashboardController extends Controller
             }
 
             // Recent list assignments
-            $recentAssignments = \App\Models\ListAssignment::with(['user', 'taskList'])
+            $recentAssignments = \App\Models\Checklist\ListAssignment::with(['user', 'taskList'])
                 ->latest()
                 ->limit(10)
                 ->get();

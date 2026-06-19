@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Organisation\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
@@ -241,37 +241,37 @@ class UserController extends Controller
             // Delete all related records before deleting the user
             
             // 1. Delete list assignments
-            \App\Models\ListAssignment::where('user_id', $user->id)->delete();
+            \App\Models\Checklist\ListAssignment::where('user_id', $user->id)->delete();
             
             // 2. Delete submissions and their related submission tasks
-            $submissions = \App\Models\Submission::where('user_id', $user->id)->get();
+            $submissions = \App\Models\Submissions\Submission::where('user_id', $user->id)->get();
             foreach ($submissions as $submission) {
-                \App\Models\SubmissionTask::where('submission_id', $submission->id)->delete();
+                \App\Models\Submissions\SubmissionTask::where('submission_id', $submission->id)->delete();
             }
-            \App\Models\Submission::where('user_id', $user->id)->delete();
+            \App\Models\Submissions\Submission::where('user_id', $user->id)->delete();
             
             // 3. Delete submission tasks where user reviewed (reviewed_by)
-            \App\Models\SubmissionTask::where('reviewed_by', $user->id)->update(['reviewed_by' => null]);
+            \App\Models\Submissions\SubmissionTask::where('reviewed_by', $user->id)->update(['reviewed_by' => null]);
             
             // 4. Delete notifications (has cascade, but delete explicitly for clarity)
-            \App\Models\Notification::where('user_id', $user->id)->delete();
+            \App\Models\Communication\Notification::where('user_id', $user->id)->delete();
             
             // 5. Delete task assignments (has cascade, but delete explicitly for clarity)
-            \App\Models\TaskAssignment::where('user_id', $user->id)->delete();
+            \App\Models\Checklist\TaskAssignment::where('user_id', $user->id)->delete();
             
             // 6. Update task lists created_by to null or another admin
             // First, try to find another admin from same company
-            $replacementAdmin = \App\Models\User::where('company_id', $user->company_id)
+            $replacementAdmin = \App\Models\Organisation\User::where('company_id', $user->company_id)
                 ->where('role', 'admin')
                 ->where('id', '!=', $user->id)
                 ->first();
             
             if ($replacementAdmin) {
-                \App\Models\TaskList::where('created_by', $user->id)
+                \App\Models\Checklist\TaskList::where('created_by', $user->id)
                     ->update(['created_by' => $replacementAdmin->id]);
             } else {
                 // If no other admin, set to null
-                \App\Models\TaskList::where('created_by', $user->id)
+                \App\Models\Checklist\TaskList::where('created_by', $user->id)
                     ->update(['created_by' => null]);
             }
 

@@ -3,8 +3,12 @@
  * @property int $id
  */
 
-namespace App\Models;
+namespace App\Models\Checklist;
 
+use App\Models\Organisation\Company;
+use App\Models\Organisation\Location;
+use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\BelongsToCompany;

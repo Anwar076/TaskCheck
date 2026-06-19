@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MarketingLinkCampaign;
+use App\Models\Marketing\MarketingLinkCampaign;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 

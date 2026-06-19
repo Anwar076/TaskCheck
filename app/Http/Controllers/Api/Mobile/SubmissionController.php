@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
-use App\Models\Notification;
-use App\Models\Submission;
-use App\Models\User;
+use App\Models\Communication\Notification;
+use App\Models\Submissions\Submission;
+use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\Mobile\MobileTaskAccess;
 use Illuminate\Http\Request;

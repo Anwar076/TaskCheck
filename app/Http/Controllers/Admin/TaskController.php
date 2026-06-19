@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\MetricValidationHelper;
-use App\Models\TaskList;
-use App\Models\Task;
-use App\Models\User;
-use App\Models\TaskAssignment;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\Task;
+use App\Models\Organisation\User;
+use App\Models\Checklist\TaskAssignment;
 use App\Services\Ai\AiUsageLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
-use App\Models\Location;
+use App\Models\Organisation\Location;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;

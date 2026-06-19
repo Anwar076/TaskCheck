@@ -133,7 +133,7 @@
                         $completedSubmissions = $user->submissions()->where('status', 'completed')->count();
                         $reviewedSubmissions = $user->submissions()->where('status', 'reviewed')->count();
                         $inProgressSubmissions = $user->submissions()->where('status', 'in_progress')->count();
-                        $rejectedTasks = \App\Models\SubmissionTask::whereHas('submission', function($q) use ($user) { $q->where('user_id', $user->id); })->where('status', 'rejected')->count();
+                        $rejectedTasks = \App\Models\Submissions\SubmissionTask::whereHas('submission', function($q) use ($user) { $q->where('user_id', $user->id); })->where('status', 'rejected')->count();
                         $successRate = $totalSubmissions > 0 ? round((($completedSubmissions + $reviewedSubmissions) / $totalSubmissions) * 100) : 0;
                     @endphp
                     <div class="space-y-4">

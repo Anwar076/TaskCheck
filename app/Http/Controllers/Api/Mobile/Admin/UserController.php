@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\Location;
-use App\Models\User;
+use App\Models\Organisation\Location;
+use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

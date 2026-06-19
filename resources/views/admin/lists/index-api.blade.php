@@ -13,7 +13,7 @@
 
 @section('content')
 @php
-    $locationOptions = \App\Models\Location::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+    $locationOptions = \App\Models\Organisation\Location::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 @endphp
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">

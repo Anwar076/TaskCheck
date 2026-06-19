@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\TaskList;
-use App\Models\ListAssignment;
-use App\Models\Submission;
-use App\Models\SubmissionTask;
-use App\Models\Notification;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
+use App\Models\Communication\Notification;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 

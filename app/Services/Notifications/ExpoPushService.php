@@ -2,8 +2,8 @@
 
 namespace App\Services\Notifications;
 
-use App\Models\DevicePushToken;
-use App\Models\Notification;
+use App\Models\Communication\DevicePushToken;
+use App\Models\Communication\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 

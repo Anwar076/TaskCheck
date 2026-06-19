@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\Submission;
+use App\Models\Submissions\Submission;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
 

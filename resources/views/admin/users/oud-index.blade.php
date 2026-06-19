@@ -21,10 +21,10 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         @php
             $companyId = auth()->user()->company_id ?? null;
-            $totalUsers = $companyId ? \App\Models\User::where('company_id', $companyId)->count() : 0;
-            $admins = $companyId ? \App\Models\User::where('company_id', $companyId)->where('role', 'admin')->count() : 0;
-            $employees = $companyId ? \App\Models\User::where('company_id', $companyId)->where('role', 'employee')->count() : 0;
-            $activeUsers = $companyId ? \App\Models\User::where('company_id', $companyId)->where('is_active', true)->count() : 0;
+            $totalUsers = $companyId ? \App\Models\Organisation\User::where('company_id', $companyId)->count() : 0;
+            $admins = $companyId ? \App\Models\Organisation\User::where('company_id', $companyId)->where('role', 'admin')->count() : 0;
+            $employees = $companyId ? \App\Models\Organisation\User::where('company_id', $companyId)->where('role', 'employee')->count() : 0;
+            $activeUsers = $companyId ? \App\Models\Organisation\User::where('company_id', $companyId)->where('is_active', true)->count() : 0;
         @endphp
         
         <div class="bg-white overflow-hidden shadow rounded-lg">
@@ -125,7 +125,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @php
                         $companyId = auth()->user()->company_id ?? null;
-                        $users = $companyId ? \App\Models\User::where('company_id', $companyId)->latest()->get() : collect();
+                        $users = $companyId ? \App\Models\Organisation\User::where('company_id', $companyId)->latest()->get() : collect();
                     @endphp
                     @foreach($users as $user)
                         <tr class="hover:bg-gray-50">

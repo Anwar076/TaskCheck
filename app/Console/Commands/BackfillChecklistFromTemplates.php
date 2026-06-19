@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\TaskList;
+use App\Models\Checklist\TaskList;
 
 class BackfillChecklistFromTemplates extends Command
 {

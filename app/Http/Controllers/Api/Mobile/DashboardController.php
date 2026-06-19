@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
-use App\Models\Submission;
-use App\Models\SubmissionTask;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\Mobile\MobileTaskAccess;
 use App\Services\ScheduleService;

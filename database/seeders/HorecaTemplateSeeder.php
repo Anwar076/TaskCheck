@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\TaskTemplate;
-use App\Models\TemplateTask;
+use App\Models\Checklist\TaskTemplate;
+use App\Models\Checklist\TemplateTask;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

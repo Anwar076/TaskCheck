@@ -2,9 +2,9 @@
 
 namespace App\Services\Admin;
 
-use App\Models\Task;
-use App\Models\TaskList;
-use App\Models\Company;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\Company;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;

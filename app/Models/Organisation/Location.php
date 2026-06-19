@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Organisation;
 
+use App\Models\Checklist\TaskList;
 use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

@@ -218,9 +218,9 @@
                     <span class="text-right">Actief</span>
                 </div>
                 <div class="divide-y divide-slate-100">
-                    @foreach(\App\Models\Company::WEEKDAYS as $dayKey => $dayLabel)
+                    @foreach(\App\Models\Organisation\Company::WEEKDAYS as $dayKey => $dayLabel)
                         @php
-                            $dayHours = $workingHours[$dayKey] ?? \App\Models\Company::defaultWorkingHours()[$dayKey];
+                            $dayHours = $workingHours[$dayKey] ?? \App\Models\Organisation\Company::defaultWorkingHours()[$dayKey];
                             $enabledValue = old("working_hours.$dayKey.enabled", $dayHours['enabled'] ? '1' : '0');
                         @endphp
                         <div class="grid grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-[1fr_7rem_7rem_5rem] sm:items-center">

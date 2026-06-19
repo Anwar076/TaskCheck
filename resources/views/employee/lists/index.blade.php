@@ -64,7 +64,7 @@
             @forelse($assignedLists as $list)
                 @php
                     // Check if user has already started/completed this list today
-                    $existingSubmission = \App\Models\Submission::where('user_id', auth()->id())
+                    $existingSubmission = \App\Models\Submissions\Submission::where('user_id', auth()->id())
                         ->where('list_id', $list->id)
                         ->whereDate('created_at', today())
                         ->first();

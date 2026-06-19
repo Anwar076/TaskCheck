@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\TaskList;
-use App\Models\Submission;
-use App\Models\SubmissionTask;
-use App\Models\ListAssignment;
+use App\Models\Checklist\TaskList;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
+use App\Models\Checklist\ListAssignment;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -217,7 +217,7 @@ class SubmissionController extends Controller
     // Add missing tasks to the submission
     if ($missingTaskIds->count() > 0) {
         foreach ($missingTaskIds as $taskId) {
-            \App\Models\SubmissionTask::create([
+            \App\Models\Submissions\SubmissionTask::create([
                 'submission_id' => $submission->id,
                 'task_id' => $taskId,
                 'status' => 'pending',
@@ -467,13 +467,13 @@ class SubmissionController extends Controller
             ]);
 
             $submission->loadMissing(['taskList', 'user']);
-            $adminUsers = \App\Models\User::query()
+            $adminUsers = \App\Models\Organisation\User::query()
                 ->where('company_id', $submission->company_id)
                 ->where('role', 'admin')
                 ->pluck('id');
 
             foreach ($adminUsers as $adminUserId) {
-                \App\Models\Notification::createSubmissionCompletedForAdmin(
+                \App\Models\Communication\Notification::createSubmissionCompletedForAdmin(
                     (int) $adminUserId,
                     (int) $submission->id,
                     (string) ($submission->user->name ?? 'Een medewerker'),

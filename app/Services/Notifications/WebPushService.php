@@ -2,8 +2,8 @@
 
 namespace App\Services\Notifications;
 
-use App\Models\Notification;
-use App\Models\PushSubscription;
+use App\Models\Communication\Notification;
+use App\Models\Communication\PushSubscription;
 use Illuminate\Support\Facades\Log;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;

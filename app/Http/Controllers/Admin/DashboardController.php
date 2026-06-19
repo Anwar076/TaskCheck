@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\TaskList;
-use App\Models\Submission;
-use App\Models\SubmissionTask;
-use App\Models\Location;
+use App\Models\Organisation\User;
+use App\Models\Checklist\TaskList;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
+use App\Models\Organisation\Location;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -43,7 +43,7 @@ class DashboardController extends Controller
             }
         });
 
-        $tasksQuery = \App\Models\Task::query()->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
+        $tasksQuery = \App\Models\Checklist\Task::query()->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
             $query->where('company_id', $companyId);
             if ($selectedLocationId) {
                 $query->where('location_id', $selectedLocationId);
@@ -224,7 +224,7 @@ class DashboardController extends Controller
 
     private function getMostUsedProofType(int $companyId, ?int $selectedLocationId = null)
     {
-        $proofType = \App\Models\Task::selectRaw('required_proof_type, count(*) as count')
+        $proofType = \App\Models\Checklist\Task::selectRaw('required_proof_type, count(*) as count')
             ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
                 $query->where('company_id', $companyId);
                 if ($selectedLocationId) {

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\Task;
-use App\Models\TaskList;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
 use Illuminate\Http\Request;
 
 class TaskController extends MobileController

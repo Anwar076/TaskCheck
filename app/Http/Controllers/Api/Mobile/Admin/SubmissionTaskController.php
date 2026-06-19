@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\Notification;
-use App\Models\Submission;
-use App\Models\SubmissionTask;
+use App\Models\Communication\Notification;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

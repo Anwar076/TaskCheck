@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\ListAssignment;
-use App\Models\Notification;
-use App\Models\TaskList;
-use App\Models\User;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Communication\Notification;
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

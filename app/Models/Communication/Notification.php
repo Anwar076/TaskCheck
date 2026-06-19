@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Communication;
 
+use App\Models\Organisation\User;
 use App\Services\Notifications\ExpoPushService;
 use App\Services\Notifications\WebPushService;
 use Illuminate\Database\Eloquent\Model;

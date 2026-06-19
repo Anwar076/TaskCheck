@@ -2,11 +2,11 @@
 
 namespace App\Services\Platform;
 
-use App\Models\Company;
-use App\Models\ListAssignment;
-use App\Models\Submission;
-use App\Models\Task;
-use App\Models\TaskList;
+use App\Models\Organisation\Company;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Submissions\Submission;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 

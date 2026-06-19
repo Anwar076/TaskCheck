@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Organisation;
 
+use App\Models\Billing\Invoice;
+use App\Models\Submissions\SubmissionTask;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
@@ -273,7 +275,7 @@ class Company extends Model
         $cacheKey = "company_{$this->id}_storage_used_bytes";
 
         return (int) \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () {
-            return \App\Models\SubmissionTask::whereHas('submission', function ($q) {
+            return SubmissionTask::whereHas('submission', function ($q) {
                 $q->where('company_id', $this->id);
             })->get()
                 ->sum(function ($st) {

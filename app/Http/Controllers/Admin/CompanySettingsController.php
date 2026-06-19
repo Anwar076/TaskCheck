@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
+use App\Models\Organisation\Company;
 use Illuminate\Http\Request;
 use App\Services\Platform\AdminOnboardingService;
 use Illuminate\Support\Facades\Storage;
@@ -131,7 +131,7 @@ class CompanySettingsController extends Controller
 
         app(AdminOnboardingService::class)->handleOrganizationSaved($company);
 
-        if ($company->needsOnboarding() && $company->onboarding_step === \App\Models\Company::ONBOARDING_STEP_USERS) {
+        if ($company->needsOnboarding() && $company->onboarding_step === \App\Models\Organisation\Company::ONBOARDING_STEP_USERS) {
             return redirect()
                 ->route('admin.users.index')
                 ->with('success', 'Organisatiegegevens opgeslagen. Voeg nu je team toe.');

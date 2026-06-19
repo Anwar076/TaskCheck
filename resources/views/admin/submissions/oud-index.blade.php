@@ -39,9 +39,9 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6 lg:mb-8">
             @php
                 $totalSubmissions = $submissions->total();
-                $inProgress = \App\Models\Submission::where('status', 'in_progress')->count();
-                $completed = \App\Models\Submission::where('status', 'completed')->count();
-                $reviewed = \App\Models\Submission::where('status', 'reviewed')->count();
+                $inProgress = \App\Models\Submissions\Submission::where('status', 'in_progress')->count();
+                $completed = \App\Models\Submissions\Submission::where('status', 'completed')->count();
+                $reviewed = \App\Models\Submissions\Submission::where('status', 'reviewed')->count();
             @endphp
             
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">

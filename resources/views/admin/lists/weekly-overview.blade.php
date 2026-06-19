@@ -16,17 +16,17 @@
             $productivityScore = $completionRate > 80 ? 'Uitstekend' : ($completionRate > 60 ? 'Goed' : ($completionRate > 40 ? 'Matig' : 'Verbetering nodig'));
             $totalEmployees = count($overview ?? []);
             $activeEmployees = collect($overview ?? [])->where('total_submissions', '>', 0)->count();
-            $todaySubmissions = \App\Models\Submission::whereDate('created_at', now())->count();
-            $yesterdaySubmissions = \App\Models\Submission::whereDate('created_at', now()->subDay())->count();
+            $todaySubmissions = \App\Models\Submissions\Submission::whereDate('created_at', now())->count();
+            $yesterdaySubmissions = \App\Models\Submissions\Submission::whereDate('created_at', now()->subDay())->count();
             $growthRate = $yesterdaySubmissions > 0 ? round((($todaySubmissions - $yesterdaySubmissions) / $yesterdaySubmissions) * 100, 1) : 0;
-            $weeklyTotal = \App\Models\Submission::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
-            $lastWeekTotal = \App\Models\Submission::whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
+            $weeklyTotal = \App\Models\Submissions\Submission::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+            $lastWeekTotal = \App\Models\Submissions\Submission::whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
             $weeklyGrowth = $lastWeekTotal > 0 ? round((($weeklyTotal - $lastWeekTotal) / $lastWeekTotal) * 100, 1) : 0;
             $weeklyData = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = now()->subDays($i);
-                $daySubmissions = \App\Models\Submission::whereDate('created_at', $date)->count();
-                $dayCompleted = \App\Models\Submission::whereDate('created_at', $date)->where('status', 'completed')->count();
+                $daySubmissions = \App\Models\Submissions\Submission::whereDate('created_at', $date)->count();
+                $dayCompleted = \App\Models\Submissions\Submission::whereDate('created_at', $date)->where('status', 'completed')->count();
                 $weeklyData[] = [
                     'date' => $date->translatedFormat('d M'),
                     'submissions' => $daySubmissions,

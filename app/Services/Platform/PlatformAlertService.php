@@ -3,7 +3,7 @@
 namespace App\Services\Platform;
 
 use App\Mail\TaskCheckNotificationMail;
-use App\Models\PlatformAlertLog;
+use App\Models\Platform\PlatformAlertLog;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 

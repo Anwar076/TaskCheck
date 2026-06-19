@@ -48,7 +48,7 @@
                 <label for="user_ids" class="block text-sm font-medium text-gray-700 mb-2">Select User</label>
                 <select name="user_ids[]" id="user_ids" class="block w-full border border-gray-300 rounded-md px-3 py-2" required>
                     <option value="">Choose user...</option>
-                    @foreach(\App\Models\User::where('role', 'employee')->get() as $user)
+                    @foreach(\App\Models\Organisation\User::where('role', 'employee')->get() as $user)
                         <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                     @endforeach
                 </select>
@@ -69,12 +69,12 @@
         <h3 class="text-lg font-semibold mb-4">Current Assignments for List ID 3</h3>
         
         @php
-            $list = \App\Models\TaskList::with('assignments.user')->find(3);
+            $list = \App\Models\Checklist\TaskList::with('assignments.user')->find(3);
         @endphp
         
         @php
             // Get ALL assignments for this list, including inactive ones
-            $allAssignments = \App\Models\ListAssignment::where('list_id', 3)->with('user')->get();
+            $allAssignments = \App\Models\Checklist\ListAssignment::where('list_id', 3)->with('user')->get();
         @endphp
         
         <h4 class="text-md font-semibold mb-2">All Assignments (including inactive):</h4>

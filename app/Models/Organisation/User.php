@@ -1,8 +1,17 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Organisation;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskAssignment;
+use App\Models\Checklist\TaskList;
+use App\Models\Communication\DevicePushToken;
+use App\Models\Communication\Notification;
+use App\Models\Communication\PushSubscription;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,7 +20,7 @@ use App\Traits\BelongsToCompany;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<\Database\Factories\Organisation\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
     /**

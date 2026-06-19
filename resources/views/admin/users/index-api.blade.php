@@ -11,7 +11,7 @@
 @php
     $companyId = auth()->user()->company_id ?? null;
     $allUsers = $companyId 
-        ? \App\Models\User::where('company_id', $companyId)->latest()->get()
+        ? \App\Models\Organisation\User::where('company_id', $companyId)->latest()->get()
         : collect();
     $fallbackStats = [
         'total_users' => $allUsers->count(),

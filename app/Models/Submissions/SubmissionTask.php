@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Submissions;
 
+use App\Models\Checklist\Task;
+use App\Models\Organisation\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 

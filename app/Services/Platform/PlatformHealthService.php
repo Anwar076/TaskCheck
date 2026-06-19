@@ -2,9 +2,9 @@
 
 namespace App\Services\Platform;
 
-use App\Models\Company;
-use App\Models\Submission;
-use App\Models\User;
+use App\Models\Organisation\Company;
+use App\Models\Submissions\Submission;
+use App\Models\Organisation\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 

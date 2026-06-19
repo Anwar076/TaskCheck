@@ -2,7 +2,7 @@
 
 namespace App\Services\Ai;
 
-use App\Models\AiUsageLog;
+use App\Models\Ai\AiUsageLog;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Log;
 

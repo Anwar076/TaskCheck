@@ -2,7 +2,7 @@
 
 namespace App\Services\Ai;
 
-use App\Models\Submission;
+use App\Models\Submissions\Submission;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;

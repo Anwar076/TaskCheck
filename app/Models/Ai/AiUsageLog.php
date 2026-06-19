@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Ai;
 
+use App\Models\Organisation\Company;
+use App\Models\Organisation\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

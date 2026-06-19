@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\TaskList;
-use App\Models\ListAssignment;
-use App\Models\Submission;
-use App\Models\SubmissionTask;
-use App\Models\Notification;
-use App\Models\Location;
-use App\Models\Task;
-use App\Models\TaskTemplate;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
+use App\Models\Communication\Notification;
+use App\Models\Organisation\Location;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskTemplate;
 use App\Services\Admin\ListCalendarService;
 use App\Services\Ai\AiUsageLogger;
 use Carbon\Carbon;
@@ -58,7 +58,7 @@ class TaskListController extends Controller
         $companyId = auth()->user()->company_id;
 
         // Get available templates (same company only)
-        $templates = \App\Models\TaskTemplate::where('company_id', $companyId)
+        $templates = \App\Models\Checklist\TaskTemplate::where('company_id', $companyId)
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -126,10 +126,10 @@ class TaskListController extends Controller
 
         // If a template was selected, copy its tasks as independent tasks into the new list
         if (!empty($usedTemplateId)) {
-            $template = \App\Models\TaskTemplate::find($usedTemplateId);
+            $template = \App\Models\Checklist\TaskTemplate::find($usedTemplateId);
             if ($template) {
                 foreach ($template->templateTasks as $templateTask) {
-                    \App\Models\Task::create([
+                    \App\Models\Checklist\Task::create([
                         'list_id'             => $taskList->id,
                         'title'               => $templateTask->title,
                         'description'         => $templateTask->description,
@@ -154,7 +154,7 @@ class TaskListController extends Controller
         if ($aiTasksRaw) {
             $decoded = json_decode($aiTasksRaw, true);
             if (is_array($decoded)) {
-                $orderBase = \App\Models\Task::where('list_id', $taskList->id)->max('order_index') ?? 0;
+                $orderBase = \App\Models\Checklist\Task::where('list_id', $taskList->id)->max('order_index') ?? 0;
                 $order = $orderBase + 1;
 
                 foreach ($decoded as $taskData) {
@@ -167,7 +167,7 @@ class TaskListController extends Controller
                     }
                     $description = isset($taskData['description']) ? trim((string) $taskData['description']) : null;
 
-                    \App\Models\Task::create([
+                    \App\Models\Checklist\Task::create([
                         'list_id' => $taskList->id,
                         'title' => $title,
                         'description' => $description,
@@ -207,7 +207,7 @@ class TaskListController extends Controller
         
         // Get all users for the assignment modal (zelfde bedrijf; bij null company_id alle gebruikers)
         $companyId = auth()->user()->company_id;
-        $users = \App\Models\User::query()
+        $users = \App\Models\Organisation\User::query()
             ->when($companyId !== null, fn($q) => $q->where('company_id', $companyId))
             ->whereIn('role', ['employee', 'admin'])
             ->where('is_active', true)
@@ -998,7 +998,7 @@ PROMPT,
                     continue;
                 }
 
-                \App\Models\Task::create([
+                \App\Models\Checklist\Task::create([
                     'list_id' => $list->id,
                     'title' => $taskTitle,
                     'description' => trim((string) ($taskItem['description'] ?? '')) ?: null,
@@ -1216,7 +1216,7 @@ PROMPT,
             // Check for related data that might prevent deletion
             $tasksCount = $list->tasks()->count();
             // Get ALL assignments, not just active ones
-            $allAssignmentsCount = \App\Models\ListAssignment::where('list_id', $list->id)->count();
+            $allAssignmentsCount = \App\Models\Checklist\ListAssignment::where('list_id', $list->id)->count();
             $submissionsCount = $list->submissions()->count();
             $childListsCount = $list->subLists()->count();
 
@@ -1249,7 +1249,7 @@ PROMPT,
             
             // 3. Delete ALL assignments (both active and inactive) to avoid foreign key constraint
             if ($allAssignmentsCount > 0) {
-                \App\Models\ListAssignment::where('list_id', $list->id)->delete();
+                \App\Models\Checklist\ListAssignment::where('list_id', $list->id)->delete();
                 \Log::info('Deleted all assignments');
             }
             
@@ -1334,7 +1334,7 @@ PROMPT,
                 // Assign to specific user
                 $userId = $validatedData['user_ids'];
 
-                $selectedUser = \App\Models\User::query()
+                $selectedUser = \App\Models\Organisation\User::query()
                     ->where('id', $userId)
                     ->where('company_id', auth()->user()->company_id)
                     ->whereIn('role', ['employee', 'admin'])
@@ -1354,13 +1354,13 @@ PROMPT,
                 }
                 
                 // Check if assignment already exists
-                $existingAssignment = \App\Models\ListAssignment::where('list_id', $list->id)
+                $existingAssignment = \App\Models\Checklist\ListAssignment::where('list_id', $list->id)
                     ->where('user_id', $userId)
                     ->where('is_active', true)
                     ->first();
 
                 if (!$existingAssignment) {
-                    $assignment = \App\Models\ListAssignment::create([
+                    $assignment = \App\Models\Checklist\ListAssignment::create([
                         'list_id' => $list->id,
                         'user_id' => $userId,
                         'department' => null,
@@ -1369,7 +1369,7 @@ PROMPT,
                         'is_active' => true,
                     ]);
                     $assignments[] = $assignment;
-                    \App\Models\Notification::createListAssigned(
+                    \App\Models\Communication\Notification::createListAssigned(
                         (int) $selectedUser->id,
                         (int) $list->id,
                         (string) $list->title,
@@ -1382,13 +1382,13 @@ PROMPT,
                 }
             } elseif ($validatedData['assignment_type'] === 'department') {
                 // Check if department assignment already exists
-                $existingAssignment = \App\Models\ListAssignment::where('list_id', $list->id)
+                $existingAssignment = \App\Models\Checklist\ListAssignment::where('list_id', $list->id)
                     ->where('department', $validatedData['department'])
                     ->where('is_active', true)
                     ->first();
 
                 if (!$existingAssignment) {
-                    $assignment = \App\Models\ListAssignment::create([
+                    $assignment = \App\Models\Checklist\ListAssignment::create([
                         'list_id' => $list->id,
                         'user_id' => null,
                         'department' => $validatedData['department'],
@@ -1398,7 +1398,7 @@ PROMPT,
                     ]);
                     $assignments[] = $assignment;
 
-                    $departmentUsers = \App\Models\User::query()
+                    $departmentUsers = \App\Models\Organisation\User::query()
                         ->where('company_id', auth()->user()->company_id)
                         ->whereIn('role', ['employee', 'admin'])
                         ->where('is_active', true)
@@ -1407,7 +1407,7 @@ PROMPT,
                         ->get(['id']);
 
                     foreach ($departmentUsers as $departmentUser) {
-                        \App\Models\Notification::createListAssigned(
+                        \App\Models\Communication\Notification::createListAssigned(
                             (int) $departmentUser->id,
                             (int) $list->id,
                             (string) $list->title,
@@ -1535,14 +1535,14 @@ PROMPT,
         }
     }
 
-    public function showSubmission(\App\Models\Submission $submission)
+    public function showSubmission(\App\Models\Submissions\Submission $submission)
     {
         $submission->load(['user', 'taskList', 'submissionTasks.task']);
         
         return view('admin.submissions.show', compact('submission'));
     }
 
-    public function aiReviewSubmission(Request $request, \App\Models\Submission $submission, \App\Services\Ai\SubmissionReviewService $ai)
+    public function aiReviewSubmission(Request $request, \App\Models\Submissions\Submission $submission, \App\Services\Ai\SubmissionReviewService $ai)
     {
         try {
             if (!$ai->isEnabled()) {
@@ -1577,7 +1577,7 @@ PROMPT,
         }
     }
 
-    public function reviewSubmission(Request $request, \App\Models\Submission $submission)
+    public function reviewSubmission(Request $request, \App\Models\Submissions\Submission $submission)
     {
         $validatedData = $request->validate([
             'status' => 'required|in:approved,rejected,needs_revision',
@@ -1595,7 +1595,7 @@ PROMPT,
             ->with('success', 'Inzending succesvol beoordeeld.');
     }
 
-    public function rejectTask(Request $request, \App\Models\SubmissionTask $submissionTask)
+    public function rejectTask(Request $request, \App\Models\Submissions\SubmissionTask $submissionTask)
     {
         $validatedData = $request->validate([
             'rejection_reason' => 'required|string',
@@ -1650,7 +1650,7 @@ PROMPT,
             ->with('success', 'Taak afgekeurd. Medewerker moet de taak opnieuw uitvoeren en daarna de checklist opnieuw indienen.');
     }
 
-    public function requestRedo(Request $request, \App\Models\SubmissionTask $submissionTask)
+    public function requestRedo(Request $request, \App\Models\Submissions\SubmissionTask $submissionTask)
     {
         $validatedData = $request->validate([
             'redo_reason' => 'nullable|string',
@@ -1685,7 +1685,7 @@ PROMPT,
             ->with('success', 'Opnieuw doen aangevraagd. De medewerker kan deze taak opnieuw uitvoeren en is op de hoogte gebracht.');
     }
 
-    public function approveTask(Request $request, \App\Models\SubmissionTask $submissionTask)
+    public function approveTask(Request $request, \App\Models\Submissions\SubmissionTask $submissionTask)
     {
         $validatedData = $request->validate([
             'manager_comment' => 'nullable|string',
@@ -1712,7 +1712,7 @@ PROMPT,
      * Update submission status when all tasks have been reviewed (approved or rejected).
      * If all approved -> reviewed. If any rejected -> rejected.
      */
-    protected function updateSubmissionStatusIfAllTasksReviewed(\App\Models\Submission $submission): void
+    protected function updateSubmissionStatusIfAllTasksReviewed(\App\Models\Submissions\Submission $submission): void
     {
         $submission->load('submissionTasks');
         $tasks = $submission->submissionTasks;
@@ -1754,7 +1754,7 @@ PROMPT,
             ->get();
 
         // Get employees with submissions in the date range
-        $employees = \App\Models\User::where('company_id', $companyId)
+        $employees = \App\Models\Organisation\User::where('company_id', $companyId)
             ->where('role', 'employee')
             ->when($selectedLocationId, function ($query) use ($selectedLocationId) {
                 $query->where('location_id', $selectedLocationId);

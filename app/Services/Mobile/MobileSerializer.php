@@ -3,13 +3,13 @@
 namespace App\Services\Mobile;
 
 use App\Helpers\ProofFileHelper;
-use App\Models\Location;
-use App\Models\Notification;
-use App\Models\Submission;
-use App\Models\SubmissionTask;
-use App\Models\Task;
-use App\Models\TaskList;
-use App\Models\User;
+use App\Models\Organisation\Location;
+use App\Models\Communication\Notification;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\User;
 use Illuminate\Support\Collection;
 
 class MobileSerializer

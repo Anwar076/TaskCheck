@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\WelcomeQuickstartMail;
-use App\Models\User;
-use App\Models\Company;
-use App\Models\TaskTemplate;
-use App\Models\TemplateTask;
+use App\Models\Organisation\User;
+use App\Models\Organisation\Company;
+use App\Models\Checklist\TaskTemplate;
+use App\Models\Checklist\TemplateTask;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

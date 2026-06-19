@@ -101,8 +101,8 @@
             $weeklyData = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = now()->subDays($i);
-                $daySubmissions = \App\Models\Submission::whereDate('created_at', $date)->count();
-                $dayCompleted = \App\Models\Submission::whereDate('created_at', $date)->where('status', 'completed')->count();
+                $daySubmissions = \App\Models\Submissions\Submission::whereDate('created_at', $date)->count();
+                $dayCompleted = \App\Models\Submissions\Submission::whereDate('created_at', $date)->where('status', 'completed')->count();
                 $weeklyData[] = [
                     'date' => $date->format('M j'),
                     'submissions' => $daySubmissions,

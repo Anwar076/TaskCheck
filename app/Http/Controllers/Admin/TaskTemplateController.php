@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\MetricValidationHelper;
-use App\Models\TaskTemplate;
-use App\Models\TemplateTask;
+use App\Models\Checklist\TaskTemplate;
+use App\Models\Checklist\TemplateTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

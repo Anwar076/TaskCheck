@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Task;
-use App\Models\TaskList;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
-use App\Models\Notification;
+use App\Models\Communication\Notification;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
 

@@ -53,7 +53,7 @@ trait BelongsToCompany
      */
     public function company()
     {
-        return $this->belongsTo(\App\Models\Company::class);
+        return $this->belongsTo(\App\Models\Organisation\Company::class);
     }
 }
 

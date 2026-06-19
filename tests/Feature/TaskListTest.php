@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\TaskList;
-use App\Models\Task;
-use App\Models\ListAssignment;
-use App\Models\Submission;
+use App\Models\Organisation\User;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Submissions\Submission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

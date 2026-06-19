@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Company;
-use App\Models\User;
+use App\Models\Organisation\Company;
+use App\Models\Organisation\User;
 use App\Services\Billing\MollieService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Company;
-use App\Models\Invoice;
+use App\Models\Organisation\Company;
+use App\Models\Billing\Invoice;
 use App\Services\Billing\MollieService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;

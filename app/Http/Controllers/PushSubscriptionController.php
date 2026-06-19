@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PushSubscription;
+use App\Models\Communication\PushSubscription;
 use Illuminate\Http\Request;
 
 class PushSubscriptionController extends Controller

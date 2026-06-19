@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\TaskList;
-use App\Models\ListAssignment;
-use App\Models\Submission;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Submissions\Submission;
 use Carbon\Carbon;
 
 class ScheduleService

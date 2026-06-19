@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\TaskList;
-use App\Models\User;
-use App\Models\ListAssignment;
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\User;
+use App\Models\Checklist\ListAssignment;
 
 class TestAssignmentCommand extends Command
 {

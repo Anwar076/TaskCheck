@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Company;
-use App\Models\Invoice;
+use App\Models\Organisation\Company;
+use App\Models\Billing\Invoice;
 use Illuminate\Database\Seeder;
 
 class DemoInvoiceSeeder extends Seeder

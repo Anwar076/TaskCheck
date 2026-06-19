@@ -248,7 +248,7 @@
                 <input name="admin_email" value="{{ old('admin_email') }}" type="email" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Admin e-mail" required>
                 <input name="admin_password" type="text" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Tijdelijk wachtwoord (min 8)" required>
                 <select name="subscription_plan" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" required>
-                    @foreach(\App\Models\Company::PLANS as $planKey => $plan)
+                    @foreach(\App\Models\Organisation\Company::PLANS as $planKey => $plan)
                         <option value="{{ $planKey }}" @selected(old('subscription_plan') === $planKey)>{{ ucfirst($planKey) }}</option>
                     @endforeach
                 </select>
@@ -462,7 +462,7 @@
                                             @csrf
                                             @method('PUT')
                                             <select name="subscription_plan" class="w-full rounded-lg border-slate-300 text-xs">
-                                                @foreach(\App\Models\Company::PLANS as $planKey => $plan)
+                                                @foreach(\App\Models\Organisation\Company::PLANS as $planKey => $plan)
                                                     <option value="{{ $planKey }}" @selected($company->subscription_plan === $planKey)>{{ ucfirst($planKey) }}</option>
                                                 @endforeach
                                             </select>

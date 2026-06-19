@@ -65,8 +65,8 @@ class NotificationController extends Controller
         $user = auth()->user();
         
         // Check of taak al completed is (dan hoeft er geen notificatie)
-        $task = \App\Models\Task::findOrFail($validated['task_id']);
-        $submissionTask = \App\Models\SubmissionTask::where('task_id', $validated['task_id'])
+        $task = \App\Models\Checklist\Task::findOrFail($validated['task_id']);
+        $submissionTask = \App\Models\Submissions\SubmissionTask::where('task_id', $validated['task_id'])
             ->whereHas('submission', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                       ->whereDate('created_at', today());
@@ -83,7 +83,7 @@ class NotificationController extends Controller
         }
 
         // Maak notificatie aan
-        $notification = \App\Models\Notification::createTaskOverdue(
+        $notification = \App\Models\Communication\Notification::createTaskOverdue(
             $user->id,
             $validated['task_title'],
             $validated['task_id'],

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
-use App\Models\DevicePushToken;
+use App\Models\Communication\DevicePushToken;
 use Illuminate\Http\Request;
 
 class PushController extends MobileController

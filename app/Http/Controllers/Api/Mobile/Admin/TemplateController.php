@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\TaskTemplate;
+use App\Models\Checklist\TaskTemplate;
 use Illuminate\Http\Request;
 
 class TemplateController extends MobileController

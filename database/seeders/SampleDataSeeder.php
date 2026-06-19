@@ -12,12 +12,12 @@ class SampleDataSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = \App\Models\User::where('role', 'admin')->first();
-        $employees = \App\Models\User::where('role', 'employee')->get();
+        $admin = \App\Models\Organisation\User::where('role', 'admin')->first();
+        $employees = \App\Models\Organisation\User::where('role', 'employee')->get();
         $companyId = $admin?->company_id;
 
         // Create sample task lists
-        $cleaningList = \App\Models\TaskList::create([
+        $cleaningList = \App\Models\Checklist\TaskList::create([
             'company_id' => $companyId,
             'title' => 'Daily Office Cleaning Checklist',
             'description' => 'Complete daily cleaning tasks for office areas',
@@ -28,7 +28,7 @@ class SampleDataSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $safetyList = \App\Models\TaskList::create([
+        $safetyList = \App\Models\Checklist\TaskList::create([
             'company_id' => $companyId,
             'title' => 'Weekly Safety Inspection',
             'description' => 'Weekly safety check for workplace compliance',
@@ -40,7 +40,7 @@ class SampleDataSeeder extends Seeder
         ]);
 
         // Create tasks for cleaning list
-        \App\Models\Task::create([
+        \App\Models\Checklist\Task::create([
             'list_id' => $cleaningList->id,
             'title' => 'Empty all trash bins',
             'description' => 'Empty and replace liners in all office trash bins',
@@ -48,7 +48,7 @@ class SampleDataSeeder extends Seeder
             'order_index' => 1,
         ]);
 
-        \App\Models\Task::create([
+        \App\Models\Checklist\Task::create([
             'list_id' => $cleaningList->id,
             'title' => 'Vacuum common areas',
             'description' => 'Vacuum all carpeted common areas and meeting rooms',
@@ -56,7 +56,7 @@ class SampleDataSeeder extends Seeder
             'order_index' => 2,
         ]);
 
-        \App\Models\Task::create([
+        \App\Models\Checklist\Task::create([
             'list_id' => $cleaningList->id,
             'title' => 'Clean and sanitize restrooms',
             'description' => 'Complete restroom cleaning including toilets, sinks, and floors',
@@ -65,7 +65,7 @@ class SampleDataSeeder extends Seeder
         ]);
 
         // Create tasks for safety list
-        \App\Models\Task::create([
+        \App\Models\Checklist\Task::create([
             'list_id' => $safetyList->id,
             'title' => 'Check fire extinguishers',
             'description' => 'Verify all fire extinguishers are properly mounted and charged',
@@ -73,7 +73,7 @@ class SampleDataSeeder extends Seeder
             'order_index' => 1,
         ]);
 
-        \App\Models\Task::create([
+        \App\Models\Checklist\Task::create([
             'list_id' => $safetyList->id,
             'title' => 'Test emergency exits',
             'description' => 'Ensure all emergency exits are clear and functional',
@@ -83,7 +83,7 @@ class SampleDataSeeder extends Seeder
 
         // Create assignments
         foreach ($employees as $employee) {
-            \App\Models\ListAssignment::create([
+            \App\Models\Checklist\ListAssignment::create([
                 'list_id' => $cleaningList->id,
                 'user_id' => $employee->id,
                 'assigned_date' => today(),
@@ -91,7 +91,7 @@ class SampleDataSeeder extends Seeder
             ]);
 
             if ($employee->department === 'Operations') {
-                \App\Models\ListAssignment::create([
+                \App\Models\Checklist\ListAssignment::create([
                     'list_id' => $safetyList->id,
                     'user_id' => $employee->id,
                     'assigned_date' => today(),

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\MetricValidationHelper;
-use App\Models\Submission;
+use App\Models\Submissions\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 

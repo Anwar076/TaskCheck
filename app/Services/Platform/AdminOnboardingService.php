@@ -2,10 +2,10 @@
 
 namespace App\Services\Platform;
 
-use App\Models\Company;
-use App\Models\ListAssignment;
-use App\Models\TaskList;
-use App\Models\User;
+use App\Models\Organisation\Company;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\User;
 
 class AdminOnboardingService
 {

@@ -26,8 +26,8 @@ class EnsureCompanyInvoiceDetailsComplete
         }
 
         if ($company->needsOnboarding() && in_array($company->onboarding_step, [
-            \App\Models\Company::ONBOARDING_STEP_WELCOME,
-            \App\Models\Company::ONBOARDING_STEP_ORGANIZATION,
+            \App\Models\Organisation\Company::ONBOARDING_STEP_WELCOME,
+            \App\Models\Organisation\Company::ONBOARDING_STEP_ORGANIZATION,
         ], true)) {
             return $next($request);
         }

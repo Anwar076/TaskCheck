@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Location;
+use App\Models\Organisation\Location;
 use Illuminate\Http\Request;
 
 class LocationController extends Controller

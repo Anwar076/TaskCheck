@@ -2,13 +2,13 @@
 
 namespace App\Services\Templates;
 
-use App\Models\Company;
-use App\Models\ListAssignment;
-use App\Models\Location;
-use App\Models\Task;
-use App\Models\TaskList;
-use App\Models\TaskTemplate;
-use App\Models\User;
+use App\Models\Organisation\Company;
+use App\Models\Checklist\ListAssignment;
+use App\Models\Organisation\Location;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
+use App\Models\Checklist\TaskTemplate;
+use App\Models\Organisation\User;
 use Illuminate\Support\Collection;
 
 class HorecaStarterPackService
