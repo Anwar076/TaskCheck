@@ -7,20 +7,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("
-            ALTER TABLE submission_tasks
-            MODIFY COLUMN status ENUM('pending', 'completed', 'approved', 'rejected', 'redo_requested')
-            NOT NULL DEFAULT 'pending'
-        ");
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE submission_tasks
+                MODIFY COLUMN status ENUM('pending', 'completed', 'approved', 'rejected', 'redo_requested')
+                NOT NULL DEFAULT 'pending'
+            ");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("
-            ALTER TABLE submission_tasks
-            MODIFY COLUMN status ENUM('pending', 'completed', 'approved', 'rejected')
-            NOT NULL DEFAULT 'pending'
-        ");
+        if (DB::connection()->getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE submission_tasks
+                MODIFY COLUMN status ENUM('pending', 'completed', 'approved', 'rejected')
+                NOT NULL DEFAULT 'pending'
+            ");
+        }
     }
 };
-

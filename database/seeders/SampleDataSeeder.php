@@ -14,9 +14,11 @@ class SampleDataSeeder extends Seeder
     {
         $admin = \App\Models\User::where('role', 'admin')->first();
         $employees = \App\Models\User::where('role', 'employee')->get();
+        $companyId = $admin?->company_id;
 
         // Create sample task lists
         $cleaningList = \App\Models\TaskList::create([
+            'company_id' => $companyId,
             'title' => 'Daily Office Cleaning Checklist',
             'description' => 'Complete daily cleaning tasks for office areas',
             'created_by' => $admin->id,
@@ -27,6 +29,7 @@ class SampleDataSeeder extends Seeder
         ]);
 
         $safetyList = \App\Models\TaskList::create([
+            'company_id' => $companyId,
             'title' => 'Weekly Safety Inspection',
             'description' => 'Weekly safety check for workplace compliance',
             'created_by' => $admin->id,
