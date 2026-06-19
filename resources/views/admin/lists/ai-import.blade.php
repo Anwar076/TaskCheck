@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('page-title', 'AI import')
+
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6">
@@ -171,4 +173,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
-

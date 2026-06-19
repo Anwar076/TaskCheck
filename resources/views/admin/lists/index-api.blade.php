@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('page-title', 'Takenlijsten')
+
 @section('head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
@@ -543,4 +545,3 @@ window.testDelete = function(listId) {
 };
 </script>
 @endsection
-

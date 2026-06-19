@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('page-title', $list->title)
+
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden" data-sortable-reorder-url="{{ route('admin.lists.tasks.reorder', $list) }}">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
