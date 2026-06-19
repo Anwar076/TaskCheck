@@ -132,8 +132,8 @@
                             <span data-tour-step-badge class="inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-lg bg-blue-600 px-2 text-xs font-bold text-white">1</span>
                             <p data-tour-step-label class="text-xs font-semibold text-slate-500">Stap 1 van 5</p>
                         </div>
-                        <button type="button" data-tour-close class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Minimaliseren">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        <button type="button" data-tour-close class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Sluiten">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
 

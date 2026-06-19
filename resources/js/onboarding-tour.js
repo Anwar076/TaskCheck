@@ -320,6 +320,10 @@ export function initOnboardingTour(root) {
         if (!els.dots) {
             return;
         }
+        if (slides.length <= 1) {
+            els.dots.innerHTML = '';
+            return;
+        }
         els.dots.innerHTML = slides
             .map((_, i) => `<span class="h-1.5 rounded-full transition-all ${i === index ? 'w-6 bg-blue-600' : 'w-1.5 bg-slate-300'}"></span>`)
             .join('');
@@ -463,8 +467,8 @@ export function initOnboardingTour(root) {
         }
         if (els.next) {
             const isLast = index >= slides.length - 1;
-            els.next.disabled = needsClick || isLast;
-            els.next.classList.toggle('opacity-40', needsClick || isLast);
+            els.next.disabled = needsClick;
+            els.next.classList.toggle('opacity-40', needsClick);
             els.next.classList.toggle('cursor-not-allowed', needsClick);
             els.next.textContent = needsClick ? '↑ Klik op de pagina' : (isLast ? 'Klaar' : 'Volgende tip →');
         }
