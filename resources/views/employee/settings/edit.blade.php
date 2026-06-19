@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8 sm:py-10 lg:py-12">
-    <div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-8 sm:mb-10">
             <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Instellingen</h1>
             <p class="mt-2 text-base sm:text-lg text-gray-600">Beheer je accountgegevens en beveiliging</p>

@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50 overflow-x-hidden">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     <!-- Greeting + Progress Section -->
     <div id="quickstart-employee-hero" class="pt-0 pb-4 sm:pb-6">
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

@@ -296,9 +296,9 @@
                         </div>
                     </div>
                 @endif
-
-                @yield('content')
             </div>
+
+            @yield('content')
         </main>
 
         <!-- Minimal Footer -->

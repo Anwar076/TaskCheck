@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-8 pb-8 sm:pb-12 overflow-x-hidden">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {{-- HEADER (floating block) --}}
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-4 sm:mb-8">
         <div class="px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
