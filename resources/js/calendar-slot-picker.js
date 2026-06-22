@@ -33,6 +33,7 @@ export function initCalendarSlotPicker() {
 
     let activeSelection = null;
     let popupState = null;
+    let draggedUnscheduledList = null;
 
     const weekdayLabels = {
         monday: 'Maandag',
@@ -322,6 +323,84 @@ export function initCalendarSlotPicker() {
         openSchedulePopup(column, config, range.startTime, range.endTime);
     };
 
+    const readDroppedList = (event) => {
+        const raw = event.dataTransfer?.getData('application/x-taskcheck-list');
+
+        if (raw) {
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return draggedUnscheduledList;
+            }
+        }
+
+        return draggedUnscheduledList;
+    };
+
+    const setDropActive = (target, active) => {
+        if (!target) {
+            return;
+        }
+
+        if (active) {
+            target.setAttribute('data-calendar-drop-active', '1');
+        } else {
+            target.removeAttribute('data-calendar-drop-active');
+        }
+    };
+
+    const submitDroppedList = async (url, payload) => {
+        if (!url) {
+            return;
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                window.alert(data.message || data.errors?.end_time?.[0] || 'Plannen mislukt.');
+                return;
+            }
+
+            window.location.reload();
+        } catch {
+            window.alert('Plannen mislukt. Probeer opnieuw.');
+        }
+    };
+
+    document.querySelectorAll('[data-unscheduled-list]').forEach((source) => {
+        source.addEventListener('dragstart', (event) => {
+            draggedUnscheduledList = {
+                id: source.dataset.listId,
+                title: source.dataset.listTitle,
+                storeUrl: source.dataset.storeUrl,
+                dayStoreUrl: source.dataset.dayStoreUrl,
+            };
+
+            event.dataTransfer.effectAllowed = 'copy';
+            event.dataTransfer.setData('application/x-taskcheck-list', JSON.stringify(draggedUnscheduledList));
+            event.dataTransfer.setData('text/plain', draggedUnscheduledList.title || '');
+            source.classList.add('opacity-60');
+        });
+
+        source.addEventListener('dragend', () => {
+            draggedUnscheduledList = null;
+            source.classList.remove('opacity-60');
+            document.querySelectorAll('[data-calendar-drop-active]').forEach((target) => setDropActive(target, false));
+        });
+    });
+
     popup?.querySelectorAll('[data-calendar-schedule-close]').forEach((btn) => {
         btn.addEventListener('click', closePopup);
     });
@@ -460,6 +539,47 @@ export function initCalendarSlotPicker() {
             return;
         }
 
+        cell.addEventListener('dragover', (event) => {
+            const droppedList = readDroppedList(event);
+            if (!droppedList || !config.canCreate) {
+                return;
+            }
+
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+            setDropActive(cell, true);
+        });
+
+        cell.addEventListener('dragleave', (event) => {
+            if (!cell.contains(event.relatedTarget)) {
+                setDropActive(cell, false);
+            }
+        });
+
+        cell.addEventListener('drop', (event) => {
+            const droppedList = readDroppedList(event);
+            if (!droppedList || !config.canCreate) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            setDropActive(cell, false);
+
+            if (droppedList.dayStoreUrl) {
+                submitDroppedList(droppedList.dayStoreUrl, {
+                    weekday: config.weekday,
+                });
+                return;
+            }
+
+            submitDroppedList(droppedList.storeUrl, {
+                weekday: config.weekday,
+                start_time: '09:00',
+                end_time: '10:00',
+            });
+        });
+
         cell.addEventListener('click', (event) => {
             const allDayBtn = event.target.closest('[data-calendar-all-day-list]');
             if (!allDayBtn || !config.canCreate) {
@@ -524,6 +644,43 @@ export function initCalendarSlotPicker() {
             const raw = gridStartMinutes + pct * totalMinutes;
             return Math.round(raw / slotMinutes) * slotMinutes;
         };
+
+        column.addEventListener('dragover', (event) => {
+            const droppedList = readDroppedList(event);
+            if (!droppedList || !config.canCreate) {
+                return;
+            }
+
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+            setDropActive(column, true);
+        });
+
+        column.addEventListener('dragleave', (event) => {
+            if (!column.contains(event.relatedTarget)) {
+                setDropActive(column, false);
+            }
+        });
+
+        column.addEventListener('drop', (event) => {
+            const droppedList = readDroppedList(event);
+            if (!droppedList || !config.canCreate || !droppedList.storeUrl) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            setDropActive(column, false);
+
+            const startMin = yToMinutes(event.clientY);
+            const range = resolveTimeRange(startMin, startMin + slotMinutes);
+
+            submitDroppedList(droppedList.storeUrl, {
+                weekday: config.weekday,
+                start_time: range.startTime,
+                end_time: range.endTime,
+            });
+        });
 
         const updatePreview = () => {
             if (!preview || dragStartY === null || dragEndY === null) {

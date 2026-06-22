@@ -66,6 +66,7 @@
             'weekStart' => $weekStart,
             'locationId' => $locationId,
             'lists' => $lists,
+            'unscheduledLists' => $unscheduledLists,
         ])
     </div>
 </div>

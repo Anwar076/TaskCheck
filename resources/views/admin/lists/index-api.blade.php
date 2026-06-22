@@ -354,6 +354,10 @@ function renderListStatusBadge(list) {
 function isListUnscheduled(list) {
     const config = list.schedule_config || {};
 
+    if (list.schedule_type === 'once') {
+        return Boolean(list.due_date) && isPastDate(list.due_date);
+    }
+
     if (list.schedule_type === 'weekly') {
         return !Array.isArray(config.show_on_days) || config.show_on_days.length === 0;
     }
@@ -364,12 +368,33 @@ function isListUnscheduled(list) {
             return !Array.isArray(days) || days.length === 0;
         }
 
+        if (config.type === 'interval') {
+            return !config.interval_days || !config.start_date;
+        }
+
+        if (config.type === 'date_range') {
+            return !config.start_date || !config.end_date || isPastDate(config.end_date);
+        }
+
         if (Array.isArray(config.show_on_days)) {
             return config.show_on_days.length === 0;
         }
     }
 
     return false;
+}
+
+function isPastDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(23, 59, 59, 999);
+
+    return date < today;
 }
 
 function escapeHtml(text) {

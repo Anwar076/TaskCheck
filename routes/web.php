@@ -293,6 +293,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/lists/calendar', [TaskListController::class, 'calendar'])->name('lists.calendar');
     Route::put('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'updateScheduleTimeSlot'])->name('lists.schedule-slot.update');
     Route::delete('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'destroyScheduleTimeSlot'])->name('lists.schedule-slot.destroy');
+    Route::post('/lists/{list}/schedule-day', [TaskListController::class, 'scheduleDay'])->name('lists.schedule-day');
     Route::post('/lists/{list}/schedule-slot', [TaskListController::class, 'scheduleTimeSlot'])->name('lists.schedule-slot');
     Route::post('/lists/{list}/tasks/quick', [TaskController::class, 'quickStore'])->name('lists.tasks.quick-store');
 

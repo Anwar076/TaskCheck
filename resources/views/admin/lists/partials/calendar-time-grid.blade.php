@@ -13,6 +13,7 @@
     $allLists = $allLists ?? collect();
     $slotMinutes = ListCalendarService::DEFAULT_TASK_DURATION_MINUTES;
     $singleDay = $singleDay ?? (count($days) === 1);
+    $forceAllDayRow = $forceAllDayRow ?? false;
     $gridCols = $singleDay ? 'grid-cols-[5rem_minmax(0,1fr)]' : 'grid-cols-8';
     $wrapperClass = $singleDay ? 'w-full' : 'min-w-[760px]';
     $workingHoursByDay = collect($days)
@@ -37,7 +38,7 @@
         ];
     };
 
-    $showAllDayRow = collect($days)->contains(function ($day) use ($scope) {
+    $showAllDayRow = $forceAllDayRow || collect($days)->contains(function ($day) use ($scope) {
         if ($scope === 'list' && ! ($day['is_list_active'] ?? true)) {
             return true;
         }
@@ -104,6 +105,11 @@
     .calendar-non-working-block {
         background-color: rgba(148, 163, 184, 0.16);
         box-shadow: inset 0 1px 0 rgba(100, 116, 139, 0.10), inset 0 -1px 0 rgba(100, 116, 139, 0.10);
+    }
+    [data-calendar-drop-active] {
+        outline: 2px solid rgba(37, 99, 235, 0.45);
+        outline-offset: -2px;
+        background-color: rgba(239, 246, 255, 0.72) !important;
     }
 </style>
 

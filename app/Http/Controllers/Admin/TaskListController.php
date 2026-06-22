@@ -305,12 +305,16 @@ class TaskListController extends Controller
         }
 
         $lists = TaskList::withCount('tasks')
-            ->with('tasks')
+            ->with(['tasks', 'location'])
             ->where('company_id', $companyId)
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
             ->orderBy('title')
             ->get();
+
+        $unscheduledLists = $lists
+            ->filter(fn (TaskList $list) => $this->isUnscheduledList($list))
+            ->values();
 
         if ($calendarView === 'month') {
             $monthStart = Carbon::parse($request->query('month', now()->format('Y-m-01')))->startOfMonth();
@@ -350,9 +354,33 @@ class TaskListController extends Controller
             'miniMonth',
             'weekStart',
             'lists',
+            'unscheduledLists',
             'locations',
             'locationId'
         ));
+    }
+
+    public function scheduleDay(Request $request, TaskList $list)
+    {
+        if ($list->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        $validated = $request->validate([
+            'weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+        ]);
+
+        app(ListCalendarService::class)->ensureListScheduledOnWeekday($list, $validated['weekday']);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Lijst '{$list->title}' is gepland.",
+            'list' => [
+                'id' => $list->id,
+                'title' => $list->title,
+                'show_url' => route('admin.lists.show', [$list, 'view' => 'week', 'day' => $validated['weekday']]),
+            ],
+        ]);
     }
 
     public function scheduleTimeSlot(Request $request, TaskList $list)
@@ -394,6 +422,43 @@ class TaskListController extends Controller
                 'show_url' => route('admin.lists.show', [$list, 'view' => 'week', 'day' => $validated['weekday']]),
             ],
         ]);
+    }
+
+    private function isUnscheduledList(TaskList $list): bool
+    {
+        $config = is_array($list->schedule_config) ? $list->schedule_config : [];
+        $today = now()->startOfDay();
+
+        return match ($list->schedule_type) {
+            'once' => $list->due_date !== null && $list->due_date->lt($today),
+            'daily', 'monthly' => false,
+            'weekly' => ($config['show_on_days'] ?? []) === [],
+            'custom' => $this->customScheduleHasNoFutureDates($config, $today),
+            default => false,
+        };
+    }
+
+    private function customScheduleHasNoFutureDates(array $config, Carbon $today): bool
+    {
+        $type = $config['type'] ?? null;
+
+        if ($type === 'specific_days') {
+            return ($config['days'] ?? $config['show_on_days'] ?? []) === [];
+        }
+
+        if ($type === 'interval') {
+            return empty($config['interval_days']) || empty($config['start_date']);
+        }
+
+        if ($type === 'date_range') {
+            if (empty($config['start_date']) || empty($config['end_date'])) {
+                return true;
+            }
+
+            return Carbon::parse($config['end_date'])->endOfDay()->lt($today);
+        }
+
+        return array_key_exists('show_on_days', $config) && ($config['show_on_days'] ?? []) === [];
     }
 
     public function updateScheduleTimeSlot(Request $request, TaskList $list, string $slot)

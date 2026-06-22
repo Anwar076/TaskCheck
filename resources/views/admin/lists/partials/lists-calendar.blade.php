@@ -2,6 +2,12 @@
     $calendarView = $calendarView ?? 'week';
     $selectedDay = $selectedDay ?? strtolower(now()->format('l'));
     $locationId = $locationId ?? null;
+    $unscheduledLists = $unscheduledLists ?? collect();
+    $calendarDaysForCount = collect($calendar['days'] ?? collect($calendar['weeks'] ?? [])->flatten(1)->all());
+    $scheduledListIds = $calendarDaysForCount
+        ->flatMap(fn ($day) => ($day['lists'] ?? collect())->pluck('id'))
+        ->unique();
+    $scheduledListCount = $scheduledListIds->count();
     $weekQuery = ['week' => $calendar['week_start'] ?? (isset($weekStart) ? $weekStart->format('Y-m-d') : now()->startOfWeek()->format('Y-m-d'))];
     $monthQuery = ['month' => $calendar['month_start'] ?? ($miniMonth['month_start'] ?? now()->format('Y-m-01'))];
     $filterQuery = $locationId ? ['location_id' => $locationId] : [];
@@ -114,7 +120,50 @@
                     @endforeach
                 </div>
             @endforeach
-            <p class="mt-3 text-[11px] leading-relaxed text-slate-500">{{ $calendar['total_lists'] ?? 0 }} actieve lijsten in deze weergave.</p>
+            <p class="mt-3 text-[11px] leading-relaxed text-slate-500">
+                {{ $scheduledListCount }} {{ $scheduledListCount === 1 ? 'geplande lijst' : 'geplande lijsten' }} in deze weergave.
+            </p>
+
+            <div class="mt-4 border-t border-slate-100 pt-4" data-unscheduled-list-panel>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ongepland</h3>
+                    @if($unscheduledLists->isNotEmpty())
+                        <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">{{ $unscheduledLists->count() }}</span>
+                    @endif
+                </div>
+
+                @if($unscheduledLists->isEmpty())
+                    <p class="rounded-lg border border-dashed border-slate-200 px-3 py-3 text-[11px] leading-relaxed text-slate-400">
+                        Geen ongeplande lijsten.
+                    </p>
+                @else
+                    <div class="space-y-2">
+                        @foreach($unscheduledLists as $unscheduledList)
+                            <div draggable="true"
+                                 data-unscheduled-list
+                                 data-list-id="{{ $unscheduledList->id }}"
+                                 data-list-title="{{ $unscheduledList->title }}"
+                                 data-store-url="{{ route('admin.lists.schedule-slot', $unscheduledList) }}"
+                                 data-day-store-url="{{ route('admin.lists.schedule-day', $unscheduledList) }}"
+                                 class="group cursor-grab rounded-lg border border-amber-100 bg-amber-50/70 px-3 py-2 shadow-sm transition hover:border-amber-200 hover:bg-amber-50 active:cursor-grabbing">
+                                <div class="flex items-start justify-between gap-2">
+                                    <p class="min-w-0 truncate text-xs font-semibold text-slate-900">{{ $unscheduledList->title }}</p>
+                                    <svg class="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16"/>
+                                    </svg>
+                                </div>
+                                <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-500">
+                                    <span>{{ $unscheduledList->tasks_count ?? $unscheduledList->tasks->count() }} {{ ($unscheduledList->tasks_count ?? $unscheduledList->tasks->count()) === 1 ? 'taak' : 'taken' }}</span>
+                                    <span>{{ $unscheduledList->location?->name ?? 'Algemeen' }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+                        Sleep naar een dag of tijdslot om te plannen.
+                    </p>
+                @endif
+            </div>
         </aside>
 
         <div class="min-w-0 flex-1">
@@ -166,6 +215,7 @@
                     'filterQuery' => $filterQuery,
                     'scope' => 'company',
                     'allLists' => $lists ?? collect(),
+                    'forceAllDayRow' => $unscheduledLists->isNotEmpty(),
                 ])
 
             @else
@@ -177,6 +227,7 @@
                         'filterQuery' => $filterQuery,
                         'scope' => 'company',
                         'allLists' => $lists ?? collect(),
+                        'forceAllDayRow' => $unscheduledLists->isNotEmpty(),
                         'singleDay' => true,
                     ])
                 @endif

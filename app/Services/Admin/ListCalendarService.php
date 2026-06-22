@@ -669,14 +669,16 @@ class ListCalendarService
                 $days = $config['days'] ?? [];
                 if (! in_array($weekday, $days, true)) {
                     $config['days'] = array_values(array_unique([...$days, $weekday]));
+                    $config['show_on_days'] = $config['days'];
                     $list->update(['schedule_config' => $config]);
                 }
             } else {
                 $days = $config['show_on_days'] ?? [];
-                if (! in_array($weekday, $days, true)) {
-                    $config['show_on_days'] = array_values(array_unique([...$days, $weekday]));
-                    $list->update(['schedule_config' => $config]);
-                }
+                $days = array_values(array_unique([...$days, $weekday]));
+                $config['type'] = 'specific_days';
+                $config['days'] = $days;
+                $config['show_on_days'] = $days;
+                $list->update(['schedule_config' => $config]);
             }
 
             return;
