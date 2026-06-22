@@ -16,15 +16,26 @@
                     <h1 class="text-lg sm:text-xl font-bold text-slate-900">Alle notificaties</h1>
                     <p class="text-sm text-slate-500">{{ $notifications->total() }} meldingen</p>
                 </div>
-                @if($notifications->whereNull('read_at')->count() > 0)
-                    <form method="POST" action="{{ route('admin.notifications.mark-all-read') }}" onsubmit="event.preventDefault(); markAllAdminRead(this);">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50">
-                            Markeer alles gelezen
-                        </button>
-                    </form>
-                @endif
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <a href="{{ route('admin.notifications.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700">
+                        Nieuwe notificatie
+                    </a>
+                    @if($notifications->whereNull('read_at')->count() > 0)
+                        <form method="POST" action="{{ route('admin.notifications.mark-all-read') }}" onsubmit="event.preventDefault(); markAllAdminRead(this);">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50">
+                                Markeer alles gelezen
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
+
+            @if(session('success'))
+                <div class="mx-4 sm:mx-6 mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                    {{ session('success') }}
+                </div>
+            @endif
 
             <div class="divide-y divide-slate-100">
                 @forelse($notifications as $notification)

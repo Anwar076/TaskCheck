@@ -329,6 +329,8 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::post('/lists/ai-generate', [TaskListController::class, 'aiGenerate'])->name('lists.ai-generate');
     Route::get('/notifications/realtime-feed', [AdminNotificationController::class, 'realtimeFeed'])->name('notifications.realtime-feed');
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/create', [AdminNotificationController::class, 'create'])->name('notifications.create');
+    Route::post('/notifications', [AdminNotificationController::class, 'store'])->name('notifications.store');
     Route::post('/notifications/{notification}/mark-read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     
