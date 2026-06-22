@@ -26,6 +26,7 @@ final class PackRegistry
             return array_merge($meta, [
                 'template_count' => count($templates),
                 'templates' => $templates,
+                'cover_image' => 'images/starter-packs/'.$meta['slug'].'.jpg',
             ]);
         }, self::PACK_CLASSES);
     }

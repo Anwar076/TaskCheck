@@ -67,30 +67,29 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
             @foreach($packs as $pack)
                 <article class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col {{ $pack['is_active'] ? 'ring-2 ring-blue-200' : '' }}">
+                    <div class="aspect-[3/2] w-full overflow-hidden bg-slate-100">
+                        <img
+                            src="{{ asset($pack['cover_image'] ?? 'images/starter-packs/'.$pack['slug'].'.jpg') }}"
+                            alt="{{ $pack['name'] }}"
+                            class="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    </div>
                     <div class="p-5 sm:p-6 flex flex-col flex-1">
-                        <div class="flex items-start gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                                @include('admin.starter-packs.partials.pack-icon', [
-                                    'icon' => $pack['icon'] ?? 'clipboard-outline',
-                                    'class' => 'w-6 h-6 text-blue-600',
-                                ])
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="min-w-0">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                    {{ $pack['template_count'] }} controlelijsten
+                                </span>
+                                <h3 class="mt-2 text-lg sm:text-xl font-bold text-slate-900">{{ $pack['name'] }}</h3>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2">
-                                    <div>
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                                            {{ $pack['template_count'] }} controlelijsten
-                                        </span>
-                                        <h3 class="mt-2 text-lg sm:text-xl font-bold text-slate-900">{{ $pack['name'] }}</h3>
-                                    </div>
-                                    @if($pack['is_active'])
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold shrink-0">
-                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
-                                            Actief
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
+                            @if($pack['is_active'])
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                                    Actief
+                                </span>
+                            @endif
                         </div>
 
                         <p class="text-sm text-slate-600 leading-relaxed mb-4">{{ $pack['description'] }}</p>
