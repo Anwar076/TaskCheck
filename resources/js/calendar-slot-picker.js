@@ -35,6 +35,7 @@ export function initCalendarSlotPicker() {
     let popupState = null;
     let draggedUnscheduledList = null;
     let suppressTimedClick = false;
+    let feedbackTimer = null;
     const scrollStorageKey = 'taskcheck.calendar.scroll';
 
     const weekdayLabels = {
@@ -214,6 +215,24 @@ export function initCalendarSlotPicker() {
         target.style.background = 'rgba(239, 68, 68, 0.18)';
         target.style.borderTopColor = '#ef4444';
         target.style.borderBottomColor = '#ef4444';
+    };
+
+    const showCalendarFeedback = (message) => {
+        let feedback = document.querySelector('[data-calendar-feedback]');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.setAttribute('data-calendar-feedback', '1');
+            feedback.className = 'fixed bottom-5 left-1/2 z-[120] max-w-sm -translate-x-1/2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 shadow-lg';
+            document.body.appendChild(feedback);
+        }
+
+        feedback.textContent = message;
+        feedback.classList.remove('hidden');
+
+        window.clearTimeout(feedbackTimer);
+        feedbackTimer = window.setTimeout(() => {
+            feedback.classList.add('hidden');
+        }, 3600);
     };
 
     const showSelection = (column, startMin, endMin, startTime, endTime) => {
@@ -877,8 +896,14 @@ export function initCalendarSlotPicker() {
                 return null;
             }
 
-            const target = timeColumnAt(event.clientX, event.clientY);
-            if (!target) {
+            const target = {
+                column: blockDrag.column,
+                config: blockDrag.config,
+            };
+            const columnRect = blockDrag.column.getBoundingClientRect();
+            const isInsideOriginalColumn = event.clientX >= columnRect.left && event.clientX <= columnRect.right;
+
+            if (!isInsideOriginalColumn) {
                 return null;
             }
 
@@ -926,7 +951,7 @@ export function initCalendarSlotPicker() {
                     endMin: blockDrag.endMin,
                     startTime: minutesToTime(blockDrag.startMin),
                     endTime: minutesToTime(blockDrag.endMin),
-                }, 'Laat los op een tijdkolom');
+                }, 'Blijf binnen dezelfde dag');
                 markPreviewInvalid(preview);
                 return;
             }
@@ -943,7 +968,13 @@ export function initCalendarSlotPicker() {
             const didMove = blockDrag.hasMoved;
             const source = blockDrag.button;
             const next = currentBlockRange(event);
+            const wasOutsideOriginalDay = didMove && !next;
             cleanupBlockDrag();
+
+            if (wasOutsideOriginalDay) {
+                showCalendarFeedback('Verplaatsen naar een andere dag kan hier niet. Pas de vaste dagen aan of plan de lijst opnieuw in.');
+                return;
+            }
 
             if (!didMove || !next) {
                 return;
