@@ -39,11 +39,21 @@ class OnboardingController extends Controller
             ]);
         }
 
+        $company->advanceOnboardingTo(Company::ONBOARDING_STEP_STARTER_PACK);
+
+        return redirect()
+            ->route('admin.starter-packs.index')
+            ->with('success', 'Kies optioneel een compliance starterpack voor kant-en-klare templates.');
+    }
+
+    public function continueStarterPack(): RedirectResponse
+    {
+        $company = $this->company();
         $company->advanceOnboardingTo(Company::ONBOARDING_STEP_LIST_CHOICE);
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'Top! Kies nu hoe je je eerste takenlijst wilt maken.');
+            ->with('success', 'Kies nu hoe je je eerste takenlijst wilt maken.');
     }
 
     public function chooseList(Request $request): RedirectResponse

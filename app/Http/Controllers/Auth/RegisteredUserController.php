@@ -42,7 +42,6 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'company_name' => ['required', 'string', 'max:255'],
-            'company_type' => ['required', 'in:cleaning,horeca,other'],
         ]);
 
         DB::beginTransaction();
@@ -50,7 +49,7 @@ class RegisteredUserController extends Controller
             // Create company with trial period
             $company = Company::create([
                 'name' => $request->company_name,
-                'company_type' => $request->company_type,
+                'company_type' => config('app.default_company_type', 'horeca'),
                 'subscription_status' => 'trial',
                 'trial_ends_at' => now()->addDays(14),
             ]);

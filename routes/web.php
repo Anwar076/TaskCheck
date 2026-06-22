@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\TaskListController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TaskTemplateController;
+use App\Http\Controllers\Admin\StarterPackController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\OnboardingController;
@@ -269,6 +270,7 @@ Route::post('/dashboard/switch', function (\Illuminate\Http\Request $request) {
 Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/onboarding/start', [OnboardingController::class, 'start'])->name('onboarding.start');
     Route::post('/onboarding/users/continue', [OnboardingController::class, 'continueUsers'])->name('onboarding.users.continue');
+    Route::post('/onboarding/starter-pack/continue', [OnboardingController::class, 'continueStarterPack'])->name('onboarding.starter-pack.continue');
     Route::post('/onboarding/list-choice', [OnboardingController::class, 'chooseList'])->name('onboarding.list-choice');
     Route::post('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
 });
@@ -303,6 +305,9 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::resource('lists', TaskListController::class)->except(['index']);
     Route::resource('lists.tasks', TaskController::class)->shallow();
     Route::resource('templates', TaskTemplateController::class);
+    Route::get('/starter-packs', [StarterPackController::class, 'index'])->name('starter-packs.index');
+    Route::post('/starter-packs/{slug}/activate', [StarterPackController::class, 'activate'])->name('starter-packs.activate');
+    Route::delete('/starter-packs/{slug}/deactivate', [StarterPackController::class, 'deactivate'])->name('starter-packs.deactivate');
     Route::resource('locations', LocationController::class)->except(['show']);
     Route::resource('users', UserController::class)->except(['index']);
         Route::resource('submissions', SubmissionController::class)->except(['index']);

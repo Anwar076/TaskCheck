@@ -137,4 +137,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default company type for new registrations
+    |--------------------------------------------------------------------------
+    |
+    | Used when registering via the web form (no bedrijfstype field).
+    | Override per company with: php artisan company:set-type {id|email} {type}
+    |
+    */
+
+    'default_company_type' => env('DEFAULT_COMPANY_TYPE', 'horeca'),
+
 ];

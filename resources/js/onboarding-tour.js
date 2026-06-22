@@ -591,6 +591,14 @@ export function initOnboardingTour(root) {
             return;
         }
 
+        if (slide.action === 'continue_starter_pack') {
+            els.actions.innerHTML = `<button type="button" data-tour-action="continue_starter_pack" class="inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700">
+                    Doorgaan
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>`;
+            return;
+        }
+
         if (slide.action === 'list_choice') {
             els.actions.innerHTML = `
                 <button type="button" data-tour-choice="template" class="inline-flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700">
@@ -810,6 +818,10 @@ export function initOnboardingTour(root) {
         }
         if (action === 'continue_users') {
             post(config.routes?.continue_users || '/admin/onboarding/users/continue');
+            return;
+        }
+        if (action === 'continue_starter_pack') {
+            post(config.routes?.continue_starter_pack || '/admin/onboarding/starter-pack/continue');
             return;
         }
         if (action === 'skip') {

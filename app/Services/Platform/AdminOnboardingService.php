@@ -31,7 +31,7 @@ class AdminOnboardingService
             'active' => true,
             'step' => $step,
             'step_number' => $this->stepNumber($step),
-            'total_steps' => 5,
+            'total_steps' => 6,
             'employee_count' => $employeeCount,
             'can_continue_users' => $employeeCount >= 1,
             'show_list_choice' => $step === Company::ONBOARDING_STEP_LIST_CHOICE,
@@ -95,6 +95,10 @@ class AdminOnboardingService
 
         if (str_starts_with($routeName, 'admin.users')) {
             return $this->stripHelpSlides($this->usersTourSlides($employeeCount, $routeName));
+        }
+
+        if ($routeName === 'admin.starter-packs.index') {
+            return $this->stripHelpSlides($this->starterPackTourSlides());
         }
 
         if ($routeName === 'admin.templates.index') {
@@ -271,6 +275,42 @@ class AdminOnboardingService
     /**
      * @return array<int, array<string, mixed>>
      */
+    private function starterPackTourSlides(bool $onboarding = false): array
+    {
+        return [
+            [
+                'target' => null,
+                'title' => $onboarding ? 'Compliance starterpacks' : 'Starterpacks',
+                'body' => $onboarding
+                    ? 'Horeca en food branches hebben kant-en-klare compliance-controlelijsten. Activeer één starterpack en alle templates komen direct in je bibliotheek — HACCP, temperatuur, hygiëne en meer.'
+                    : 'Activeer een branche-pakket om kant-en-klare compliance-templates te importeren.',
+                'placement' => 'center',
+                'cta' => $onboarding ? 'Lees even door, daarna kies je een pack of ga verder.' : null,
+            ],
+            $this->formTourSlide([
+                'target' => '[data-onboarding-target="starter-packs-section"]',
+                'title' => 'Kies je branche',
+                'body' => 'Elk starterpack bevat tientallen kant-en-klare controlelijsten voor jouw sector. Klik op Starterpack activeren bij het pakket dat bij je bedrijf past. Je kunt later altijd deactiveren.',
+                'placement' => 'bottom',
+                'allowScroll' => true,
+                'highlightPad' => 12,
+                'scrollBlock' => 'start',
+                'cta' => 'Activeer optioneel een pack, of sla deze stap over en ga door.',
+            ]),
+            [
+                'target' => null,
+                'title' => 'Klaar met starterpacks?',
+                'body' => 'Heb je een pack geactiveerd? Super — je templates staan klaar. Geen pack nodig? Geen probleem. In de volgende stap kies je hoe je je eerste takenlijst maakt.',
+                'action' => 'continue_starter_pack',
+                'placement' => 'center',
+                'cta' => 'Klik op Doorgaan om verder te gaan.',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function listCreateTourSlides(Company $company, ?string $routeName): array
     {
         if ($routeName === 'admin.templates.index') {
@@ -278,7 +318,7 @@ class AdminOnboardingService
                 $this->formTourSlide([
                     'target' => '[data-onboarding-target="templates-grid"]',
                     'title' => 'Kies je template',
-                    'body' => 'Blader door de templates en kies zelf welke het beste bij je bedrijf past. Klik op Lijst maken bij het template dat je wilt. Liever helemaal zelf beginnen? Dat kan ook — klik op Toch een eigen lijst maken in dit venster.',
+                    'body' => 'Blader door je templates en kies welke het beste bij je bedrijf past. Heb je een starterpack geactiveerd? Dan staan die controlelijsten hier al klaar. Klik op Lijst maken bij het template dat je wilt.',
                     'placement' => 'left',
                     'waitForTarget' => true,
                     'showCustomListOption' => true,
@@ -497,17 +537,18 @@ class AdminOnboardingService
                 [
                     'target' => null,
                     'title' => 'Welkom bij TaskCheck',
-                    'body' => 'In 5 korte stappen stel je je organisatie, team en eerste takenlijst in. We wijzen je steeds aan waar je moet klikken.',
+                    'body' => 'In 6 korte stappen stel je je organisatie, team, starterpack en eerste takenlijst in. We wijzen je steeds aan waar je moet klikken.',
                     'action' => 'start',
                 ],
             ],
             Company::ONBOARDING_STEP_ORGANIZATION => $this->organizationTourSlides(true),
             Company::ONBOARDING_STEP_USERS => $this->usersTourSlides($employeeCount, $routeName),
+            Company::ONBOARDING_STEP_STARTER_PACK => $this->starterPackTourSlides(true),
             Company::ONBOARDING_STEP_LIST_CHOICE => [
                 [
                     'target' => null,
                     'title' => 'Je eerste takenlijst',
-                    'body' => 'Snel starten met een kant-en-klaar template, of zelf een lijst opbouwen? Kies hieronder.',
+                    'body' => 'Snel starten met een template (bijvoorbeeld uit je starterpack), of zelf een lijst opbouwen? Kies hieronder.',
                     'action' => 'list_choice',
                 ],
             ],
@@ -519,11 +560,12 @@ class AdminOnboardingService
         return [
             'step' => $step,
             'step_number' => $this->stepNumber($step),
-            'total_steps' => 5,
+            'total_steps' => 6,
             'slides' => array_values($slides),
             'routes' => [
                 'start' => route('admin.onboarding.start'),
                 'continue_users' => route('admin.onboarding.users.continue'),
+                'continue_starter_pack' => route('admin.onboarding.starter-pack.continue'),
                 'users_create' => route('admin.users.create'),
                 'list_choice' => route('admin.onboarding.list-choice'),
                 'skip' => route('admin.onboarding.skip'),
@@ -538,9 +580,10 @@ class AdminOnboardingService
             Company::ONBOARDING_STEP_WELCOME,
             Company::ONBOARDING_STEP_ORGANIZATION => 1,
             Company::ONBOARDING_STEP_USERS => 2,
-            Company::ONBOARDING_STEP_LIST_CHOICE => 3,
-            Company::ONBOARDING_STEP_LIST_CREATE => 4,
-            Company::ONBOARDING_STEP_ASSIGN => 5,
+            Company::ONBOARDING_STEP_STARTER_PACK => 3,
+            Company::ONBOARDING_STEP_LIST_CHOICE => 4,
+            Company::ONBOARDING_STEP_LIST_CREATE => 5,
+            Company::ONBOARDING_STEP_ASSIGN => 6,
             default => 1,
         };
     }
@@ -553,7 +596,8 @@ class AdminOnboardingService
 
         return match ($step) {
             Company::ONBOARDING_STEP_ORGANIZATION => 'admin.settings.edit',
-            Company::ONBOARDING_STEP_USERS,
+            Company::ONBOARDING_STEP_USERS => 'admin.users.index',
+            Company::ONBOARDING_STEP_STARTER_PACK => 'admin.starter-packs.index',
             Company::ONBOARDING_STEP_LIST_CHOICE => 'admin.users.index',
             Company::ONBOARDING_STEP_LIST_CREATE => $company->onboarding_list_mode === 'custom'
                 ? 'admin.lists.create'
@@ -603,6 +647,11 @@ class AdminOnboardingService
                 'admin.users.index',
                 'admin.users.create',
                 'admin.users.store',
+            ],
+            Company::ONBOARDING_STEP_STARTER_PACK => [
+                'admin.starter-packs.index',
+                'admin.starter-packs.activate',
+                'admin.starter-packs.deactivate',
             ],
             Company::ONBOARDING_STEP_LIST_CHOICE => [
                 'admin.users.index',

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             HorecaTemplateSeeder::class,
+            ComplianceStarterPackSeeder::class,
             SampleDataSeeder::class,
         ]);
     }
