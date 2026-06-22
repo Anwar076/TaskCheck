@@ -24,6 +24,7 @@ class Company extends Model
         'description',
         'departments',
         'working_hours',
+        'calendar_time_mode',
         'subscription_plan',
         'pending_subscription_plan',
         'subscription_status',
@@ -50,6 +51,9 @@ class Company extends Model
     public const ONBOARDING_STEP_LIST_CREATE = 'list_create';
     public const ONBOARDING_STEP_ASSIGN = 'assign';
     public const ONBOARDING_STEP_COMPLETED = 'completed';
+
+    public const CALENDAR_TIME_MODE_WORKING_HOURS = 'working_hours';
+    public const CALENDAR_TIME_MODE_24_HOURS = '24_hours';
 
     protected $casts = [
         'trial_ends_at' => 'datetime',

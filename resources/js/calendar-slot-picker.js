@@ -24,6 +24,7 @@ export function initCalendarSlotPicker() {
     const weekdaySelect = document.getElementById('calendar-list-weekday');
     const startInput = document.getElementById('calendar-list-start');
     const endInput = document.getElementById('calendar-list-end');
+    const workingHoursWarning = document.getElementById('calendar-list-working-hours-warning');
     const errorBox = document.getElementById('calendar-list-schedule-error');
     const submitBtn = document.getElementById('calendar-list-schedule-submit');
     const deleteBtn = document.getElementById('calendar-list-schedule-delete');
@@ -55,6 +56,50 @@ export function initCalendarSlotPicker() {
         const hours = Math.floor(clamped / 60);
         const mins = clamped % 60;
         return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    };
+
+    const timeToMinutes = (time) => {
+        const [hours, minutes] = String(time || '').split(':').map((part) => parseInt(part, 10));
+        if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+            return null;
+        }
+
+        return hours * 60 + minutes;
+    };
+
+    const isOutsideWorkingHours = (weekday, startTime, endTime) => {
+        const dayHours = popupState?.config?.workingHoursByDay?.[weekday];
+
+        if (!dayHours) {
+            return false;
+        }
+        if (dayHours.enabled === false || dayHours.enabled === '0') {
+            return true;
+        }
+
+        const startMinutes = timeToMinutes(startTime);
+        const endMinutes = timeToMinutes(endTime) ?? (startMinutes === null ? null : startMinutes + slotMinutes);
+        const workStart = timeToMinutes(dayHours.start);
+        const workEnd = timeToMinutes(dayHours.end);
+
+        if ([startMinutes, endMinutes, workStart, workEnd].some((value) => value === null)) {
+            return false;
+        }
+
+        return startMinutes < workStart || endMinutes > workEnd;
+    };
+
+    const updateWorkingHoursWarning = () => {
+        if (!workingHoursWarning || !popupState) {
+            return;
+        }
+
+        const weekday = weekdaySelect?.value || popupState.weekday;
+        const startTime = startInput?.value || popupState.startTime;
+        const endTime = endInput?.value || popupState.endTime || startTime;
+        const showWarning = isOutsideWorkingHours(weekday, startTime, endTime);
+
+        workingHoursWarning.classList.toggle('hidden', !showWarning);
     };
 
     const clearSelection = () => {
@@ -160,6 +205,7 @@ export function initCalendarSlotPicker() {
             errorBox.classList.add('hidden');
             errorBox.textContent = '';
         }
+        workingHoursWarning?.classList.add('hidden');
         if (submitBtn) {
             submitBtn.disabled = false;
         }
@@ -218,6 +264,7 @@ export function initCalendarSlotPicker() {
         if (endInput) {
             endInput.value = endTime || '';
         }
+        updateWorkingHoursWarning();
 
         populateListSelect(lists, sourceListId || lists[0]?.id);
 
@@ -230,6 +277,11 @@ export function initCalendarSlotPicker() {
         positionPopup();
         (lists.length > 1 ? listSelect : startInput)?.focus();
     };
+
+    [weekdaySelect, startInput, endInput].forEach((input) => {
+        input?.addEventListener('input', updateWorkingHoursWarning);
+        input?.addEventListener('change', updateWorkingHoursWarning);
+    });
 
     const openSchedulePopup = (column, config, startTime, endTime) => {
         openPopup({

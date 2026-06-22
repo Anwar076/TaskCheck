@@ -15,14 +15,19 @@
     $singleDay = $singleDay ?? (count($days) === 1);
     $gridCols = $singleDay ? 'grid-cols-[5rem_minmax(0,1fr)]' : 'grid-cols-8';
     $wrapperClass = $singleDay ? 'w-full' : 'min-w-[760px]';
+    $workingHoursByDay = collect($days)
+        ->mapWithKeys(fn ($day) => [$day['key'] => $day['working_hours'] ?? null])
+        ->filter()
+        ->all();
 
-    $dayCreateConfig = function ($day) use ($scope, $list, $allLists) {
+    $dayCreateConfig = function ($day) use ($scope, $list, $allLists, $workingHoursByDay) {
         $selectableLists = $scope === 'company'
             ? $allLists
             : ($list ? collect([$list]) : collect());
 
         return [
             'weekday' => $day['key'],
+            'workingHoursByDay' => $workingHoursByDay,
             'canCreate' => $selectableLists->isNotEmpty(),
             'lists' => $selectableLists->map(fn ($listItem) => [
                 'id' => $listItem->id,
@@ -95,6 +100,10 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+    .calendar-non-working-block {
+        background-color: rgba(148, 163, 184, 0.16);
+        box-shadow: inset 0 1px 0 rgba(100, 116, 139, 0.10), inset 0 -1px 0 rgba(100, 116, 139, 0.10);
     }
 </style>
 
@@ -187,6 +196,12 @@
                          data-calendar-day-column
                          data-day-config='@json($createConfig)'
                          title="{{ $createConfig['canCreate'] ? 'Klik of sleep om lijst te koppelen' : '' }}">
+                        @foreach(($day['non_working_ranges'] ?? []) as $range)
+                            <div class="calendar-non-working-block pointer-events-none absolute left-0 right-0 z-[1]"
+                                 style="top: {{ $range['top_percent'] }}%; height: {{ $range['height_percent'] }}%;"
+                                 title="Buiten werktijd: {{ $range['start_time'] }} - {{ $range['end_time'] }}"
+                                 aria-hidden="true"></div>
+                        @endforeach
                         <div class="calendar-day-events" style="grid-template-rows: repeat({{ $hourCount }}, {{ $hourRowHeight }});">
                             @foreach($timeHours as $index => $hourLabel)
                                 <div class="pointer-events-none relative min-h-0 border-t border-slate-100" style="grid-row: {{ $index + 1 }}; grid-column: 1;">
@@ -270,6 +285,12 @@
                          data-calendar-day-column
                          data-day-config='@json($createConfig)'
                          title="{{ $createConfig['canCreate'] ? 'Klik of sleep om lijst te koppelen' : '' }}">
+                        @foreach(($day['non_working_ranges'] ?? []) as $range)
+                            <div class="calendar-non-working-block pointer-events-none absolute left-0 right-0 z-[1]"
+                                 style="top: {{ $range['top_percent'] }}%; height: {{ $range['height_percent'] }}%;"
+                                 title="Buiten werktijd: {{ $range['start_time'] }} - {{ $range['end_time'] }}"
+                                 aria-hidden="true"></div>
+                        @endforeach
                         <div class="pointer-events-none absolute inset-0 flex flex-col">
                             @foreach($timeHours as $hourLabel)
                                 <div class="relative min-h-0 flex-1 border-t border-slate-100">

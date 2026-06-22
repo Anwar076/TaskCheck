@@ -165,7 +165,7 @@
             </h2>
             <div>
                 <x-form-label for="departments_text" help="Voeg afdelingen toe zoals Keuken of Schoonmaak. Je kiest ze later bij het aanmaken van gebruikers.">Welke afdelingen zijn er binnen jouw bedrijf?</x-form-label>
-                <div class="rounded-lg border border-gray-300 bg-white p-3">
+                <div>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="text" id="department_input"
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -209,6 +209,37 @@
                 Werktijden agenda
             </h2>
             <p class="mb-4 text-sm text-gray-500">Deze tijden bepalen welke uren zichtbaar zijn in de agenda. Standaard is elke dag 06:00 tot 21:00.</p>
+
+            @php
+                $calendarTimeMode = old('calendar_time_mode', $company->calendar_time_mode ?? \App\Models\Organisation\Company::CALENDAR_TIME_MODE_WORKING_HOURS);
+            @endphp
+            <div class="mb-4 grid gap-3 sm:grid-cols-2">
+                <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
+                    <input type="radio"
+                           name="calendar_time_mode"
+                           value="{{ \App\Models\Organisation\Company::CALENDAR_TIME_MODE_WORKING_HOURS }}"
+                           @checked($calendarTimeMode === \App\Models\Organisation\Company::CALENDAR_TIME_MODE_WORKING_HOURS)
+                           class="mt-1 border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">Op basis van werktijden</span>
+                        <span class="mt-1 block text-xs leading-5 text-slate-500">Toon de agenda van de vroegste start tot de laatste eindtijd in de week.</span>
+                    </span>
+                </label>
+                <label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
+                    <input type="radio"
+                           name="calendar_time_mode"
+                           value="{{ \App\Models\Organisation\Company::CALENDAR_TIME_MODE_24_HOURS }}"
+                           @checked($calendarTimeMode === \App\Models\Organisation\Company::CALENDAR_TIME_MODE_24_HOURS)
+                           class="mt-1 border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                    <span>
+                        <span class="block text-sm font-semibold text-slate-900">24 uur tonen</span>
+                        <span class="mt-1 block text-xs leading-5 text-slate-500">Toon altijd 00:00 tot 24:00; vrije tijd blijft grijs gemarkeerd.</span>
+                    </span>
+                </label>
+            </div>
+            @error('calendar_time_mode')
+                <p class="mb-4 text-sm text-red-600">{{ $message }}</p>
+            @enderror
 
             <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                 <div class="grid grid-cols-[1fr_7rem_7rem_5rem] gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">

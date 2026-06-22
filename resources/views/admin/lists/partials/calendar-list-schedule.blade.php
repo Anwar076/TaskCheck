@@ -46,6 +46,9 @@
                 </div>
             </div>
 
+            <p id="calendar-list-working-hours-warning" class="hidden rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                Let op: dit tijdslot valt buiten de werktijden.
+            </p>
             <p id="calendar-list-schedule-error" class="hidden rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700"></p>
         </div>
 

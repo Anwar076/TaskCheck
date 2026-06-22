@@ -54,6 +54,7 @@ class CompanySettingsController extends Controller
             'departments_text' => ['nullable', 'string', 'max:4000'],
             'departments' => ['nullable', 'array'],
             'departments.*' => ['nullable', 'string', 'max:100'],
+            'calendar_time_mode' => ['required', 'in:working_hours,24_hours'],
             'working_hours' => ['nullable', 'array'],
             'working_hours.*.enabled' => ['nullable', 'boolean'],
             'working_hours.*.start' => ['required', 'date_format:H:i'],

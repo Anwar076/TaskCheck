@@ -82,6 +82,7 @@ class ListCalendarService
                 'all_day_lists' => $listSchedule['all_day_lists'],
                 'timed_lists' => $listSchedule['timed_lists'],
                 'working_hours' => $this->workingHoursForDay($list->company, $dayKey),
+                'non_working_ranges' => $this->nonWorkingRangesForDay($list->company, $dayKey, $axis),
             ];
         }
 
@@ -269,6 +270,7 @@ class ListCalendarService
                 'all_day_lists' => $daySchedule['all_day_lists'],
                 'timed_lists' => $daySchedule['timed_lists'],
                 'working_hours' => $this->workingHoursForDay($company, $dayKey),
+                'non_working_ranges' => $this->nonWorkingRangesForDay($company, $dayKey, $axis),
             ];
         }
 
@@ -814,6 +816,15 @@ class ListCalendarService
 
     public function timeAxisForCompany(?Company $company, array $dayKeys): array
     {
+        if ($company?->calendar_time_mode === Company::CALENDAR_TIME_MODE_24_HOURS) {
+            return [
+                'start_hour' => 0,
+                'end_hour' => 24,
+                'start_minutes' => 0,
+                'end_minutes' => 24 * 60,
+            ];
+        }
+
         if ($company) {
             return $company->workingHoursForDays($dayKeys);
         }
@@ -826,6 +837,57 @@ class ListCalendarService
         return $company?->normalizedWorkingHours()[$dayKey]
             ?? Company::defaultWorkingHours()[$dayKey]
             ?? ['enabled' => true, 'start' => '06:00', 'end' => '21:00'];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function nonWorkingRangesForDay(?Company $company, string $dayKey, array $axis): array
+    {
+        $hours = $this->workingHoursForDay($company, $dayKey);
+        $gridStart = (int) ($axis['start_minutes'] ?? (self::DAY_START_HOUR * 60));
+        $gridEnd = (int) ($axis['end_minutes'] ?? (self::DAY_END_HOUR * 60));
+        $totalMinutes = max(1, $gridEnd - $gridStart);
+
+        if (! (bool) ($hours['enabled'] ?? true)) {
+            return [$this->nonWorkingRange($gridStart, $gridEnd, $gridStart, $totalMinutes)];
+        }
+
+        $workStart = $this->timeToMinutes($this->normalizeTime($hours['start'] ?? '06:00'));
+        $workEnd = $this->timeToMinutes($this->normalizeTime($hours['end'] ?? '21:00'));
+
+        if ($workEnd <= $workStart) {
+            return [];
+        }
+
+        $ranges = [];
+        if ($workStart > $gridStart) {
+            $ranges[] = $this->nonWorkingRange($gridStart, min($workStart, $gridEnd), $gridStart, $totalMinutes);
+        }
+
+        if ($workEnd < $gridEnd) {
+            $ranges[] = $this->nonWorkingRange(max($workEnd, $gridStart), $gridEnd, $gridStart, $totalMinutes);
+        }
+
+        return array_values(array_filter($ranges, fn (array $range) => $range['height_percent'] > 0));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function nonWorkingRange(int $startMinutes, int $endMinutes, int $gridStart, int $totalMinutes): array
+    {
+        $startMinutes = max($gridStart, $startMinutes);
+        $endMinutes = max($startMinutes, $endMinutes);
+
+        return [
+            'start_minutes' => $startMinutes,
+            'end_minutes' => $endMinutes,
+            'start_time' => sprintf('%02d:%02d', intdiv($startMinutes, 60), $startMinutes % 60),
+            'end_time' => sprintf('%02d:%02d', intdiv($endMinutes, 60), $endMinutes % 60),
+            'top_percent' => max(0, (($startMinutes - $gridStart) / $totalMinutes) * 100),
+            'height_percent' => max(0, (($endMinutes - $startMinutes) / $totalMinutes) * 100),
+        ];
     }
 
     private function defaultTimeAxis(): array
