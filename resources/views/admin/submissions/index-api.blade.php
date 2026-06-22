@@ -36,18 +36,20 @@
             </div>
         </div>
 
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-6 sm:p-8">
         {{-- Tabs --}}
         <div id="submissions-tabs" class="mb-6 sm:mb-8" style="display: none;">
             <div class="border-b border-slate-200">
                 <nav class="flex gap-1" aria-label="Tabs">
-                    <button type="button" class="tab-btn px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 border-blue-600 text-blue-600 transition-colors" data-tab-value="">
+                    <button type="button" class="tab-btn -mb-px px-4 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600 transition-colors focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="">
                         Alle inzendingen
                     </button>
-                    <button type="button" class="tab-btn px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors" data-tab-value="to_review">
+                    <button type="button" class="tab-btn -mb-px px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="to_review">
                         Te beoordelen
                         <span id="tab-to-review-badge" class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 hidden">0</span>
                     </button>
-                    <button type="button" class="tab-btn px-4 py-3 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors" data-tab-value="done">
+                    <button type="button" class="tab-btn -mb-px px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="done">
                         Afgerond
                     </button>
                 </nav>
@@ -62,7 +64,7 @@
 
         {{-- Stats --}}
         <div id="submissions-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" style="display: none;">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -73,7 +75,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -84,7 +86,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -95,7 +97,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
@@ -109,7 +111,7 @@
         </div>
 
         {{-- Zoeken en filter --}}
-        <div id="submissions-filters" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8" style="display: none;">
+        <div id="submissions-filters" class="rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden mb-6 sm:mb-8" style="display: none;">
             <div class="px-4 sm:px-6 py-4 sm:py-5">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div class="flex-1 w-full lg:max-w-md">
@@ -133,7 +135,7 @@
                                 <option value="rejected">Afgewezen</option>
                             </select>
                         </div>
-                        <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" title="Vernieuwen">
+                        <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" title="Vernieuwen">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                         </button>
                     </div>
@@ -142,7 +144,7 @@
         </div>
 
         {{-- Tabel --}}
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div id="submissions-table-wrap" class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden" style="display: none;">
             <div id="submissions-table" class="overflow-x-auto" style="display: none;">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -162,7 +164,7 @@
         </div>
 
         {{-- Lege staat --}}
-        <div id="empty-state" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-12 text-center" style="display: none;">
+        <div id="empty-state" class="rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50 p-8 sm:p-12 text-center" style="display: none;">
             <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
@@ -171,7 +173,7 @@
         </div>
 
         {{-- Fout --}}
-        <div id="error-state" class="bg-white rounded-xl shadow-sm border border-slate-100 p-8 sm:p-10 text-center" style="display: none;">
+        <div id="error-state" class="rounded-xl border border-slate-100 bg-slate-50 p-8 sm:p-10 text-center" style="display: none;">
             <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
@@ -185,6 +187,8 @@
 
         {{-- Paginatie --}}
         <div id="pagination-container" class="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style="display: none;"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -244,6 +248,7 @@ function applySubmissionsResponse(data) {
     const loadingDiv = document.getElementById('submissions-loading');
     const statsDiv = document.getElementById('submissions-stats');
     const filtersDiv = document.getElementById('submissions-filters');
+    const tableWrap = document.getElementById('submissions-table-wrap');
     const tableDiv = document.getElementById('submissions-table');
     const emptyDiv = document.getElementById('empty-state');
     const errorDiv = document.getElementById('error-state');
@@ -270,6 +275,7 @@ function applySubmissionsResponse(data) {
     filtersDiv.style.display = 'block';
     loadingDiv.style.display = 'none';
     errorDiv.style.display = 'none';
+    tableWrap.style.display = 'none';
     tableDiv.style.display = 'none';
     emptyDiv.style.display = 'none';
     paginationDiv.style.display = 'none';
@@ -289,6 +295,7 @@ function applySubmissionsResponse(data) {
 
     if (items.length > 0) {
         renderSubmissions(items);
+        tableWrap.style.display = 'block';
         tableDiv.style.display = 'block';
         if (data.last_page > 1) {
             renderPagination(data);
@@ -320,6 +327,7 @@ async function loadSubmissions(page = 1) {
     const loadingDiv = document.getElementById('submissions-loading');
     const statsDiv = document.getElementById('submissions-stats');
     const filtersDiv = document.getElementById('submissions-filters');
+    const tableWrap = document.getElementById('submissions-table-wrap');
     const tableDiv = document.getElementById('submissions-table');
     const emptyDiv = document.getElementById('empty-state');
     const errorDiv = document.getElementById('error-state');
@@ -330,6 +338,7 @@ async function loadSubmissions(page = 1) {
         loadingDiv.style.display = 'block';
         statsDiv.style.display = 'none';
         filtersDiv.style.display = 'none';
+        tableWrap.style.display = 'none';
         tableDiv.style.display = 'none';
         emptyDiv.style.display = 'none';
         paginationDiv.style.display = 'none';

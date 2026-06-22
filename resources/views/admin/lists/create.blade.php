@@ -141,10 +141,10 @@
                     <p class="text-slate-600 text-sm mt-0.5">Start met een bestaand template of maak een lege lijst</p>
                 </div>
                 <div class="p-4 sm:p-6">
-                    <x-form-label for="template_id" help="Start met een kant-en-klaar template of maak een lege lijst vanaf nul.">Template kiezen</x-form-label>
+                    <x-form-label for="template_id" help="Start met een kant-en-klaar template of begin met een lege lijst.">Template kiezen</x-form-label>
                     <select name="template_id" id="template_id"
                             class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="">— Lijst van scratch aanmaken —</option>
+                        <option value="">Lege lijst aanmaken</option>
                         @foreach($templates as $template)
                             <option value="{{ $template->id }}" {{ old('template_id', request('template_id')) == $template->id ? 'selected' : '' }}>
                                 {{ $template->name }}

@@ -1,13 +1,29 @@
 @extends('layouts.employee')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-8 sm:py-10 lg:py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-8 sm:mb-10">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Instellingen</h1>
-            <p class="mt-2 text-base sm:text-lg text-gray-600">Beheer je accountgegevens en beveiliging</p>
+<div class="min-h-screen bg-gray-50 pt-6 sm:pt-8 pb-8 sm:pb-10 lg:pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div class="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Instellingen</h1>
+                        <p class="text-gray-600 text-lg">Beheer je accountgegevens en beveiliging</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.094c.55 0 1.02.398 1.11.94l.149.894c.07.424.349.78.748.94.19.076.376.163.557.26.376.201.824.189 1.189-.033l.77-.47a1.125 1.125 0 011.45.12l.773.774c.39.389.44.996.12 1.45l-.47.77c-.222.365-.234.813-.033 1.189.097.181.184.367.26.557.16.399.516.678.94.748l.894.149c.542.09.94.56.94 1.11v1.094c0 .55-.398 1.02-.94 1.11l-.894.149c-.424.07-.78.349-.94.748a6.94 6.94 0 01-.26.557c-.201.376-.189.824.033 1.189l.47.77c.32.454.269 1.061-.12 1.45l-.774.773a1.125 1.125 0 01-1.45.12l-.77-.47c-.365-.222-.813-.234-1.189-.033a6.94 6.94 0 01-.557.26c-.399.16-.678.516-.748.94l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.02-.398-1.11-.94l-.149-.894c-.07-.424-.349-.78-.748-.94a6.94 6.94 0 01-.557-.26c-.376-.201-.824-.189-1.189.033l-.77.47a1.125 1.125 0 01-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.47-.77c.222-.365.234-.813.033-1.189a6.94 6.94 0 01-.26-.557c-.16-.399-.516-.678-.94-.748l-.894-.149c-.542-.09-.94-.56-.94-1.11v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.78-.349.94-.748.076-.19.163-.376.26-.557.201-.376.189-.824-.033-1.189l-.47-.77a1.125 1.125 0 01.12-1.45l.774-.773a1.125 1.125 0 011.45-.12l.77.47c.365.222.813.234 1.189.033.181-.097.367-.184.557-.26.399-.16.678-.516.748-.94l.149-.894z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 xl:grid-cols-2 xl:items-start">
             {{-- Profielgegevens --}}
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
