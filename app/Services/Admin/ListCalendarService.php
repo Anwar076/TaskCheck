@@ -539,6 +539,7 @@ class ListCalendarService
 
         $config = is_array($list->schedule_config) ? $list->schedule_config : [];
         $slots = $this->getTimeSlots($list);
+        $slots = $this->removeSlotsForWeekday($slots, $weekday);
 
         $slots[] = [
             'id' => (string) Str::uuid(),
@@ -556,12 +557,14 @@ class ListCalendarService
         $config = is_array($list->schedule_config) ? $list->schedule_config : [];
         $slots = $this->getTimeSlots($list);
         $updated = false;
+        $previousWeekday = null;
 
         foreach ($slots as &$slot) {
             if (($slot['id'] ?? null) !== $slotId) {
                 continue;
             }
 
+            $previousWeekday = $slot['weekday'] ?? null;
             $slot['weekday'] = $weekday;
             $slot['start_time'] = $startTime;
             $slot['end_time'] = $endTime;
@@ -575,8 +578,75 @@ class ListCalendarService
         }
 
         $this->ensureListScheduledOnWeekday($list, $weekday);
+        $config = is_array($list->fresh()->schedule_config) ? $list->fresh()->schedule_config : $config;
+        $slots = $this->removeDuplicateSlotsForWeekday($slots, $weekday, $slotId);
+        $config = $this->removeEmptyMovedWeekday($list, $config, $previousWeekday, $weekday, $slots);
         $config['time_slots'] = $slots;
         $list->update(['schedule_config' => $config]);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $slots
+     * @return array<int, array<string, mixed>>
+     */
+    private function removeSlotsForWeekday(array $slots, string $weekday): array
+    {
+        return array_values(array_filter(
+            $slots,
+            fn (array $slot) => ($slot['weekday'] ?? null) !== $weekday
+        ));
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $slots
+     * @return array<int, array<string, mixed>>
+     */
+    private function removeDuplicateSlotsForWeekday(array $slots, string $weekday, string $slotId): array
+    {
+        return array_values(array_filter(
+            $slots,
+            fn (array $slot) => ($slot['weekday'] ?? null) !== $weekday || ($slot['id'] ?? null) === $slotId
+        ));
+    }
+
+    /**
+     * @param  array<string, mixed>  $config
+     * @param  array<int, array<string, mixed>>  $slots
+     * @return array<string, mixed>
+     */
+    private function removeEmptyMovedWeekday(TaskList $list, array $config, ?string $previousWeekday, string $newWeekday, array $slots): array
+    {
+        if (! $previousWeekday || $previousWeekday === $newWeekday) {
+            return $config;
+        }
+
+        $hasRemainingSlot = collect($slots)->contains(
+            fn (array $slot) => ($slot['weekday'] ?? null) === $previousWeekday
+        );
+
+        if ($hasRemainingSlot) {
+            return $config;
+        }
+
+        if ($list->schedule_type === 'weekly') {
+            $config['show_on_days'] = array_values(array_filter(
+                $config['show_on_days'] ?? [],
+                fn (string $day) => $day !== $previousWeekday
+            ));
+        }
+
+        if ($list->schedule_type === 'custom' && ($config['type'] ?? null) === 'specific_days') {
+            $config['days'] = array_values(array_filter(
+                $config['days'] ?? [],
+                fn (string $day) => $day !== $previousWeekday
+            ));
+            $config['show_on_days'] = array_values(array_filter(
+                $config['show_on_days'] ?? [],
+                fn (string $day) => $day !== $previousWeekday
+            ));
+        }
+
+        return $config;
     }
 
     public function removeListTimeSlot(TaskList $list, string $slotId): void

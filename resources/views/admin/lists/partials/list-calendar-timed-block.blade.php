@@ -13,13 +13,14 @@
     $gridRowStart = $entry['grid_row_start'] ?? 1;
     $gridRowEnd = $entry['grid_row_end'] ?? 2;
     $rowSpan = max(1, $gridRowEnd - $gridRowStart);
-    if ($layout === 'grid') {
-        $compact = $rowSpan <= 1;
-        $tiny = $heightPercent < 3;
-    } else {
-        $compact = $heightPercent < 5;
-        $tiny = $heightPercent < 2.5;
-    }
+    $durationMinutes = max(
+        0,
+        (int) ($entry['end_minutes'] ?? (($entry['start_minutes'] ?? 0) + 30)) - (int) ($entry['start_minutes'] ?? 0)
+    );
+    $compact = $durationMinutes > 0 && $durationMinutes < 60;
+    $tiny = $durationMinutes > 0 && $durationMinutes <= 30;
+    $contentPaddingClass = $tiny ? 'py-0.5' : ($compact ? 'py-1' : 'py-1.5');
+    $contentTextClass = $tiny ? 'text-[10px]' : 'text-[11px]';
     $accentClass = str_replace('border-', 'bg-', $color['border']);
     $positionStyle = $layout === 'grid'
         ? 'left: calc('.$leftPercent.'% + 2px); width: calc('.$widthPercent.'% - 4px); height: 100%; top: 0;'
@@ -52,11 +53,12 @@
         title="{{ $entry['time_label'] }} — {{ $list->title }}{{ !empty($entry['is_default']) ? ' (standaard)' : '' }}{{ empty($entry['is_default']) ? ' (sleep om te verplaatsen)' : ' (klik om aan te passen)' }}">
     <div class="relative flex h-full min-h-0 w-full overflow-hidden rounded shadow-sm transition-shadow hover:shadow {{ $color['hover'] }}">
         <div class="w-[3px] shrink-0 {{ $accentClass }}"></div>
-        <div class="min-w-0 flex-1 overflow-hidden {{ $color['bg'] }} {{ $color['text'] }} px-2 {{ $tiny ? 'py-0.5' : 'py-1' }} text-[10px] font-medium leading-tight">
+        <div class="min-w-0 flex-1 overflow-hidden {{ $color['bg'] }} {{ $color['text'] }} px-2 {{ $contentPaddingClass }} {{ $contentTextClass }} font-medium leading-tight">
             @if($tiny)
                 <span class="block truncate">{{ $list->title }}</span>
             @elseif($compact)
-                <span class="block truncate font-semibold">{{ $entry['time_label'] }} · {{ $list->title }}@if(!empty($entry['is_default']))<span class="font-normal opacity-75"> · standaard</span>@endif</span>
+                <span class="block truncate font-semibold">{{ $entry['time_label'] }}@if(!empty($entry['is_default']))<span class="font-normal opacity-75"> · standaard</span>@endif</span>
+                <span class="mt-0.5 block truncate font-medium">{{ $list->title }}</span>
             @else
                 <span class="block truncate font-semibold">{{ $entry['time_label'] }}@if(!empty($entry['is_default']))<span class="font-normal opacity-75"> · standaard</span>@endif</span>
                 <span class="mt-0.5 block truncate">{{ $list->title }}</span>

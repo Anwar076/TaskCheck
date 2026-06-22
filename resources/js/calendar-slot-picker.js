@@ -35,6 +35,7 @@ export function initCalendarSlotPicker() {
     let popupState = null;
     let draggedUnscheduledList = null;
     let suppressTimedClick = false;
+    const scrollStorageKey = 'taskcheck.calendar.scroll';
 
     const weekdayLabels = {
         monday: 'Maandag',
@@ -52,6 +53,83 @@ export function initCalendarSlotPicker() {
     if (backdrop && backdrop.parentElement !== document.body) {
         document.body.appendChild(backdrop);
     }
+
+    const restoreScrollPosition = () => {
+        const raw = window.sessionStorage.getItem(scrollStorageKey);
+        if (!raw) {
+            return;
+        }
+
+        window.sessionStorage.removeItem(scrollStorageKey);
+
+        try {
+            const position = JSON.parse(raw);
+            window.requestAnimationFrame(() => {
+                window.scrollTo({
+                    top: Number(position.top) || 0,
+                    left: Number(position.left) || 0,
+                });
+            });
+        } catch {
+            // Ignore malformed storage; the next interaction will write a fresh value.
+        }
+    };
+
+    const reloadCalendar = () => {
+        window.sessionStorage.setItem(scrollStorageKey, JSON.stringify({
+            top: window.scrollY,
+            left: window.scrollX,
+        }));
+        window.location.reload();
+    };
+
+    const refreshCalendar = async () => {
+        const calendarRoot = grid.closest('[data-onboarding-target="calendar-main"]');
+        if (!calendarRoot) {
+            reloadCalendar();
+            return;
+        }
+
+        const scrollPosition = {
+            top: window.scrollY,
+            left: window.scrollX,
+        };
+
+        calendarRoot.classList.add('pointer-events-none', 'opacity-70');
+
+        try {
+            const response = await fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'text/html',
+                },
+            });
+
+            if (!response.ok) {
+                reloadCalendar();
+                return;
+            }
+
+            const html = await response.text();
+            const documentFragment = new DOMParser().parseFromString(html, 'text/html');
+            const freshCalendarRoot = documentFragment.querySelector('[data-onboarding-target="calendar-main"]');
+
+            if (!freshCalendarRoot) {
+                reloadCalendar();
+                return;
+            }
+
+            popup?.remove();
+            backdrop?.remove();
+            calendarRoot.replaceWith(freshCalendarRoot);
+            window.scrollTo(scrollPosition.left, scrollPosition.top);
+            initCalendarSlotPicker();
+        } catch {
+            reloadCalendar();
+        }
+    };
+
+    restoreScrollPosition();
 
     const minutesToTime = (minutes) => {
         const clamped = Math.max(gridStartMinutes, Math.min(gridEndMinutes, minutes));
@@ -126,6 +204,16 @@ export function initCalendarSlotPicker() {
         }
 
         return el;
+    };
+
+    const markPreviewInvalid = (target) => {
+        if (!target) {
+            return;
+        }
+
+        target.style.background = 'rgba(239, 68, 68, 0.18)';
+        target.style.borderTopColor = '#ef4444';
+        target.style.borderBottomColor = '#ef4444';
     };
 
     const showSelection = (column, startMin, endMin, startTime, endTime) => {
@@ -410,7 +498,7 @@ export function initCalendarSlotPicker() {
                 return;
             }
 
-            window.location.reload();
+            await refreshCalendar();
         } catch {
             window.alert('Plannen mislukt. Probeer opnieuw.');
         }
@@ -441,7 +529,7 @@ export function initCalendarSlotPicker() {
                 return;
             }
 
-            window.location.reload();
+            await refreshCalendar();
         } catch {
             window.alert('Tijdslot aanpassen mislukt. Probeer opnieuw.');
         }
@@ -508,7 +596,7 @@ export function initCalendarSlotPicker() {
                 return;
             }
 
-            window.location.reload();
+            await refreshCalendar();
         } catch {
             if (errorBox) {
                 errorBox.textContent = 'Verwijderen mislukt. Probeer opnieuw.';
@@ -581,7 +669,7 @@ export function initCalendarSlotPicker() {
                 return;
             }
 
-            window.location.reload();
+            await refreshCalendar();
         } catch {
             if (errorBox) {
                 errorBox.textContent = isEdit ? 'Opslaan mislukt. Probeer opnieuw.' : 'Koppelen mislukt. Probeer opnieuw.';
@@ -764,6 +852,9 @@ export function initCalendarSlotPicker() {
 
             preview.style.top = `${((range.startMin - gridStartMinutes) / totalMinutes) * 100}%`;
             preview.style.height = `${((range.endMin - range.startMin) / totalMinutes) * 100}%`;
+            preview.style.background = '';
+            preview.style.borderTopColor = '';
+            preview.style.borderBottomColor = '';
             preview.innerHTML = '';
 
             const labelEl = document.createElement('div');
@@ -786,10 +877,10 @@ export function initCalendarSlotPicker() {
                 return null;
             }
 
-            const target = timeColumnAt(event.clientX, event.clientY) || {
-                column: blockDrag.column,
-                config: blockDrag.config,
-            };
+            const target = timeColumnAt(event.clientX, event.clientY);
+            if (!target) {
+                return null;
+            }
 
             if (blockDrag.mode === 'resize') {
                 const pointerMin = yToMinutesForColumn(target.column, event.clientY);
@@ -830,6 +921,13 @@ export function initCalendarSlotPicker() {
 
             const next = currentBlockRange(event);
             if (!next) {
+                showBlockPreview(blockDrag.column, {
+                    startMin: blockDrag.startMin,
+                    endMin: blockDrag.endMin,
+                    startTime: minutesToTime(blockDrag.startMin),
+                    endTime: minutesToTime(blockDrag.endMin),
+                }, 'Laat los op een tijdkolom');
+                markPreviewInvalid(preview);
                 return;
             }
 
