@@ -7,6 +7,7 @@ use App\Helpers\MetricValidationHelper;
 use App\Models\Submissions\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
 class SubmissionController extends Controller
 {
@@ -16,7 +17,10 @@ class SubmissionController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $companyId = auth()->user()->company_id;
+
             $query = Submission::with(['user', 'taskList', 'submissionTasks.task'])
+                ->where('company_id', $companyId)
                 ->orderBy('created_at', 'desc');
 
             // Search functionality
@@ -59,7 +63,7 @@ class SubmissionController extends Controller
             $submissions = $query->paginate($perPage);
 
             // Tab counts and stats
-            $baseQuery = Submission::query();
+            $baseQuery = Submission::query()->where('company_id', $companyId);
             $meta = [
                 'to_review_count' => (clone $baseQuery)->where('status', 'completed')->count(),
                 'done_count' => (clone $baseQuery)->whereIn('status', ['reviewed', 'rejected'])->count(),
@@ -128,8 +132,18 @@ class SubmissionController extends Controller
     {
         try {
             $validated = $request->validate([
-                'user_id' => 'required|exists:users,id',
-                'list_id' => 'required|exists:lists,id',
+                'user_id' => [
+                    'required',
+                    Rule::exists('users', 'id')->where(
+                        fn ($query) => $query->where('company_id', auth()->user()->company_id)
+                    ),
+                ],
+                'list_id' => [
+                    'required',
+                    Rule::exists('lists', 'id')->where(
+                        fn ($query) => $query->where('company_id', auth()->user()->company_id)
+                    ),
+                ],
                 'status' => 'sometimes|in:in_progress,completed,reviewed,rejected',
                 'notes' => 'nullable|string'
             ]);

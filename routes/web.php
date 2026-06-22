@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\OnboardingController;
+use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
 use App\Services\Ai\SubmissionReviewService;
@@ -283,13 +284,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
         return view('admin.users.index-api');
     })->name('users.index');
     
-    Route::get('/submissions', function(\Illuminate\Http\Request $request) {
-        $initialSubmissions = app(\App\Http\Controllers\Api\SubmissionController::class)
-            ->index($request)
-            ->getData(true);
-
-        return view('admin.submissions.index-api', compact('initialSubmissions'));
-    })->name('submissions.index');
+    Route::get('/submissions', [AdminSubmissionController::class, 'index'])->name('submissions.index');
     
     // AI import routes must come before resource route with {list}
     Route::get('/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('lists.ai-import');
