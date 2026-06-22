@@ -34,6 +34,7 @@ export function initCalendarSlotPicker() {
     let activeSelection = null;
     let popupState = null;
     let draggedUnscheduledList = null;
+    let suppressTimedClick = false;
 
     const weekdayLabels = {
         monday: 'Maandag',
@@ -230,6 +231,42 @@ export function initCalendarSlotPicker() {
         };
     };
 
+    const resolveForwardTimeRange = (startMin, endMin) => {
+        const start = Math.max(gridStartMinutes, Math.min(gridEndMinutes - slotMinutes, startMin));
+        const end = Math.max(start + slotMinutes, Math.min(gridEndMinutes, endMin));
+
+        return {
+            startMin: start,
+            endMin: end,
+            startTime: minutesToTime(start),
+            endTime: minutesToTime(end),
+        };
+    };
+
+    const resolveResizeStartRange = (startMin, fixedEndMin) => {
+        const end = Math.max(gridStartMinutes + slotMinutes, Math.min(gridEndMinutes, fixedEndMin));
+        const start = Math.max(gridStartMinutes, Math.min(end - slotMinutes, startMin));
+
+        return {
+            startMin: start,
+            endMin: end,
+            startTime: minutesToTime(start),
+            endTime: minutesToTime(end),
+        };
+    };
+
+    const resolveResizeEndRange = (fixedStartMin, endMin) => {
+        const start = Math.max(gridStartMinutes, Math.min(gridEndMinutes - slotMinutes, fixedStartMin));
+        const end = Math.max(start + slotMinutes, Math.min(gridEndMinutes, endMin));
+
+        return {
+            startMin: start,
+            endMin: end,
+            startTime: minutesToTime(start),
+            endTime: minutesToTime(end),
+        };
+    };
+
     const openPopup = ({ mode, config, lists, weekday, startTime, endTime, anchorElement, slotId, sourceListId, updateUrl, deleteUrl, manageUrl }) => {
         if (lists.length === 0 || !popup || !form) {
             return;
@@ -376,6 +413,37 @@ export function initCalendarSlotPicker() {
             window.location.reload();
         } catch {
             window.alert('Plannen mislukt. Probeer opnieuw.');
+        }
+    };
+
+    const submitUpdatedSlot = async (button, payload) => {
+        const url = button.dataset.updateUrl;
+        if (!url) {
+            return;
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                window.alert(data.message || data.errors?.end_time?.[0] || 'Tijdslot aanpassen mislukt.');
+                return;
+            }
+
+            window.location.reload();
+        } catch {
+            window.alert('Tijdslot aanpassen mislukt. Probeer opnieuw.');
         }
     };
 
@@ -620,6 +688,13 @@ export function initCalendarSlotPicker() {
                 return;
             }
 
+            if (suppressTimedClick) {
+                event.preventDefault();
+                event.stopPropagation();
+                suppressTimedClick = false;
+                return;
+            }
+
             event.preventDefault();
             event.stopPropagation();
 
@@ -637,12 +712,155 @@ export function initCalendarSlotPicker() {
         let dragStartY = null;
         let dragEndY = null;
         let preview = null;
+        let blockDrag = null;
 
         const yToMinutes = (clientY) => {
             const rect = column.getBoundingClientRect();
             const pct = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
             const raw = gridStartMinutes + pct * totalMinutes;
             return Math.round(raw / slotMinutes) * slotMinutes;
+        };
+
+        const timeColumnAt = (clientX, clientY) => {
+            const target = document.elementsFromPoint(clientX, clientY)
+                .map((element) => element.closest?.('[data-calendar-time-column]'))
+                .find(Boolean);
+
+            if (!target) {
+                return null;
+            }
+
+            let targetConfig = {};
+            try {
+                targetConfig = JSON.parse(target.dataset.dayConfig || '{}');
+            } catch {
+                return null;
+            }
+
+            if (!targetConfig.canCreate) {
+                return null;
+            }
+
+            return {
+                column: target,
+                config: targetConfig,
+            };
+        };
+
+        const yToMinutesForColumn = (targetColumn, clientY) => {
+            const rect = targetColumn.getBoundingClientRect();
+            const pct = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+            const raw = gridStartMinutes + pct * totalMinutes;
+
+            return Math.round(raw / slotMinutes) * slotMinutes;
+        };
+
+        const showBlockPreview = (targetColumn, range, label) => {
+            if (!preview || preview.parentElement !== targetColumn) {
+                preview?.remove();
+                preview = buildSelectionElement(range.startMin, range.endMin, null, null, true);
+                targetColumn.appendChild(preview);
+            }
+
+            preview.style.top = `${((range.startMin - gridStartMinutes) / totalMinutes) * 100}%`;
+            preview.style.height = `${((range.endMin - range.startMin) / totalMinutes) * 100}%`;
+            preview.innerHTML = '';
+
+            const labelEl = document.createElement('div');
+            labelEl.setAttribute('data-calendar-selection-label', '1');
+            labelEl.textContent = label || `${range.startTime} – ${range.endTime}`;
+            preview.appendChild(labelEl);
+        };
+
+        const cleanupBlockDrag = () => {
+            preview?.remove();
+            preview = null;
+            blockDrag = null;
+            document.body.classList.remove('select-none');
+            document.removeEventListener('mousemove', onBlockMove);
+            document.removeEventListener('mouseup', onBlockUp);
+        };
+
+        const currentBlockRange = (event) => {
+            if (!blockDrag) {
+                return null;
+            }
+
+            const target = timeColumnAt(event.clientX, event.clientY) || {
+                column: blockDrag.column,
+                config: blockDrag.config,
+            };
+
+            if (blockDrag.mode === 'resize') {
+                const pointerMin = yToMinutesForColumn(target.column, event.clientY);
+
+                if (blockDrag.edge === 'start') {
+                    return {
+                        target,
+                        range: resolveResizeStartRange(pointerMin, blockDrag.endMin),
+                    };
+                }
+
+                return {
+                    target,
+                    range: resolveResizeEndRange(blockDrag.startMin, pointerMin),
+                };
+            }
+
+            const pointerMin = yToMinutesForColumn(target.column, event.clientY);
+            let startMin = pointerMin - blockDrag.pointerOffsetMin;
+            startMin = Math.round(startMin / slotMinutes) * slotMinutes;
+            startMin = Math.max(gridStartMinutes, Math.min(gridEndMinutes - blockDrag.durationMin, startMin));
+
+            return {
+                target,
+                range: resolveForwardTimeRange(startMin, startMin + blockDrag.durationMin),
+            };
+        };
+
+        const onBlockMove = (event) => {
+            if (!blockDrag) {
+                return;
+            }
+
+            const movedEnough = Math.abs(event.clientX - blockDrag.startX) > 3 || Math.abs(event.clientY - blockDrag.startY) > 3;
+            if (movedEnough) {
+                blockDrag.hasMoved = true;
+            }
+
+            const next = currentBlockRange(event);
+            if (!next) {
+                return;
+            }
+
+            showBlockPreview(next.target.column, next.range, `${next.range.startTime} – ${next.range.endTime}`);
+        };
+
+        const onBlockUp = (event) => {
+            if (!blockDrag) {
+                cleanupBlockDrag();
+                return;
+            }
+
+            const didMove = blockDrag.hasMoved;
+            const source = blockDrag.button;
+            const next = currentBlockRange(event);
+            cleanupBlockDrag();
+
+            if (!didMove || !next) {
+                return;
+            }
+
+            suppressTimedClick = true;
+            window.setTimeout(() => {
+                suppressTimedClick = false;
+            }, 80);
+
+            submitUpdatedSlot(source, {
+                weekday: next.target.config.weekday,
+                start_time: next.range.startTime,
+                end_time: next.range.endTime,
+            });
         };
 
         column.addEventListener('dragover', (event) => {
@@ -723,7 +941,46 @@ export function initCalendarSlotPicker() {
             if (event.button !== 0) {
                 return;
             }
-            if (event.target.closest('[data-calendar-timed-list]')) {
+            const timedList = event.target.closest('[data-calendar-timed-list]');
+            if (timedList) {
+                if (!column.contains(timedList) || timedList.dataset.isDefault === '1') {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (popup && !popup.classList.contains('hidden')) {
+                    closePopup();
+                }
+
+                const startMin = timeToMinutes(timedList.dataset.startTime) ?? gridStartMinutes;
+                const parsedEndMin = timeToMinutes(timedList.dataset.endTime);
+                const endMin = parsedEndMin !== null && parsedEndMin > startMin ? parsedEndMin : startMin + slotMinutes;
+                const pointerMin = yToMinutes(event.clientY);
+
+                const resizeHandle = event.target.closest('[data-calendar-resize-handle]');
+
+                blockDrag = {
+                    button: timedList,
+                    column,
+                    config,
+                    mode: resizeHandle ? 'resize' : 'move',
+                    edge: resizeHandle?.dataset.calendarResizeHandle || 'end',
+                    startMin,
+                    endMin,
+                    durationMin: Math.max(slotMinutes, endMin - startMin),
+                    pointerOffsetMin: Math.max(0, pointerMin - startMin),
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    hasMoved: false,
+                };
+
+                const initialRange = resolveForwardTimeRange(startMin, endMin);
+                showBlockPreview(column, initialRange, `${initialRange.startTime} – ${initialRange.endTime}`);
+                document.body.classList.add('select-none');
+                document.addEventListener('mousemove', onBlockMove);
+                document.addEventListener('mouseup', onBlockUp);
                 return;
             }
             if (popup && !popup.classList.contains('hidden')) {

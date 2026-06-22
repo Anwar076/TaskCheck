@@ -43,13 +43,14 @@
         data-weekday="{{ $entry['weekday'] ?? $day['key'] }}"
         data-start-time="{{ $entry['start_time'] }}"
         data-end-time="{{ $entry['end_time'] ?? '' }}"
+        data-is-default="{{ !empty($entry['is_default']) ? '1' : '0' }}"
         data-update-url="{{ route('admin.lists.schedule-slot.update', [$list, $entry['slot_id']]) }}"
         data-delete-url="{{ route('admin.lists.schedule-slot.destroy', [$list, $entry['slot_id']]) }}"
         data-manage-url="{{ $manageUrl }}"
-        class="calendar-timed-list-btn {{ $positionClass }} m-0 appearance-none border-0 bg-transparent p-0 text-left shadow-none"
+        class="calendar-timed-list-btn group {{ $positionClass }} m-0 appearance-none border-0 bg-transparent p-0 text-left shadow-none {{ empty($entry['is_default']) ? 'cursor-grab active:cursor-grabbing' : '' }}"
         style="{{ $positionStyle }}"
-        title="{{ $entry['time_label'] }} — {{ $list->title }}{{ !empty($entry['is_default']) ? ' (standaard)' : '' }} (klik om aan te passen)">
-    <div class="flex h-full min-h-0 w-full overflow-hidden rounded shadow-sm transition-shadow hover:shadow {{ $color['hover'] }}">
+        title="{{ $entry['time_label'] }} — {{ $list->title }}{{ !empty($entry['is_default']) ? ' (standaard)' : '' }}{{ empty($entry['is_default']) ? ' (sleep om te verplaatsen)' : ' (klik om aan te passen)' }}">
+    <div class="relative flex h-full min-h-0 w-full overflow-hidden rounded shadow-sm transition-shadow hover:shadow {{ $color['hover'] }}">
         <div class="w-[3px] shrink-0 {{ $accentClass }}"></div>
         <div class="min-w-0 flex-1 overflow-hidden {{ $color['bg'] }} {{ $color['text'] }} px-2 {{ $tiny ? 'py-0.5' : 'py-1' }} text-[10px] font-medium leading-tight">
             @if($tiny)
@@ -61,6 +62,18 @@
                 <span class="mt-0.5 block truncate">{{ $list->title }}</span>
             @endif
         </div>
+        @if(empty($entry['is_default']))
+            <span data-calendar-resize-handle="start"
+                  class="absolute left-1 right-1 top-0 h-2 cursor-ns-resize rounded-t opacity-0 transition-opacity group-hover:opacity-100"
+                  aria-hidden="true">
+                <span class="mx-auto mt-1 block h-0.5 w-6 rounded-full bg-current opacity-30"></span>
+            </span>
+            <span data-calendar-resize-handle="end"
+                  class="absolute bottom-0 left-1 right-1 h-2 cursor-ns-resize rounded-b opacity-0 transition-opacity group-hover:opacity-100"
+                  aria-hidden="true">
+                <span class="mx-auto mt-0.5 block h-0.5 w-6 rounded-full bg-current opacity-30"></span>
+            </span>
+        @endif
     </div>
 </button>
 
