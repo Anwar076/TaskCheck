@@ -1,22 +1,6 @@
 <style>
-    @media (prefers-reduced-motion: no-preference) {
-        [data-page-transition-root] {
-            animation: taskcheck-page-enter 120ms ease-out both;
-        }
-    }
-
-    @keyframes taskcheck-page-enter {
-        from {
-            opacity: 0;
-            transform: translateY(2px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     #taskcheck-page-skeleton {
+        display: none;
         opacity: 0;
         pointer-events: none;
         transition: opacity 90ms ease;
@@ -24,6 +8,7 @@
     }
 
     body.taskcheck-page-loading #taskcheck-page-skeleton {
+        display: block;
         opacity: 1;
         pointer-events: auto;
     }
