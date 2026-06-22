@@ -428,7 +428,6 @@
 
 <script>
 function showAssignModal() {
-    console.log('Opening assignment modal');
     const modal = document.getElementById('assignModal');
     if (modal) {
         modal.classList.remove('hidden');
@@ -438,7 +437,6 @@ function showAssignModal() {
 }
 
 function closeAssignModal() {
-    console.log('Closing assignment modal');
     const modal = document.getElementById('assignModal');
     if (modal) {
         modal.classList.add('hidden');
@@ -494,14 +492,12 @@ window.removeAssignment = function(assignmentId) {
     })
         .then(res => {
             if (res.ok) {
-                console.log('✅ Assignment removed');
                 refreshAssignments();
             } else {
                 alert('Er ging iets mis bij verwijderen.');
             }
         })
-        .catch(err => {
-            console.error(err);
+        .catch(() => {
             alert('Netwerkfout bij verwijderen.');
         });
 };

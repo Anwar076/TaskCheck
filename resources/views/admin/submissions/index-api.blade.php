@@ -359,7 +359,6 @@ async function loadSubmissions(page = 1) {
 
         applySubmissionsResponse(result);
     } catch (err) {
-        console.error(err);
         if (hasRenderedSubmissions) {
             alert('Er is een fout opgetreden bij het vernieuwen van inzendingen.');
         } else {

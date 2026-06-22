@@ -170,7 +170,6 @@ function applyListsResponse(lists) {
 
 async function loadLists() {
     if (isLoading) {
-        console.log('Already loading, skipping...');
         return;
     }
     
@@ -182,16 +181,12 @@ async function loadLists() {
     const emptyDiv = document.getElementById('empty-state');
     const paginationDiv = document.getElementById('pagination-container');
 
-    // Check if elements exist
     if (!loadingDiv || !statsDiv || !containerDiv || !emptyDiv || !paginationDiv) {
-        console.error('Required DOM elements not found');
         isLoading = false;
         return;
     }
 
     try {
-        console.log('Starting loadLists function...');
-
         if (!hasRenderedLists) {
             loadingDiv.style.display = 'block';
             statsDiv.style.display = 'none';
@@ -214,9 +209,7 @@ async function loadLists() {
         params.append('_t', Date.now());
 
         const url = '/admin/lists?' + params.toString();
-        console.log('Fetching URL:', url);
 
-        // Get CSRF token safely
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         const headers = {
             'Accept': 'application/json',
@@ -233,38 +226,22 @@ async function loadLists() {
             credentials: 'same-origin' // Include session cookies for authentication
         });
 
-        console.log('Response received:', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok,
-            headers: Object.fromEntries(response.headers.entries())
-        });
-
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Response status:', response.status);
-            console.error('Response text:', errorText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const responseText = await response.text();
-        console.log('Raw response text:', responseText.substring(0, 500) + '...');
         
         let lists;
         try {
             lists = JSON.parse(responseText);
-            console.log('Parsed JSON successfully:', lists);
         } catch (parseError) {
-            console.error('JSON Parse Error:', parseError);
-            console.error('Response was not valid JSON:', responseText);
             throw new Error('Server returned invalid JSON');
         }
 
         applyListsResponse(lists);
 
     } catch (error) {
-        console.error('Failed to load lists:', error);
-
         if (hasRenderedLists) {
             alert('Er is een fout opgetreden bij het vernieuwen van de takenlijsten: ' + error.message);
             return;
@@ -413,8 +390,6 @@ function renderPagination(lists) {
 }
 
 async function deleteList(listId, buttonElement = null) {
-    console.log('deleteList called with:', { listId, buttonElement });
-    
     if (!confirm('Weet je zeker dat je deze takenlijst wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) {
         return;
     }
@@ -451,18 +426,13 @@ async function deleteList(listId, buttonElement = null) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Show success message (optional)
-        const result = await response.json();
-        if (result.success || result.message) {
-            console.log('List deleted successfully:', result.message);
-        }
+        await response.json().catch(() => ({}));
 
         // Refresh the list (reset to page 1)
         loadLists.setPage(1);
         await loadLists();
         
     } catch (error) {
-        console.error('Failed to delete list:', error);
         alert('Er is een fout opgetreden bij het verwijderen van de lijst: ' + error.message);
         
         // Restore button state on error
@@ -496,8 +466,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeListsPage() {
-    console.log('Initializing lists page...');
-    
     if (initialLists) {
         applyListsResponse(initialLists);
     } else {
@@ -540,23 +508,7 @@ function initializeListsPage() {
             loadLists.setPage(1);
             loadLists();
         });
-        
-        console.log('Event listeners attached successfully');
-    } else {
-        console.error('Could not find required elements');
     }
 }
-
-// Debug: Check if functions are properly defined
-console.log('Functions defined:', {
-    loadLists: typeof window.loadLists,
-    deleteList: typeof window.deleteList
-});
-
-// Test function to manually test deleteList
-window.testDelete = function(listId) {
-    console.log('Testing delete for list:', listId);
-    deleteList(listId);
-};
 </script>
 @endsection

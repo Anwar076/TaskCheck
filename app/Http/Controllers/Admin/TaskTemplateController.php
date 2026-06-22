@@ -37,14 +37,6 @@ class TaskTemplateController extends Controller
             ->orderBy('name')
             ->get();
         
-        // Debug: Always log what we're doing
-        \Log::info('TaskTemplateController@index called', [
-            'is_ajax' => $request->ajax(),
-            'expects_json' => $request->expectsJson(),
-            'accept_header' => $request->header('Accept'),
-            'templates_count' => $templates->count()
-        ]);
-
         // If this is an AJAX request, return JSON
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([

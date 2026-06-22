@@ -140,7 +140,6 @@ async function loadTemplates() {
         const data = await res.json();
         applyTemplatesResponse(data);
     } catch (err) {
-        console.error(err);
         if (hasRenderedTemplates) {
             alert('Er is een fout opgetreden bij het vernieuwen van templates.');
         } else {

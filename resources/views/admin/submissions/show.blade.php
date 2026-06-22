@@ -816,8 +816,6 @@ async function parseJsonResponseOrThrow(response, fallbackMessage) {
     const contentType = response.headers.get('content-type') || '';
 
     if (!response.ok || !contentType.includes('application/json')) {
-        const bodyPreview = await response.text();
-        console.error('Unexpected response:', response.status, bodyPreview);
         throw new Error(fallbackMessage);
     }
 
@@ -859,7 +857,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateTaskUIAfterApprove(taskId, managerComment);
             })
             .catch(error => {
-                console.error('Fetch error:', error);
                 showNotification(error.message || 'Fout bij goedkeuren. Probeer het opnieuw.', 'error');
                 submitBtn.innerHTML = `
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -903,7 +900,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateTaskUIAfterReject(taskId, rejectionReason);
             })
             .catch(error => {
-                console.error('Reject fetch error:', error);
                 showNotification(error.message || 'Afwijzen mislukt. Probeer het opnieuw.', 'error');
                 submitBtn.innerHTML = `
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
