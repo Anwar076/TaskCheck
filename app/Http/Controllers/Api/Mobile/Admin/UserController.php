@@ -7,6 +7,7 @@ use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UserController extends MobileController
@@ -50,7 +51,7 @@ class UserController extends MobileController
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:8'],
             'role' => ['required', 'in:admin,employee'],
             'department' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -61,11 +62,23 @@ class UserController extends MobileController
             ],
         ]);
 
-        $validated['password'] = bcrypt($validated['password']);
+        if (!empty($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            $validated['password'] = Str::password(32);
+        }
         $validated['company_id'] = $companyId;
         $validated['is_active'] = $validated['is_active'] ?? true;
 
         $user = User::create($validated);
+
+        if (empty($request->input('password'))) {
+            try {
+                $user->sendInvitationNotification($request->user());
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         return $this->success(MobileSerializer::adminUser($user->load('location')), 'Gebruiker aangemaakt.', 201);
     }

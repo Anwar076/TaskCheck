@@ -41,7 +41,8 @@
         <form method="POST" action="{{ route('admin.users.store') }}">
             @csrf
 
-            <div class="space-y-6" data-onboarding-target="user-fields">
+            {{-- Basisgegevens + uitnodiging (onboarding) --}}
+            <div class="scroll-mt-28 space-y-6" data-onboarding-target="user-basics">
             {{-- Basisgegevens --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
@@ -80,35 +81,31 @@
                 </div>
             </div>
 
-            {{-- Wachtwoord --}}
+            {{-- Uitnodiging --}}
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
-                    <h2 class="text-lg font-bold text-slate-900">Wachtwoord</h2>
-                    <p class="text-slate-600 text-sm mt-0.5">Het wachtwoord moet minimaal 8 tekens bevatten</p>
+                    <h2 class="text-lg font-bold text-slate-900">Inloggen</h2>
+                    <p class="text-slate-600 text-sm mt-0.5">De gebruiker stelt zelf een wachtwoord in</p>
                 </div>
-                <div class="p-4 sm:p-6 space-y-5">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <x-form-label for="password" help="Minimaal 8 tekens. Deel het wachtwoord veilig met de medewerker.">Wachtwoord <span class="text-red-500">*</span></x-form-label>
-                            <input type="password" name="password" id="password" required
-                                   class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   placeholder="Minimaal 8 tekens">
-                            @error('password')
-                                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                <div class="p-4 sm:p-6">
+                    <div class="flex gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
                         </div>
                         <div>
-                            <x-form-label for="password_confirmation" help="Typ hetzelfde wachtwoord nogmaals ter controle.">Wachtwoord bevestigen <span class="text-red-500">*</span></x-form-label>
-                            <input type="password" name="password_confirmation" id="password_confirmation" required
-                                   class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   placeholder="Herhaal het wachtwoord">
+                            <h3 class="text-sm font-semibold text-blue-900">Uitnodiging per e-mail</h3>
+                            <p class="mt-1 text-sm text-blue-800">
+                                Na het aanmaken ontvangt de gebruiker een e-mail met een link om een wachtwoord in te stellen. Je hoeft geen wachtwoord te bedenken of door te geven.
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            </div>
+
             {{-- Rol en afdeling --}}
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+            <div class="scroll-mt-28 bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6" data-onboarding-target="user-role">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Rol en afdeling</h2>
                     <p class="text-slate-600 text-sm mt-0.5">Bepaal de rechten en afdeling van de gebruiker</p>
@@ -161,7 +158,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
 
             {{-- Extra opties --}}

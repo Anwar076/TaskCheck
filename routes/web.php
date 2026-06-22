@@ -270,6 +270,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
     Route::post('/onboarding/start', [OnboardingController::class, 'start'])->name('onboarding.start');
     Route::post('/onboarding/users/continue', [OnboardingController::class, 'continueUsers'])->name('onboarding.users.continue');
     Route::post('/onboarding/list-choice', [OnboardingController::class, 'chooseList'])->name('onboarding.list-choice');
+    Route::post('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
 });
 
 // Admin Routes
@@ -296,6 +297,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::post('/lists/{list}/schedule-day', [TaskListController::class, 'scheduleDay'])->name('lists.schedule-day');
     Route::post('/lists/{list}/schedule-slot', [TaskListController::class, 'scheduleTimeSlot'])->name('lists.schedule-slot');
     Route::post('/lists/{list}/tasks/quick', [TaskController::class, 'quickStore'])->name('lists.tasks.quick-store');
+    Route::get('/tasks/{task}/form-data', [TaskController::class, 'formData'])->name('tasks.form-data');
 
     // Regular routes for create/edit/show
     Route::resource('lists', TaskListController::class)->except(['index']);

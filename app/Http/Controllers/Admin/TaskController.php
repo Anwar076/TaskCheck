@@ -257,7 +257,44 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
-        return view('admin.tasks.edit', compact('task'));
+        if ($task->taskList->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task.');
+        }
+
+        return redirect()->route('admin.lists.show', [
+            'list' => $task->taskList,
+            'editTask' => $task->id,
+        ]);
+    }
+
+    public function formData(Task $task)
+    {
+        if ($task->taskList->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task.');
+        }
+
+        $rules = is_array($task->validation_rules) ? $task->validation_rules : [];
+
+        return response()->json([
+            'success' => true,
+            'task' => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'instructions' => $task->instructions,
+                'required_proof_type' => $task->required_proof_type,
+                'is_required' => (bool) $task->is_required,
+                'requires_signature' => (bool) $task->requires_signature,
+                'weekdays' => $task->weekday ? [$task->weekday] : [],
+                'checklist_items' => $task->checklist_items ?? [],
+                'metric_type' => $rules['metric'] ?? null,
+                'metric_unit' => $rules['unit'] ?? null,
+                'metric_min' => array_key_exists('min', $rules) ? $rules['min'] : null,
+                'metric_max' => array_key_exists('max', $rules) ? $rules['max'] : null,
+                'metric_comparison' => $rules['comparison'] ?? 'lte',
+                'update_url' => route('admin.tasks.update', $task),
+            ],
+        ]);
     }
 
     /**
@@ -265,6 +302,10 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
+        if ($task->taskList->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access to task.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -284,8 +325,8 @@ class TaskController extends Controller
             'metric_comparison' => 'nullable|in:lt,lte',
         ]);
 
-        $validated['is_required'] = $request->has('is_required');
-        $validated['requires_signature'] = $request->has('requires_signature');
+        $validated['is_required'] = $request->boolean('is_required');
+        $validated['requires_signature'] = $request->boolean('requires_signature');
 
         // Clean up checklist items (remove empty items)
         if (isset($validated['checklist_items']) && is_array($validated['checklist_items'])) {
@@ -299,6 +340,14 @@ class TaskController extends Controller
 
         $metricErrors = MetricValidationHelper::validateFormData($validated);
         if ($metricErrors !== []) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => collect($metricErrors)->flatten()->first() ?? 'Validatiefout.',
+                    'errors' => $metricErrors,
+                ], 422);
+            }
+
             return back()->withErrors($metricErrors)->withInput();
         }
 
@@ -331,8 +380,18 @@ class TaskController extends Controller
 
         $task->update($validated);
 
+        $message = 'Taak succesvol bijgewerkt.';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect' => route('admin.lists.show', ['list' => $task->taskList->id, 'updated' => time()]),
+            ]);
+        }
+
         return redirect()->route('admin.lists.show', ['list' => $task->taskList->id, 'updated' => time()])
-            ->with('success', 'Taak succesvol bijgewerkt.');
+            ->with('success', $message);
     }
 
     /**

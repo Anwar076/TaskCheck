@@ -40,7 +40,6 @@
             position: relative;
             z-index: 250 !important;
             pointer-events: auto !important;
-            box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgba(37, 99, 235, 0.45) !important;
             border-radius: 0.75rem;
         }
         .onboarding-tour-clickable {
@@ -48,10 +47,6 @@
         }
         .onboarding-tour-ring {
             animation: onboarding-pulse 1.6s ease-out infinite;
-        }
-        .onboarding-tour-ring-inner {
-            border: 2px dashed rgba(37, 99, 235, 0.55);
-            animation: onboarding-shimmer 1.4s ease-in-out infinite;
         }
         .onboarding-tour-badge {
             animation: onboarding-bounce 1.1s ease-in-out infinite;
@@ -114,8 +109,7 @@
             <div data-tour-mask-right class="pointer-events-none absolute bg-slate-950/72 backdrop-blur-[2px] transition-all duration-150"></div>
             <div data-tour-mask-bottom class="pointer-events-none absolute bg-slate-950/72 backdrop-blur-[2px] transition-all duration-150"></div>
 
-            <div data-tour-ring class="onboarding-tour-ring pointer-events-none fixed hidden rounded-xl border-[3px] border-blue-500 bg-white/[0.04]"></div>
-            <div data-tour-ring-inner class="onboarding-tour-ring-inner pointer-events-none fixed hidden rounded-xl"></div>
+            <div data-tour-ring class="onboarding-tour-ring pointer-events-none fixed hidden rounded-xl border-[3px] border-blue-500 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.9)]"></div>
 
             <div data-tour-badge class="onboarding-tour-badge pointer-events-none fixed hidden z-[285]">
                 <span class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-xl ring-4 ring-blue-400/30">
@@ -132,9 +126,16 @@
                             <span data-tour-step-badge class="inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-lg bg-blue-600 px-2 text-xs font-bold text-white">1</span>
                             <p data-tour-step-label class="text-xs font-semibold text-slate-500">Stap 1 van 5</p>
                         </div>
-                        <button type="button" data-tour-close class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Sluiten">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-                        </button>
+                        <div class="flex items-center gap-1">
+                            @if(!$isHelp)
+                                <button type="button" data-tour-action="skip" class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+                                    Overslaan
+                                </button>
+                            @endif
+                            <button type="button" data-tour-close class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Sluiten">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                     </div>
 
                     <h3 data-tour-title class="mt-3 text-lg font-bold text-slate-900 leading-snug"></h3>

@@ -29,6 +29,7 @@
         return [
             'weekday' => $day['key'],
             'workingHoursByDay' => $workingHoursByDay,
+            'date' => $day['date'],
             'canCreate' => $selectableLists->isNotEmpty(),
             'lists' => $selectableLists->map(fn ($listItem) => [
                 'id' => $listItem->id,

@@ -63,7 +63,7 @@ class ListCalendarService
                 ? $generalTasks->concat($daySpecific)->sortBy('order_index')->values()
                 : collect();
             $listSchedule = $isListActive
-                ? $this->aggregateListDaySchedule(collect([$list]), $dayKey, $axis)
+                ? $this->aggregateListDaySchedule(collect([$list]), $dayKey, $axis, $date->format('Y-m-d'))
                 : ['all_day_lists' => collect(), 'timed_lists' => collect()];
 
             $days[] = [
@@ -202,6 +202,14 @@ class ListCalendarService
 
         $base = $labels[$list->schedule_type] ?? $list->schedule_type;
 
+        if ($list->schedule_type === 'once') {
+            if ($list->due_date) {
+                return $base . ' · uiterlijk ' . $list->due_date->locale('nl')->translatedFormat('d M Y');
+            }
+
+            return $base . ' · één keer invullen';
+        }
+
         if (in_array($list->schedule_type, ['weekly', 'custom'], true)) {
             $days = $list->getShowOnDays();
             if ($days !== []) {
@@ -255,7 +263,7 @@ class ListCalendarService
             $date = $weekStart->copy()->addDays($i);
             $dayKey = strtolower($date->format('l'));
             $dayLists = $this->activeListsForDate($lists, $date);
-            $daySchedule = $this->aggregateListDaySchedule($dayLists, $dayKey, $axis);
+            $daySchedule = $this->aggregateListDaySchedule($dayLists, $dayKey, $axis, $date->format('Y-m-d'));
 
             $days[] = [
                 'key' => $dayKey,
@@ -316,14 +324,14 @@ class ListCalendarService
      * @param  Collection<int, TaskList>  $lists
      * @return array{all_day_lists: Collection<int, TaskList>, timed_lists: Collection<int, array<string, mixed>>}
      */
-    public function aggregateListDaySchedule(Collection $lists, string $dayKey, ?array $axis = null): array
+    public function aggregateListDaySchedule(Collection $lists, string $dayKey, ?array $axis = null, ?string $date = null): array
     {
         $axis ??= $this->defaultTimeAxis();
         $allDayLists = collect();
         $timedLists = collect();
 
         foreach ($lists as $list) {
-            $slots = $this->getTimeSlotsForWeekday($list, $dayKey);
+            $slots = $this->getTimeSlotsForDay($list, $dayKey, $date);
 
             if ($slots !== []) {
                 foreach ($slots as $slot) {
@@ -507,11 +515,40 @@ class ListCalendarService
     /**
      * @return array<int, array<string, mixed>>
      */
+    public function getTimeSlotsForDay(TaskList $list, string $dayKey, ?string $date = null): array
+    {
+        if ($date) {
+            $dateSlots = array_values(array_filter(
+                $this->getTimeSlots($list),
+                fn (array $slot) => ($slot['date'] ?? null) === $date && filled($slot['start_time'] ?? null)
+            ));
+
+            if ($dateSlots !== []) {
+                return $dateSlots;
+            }
+        }
+
+        return $this->getRecurringWeekdaySlots($list, $dayKey);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getTimeSlotsForWeekday(TaskList $list, string $dayKey): array
+    {
+        return $this->getRecurringWeekdaySlots($list, $dayKey);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function getRecurringWeekdaySlots(TaskList $list, string $dayKey): array
     {
         $explicit = array_values(array_filter(
             $this->getTimeSlots($list),
-            fn (array $slot) => ($slot['weekday'] ?? '') === $dayKey && filled($slot['start_time'] ?? null)
+            fn (array $slot) => ($slot['weekday'] ?? '') === $dayKey
+                && empty($slot['date'])
+                && filled($slot['start_time'] ?? null)
         ));
 
         if ($explicit !== []) {
@@ -532,21 +569,37 @@ class ListCalendarService
         ]];
     }
 
-    public function assignListTimeSlot(TaskList $list, string $weekday, string $startTime, ?string $endTime = null): void
+    public function assignListTimeSlot(TaskList $list, string $weekday, string $startTime, ?string $endTime = null, ?string $date = null): void
     {
-        $this->ensureListScheduledOnWeekday($list, $weekday);
-        $list->refresh();
+        if (! $date) {
+            $this->ensureListScheduledOnWeekday($list, $weekday);
+            $list->refresh();
+        }
 
         $config = is_array($list->schedule_config) ? $list->schedule_config : [];
-        $slots = $this->getTimeSlots($list);
-        $slots = $this->removeSlotsForWeekday($slots, $weekday);
+        $slots = array_values(array_filter(
+            $this->getTimeSlots($list),
+            function (array $slot) use ($weekday, $date) {
+                if ($date) {
+                    return ($slot['date'] ?? null) !== $date;
+                }
 
-        $slots[] = [
+                return ($slot['weekday'] ?? '') !== $weekday || ! empty($slot['date']);
+            }
+        ));
+
+        $newSlot = [
             'id' => (string) Str::uuid(),
             'weekday' => $weekday,
             'start_time' => $startTime,
             'end_time' => $endTime,
         ];
+
+        if ($date) {
+            $newSlot['date'] = $date;
+        }
+
+        $slots[] = $newSlot;
 
         $config['time_slots'] = $slots;
         $list->update(['schedule_config' => $config]);
@@ -583,18 +636,6 @@ class ListCalendarService
         $config = $this->removeEmptyMovedWeekday($list, $config, $previousWeekday, $weekday, $slots);
         $config['time_slots'] = $slots;
         $list->update(['schedule_config' => $config]);
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $slots
-     * @return array<int, array<string, mixed>>
-     */
-    private function removeSlotsForWeekday(array $slots, string $weekday): array
-    {
-        return array_values(array_filter(
-            $slots,
-            fn (array $slot) => ($slot['weekday'] ?? null) !== $weekday
-        ));
     }
 
     /**
@@ -647,6 +688,18 @@ class ListCalendarService
         }
 
         return $config;
+    }
+
+    public function removeListTimeSlotForDate(TaskList $list, string $date): void
+    {
+        $config = is_array($list->schedule_config) ? $list->schedule_config : [];
+        $slots = array_values(array_filter(
+            $this->getTimeSlots($list),
+            fn (array $slot) => ($slot['date'] ?? null) !== $date
+        ));
+
+        $config['time_slots'] = $slots;
+        $list->update(['schedule_config' => $config]);
     }
 
     public function removeListTimeSlot(TaskList $list, string $slotId): void
@@ -814,6 +867,7 @@ class ListCalendarService
         return [
             'slot_id' => $slot['id'] ?? null,
             'weekday' => $slot['weekday'] ?? null,
+            'date' => $slot['date'] ?? null,
             'is_default' => (bool) ($slot['is_default'] ?? false),
             'list' => $list,
             'start_time' => $this->formatClock($slot['start_time']),

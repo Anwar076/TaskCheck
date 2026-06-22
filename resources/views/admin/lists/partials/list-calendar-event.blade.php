@@ -18,6 +18,7 @@
             data-list-id="{{ $list->id }}"
             data-list-title="{{ $list->title }}"
             data-weekday="{{ $day['key'] }}"
+            data-date="{{ $day['date'] }}"
             data-store-url="{{ route('admin.lists.schedule-slot', $list) }}"
             data-manage-url="{{ $href }}"
             class="group relative z-[2] flex w-full overflow-hidden rounded-md text-left font-medium leading-snug transition-shadow hover:shadow-sm {{ $sizeClass }}"

@@ -42,6 +42,7 @@
         data-list-id="{{ $list->id }}"
         data-list-title="{{ $list->title }}"
         data-weekday="{{ $entry['weekday'] ?? $day['key'] }}"
+        data-date="{{ $entry['date'] ?? $day['date'] }}"
         data-start-time="{{ $entry['start_time'] }}"
         data-end-time="{{ $entry['end_time'] ?? '' }}"
         data-is-default="{{ !empty($entry['is_default']) ? '1' : '0' }}"

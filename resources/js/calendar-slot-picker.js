@@ -284,6 +284,9 @@ export function initCalendarSlotPicker() {
             submitBtn.textContent = mode === 'edit' ? 'Opslaan' : 'Koppelen';
         }
         deleteBtn?.classList.toggle('hidden', mode !== 'edit');
+        if (mode === 'edit') {
+            listSelectWrap?.classList.add('hidden');
+        }
     };
 
     const populateListSelect = (lists, selectedId) => {
@@ -300,6 +303,10 @@ export function initCalendarSlotPicker() {
             listSelectWrap?.classList.add('hidden');
             listSelect.innerHTML = `<option value="${lists[0].id}" selected>${lists[0].title}</option>`;
         }
+
+        if (popupState?.mode === 'edit') {
+            listSelectWrap?.classList.add('hidden');
+        }
     };
 
     const closePopup = () => {
@@ -308,6 +315,7 @@ export function initCalendarSlotPicker() {
         clearSelection();
         popupState = null;
         form?.reset();
+        weekdaySelect?.closest('div')?.classList.remove('hidden');
         setPopupMode('create');
         if (errorBox) {
             errorBox.classList.add('hidden');
@@ -373,7 +381,18 @@ export function initCalendarSlotPicker() {
         };
     };
 
-    const openPopup = ({ mode, config, lists, weekday, startTime, endTime, anchorElement, slotId, sourceListId, updateUrl, deleteUrl, manageUrl }) => {
+    const formatDateLabel = (isoDate) => {
+        if (!isoDate) {
+            return '';
+        }
+        const parts = isoDate.split('-');
+        if (parts.length !== 3) {
+            return isoDate;
+        }
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    };
+
+    const openPopup = ({ mode, config, lists, weekday, date, startTime, endTime, anchorElement, slotId, sourceListId, updateUrl, deleteUrl, manageUrl }) => {
         if (lists.length === 0 || !popup || !form) {
             return;
         }
@@ -383,6 +402,7 @@ export function initCalendarSlotPicker() {
             config,
             lists,
             weekday,
+            date: date || config?.date || null,
             startTime,
             endTime,
             column: config?.column || null,
@@ -396,11 +416,15 @@ export function initCalendarSlotPicker() {
         setPopupMode(mode);
 
         const dayLabel = weekdayLabels[weekday] || weekday || 'Deze dag';
+        const dateLabel = formatDateLabel(popupState.date);
         if (metaLabel) {
-            metaLabel.textContent = `${dayLabel} · ${startTime}${endTime ? ` – ${endTime}` : ''}`;
+            metaLabel.textContent = dateLabel
+                ? `${dateLabel} · ${dayLabel} · ${startTime}${endTime ? ` – ${endTime}` : ''}`
+                : `${dayLabel} · ${startTime}${endTime ? ` – ${endTime}` : ''}`;
         }
         if (weekdaySelect) {
             weekdaySelect.value = weekday;
+            weekdaySelect.closest('div')?.classList.toggle('hidden', Boolean(popupState.date));
         }
         if (startInput) {
             startInput.value = startTime;
@@ -436,6 +460,7 @@ export function initCalendarSlotPicker() {
             config: { ...config, column },
             lists: config.lists || [],
             weekday: config.weekday,
+            date: config.date,
             startTime,
             endTime,
             anchorElement: activeSelection,
@@ -444,19 +469,27 @@ export function initCalendarSlotPicker() {
 
     const openEditPopup = (button, column, config) => {
         const weekday = button.dataset.weekday || config.weekday;
+        const date = button.dataset.date || config.date || null;
         const startTime = button.dataset.startTime || '';
         const endTime = button.dataset.endTime || '';
+        const sourceListId = button.dataset.listId;
+        const sourceListTitle = button.dataset.listTitle || 'Lijst';
+        const allLists = config.lists || [];
+        const lists = allLists.filter((item) => String(item.id) === String(sourceListId));
 
         openPopup({
             mode: 'edit',
             config: { ...config, column },
-            lists: config.lists || [],
+            lists: lists.length > 0
+                ? lists
+                : [{ id: sourceListId, title: sourceListTitle, storeUrl: button.dataset.storeUrl || '' }],
             weekday,
+            date,
             startTime,
             endTime,
             anchorElement: button,
             slotId: button.dataset.slotId,
-            sourceListId: button.dataset.listId,
+            sourceListId,
             updateUrl: button.dataset.updateUrl,
             deleteUrl: button.dataset.deleteUrl,
             manageUrl: button.dataset.manageUrl,
@@ -600,10 +633,14 @@ export function initCalendarSlotPicker() {
             const response = await fetch(popupState.deleteUrl, {
                 method: 'DELETE',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                     Accept: 'application/json',
                 },
+                body: JSON.stringify({
+                    date: popupState.date || null,
+                }),
             });
 
             const data = await response.json();
@@ -660,8 +697,8 @@ export function initCalendarSlotPicker() {
             end_time: endInput?.value || popupState.endTime || null,
         };
 
-        if (isEdit && String(selectedList.id) !== String(popupState.sourceListId)) {
-            payload.target_list_id = selectedList.id;
+        if (popupState.date) {
+            payload.date = popupState.date;
         }
 
         try {
@@ -775,6 +812,7 @@ export function initCalendarSlotPicker() {
                 config,
                 lists: config.lists || [],
                 weekday: config.weekday,
+                date: config.date,
                 startTime: '09:00',
                 endTime: '10:00',
                 anchorElement: allDayBtn,

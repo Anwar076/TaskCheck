@@ -51,7 +51,7 @@
         @method('PUT')
 
         <!-- Logo & Naam + contact (onboarding highlight) -->
-        <div class="space-y-8" data-onboarding-target="org-fields">
+        <div class="scroll-mt-28 rounded-xl" data-onboarding-target="org-profile">
         <!-- Logo & Naam Sectie -->
         <div class="border-b border-gray-200 pb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -112,7 +112,9 @@
                 </div>
             </div>
         </div>
+        </div>
 
+        <div class="scroll-mt-28 rounded-xl" data-onboarding-target="org-contact">
         <!-- Contactgegevens Sectie -->
         <div class="border-b border-gray-200 pb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -201,7 +203,7 @@
         </div>
 
         <!-- Werktijden Sectie -->
-        <div class="border-b border-gray-200 pb-6">
+        <div class="scroll-mt-28 rounded-xl border-b border-gray-200 pb-6" data-onboarding-target="org-working-hours">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>

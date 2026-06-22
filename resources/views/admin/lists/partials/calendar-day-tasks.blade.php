@@ -32,9 +32,9 @@
                                 @endif
                             </div>
                             <div class="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                <a href="{{ route('admin.tasks.edit', $task) }}" class="rounded p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600" title="Bewerken">
+                                <button type="button" data-open-task-edit data-task-id="{{ $task->id }}" class="rounded p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600" title="Bewerken">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -67,9 +67,9 @@
                                     @endif
                                 </div>
                                 <div class="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                    <a href="{{ route('admin.tasks.edit', $task) }}" class="rounded p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600" title="Bewerken">
+                                    <button type="button" data-open-task-edit data-task-id="{{ $task->id }}" class="rounded p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600" title="Bewerken">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-                                    </a>
+                                    </button>
                                     <form method="POST" action="{{ route('admin.tasks.destroy', $task) }}" onsubmit="return confirm('Taak verwijderen?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600" title="Verwijderen">

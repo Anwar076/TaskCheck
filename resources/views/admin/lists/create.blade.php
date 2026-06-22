@@ -52,7 +52,7 @@
             @csrf
 
             {{-- Basisgegevens + AI lijstbouwer --}}
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6" data-onboarding-target="list-basics">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 scroll-mt-28" data-onboarding-target="list-basics">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <h2 class="text-lg font-bold text-slate-900">Basisgegevens</h2>
@@ -135,7 +135,7 @@
             <input type="hidden" name="ai_tasks" id="ai-tasks-json" value="">
 
             {{-- Template --}}
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6" data-onboarding-target="list-template-info">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 scroll-mt-28" data-onboarding-target="list-template-info">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Template <span class="font-normal text-slate-600">(optioneel)</span></h2>
                     <p class="text-slate-600 text-sm mt-0.5">Start met een bestaand template of maak een lege lijst</p>
@@ -158,7 +158,7 @@
             </div>
 
             {{-- Instellingen --}}
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6" data-onboarding-target="list-settings">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 scroll-mt-28" data-onboarding-target="list-settings">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Instellingen</h2>
                     <p class="text-slate-600 text-sm mt-0.5">Categorie, prioriteit en planning</p>
@@ -194,121 +194,16 @@
                             @enderror
                         </div>
                     </div>
-                    <div>
-                        <x-form-label for="schedule_type" help="Bepaal hoe vaak deze lijst beschikbaar is voor medewerkers.">Herhalingen <span class="text-red-500">*</span></x-form-label>
-                        <select name="schedule_type" id="schedule_type" required
-                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                onchange="toggleScheduleConfig()">
-                            <option value="" disabled {{ old('schedule_type') ? '' : 'selected' }}>Kies herhaling</option>
-                            <option value="once" {{ old('schedule_type') === 'once' ? 'selected' : '' }}>Eenmalig</option>
-                            <option value="daily" {{ old('schedule_type') === 'daily' ? 'selected' : '' }}>Dagelijks (elke dag)</option>
-                            <option value="weekly" {{ old('schedule_type') === 'weekly' ? 'selected' : '' }}>Wekelijks (vaste dagen)</option>
-                            <option value="monthly" {{ old('schedule_type') === 'monthly' ? 'selected' : '' }}>Maandelijks</option>
-                            <option value="custom" {{ old('schedule_type') === 'custom' ? 'selected' : '' }}>Aangepast</option>
-                        </select>
-                        @error('schedule_type')
-                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    @include('admin.lists.partials.list-form-schedule')
 
-                    {{-- Planning configuratie --}}
-                    <div id="schedule-config" style="display: none;">
-                        <div id="daily-config" class="hidden">
-                            <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                                <p class="text-sm text-emerald-800">Deze lijst is elke dag beschikbaar. Je kunt later per taak specifieke dagen instellen.</p>
-                            </div>
-                        </div>
-                        <div id="weekly-config" class="hidden space-y-4">
-                            <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                                <p class="text-sm text-blue-800">Kies op welke dagen deze lijst actief is.</p>
-                            </div>
-                            <label class="block text-sm font-medium text-slate-700">Dagen van de week</label>
-                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                                @php
-                                    $weekdaysList = ['monday' => 'Ma', 'tuesday' => 'Di', 'wednesday' => 'Wo', 'thursday' => 'Do', 'friday' => 'Vr', 'saturday' => 'Za', 'sunday' => 'Zo'];
-                                    $selectedDays = old('selected_days', []);
-                                @endphp
-                                @foreach($weekdaysList as $dayKey => $dayLabel)
-                                <label class="weekday-label flex flex-col items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors has-[:checked]:bg-blue-600 has-[:checked]:border-blue-600 has-[:checked]:text-white">
-                                    <input type="checkbox" name="selected_days[]" value="{{ $dayKey }}"
-                                           class="hidden weekday-checkbox"
-                                           {{ in_array($dayKey, $selectedDays) ? 'checked' : '' }}>
-                                    <span class="text-sm font-medium">{{ $dayLabel }}</span>
-                                </label>
-                                @endforeach
-                            </div>
-                        </div>
-                        <div id="monthly-config" class="hidden">
-                            <x-form-label for="day_of_month" help="Op welke dag van de maand deze lijst actief is.">Dag van de maand</x-form-label>
-                            <select name="schedule_config[day_of_month]" id="day_of_month"
-                                    class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
-                                @for($i = 1; $i <= 31; $i++)
-                                    <option value="{{ $i }}" {{ old('schedule_config.day_of_month', 1) == $i ? 'selected' : '' }}>
-                                        {{ $i }}{{ $i == 1 ? 'e' : 'e' }}
-                                    </option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div id="custom-config" class="hidden space-y-4">
-                            <div>
-                                <x-form-label for="custom_type" help="Kies hoe je aangepaste planning wilt instellen.">Type planning</x-form-label>
-                                <select name="schedule_config[type]" id="custom_type"
-                                        class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
-                                        onchange="toggleCustomType()">
-                                    <option value="specific_days" {{ old('schedule_config.type') === 'specific_days' ? 'selected' : '' }}>Specifieke dagen</option>
-                                    <option value="interval" {{ old('schedule_config.type') === 'interval' ? 'selected' : '' }}>Elke X dagen</option>
-                                    <option value="date_range" {{ old('schedule_config.type') === 'date_range' ? 'selected' : '' }}>Periode</option>
-                                </select>
-                            </div>
-                            <div id="custom-specific-days" class="hidden">
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Selecteer dagen</label>
-                                <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                                    @php $customSelectedDays = old('schedule_config.days', []); @endphp
-                                    @foreach($weekdaysList as $dayKey => $dayLabel)
-                                    <label class="flex items-center justify-center p-2 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 has-[:checked]:bg-blue-600 has-[:checked]:border-blue-600 has-[:checked]:text-white">
-                                        <input type="checkbox" name="schedule_config[days][]" value="{{ $dayKey }}"
-                                               class="hidden custom-day-checkbox"
-                                               {{ in_array($dayKey, $customSelectedDays) ? 'checked' : '' }}>
-                                        <span class="text-sm font-medium">{{ $dayLabel }}</span>
-                                    </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                            <div id="custom-interval" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="interval_days" class="block text-sm font-medium text-slate-700 mb-1.5">Elke X dagen</label>
-                                    <input type="number" name="schedule_config[interval_days]" id="interval_days" min="1" max="365"
-                                           class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
-                                           value="{{ old('schedule_config.interval_days', 1) }}">
-                                </div>
-                                <div>
-                                    <label for="interval_start" class="block text-sm font-medium text-slate-700 mb-1.5">Startdatum</label>
-                                    <input type="date" name="schedule_config[start_date]" id="interval_start"
-                                           class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
-                                           value="{{ old('schedule_config.start_date') }}">
-                                </div>
-                            </div>
-                            <div id="custom-date-range" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="range_start" class="block text-sm font-medium text-slate-700 mb-1.5">Startdatum</label>
-                                    <input type="date" name="schedule_config[start_date]" id="range_start"
-                                           class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
-                                           value="{{ old('schedule_config.start_date') }}">
-                                </div>
-                                <div>
-                                    <label for="range_end" class="block text-sm font-medium text-slate-700 mb-1.5">Einddatum</label>
-                                    <input type="date" name="schedule_config[end_date]" id="range_end"
-                                           class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm"
-                                           value="{{ old('schedule_config.end_date') }}">
-                                </div>
-                            </div>
-                        </div>
+                    <div class="scroll-mt-28 rounded-xl" data-onboarding-target="list-time-slots">
+                        @include('admin.lists.partials.list-form-time-slots')
                     </div>
                 </div>
             </div>
 
             {{-- Extra opties --}}
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 scroll-mt-28" data-onboarding-target="list-extra-options">
                 <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Extra opties</h2>
                 </div>
@@ -333,7 +228,7 @@
             </div>
 
             {{-- Acties --}}
-            <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <div class="scroll-mt-28 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <a href="{{ route('admin.lists.index') }}"
                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -362,48 +257,7 @@
 </div>
 
 <script>
-function toggleScheduleConfig() {
-    const t = document.getElementById('schedule_type').value;
-    const config = document.getElementById('schedule-config');
-    const daily = document.getElementById('daily-config');
-    const weekly = document.getElementById('weekly-config');
-    const monthly = document.getElementById('monthly-config');
-    const custom = document.getElementById('custom-config');
-
-    [daily, weekly, monthly, custom].forEach(el => el.classList.add('hidden'));
-    config.style.display = 'none';
-
-    if (t === 'daily') {
-        config.style.display = 'block';
-        daily.classList.remove('hidden');
-    } else if (t === 'weekly') {
-        config.style.display = 'block';
-        weekly.classList.remove('hidden');
-    } else if (t === 'monthly') {
-        config.style.display = 'block';
-        monthly.classList.remove('hidden');
-    } else if (t === 'custom') {
-        config.style.display = 'block';
-        custom.classList.remove('hidden');
-        toggleCustomType();
-    }
-}
-
-function toggleCustomType() {
-    const t = document.getElementById('custom_type').value;
-    const specific = document.getElementById('custom-specific-days');
-    const interval = document.getElementById('custom-interval');
-    const range = document.getElementById('custom-date-range');
-
-    [specific, interval, range].forEach(el => el.classList.add('hidden'));
-    if (t === 'specific_days') specific.classList.remove('hidden');
-    else if (t === 'interval') interval.classList.remove('hidden');
-    else if (t === 'date_range') range.classList.remove('hidden');
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    toggleScheduleConfig();
-
     const aiButton = document.getElementById('ai-generate-list-button');
     const aiPrompt = document.getElementById('ai-list-prompt');
     const aiFileInput = document.getElementById('ai-source-file');

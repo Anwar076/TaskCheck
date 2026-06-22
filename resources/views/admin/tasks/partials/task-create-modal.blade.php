@@ -11,8 +11,10 @@
      aria-labelledby="task-create-modal-title"
      data-task-create-modal
      data-store-url="{{ route('admin.lists.tasks.store', $list) }}"
+     data-form-data-url="{{ url('/admin/tasks') }}"
      data-show-day-picker="{{ $showDayPicker ? '1' : '0' }}"
      data-auto-open="{{ request('addTask') ? '1' : '0' }}"
+     data-auto-edit-task="{{ request('editTask', '') }}"
      data-preset-weekday="{{ request('weekday', '') }}">
     <div class="absolute inset-0 bg-slate-900/40" data-task-create-close></div>
 
