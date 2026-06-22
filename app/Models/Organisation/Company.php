@@ -47,6 +47,7 @@ class Company extends Model
     public const ONBOARDING_STEP_WELCOME = 'welcome';
     public const ONBOARDING_STEP_ORGANIZATION = 'organization';
     public const ONBOARDING_STEP_USERS = 'users';
+    public const ONBOARDING_STEP_STARTER_PACK = 'starter_pack';
     public const ONBOARDING_STEP_LIST_CHOICE = 'list_choice';
     public const ONBOARDING_STEP_LIST_CREATE = 'list_create';
     public const ONBOARDING_STEP_ASSIGN = 'assign';

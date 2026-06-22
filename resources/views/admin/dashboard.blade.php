@@ -30,11 +30,11 @@
                         </div>
                         @php $company = auth()->user()->company; @endphp
                         @if($company)
-                        <div class="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur rounded-xl">
+                        <div class="flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur rounded-xl">
                             @if($company->logo_path)
-                                <img src="{{ Storage::url($company->logo_path) }}" alt="{{ $company->name }}" class="h-8 w-auto object-contain">
+                                <img src="{{ Storage::url($company->logo_path) }}" alt="{{ $company->name }}" class="h-14 sm:h-16 w-auto max-w-[200px] sm:max-w-[240px] object-contain">
                             @else
-                                <span class="text-white font-bold">{{ $company->name }}</span>
+                                <span class="text-white font-bold text-base sm:text-lg">{{ $company->name }}</span>
                             @endif
                         </div>
                         @endif
