@@ -21,9 +21,9 @@
         @endif
     </div>
     <div class="flex items-center gap-1 flex-shrink-0">
-        <a href="{{ route('admin.tasks.edit', $task) }}" class="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors" title="Bewerken">
+        <button type="button" data-open-task-edit data-task-id="{{ $task->id }}" class="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors" title="Bewerken">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-        </a>
+        </button>
         @unless($compact)
             <form method="POST" action="{{ route('admin.tasks.destroy', $task) }}" class="inline" onsubmit="return confirm('Weet je zeker dat je deze taak wilt verwijderen?')">
                 @csrf

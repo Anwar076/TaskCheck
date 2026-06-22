@@ -1,5 +1,5 @@
 /**
- * Pop-up voor nieuwe taak aanmaken (vervangt /tasks/create pagina).
+ * Pop-up voor taak aanmaken en bewerken (vervangt /tasks/create en /tasks/edit pagina's).
  */
 export function initTaskCreateModal() {
     const modal = document.querySelector('[data-task-create-modal]');
@@ -8,6 +8,7 @@ export function initTaskCreateModal() {
     }
 
     const form = document.getElementById('task-create-form');
+    const modalTitle = document.getElementById('task-create-modal-title');
     const titleInput = document.getElementById('task-create-title');
     const proofSelect = document.getElementById('task-create-proof');
     const requiredCheckbox = document.getElementById('task-create-required');
@@ -27,10 +28,13 @@ export function initTaskCreateModal() {
     const metricMax = document.getElementById('task-create-metric-max');
 
     const storeUrl = modal.dataset.storeUrl;
+    const formDataUrlBase = modal.dataset.formDataUrl;
     const showDayPicker = modal.dataset.showDayPicker === '1';
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
     let expandedOpen = false;
+    let editMode = false;
+    let updateUrl = null;
 
     const showError = (message) => {
         if (!errorBox) {
@@ -48,6 +52,24 @@ export function initTaskCreateModal() {
         errorBox.textContent = '';
     };
 
+    const setExpanded = (open) => {
+        expandedOpen = open;
+        expanded?.classList.toggle('hidden', !expandedOpen);
+        expandIcon?.classList.toggle('rotate-180', expandedOpen);
+    };
+
+    const setModalMode = (mode) => {
+        editMode = mode === 'edit';
+        updateUrl = null;
+
+        if (modalTitle) {
+            modalTitle.textContent = editMode ? 'Taak bewerken' : 'Nieuwe taak';
+        }
+        if (submitBtn) {
+            submitBtn.textContent = editMode ? 'Wijzigingen opslaan' : 'Taak toevoegen';
+        }
+    };
+
     const resetForm = () => {
         form?.reset();
         if (requiredCheckbox) {
@@ -56,20 +78,70 @@ export function initTaskCreateModal() {
         if (checklistContainer) {
             checklistContainer.innerHTML = '';
         }
-        expandedOpen = false;
-        expanded?.classList.add('hidden');
-        expandIcon?.classList.remove('rotate-180');
+        setExpanded(false);
+        setModalMode('create');
         hideError();
     };
 
-    const openModal = (options = {}) => {
+    const populateForm = (task) => {
+        if (titleInput) {
+            titleInput.value = task.title || '';
+        }
+        if (proofSelect) {
+            proofSelect.value = task.required_proof_type || 'none';
+        }
+        if (requiredCheckbox) {
+            requiredCheckbox.checked = task.is_required ?? true;
+        }
+        if (signatureCheckbox) {
+            signatureCheckbox.checked = task.requires_signature ?? false;
+        }
+        if (descriptionInput) {
+            descriptionInput.value = task.description || '';
+        }
+        if (instructionsInput) {
+            instructionsInput.value = task.instructions || '';
+        }
+        if (metricType) {
+            metricType.value = task.metric_type || '';
+        }
+        if (metricUnit) {
+            metricUnit.value = task.metric_unit || '';
+        }
+        if (metricMin) {
+            metricMin.value = task.metric_min ?? '';
+        }
+        if (metricMax) {
+            metricMax.value = task.metric_max ?? '';
+        }
+
+        if (checklistContainer) {
+            checklistContainer.innerHTML = '';
+            (task.checklist_items || []).forEach((item) => addChecklistRow(item));
+        }
+
+        if (showDayPicker) {
+            document.querySelectorAll('.task-create-weekday').forEach((input) => {
+                input.checked = (task.weekdays || []).includes(input.value);
+            });
+        }
+
+        const hasExpandedContent = Boolean(
+            task.description
+            || task.instructions
+            || (task.checklist_items && task.checklist_items.length > 0)
+            || task.requires_signature
+            || task.metric_type
+            || (showDayPicker && task.weekdays && task.weekdays.length > 0)
+        );
+        setExpanded(hasExpandedContent);
+    };
+
+    const openCreateModal = (options = {}) => {
         resetForm();
 
         if (options.weekday && showDayPicker) {
-            expandedOpen = true;
-            expanded?.classList.remove('hidden');
-            expandIcon?.classList.add('rotate-180');
-
+            setExpanded(true);
             document.querySelectorAll('.task-create-weekday').forEach((input) => {
                 input.checked = input.value === options.weekday;
             });
@@ -78,6 +150,60 @@ export function initTaskCreateModal() {
         modal.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
         setTimeout(() => titleInput?.focus(), 50);
+    };
+
+    const openEditModal = async (taskId) => {
+        if (!taskId || !formDataUrlBase) {
+            return;
+        }
+
+        resetForm();
+        setModalMode('edit');
+        hideError();
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Laden…';
+        }
+
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+
+        try {
+            const response = await fetch(`${formDataUrlBase}/${taskId}/form-data`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success || !data.task) {
+                showError(data.message || 'Taak laden mislukt.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Wijzigingen opslaan';
+                }
+                return;
+            }
+
+            updateUrl = data.task.update_url;
+            populateForm(data.task);
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Wijzigingen opslaan';
+            }
+
+            setTimeout(() => titleInput?.focus(), 50);
+        } catch {
+            showError('Taak laden mislukt. Probeer opnieuw.');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Wijzigingen opslaan';
+            }
+        }
     };
 
     const closeModal = () => {
@@ -104,9 +230,7 @@ export function initTaskCreateModal() {
     };
 
     expandToggle?.addEventListener('click', () => {
-        expandedOpen = !expandedOpen;
-        expanded?.classList.toggle('hidden', !expandedOpen);
-        expandIcon?.classList.toggle('rotate-180', expandedOpen);
+        setExpanded(!expandedOpen);
     });
 
     addChecklistBtn?.addEventListener('click', () => addChecklistRow());
@@ -124,9 +248,17 @@ export function initTaskCreateModal() {
     document.querySelectorAll('[data-open-task-create]').forEach((trigger) => {
         trigger.addEventListener('click', (event) => {
             event.preventDefault();
-            openModal({
+            openCreateModal({
                 weekday: trigger.dataset.weekday || null,
             });
+        });
+    });
+
+    document.querySelectorAll('[data-open-task-edit]').forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openEditModal(trigger.dataset.taskId);
         });
     });
 
@@ -169,9 +301,13 @@ export function initTaskCreateModal() {
             submitBtn.disabled = true;
         }
 
+        const requestUrl = editMode && updateUrl ? updateUrl : storeUrl;
+        const requestMethod = editMode && updateUrl ? 'PUT' : 'POST';
+        const failureMessage = editMode ? 'Taak bijwerken mislukt.' : 'Taak toevoegen mislukt.';
+
         try {
-            const response = await fetch(storeUrl, {
-                method: 'POST',
+            const response = await fetch(requestUrl, {
+                method: requestMethod,
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrf,
@@ -187,7 +323,7 @@ export function initTaskCreateModal() {
                 const firstError = data.errors
                     ? Object.values(data.errors).flat()[0]
                     : null;
-                showError(data.message || firstError || 'Taak toevoegen mislukt.');
+                showError(data.message || firstError || failureMessage);
                 if (submitBtn) {
                     submitBtn.disabled = false;
                 }
@@ -196,7 +332,7 @@ export function initTaskCreateModal() {
 
             window.location.href = data.redirect || window.location.pathname;
         } catch {
-            showError('Taak toevoegen mislukt. Probeer opnieuw.');
+            showError(`${failureMessage} Probeer opnieuw.`);
             if (submitBtn) {
                 submitBtn.disabled = false;
             }
@@ -204,11 +340,19 @@ export function initTaskCreateModal() {
     });
 
     if (modal.dataset.autoOpen === '1') {
-        openModal({ weekday: modal.dataset.presetWeekday || null });
+        openCreateModal({ weekday: modal.dataset.presetWeekday || null });
 
         const url = new URL(window.location.href);
         url.searchParams.delete('addTask');
         url.searchParams.delete('weekday');
+        window.history.replaceState({}, '', url);
+    }
+
+    if (modal.dataset.autoEditTask) {
+        openEditModal(modal.dataset.autoEditTask);
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('editTask');
         window.history.replaceState({}, '', url);
     }
 }
