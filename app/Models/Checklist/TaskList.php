@@ -190,10 +190,14 @@ class TaskList extends Model
         // Weekly and custom lists check schedule_config
         if (in_array($this->schedule_type, ['weekly', 'custom'])) {
             $config = is_array($this->schedule_config) ? $this->schedule_config : [];
-            $showOnDays = $config['show_on_days'] ?? [];
+            $showOnDays = $config['show_on_days'] ?? $config['days'] ?? [];
             return in_array($day, $showOnDays);
         }
         
+        if ($this->schedule_type === 'monthly') {
+            return true;
+        }
+
         return false;
     }
 
@@ -208,7 +212,7 @@ class TaskList extends Model
         
         if (in_array($this->schedule_type, ['weekly', 'custom'])) {
             $config = is_array($this->schedule_config) ? $this->schedule_config : [];
-            return $config['show_on_days'] ?? [];
+            return $config['show_on_days'] ?? $config['days'] ?? [];
         }
         
         return [];

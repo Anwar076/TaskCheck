@@ -12,10 +12,12 @@
     $timeLabel = app(ListCalendarService::class)->formatTaskTimeLabel($task);
 @endphp
 
-<a href="{{ route('admin.tasks.edit', $task) }}"
-   data-calendar-task
-   class="group relative z-[2] block rounded-md border-l-[3px] px-2 py-1 text-xs font-medium leading-snug transition-shadow {{ $colorClass }} hover:shadow-sm"
-   title="{{ $timeLabel !== 'Hele dag' ? $timeLabel.' — ' : '' }}{{ $task->title }}">
+<button type="button"
+        data-open-task-edit
+        data-task-id="{{ $task->id }}"
+        data-calendar-task
+        class="group relative z-[2] block w-full rounded-md border-l-[3px] px-2 py-1 text-left text-xs font-medium leading-snug transition-shadow {{ $colorClass }} hover:shadow-sm"
+        title="{{ $timeLabel !== 'Hele dag' ? $timeLabel.' — ' : '' }}{{ $task->title }}">
     @if($timeLabel !== 'Hele dag' && $variant !== 'mini')
         <span class="block truncate text-[10px] font-semibold opacity-90">{{ $timeLabel }}</span>
     @endif
@@ -26,4 +28,4 @@
     @if($task->is_required && $variant !== 'mini')
         <span class="mt-0.5 block text-[10px] font-normal opacity-80">Verplicht</span>
     @endif
-</a>
+</button>

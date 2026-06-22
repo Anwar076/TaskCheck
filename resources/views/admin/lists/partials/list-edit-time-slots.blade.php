@@ -91,23 +91,31 @@
                 $end = ! empty($slot['end_time']) ? substr($slot['end_time'], 0, 5) : null;
                 $timeLabel = $start . ($end ? ' – ' . $end : '');
                 $isScheduledSlot = in_array($weekday, $scheduledDays, true);
+                $dateLabel = ! empty($slot['date'])
+                    ? \Carbon\Carbon::parse($slot['date'])->locale('nl')->translatedFormat('d M Y')
+                    : ($weekdayLabels[$weekday] ?? ucfirst($weekday));
             @endphp
             <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5"
                  data-time-slot-row
                  data-slot-id="{{ $slot['id'] }}">
                 <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p class="text-sm font-medium text-slate-900">{{ $weekdayLabels[$weekday] ?? ucfirst($weekday) }}</p>
-                        @unless($isScheduledSlot)
-                            <span class="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">Ongepland</span>
-                        @endunless
-                    </div>
-                    <p class="text-xs text-slate-500">
-                        {{ $timeLabel }}
-                        @unless($isScheduledSlot)
-                            <span class="text-amber-700"> · Deze dag staat niet actief.</span>
-                        @endunless
-                    </p>
+                    @if(!empty($slot['date']))
+                        <p class="text-sm font-medium text-slate-900">{{ $dateLabel }} · {{ $timeLabel }}</p>
+                        <p class="text-xs text-slate-500">Alleen op deze datum (agenda)</p>
+                    @else
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p class="text-sm font-medium text-slate-900">{{ $dateLabel }}</p>
+                            @unless($isScheduledSlot)
+                                <span class="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">Ongepland</span>
+                            @endunless
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            {{ $timeLabel }}
+                            @unless($isScheduledSlot)
+                                <span class="text-amber-700"> · Deze dag staat niet actief.</span>
+                            @endunless
+                        </p>
+                    @endif
                 </div>
                 <button type="button"
                         class="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"

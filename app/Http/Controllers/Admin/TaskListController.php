@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
@@ -77,7 +78,7 @@ class TaskListController extends Controller
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent',
-            'schedule_type' => 'required|in:once,daily,weekly,monthly,custom',
+            'schedule_type' => 'required|in:once,daily,weekly,monthly',
             'due_date' => 'nullable|date',
             'parent_list_id' => 'nullable|exists:task_lists,id',
             'requires_signature' => 'boolean',
@@ -93,31 +94,84 @@ class TaskListController extends Controller
                     $query->where('company_id', auth()->user()->company_id);
                 }),
             ],
+            'default_time_slot_enabled' => 'boolean',
+            'default_time_slot_start' => 'nullable|date_format:H:i|required_if:default_time_slot_enabled,1',
+            'default_time_slot_end' => 'nullable|date_format:H:i',
+            'time_slots' => 'nullable|array',
+            'time_slots.*.weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'time_slots.*.start_time' => 'required|date_format:H:i',
+            'time_slots.*.end_time' => 'nullable|date_format:H:i',
         ]);
+
+        if ($request->boolean('default_time_slot_enabled')
+            && $request->filled('default_time_slot_start')
+            && $request->filled('default_time_slot_end')
+            && $request->input('default_time_slot_end') <= $request->input('default_time_slot_start')) {
+            return back()
+                ->withErrors(['default_time_slot_end' => 'Eindtijd moet na starttijd liggen.'])
+                ->withInput();
+        }
+
+        $rawTimeSlots = collect($request->input('time_slots', []))
+            ->filter(fn ($slot) => is_array($slot) && ! empty($slot['weekday']) && ! empty($slot['start_time']))
+            ->values();
+
+        foreach ($rawTimeSlots as $index => $slot) {
+            $end = $slot['end_time'] ?? null;
+            if ($end && $end <= $slot['start_time']) {
+                return back()
+                    ->withErrors(["time_slots.{$index}.end_time" => 'Eindtijd moet na starttijd liggen.'])
+                    ->withInput();
+            }
+        }
 
         // Set creator and company
         $validatedData['created_by'] = auth()->id();
         $validatedData['company_id'] = auth()->user()->company_id;
 
-        // Handle improved schedule configuration
-        if (in_array($validatedData['schedule_type'], ['daily', 'weekly', 'custom'])) {
-            $scheduleConfig = $validatedData['schedule_config'] ?? [];
-            
-            if ($validatedData['schedule_type'] === 'daily') {
-                // Daily means all days of the week
-                $scheduleConfig['show_on_days'] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-            } elseif ($validatedData['schedule_type'] === 'weekly') {
-                // Weekly with specific days selected
-                $scheduleConfig['show_on_days'] = $validatedData['selected_days'] ?? [];
-            } elseif ($validatedData['schedule_type'] === 'custom' && ($scheduleConfig['type'] ?? null) === 'specific_days') {
-                $scheduleConfig['show_on_days'] = $scheduleConfig['days'] ?? [];
+        $scheduleConfig = $validatedData['schedule_config'] ?? [];
+
+        if ($validatedData['schedule_type'] === 'weekly') {
+            $selectedDays = $validatedData['selected_days'] ?? [];
+            if ($selectedDays === []) {
+                return back()
+                    ->withErrors(['selected_days' => 'Selecteer minimaal één dag voor een wekelijkse lijst.'])
+                    ->withInput();
             }
-            
-            $validatedData['schedule_config'] = $scheduleConfig;
         }
+
+        if ($validatedData['schedule_type'] !== 'once') {
+            $validatedData['due_date'] = null;
+        }
+
+        $scheduleConfig = $this->normalizeScheduleConfig(
+            $validatedData['schedule_type'],
+            $scheduleConfig,
+            $validatedData['selected_days'] ?? null
+        );
+
+        if ($request->boolean('default_time_slot_enabled') && $request->filled('default_time_slot_start')) {
+            $scheduleConfig['default_time_slot'] = [
+                'start_time' => $request->input('default_time_slot_start'),
+                'end_time' => $request->filled('default_time_slot_end') ? $request->input('default_time_slot_end') : null,
+            ];
+        }
+
+        if ($rawTimeSlots->isNotEmpty()) {
+            $scheduleConfig['time_slots'] = $rawTimeSlots->map(fn (array $slot) => [
+                'id' => (string) Str::uuid(),
+                'weekday' => $slot['weekday'],
+                'start_time' => $slot['start_time'],
+                'end_time' => ! empty($slot['end_time']) ? $slot['end_time'] : null,
+            ])->all();
+        }
+
+        $validatedData['schedule_config'] = $scheduleConfig;
 
         // Remove selected_days from the main data as it's now in schedule_config
         unset($validatedData['selected_days']);
+        unset($validatedData['default_time_slot_enabled'], $validatedData['default_time_slot_start'], $validatedData['default_time_slot_end']);
+        unset($validatedData['time_slots']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
 
         // Decouple from template: store which template was used for reference, but clear
@@ -393,6 +447,7 @@ class TaskListController extends Controller
             'weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',
+            'date' => 'nullable|date_format:Y-m-d',
         ]);
 
         $startTime = $validated['start_time'];
@@ -410,7 +465,8 @@ class TaskListController extends Controller
             $list,
             $validated['weekday'],
             $startTime,
-            $endTime
+            $endTime,
+            $validated['date'] ?? null
         );
 
         return response()->json([
@@ -471,6 +527,7 @@ class TaskListController extends Controller
             'weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',
+            'date' => 'nullable|date_format:Y-m-d',
             'target_list_id' => 'nullable|integer|exists:task_lists,id',
         ]);
 
@@ -493,8 +550,11 @@ class TaskListController extends Controller
 
         $targetListId = isset($validated['target_list_id']) ? (int) $validated['target_list_id'] : null;
         $resultList = $list;
+        $date = $validated['date'] ?? null;
 
-        if ($slot === 'default') {
+        if ($date) {
+            $service->assignListTimeSlot($list, $validated['weekday'], $startTime, $endTime, $date);
+        } elseif ($slot === 'default') {
             if ($targetListId && $targetListId !== $list->id) {
                 return response()->json([
                     'success' => false,
@@ -502,7 +562,7 @@ class TaskListController extends Controller
                 ], 422);
             }
 
-            $service->setDefaultTimeSlot($list, $startTime, $endTime);
+            $service->assignListTimeSlot($list, $validated['weekday'], $startTime, $endTime);
         } elseif ($targetListId && $targetListId !== $list->id) {
             $target = TaskList::where('company_id', auth()->user()->company_id)->findOrFail($targetListId);
             $service->moveListTimeSlot($list, $slot, $target, $validated['weekday'], $startTime, $endTime);
@@ -522,13 +582,23 @@ class TaskListController extends Controller
         ]);
     }
 
-    public function destroyScheduleTimeSlot(TaskList $list, string $slot)
+    public function destroyScheduleTimeSlot(Request $request, TaskList $list, string $slot)
     {
         if ($list->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
 
         $service = app(ListCalendarService::class);
+        $date = $request->input('date');
+
+        if ($date) {
+            $service->removeListTimeSlotForDate($list, $date);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Tijdslot voor '{$list->title}' op deze dag is verwijderd.",
+            ]);
+        }
 
         if ($slot === 'default') {
             $service->removeDefaultTimeSlot($list);
@@ -573,7 +643,7 @@ class TaskListController extends Controller
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'priority' => 'required|in:low,medium,high,urgent',
-            'schedule_type' => 'required|in:once,daily,weekly,monthly,custom',
+            'schedule_type' => 'required|in:once,daily,weekly,monthly',
             'due_date' => 'nullable|date',
             'parent_list_id' => 'nullable|exists:task_lists,id',
             'requires_signature' => 'boolean',
@@ -604,24 +674,28 @@ class TaskListController extends Controller
 
         // Handle improved schedule configuration
         $existingConfig = is_array($list->schedule_config) ? $list->schedule_config : [];
-        $scheduleConfig = array_merge($existingConfig, $validatedData['schedule_config'] ?? []);
+        $inputConfig = $validatedData['schedule_config'] ?? [];
 
-        $scheduledDays = null;
-
-        if (in_array($validatedData['schedule_type'], ['daily', 'weekly', 'custom'])) {
-            if ($validatedData['schedule_type'] === 'daily') {
-                // Daily means all days of the week
-                $scheduledDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                $scheduleConfig['show_on_days'] = $scheduledDays;
-            } elseif ($validatedData['schedule_type'] === 'weekly') {
-                // Weekly with specific days selected
-                $scheduledDays = $validatedData['selected_days'] ?? [];
-                $scheduleConfig['show_on_days'] = $scheduledDays;
-            } elseif ($validatedData['schedule_type'] === 'custom' && ($scheduleConfig['type'] ?? null) === 'specific_days') {
-                $scheduledDays = $scheduleConfig['days'] ?? [];
-                $scheduleConfig['show_on_days'] = $scheduledDays;
+        if ($validatedData['schedule_type'] === 'weekly') {
+            $selectedDays = $validatedData['selected_days'] ?? [];
+            if ($selectedDays === []) {
+                return back()
+                    ->withErrors(['selected_days' => 'Selecteer minimaal één dag voor een wekelijkse lijst.'])
+                    ->withInput();
             }
         }
+
+        if ($validatedData['schedule_type'] !== 'once') {
+            $validatedData['due_date'] = null;
+        }
+
+        $scheduleConfig = $this->normalizeScheduleConfig(
+            $validatedData['schedule_type'],
+            array_merge($existingConfig, $inputConfig),
+            $validatedData['selected_days'] ?? null
+        );
+
+        $scheduledDays = $scheduleConfig['show_on_days'] ?? null;
 
         if (isset($existingConfig['time_slots'])) {
             $timeSlots = is_array($existingConfig['time_slots']) ? $existingConfig['time_slots'] : [];
@@ -2029,5 +2103,29 @@ PROMPT,
 
         return redirect()->route('admin.lists.show', $list)
             ->with('success', 'Takenlijst is opnieuw gesynchroniseerd met het template.');
+    }
+
+    private function normalizeScheduleConfig(string $scheduleType, array $config, ?array $selectedDays = null): array
+    {
+        $normalized = [];
+
+        foreach (['time_slots', 'default_time_slot'] as $key) {
+            if (array_key_exists($key, $config)) {
+                $normalized[$key] = $config[$key];
+            }
+        }
+
+        return match ($scheduleType) {
+            'daily' => array_merge($normalized, [
+                'show_on_days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+            ]),
+            'weekly' => array_merge($normalized, [
+                'show_on_days' => array_values(array_unique($selectedDays ?? [])),
+            ]),
+            'monthly' => array_merge($normalized, [
+                'day_of_month' => max(1, min(31, (int) ($config['day_of_month'] ?? 1))),
+            ]),
+            default => $normalized,
+        };
     }
 }

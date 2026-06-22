@@ -167,14 +167,13 @@ private function getUserAssignments($user, $date)
                 return true;
 
             case 'weekly':
-                // Weekly tasks: check schedule config or default to once per week
-                $scheduleConfig = $taskList->schedule_config;
-                if ($scheduleConfig && isset($scheduleConfig['weekdays'])) {
-                    $dayOfWeek = strtolower($date->format('l'));
-                    return in_array($dayOfWeek, $scheduleConfig['weekdays']);
+                $scheduleConfig = is_array($taskList->schedule_config) ? $taskList->schedule_config : [];
+                $days = $scheduleConfig['show_on_days'] ?? $scheduleConfig['weekdays'] ?? [];
+                if ($days !== []) {
+                    return in_array(strtolower($date->format('l')), $days, true);
                 }
-                // Default to Monday if no config
-                return $date->isMonday();
+
+                return false;
 
             case 'monthly':
                 // Monthly tasks: check schedule config or default to first day of month
@@ -241,11 +240,15 @@ private function getUserAssignments($user, $date)
      */
     private function isTaskListCompletedOnDate($taskList, $user, $date)
     {
-        return Submission::where('user_id', $user->id)
+        $query = Submission::where('user_id', $user->id)
             ->where('list_id', $taskList->id)
-            ->whereDate('created_at', $date)
-            ->whereIn('status', ['completed', 'reviewed'])
-            ->exists();
+            ->whereIn('status', ['completed', 'reviewed']);
+
+        if ($taskList->schedule_type === 'once') {
+            return $query->exists();
+        }
+
+        return $query->whereDate('created_at', $date)->exists();
     }
 
     /**
