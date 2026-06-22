@@ -34,7 +34,7 @@
                     </li>
                     <li class="flex gap-2.5">
                         <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">2</span>
-                        <span>Klik rechtsboven op <strong class="text-slate-800">Medewerker dashboard</strong> om te wisselen en de lijst in te vullen.</span>
+                        <span>Klik rechtsboven op <strong class="text-slate-800">Medewerkersweergave</strong> om te wisselen en de lijst in te vullen.</span>
                     </li>
                 </ul>
             </div>
@@ -51,7 +51,7 @@
                     <button type="submit"
                         class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition-colors">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
-                        Naar medewerker dashboard
+                        Naar medewerkersweergave
                     </button>
                 </form>
             </div>

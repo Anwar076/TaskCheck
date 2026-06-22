@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    @php
-        $versionFile = public_path('build/manifest.json');
-        $fallbackFile = public_path('sw.js');
-        $webAppVersion = 'onbekend';
-        $versionTimestamp = null;
-
-        if (file_exists($versionFile)) {
-            $versionTimestamp = filemtime($versionFile);
-        } elseif (file_exists($fallbackFile)) {
-            $versionTimestamp = filemtime($fallbackFile);
-        }
-
-        if ($versionTimestamp) {
-            $webAppVersion = 'v' . date('y.m.d-Hi', $versionTimestamp) . ' (' . date('d-m-Y H:i', $versionTimestamp) . ')';
-        }
-    @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -139,39 +123,54 @@
         <!-- Clean Main content -->
         <div class="flex-1 flex flex-col overflow-hidden min-h-0">
             <!-- Clean Top navigation -->
-            <header class="sticky top-0 z-30 shrink-0 bg-white border-b border-slate-200 px-4 sm:px-6 py-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <!-- Mobile menu button -->
-                    <button type="button" aria-label="Menu openen" class="md:hidden p-2.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" id="mobile-menu-button">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-                        </svg>
-                    </button>
-                    
-                    <!-- Breadcrumb -->
-                    <div class="hidden md:flex items-center gap-2 text-sm min-w-0">
-                        <svg class="h-4 w-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
-                        </svg>
-                        @hasSection('breadcrumbs')
-                            @yield('breadcrumbs')
-                        @else
-                            <span class="text-slate-500">/</span>
-                            <span class="text-slate-900 font-semibold truncate">@yield('page-title', 'Dashboard')</span>
-                        @endif
+            <header class="sticky top-0 z-30 shrink-0 bg-white border-b border-slate-200 px-4 py-4 shadow-sm sm:px-6">
+                <div class="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
+                    <div class="flex min-w-0 items-center">
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 md:hidden">
+                            <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
+                            <div class="leading-tight">
+                                <p class="text-lg font-semibold text-slate-900">TaskCheck</p>
+                                <p class="text-[11px] text-slate-500">Checklist &amp; kwaliteitscontrole</p>
+                            </div>
+                        </a>
+
+                        <!-- Breadcrumb -->
+                        <div class="hidden md:flex items-center gap-2 text-sm min-w-0">
+                            <svg class="h-4 w-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                            </svg>
+                            @hasSection('breadcrumbs')
+                                @yield('breadcrumbs')
+                            @else
+                                <span class="text-slate-500">/</span>
+                                <span class="text-slate-900 font-semibold truncate">@yield('page-title', 'Dashboard')</span>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex items-center gap-2">
+                    <div class="hidden md:flex items-center gap-2">
                         @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
-                            <form method="POST" action="{{ route('dashboard.switch') }}" class="hidden sm:block">
-                                @csrf
-                                <input type="hidden" name="mode" value="employee">
-                                <button type="submit" data-onboarding-employee-switch class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                                    Medewerker dashboard
-                                </button>
-                            </form>
+                            <div class="hidden items-center rounded-xl border border-slate-200 bg-slate-50 p-1 sm:flex">
+                                <span class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white shadow-sm">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 8.25V6zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 018.25 20.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                                    </svg>
+                                    Adminweergave
+                                </span>
+                                <form method="POST" action="{{ route('dashboard.switch') }}">
+                                    @csrf
+                                    <input type="hidden" name="mode" value="employee">
+                                    <button type="submit" data-onboarding-employee-switch class="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-white hover:text-blue-700 transition-colors">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                        Medewerkersweergave
+                                    </button>
+                                </form>
+                            </div>
                         @endif
+                        @include('partials.google-translate', ['variant' => 'topbar'])
                         @php $adminUnreadCount = auth()->user()->unreadNotifications()->count(); @endphp
                         <div class="relative" data-admin-notification-root>
                             <button
@@ -267,6 +266,12 @@
                             </div>
                         </div>
                     </div>
+
+                    <button type="button" aria-label="Menu openen" class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" id="mobile-menu-button">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                        </svg>
+                    </button>
                 </div>
             </header>
 
@@ -306,7 +311,7 @@
                                     <p class="text-yellow-800 font-medium">{{ session('trial_warning')['message'] }}</p>
                                 </div>
                                 <a href="{{ route('subscription.choose-plan') }}" class="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors">
-                                    Plan kiezen
+                                    Abonnement kiezen
                                 </a>
                             </div>
                         </div>
@@ -325,7 +330,7 @@
                                         </svg>
                                         <p class="text-blue-800 font-medium">
                                             Je proefperiode eindigt over {{ $company->trialDaysRemaining() }} dag(en). 
-                                            <a href="{{ route('subscription.choose-plan') }}" class="underline font-bold">Kies een plan</a> om door te gaan.
+                                            <a href="{{ route('subscription.choose-plan') }}" class="underline font-bold">Kies een abonnement</a> om door te gaan.
                                         </p>
                                     </div>
                                 </div>
@@ -342,11 +347,6 @@
 
                     <!-- Content -->
                     @yield('content')
-                    <div class="mt-4 text-right">
-                        <span class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-500">
-                            Web app versie: {{ $webAppVersion }}
-                        </span>
-                    </div>
                 </div>
             </main>
         </div>
@@ -354,54 +354,51 @@
 
 
     <!-- Mobile menu overlay -->
-    <div class="md:hidden fixed inset-0 z-50 hidden" id="mobile-menu-overlay">
-        <div class="fixed inset-0 bg-slate-900/75" id="mobile-menu-backdrop"></div>
-        <div class="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-2xl">
-            <!-- Mobile menu content -->
-            <div class="flex flex-col h-full">
-                <!-- Mobile Logo -->
-                <div class="flex items-center justify-between p-6 border-b border-slate-200/50">
-                    <div class="flex items-center space-x-3">
-                        <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
-                        <div>
-                            <h1 class="text-lg font-bold text-gray-900">TaskCheck</h1>
-                            <p class="text-xs text-slate-500 font-medium">Checklist &amp; kwaliteitscontrole</p>
-                        </div>
+    <div class="md:hidden fixed inset-0 z-[60] hidden" id="mobile-menu-overlay" aria-hidden="true">
+        <div class="mobile-menu-backdrop absolute inset-0 bg-slate-950/35 backdrop-blur-sm" id="mobile-menu-backdrop"></div>
+        <aside id="mobile-menu-panel" class="absolute inset-y-0 right-0 flex w-[min(22rem,88vw)] translate-x-full flex-col bg-white shadow-2xl ring-1 ring-slate-200 transition-transform duration-300 ease-out">
+            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
+                    <div class="leading-tight">
+                        <p class="text-base font-semibold text-slate-900">TaskCheck</p>
+                        <p class="text-[11px] text-slate-500">Menu</p>
                     </div>
-                    <button type="button" aria-label="Menu sluiten" class="p-2.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors" id="close-mobile-menu">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
                 </div>
+                <button type="button" aria-label="Menu sluiten" class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700" id="close-mobile-menu">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
 
-                <!-- Mobile Navigation -->
-                <nav class="flex-1 px-4 py-6 space-y-1">
+            <div class="flex-1 overflow-y-auto px-5 py-4">
+                <nav class="space-y-1">
                     <a href="{{ route('admin.dashboard') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.dashboard') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
                         </svg>
                         Dashboard
                     </a>
                     
                     <a href="{{ route('admin.lists.index') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.lists.*') && !request()->routeIs('admin.lists.calendar') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.lists.*') && !request()->routeIs('admin.lists.calendar') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.lists.*') && !request()->routeIs('admin.lists.calendar') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         Takenlijsten
                     </a>
                     <a href="{{ route('admin.lists.calendar') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.lists.calendar') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.lists.calendar') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.lists.calendar') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
                         </svg>
                         Agenda
                     </a>
                     <a href="{{ route('admin.templates.index') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.templates.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.templates.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.templates.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                         </svg>
                         Templates
@@ -414,63 +411,61 @@
                         Starterpacks
                     </a>
                     <a href="{{ route('admin.submissions.index') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.submissions.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.submissions.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.submissions.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                         </svg>
-                        Submissions
+                        Inzendingen
                     </a>
                     
                     @if((auth()->user()->company?->subscription_plan ?? 'starter') !== 'starter')
                         <a href="{{ route('admin.weekly-overview') }}" 
-                           class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.weekly-overview') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.weekly-overview') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                           class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.weekly-overview') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                            <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
                             </svg>
                             Weekoverzicht
                         </a>
                     @endif
                     <a href="{{ route('admin.settings.edit') }}" 
-                       class="flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.users.*') || request()->routeIs('admin.locations.*') || request()->routeIs('subscription.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.users.*') || request()->routeIs('admin.locations.*') || request()->routeIs('subscription.*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.users.*') || request()->routeIs('admin.locations.*') || request()->routeIs('subscription.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                        <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                         Instellingen
                     </a>
                 </nav>
-
-                <!-- Mobile User section -->
-                <div class="border-t border-gray-200 p-6">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-medium">
-                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name }}</p>
-                            <p class="text-xs text-slate-500">Beheerder</p>
-                        </div>
+            </div>
+            <div class="border-t border-slate-100 bg-slate-50 px-5 py-4">
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 font-medium text-white">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                     </div>
-                    @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
-                        <form method="POST" action="{{ route('dashboard.switch') }}" class="mb-3">
-                            @csrf
-                            <input type="hidden" name="mode" value="employee">
-                            <button type="submit" data-onboarding-employee-switch class="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-blue-700 hover:bg-blue-50 rounded-xl transition-colors border border-blue-200 hover:border-blue-300">
-                                Naar medewerker dashboard
-                            </button>
-                        </form>
-                    @endif
-                    <form method="POST" action="{{ route('logout') }}">
+                    <div class="min-w-0">
+                        <div class="truncate text-sm font-medium text-gray-900">{{ Auth::user()->name }}</div>
+                        <div class="truncate text-xs text-gray-500">{{ Auth::user()->email }}</div>
+                    </div>
+                </div>
+                @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                    <form method="POST" action="{{ route('dashboard.switch') }}" class="mb-3">
                         @csrf
-                        <button type="submit" class="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-red-200 hover:border-red-300">
-                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v4m2.25-6h8.25m-8.25 0l2.25 2.25m0 0l2.25 2.25M6 20.25h8.25m-8.25 0l-2.25-2.25M6 20.25l-2.25-2.25"/>
-                            </svg>
-                            Uitloggen
+                        <input type="hidden" name="mode" value="employee">
+                        <button type="submit" data-onboarding-employee-switch class="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-50">
+                            Naar medewerkersweergave
                         </button>
                     </form>
-                </div>
+                @endif
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="flex w-full items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                        </svg>
+                        Uitloggen
+                    </button>
+                </form>
             </div>
-        </div>
+        </aside>
     </div>
 
     <!-- Clean JavaScript -->
@@ -997,21 +992,31 @@
 
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+            const mobileMenuPanel = document.getElementById('mobile-menu-panel');
             const closeMobileMenu = document.getElementById('close-mobile-menu');
             
-            if (mobileMenuButton && mobileMenuOverlay) {
-                mobileMenuButton.addEventListener('click', function() {
+            if (mobileMenuButton && mobileMenuOverlay && mobileMenuPanel) {
+                function openMenu() {
                     mobileMenuOverlay.classList.remove('hidden');
-                });
-
-                function closeMenu() {
-                    mobileMenuOverlay.classList.add('hidden');
-                    document.body.style.overflow = '';
+                    mobileMenuOverlay.setAttribute('aria-hidden', 'false');
+                    document.body.style.overflow = 'hidden';
+                    requestAnimationFrame(() => {
+                        mobileMenuPanel.classList.remove('translate-x-full');
+                    });
                 }
 
-                mobileMenuButton.addEventListener('click', function() {
-                    document.body.style.overflow = 'hidden';
-                });
+                function closeMenu() {
+                    mobileMenuPanel.classList.add('translate-x-full');
+                    mobileMenuOverlay.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                    setTimeout(() => {
+                        if (mobileMenuOverlay.getAttribute('aria-hidden') === 'true') {
+                            mobileMenuOverlay.classList.add('hidden');
+                        }
+                    }, 300);
+                }
+
+                mobileMenuButton.addEventListener('click', openMenu);
 
                 if (closeMobileMenu) closeMobileMenu.addEventListener('click', closeMenu);
 
@@ -1020,6 +1025,12 @@
 
                 const mobileNavLinks = mobileMenuOverlay.querySelectorAll('nav a');
                 mobileNavLinks.forEach(link => link.addEventListener('click', closeMenu));
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && mobileMenuOverlay.getAttribute('aria-hidden') === 'false') {
+                        closeMenu();
+                    }
+                });
             }
 
             // Auto-hide flash messages (only those with the flash-message class)
@@ -1083,6 +1094,5 @@
     @endif
     @stack('scripts')
     @include('partials.page-transitions')
-    @include('partials.google-translate')
 </body>
 </html>

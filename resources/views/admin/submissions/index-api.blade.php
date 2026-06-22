@@ -37,7 +37,7 @@
         </div>
 
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-6 sm:p-8">
+            <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
         {{-- Tabs --}}
         <div id="submissions-tabs" class="mb-6 sm:mb-8" style="display: none;">
             <div class="border-b border-slate-200">
