@@ -49,11 +49,13 @@
             </div>
         </div>
 
-        @include('admin.settings.tabs', ['activeTab' => 'users'])
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-6 sm:p-8">
+                @include('admin.settings.tabs', ['activeTab' => 'users'])
 
         {{-- Stats --}}
         <div id="users-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
@@ -64,7 +66,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -75,7 +77,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
@@ -86,7 +88,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-xl flex items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
@@ -100,7 +102,7 @@
         </div>
 
         {{-- Zoeken en filter --}}
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
+        <div class="rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden mb-6 sm:mb-8">
             <div class="px-4 sm:px-6 py-4 sm:py-5">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div class="flex-1 w-full lg:max-w-md">
@@ -139,7 +141,7 @@
         </div>
 
         {{-- Tabel --}}
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden">
             <div id="users-table" class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -211,13 +213,15 @@
         </div>
 
         {{-- Empty state (filter) --}}
-        <div id="empty-filter-state" class="bg-white rounded-xl shadow-sm border border-slate-100 p-8 sm:p-12 text-center" style="display: none;">
+        <div id="empty-filter-state" class="rounded-xl border border-slate-100 bg-slate-50 p-8 sm:p-12 text-center" style="display: none;">
             <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
             </div>
             <h3 class="text-lg font-semibold text-slate-900">Geen resultaten</h3>
             <p class="mt-2 text-sm text-slate-500 max-w-sm mx-auto">Er zijn geen gebruikers die voldoen aan je filters.</p>
             <button type="button" onclick="clearFilters()" class="mt-4 inline-flex items-center gap-2 px-4 py-2.5 text-blue-600 hover:bg-blue-50 rounded-xl text-sm font-medium transition-colors">Filters wissen</button>
+        </div>
+            </div>
         </div>
     </div>
 </div>
