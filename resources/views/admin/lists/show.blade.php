@@ -189,26 +189,28 @@
                                             <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         </span>
                                     </div>
-                                    <div class="flex-1">
-                                        <h4 class="text-base font-semibold text-gray-900">
-                                            @if($assignment->user)
-                                                {{ $assignment->user->name }}
-                                            @elseif($assignment->department)
-                                                <span class="text-emerald-600">{{ $assignment->department }}</span>
-                                            @else
-                                                <span class="text-slate-500 italic">Gebruiker niet gevonden</span>
-                                            @endif
-                                        </h4>
-                                        <p class="text-sm text-gray-600">
-                                            @if($assignment->user)
-                                                {{ $assignment->user->department ?? 'Geen afdeling' }}
-                                            @elseif($assignment->department)
-                                                <span class="text-emerald-600">Afdeling</span>
-                                            @else
-                                                <span class="text-slate-400">Geen afdeling</span>
-                                            @endif
-                                        </p>
-                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    <div class="flex min-w-0 flex-1 items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <h4 class="truncate text-base font-semibold text-gray-900">
+                                                @if($assignment->user)
+                                                    {{ $assignment->user->name }}
+                                                @elseif($assignment->department)
+                                                    <span class="text-emerald-600">{{ $assignment->department }}</span>
+                                                @else
+                                                    <span class="text-slate-500 italic">Gebruiker niet gevonden</span>
+                                                @endif
+                                            </h4>
+                                            <p class="truncate text-sm text-gray-600">
+                                                @if($assignment->user)
+                                                    {{ $assignment->user->department ?? 'Geen afdeling' }}
+                                                @elseif($assignment->department)
+                                                    <span class="text-emerald-600">Afdeling</span>
+                                                @else
+                                                    <span class="text-slate-400">Geen afdeling</span>
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">
                                             <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
                                             Actief
                                         </span>
@@ -240,14 +242,7 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Action Section -->
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-2">
-                                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span class="text-sm font-medium text-slate-600">Status</span>
-                                    </div>
+                                <div class="flex justify-end">
                                     <button type="button" onclick="removeAssignment({{ $assignment->id }})" 
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>

@@ -343,10 +343,14 @@ function renderLists(lists) {
 
 function renderListStatusBadge(list) {
     if (isListUnscheduled(list)) {
-        return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-100 text-amber-800">Ongepland</span>`;
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-100 text-amber-800">
+            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+            Ongepland
+        </span>`;
     }
 
-    return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${list.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${list.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
+        <span class="w-1.5 h-1.5 ${list.is_active ? 'bg-emerald-500' : 'bg-slate-400'} rounded-full"></span>
         ${list.is_active ? 'Actief' : 'Inactief'}
     </span>`;
 }
