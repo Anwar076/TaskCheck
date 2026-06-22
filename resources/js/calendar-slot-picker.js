@@ -284,7 +284,6 @@ export function initCalendarSlotPicker() {
             submitBtn.textContent = mode === 'edit' ? 'Opslaan' : 'Koppelen';
         }
         deleteBtn?.classList.toggle('hidden', mode !== 'edit');
-        manageLink?.classList.toggle('hidden', mode !== 'edit');
     };
 
     const populateListSelect = (lists, selectedId) => {
@@ -413,8 +412,11 @@ export function initCalendarSlotPicker() {
 
         populateListSelect(lists, sourceListId || lists[0]?.id);
 
-        if (manageLink && manageUrl) {
-            manageLink.href = manageUrl;
+        if (manageLink) {
+            manageLink.classList.toggle('hidden', !manageUrl);
+            if (manageUrl) {
+                manageLink.href = manageUrl;
+            }
         }
 
         popup.classList.remove('hidden');
@@ -777,6 +779,7 @@ export function initCalendarSlotPicker() {
                 endTime: '10:00',
                 anchorElement: allDayBtn,
                 sourceListId: allDayBtn.dataset.listId,
+                manageUrl: allDayBtn.dataset.manageUrl,
             });
         });
     });

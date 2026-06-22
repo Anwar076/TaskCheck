@@ -19,6 +19,7 @@
             data-list-title="{{ $list->title }}"
             data-weekday="{{ $day['key'] }}"
             data-store-url="{{ route('admin.lists.schedule-slot', $list) }}"
+            data-manage-url="{{ $href }}"
             class="group relative z-[2] flex w-full overflow-hidden rounded-md text-left font-medium leading-snug transition-shadow hover:shadow-sm {{ $sizeClass }}"
             title="{{ $list->title }} — klik om tijdslot in te stellen">
         <span class="w-[3px] shrink-0 {{ $accentClass }}"></span>
