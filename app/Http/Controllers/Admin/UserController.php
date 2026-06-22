@@ -7,6 +7,7 @@ use App\Models\Organisation\Company;
 use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
@@ -64,7 +65,6 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,employee',
             'department' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
@@ -86,19 +86,32 @@ class UserController extends Controller
             $validated['role']
         );
 
-        $validated['password'] = bcrypt($validated['password']);
+        $validated['password'] = Str::password(32);
         $validated['is_active'] = $request->has('is_active');
         $validated['company_id'] = auth()->user()->company_id;
 
         $user = User::create($validated);
 
+        $invitationSent = true;
+        try {
+            $user->sendInvitationNotification(auth()->user());
+        } catch (\Throwable $e) {
+            $invitationSent = false;
+            report($e);
+        }
+
+        $successMessage = $invitationSent
+            ? 'Gebruiker aangemaakt. Er is een e-mail verstuurd om een wachtwoord in te stellen.'
+            : 'Gebruiker aangemaakt, maar de uitnodigingsmail kon niet worden verstuurd. De gebruiker kan later via "wachtwoord vergeten" een link aanvragen.';
+
         if (auth()->user()->company?->needsOnboarding()) {
             return redirect()->route('admin.users.index')
-                ->with('success', 'Gebruiker succesvol aangemaakt. Voeg er gerust nog een toe, of ga door naar je eerste lijst.');
+                ->with('success', $successMessage)
+                ->with('onboarding_user_created', true);
         }
 
         return redirect()->route('admin.users.index', ['updated' => time()])
-            ->with('success', 'Gebruiker succesvol aangemaakt.');
+            ->with('success', $successMessage);
     }
 
     /**

@@ -14,7 +14,9 @@ use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Notifications\UserInvitationNotification;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Password;
 use Laravel\Sanctum\HasApiTokens;
 use App\Traits\BelongsToCompany;
 
@@ -76,6 +78,17 @@ class User extends Authenticatable
     public function isEmployee(): bool
     {
         return $this->role === 'employee';
+    }
+
+    public function sendInvitationNotification(?User $invitedBy = null): void
+    {
+        $token = Password::createToken($this);
+
+        $this->notify(new UserInvitationNotification(
+            $token,
+            $invitedBy?->name,
+            $this->company?->name,
+        ));
     }
 
     /**
