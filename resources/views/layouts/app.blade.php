@@ -124,10 +124,11 @@
             @endisset
 
             <!-- Page Content -->
-            <main>
+            <main data-page-transition-root>
                 {{ $slot }}
             </main>
         </div>
+        @include('partials.page-transitions')
         @include('partials.google-translate')
     </body>
 </html>

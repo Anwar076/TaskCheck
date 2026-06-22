@@ -46,7 +46,7 @@
         </div>
 
         {{-- Laden --}}
-        <div id="lists-loading" class="text-center py-16">
+        <div id="lists-loading" class="text-center py-16" style="{{ isset($initialLists) ? 'display: none;' : '' }}">
             <div class="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
             <p class="mt-3 text-sm text-slate-600">Laden van takenlijsten...</p>
         </div>
@@ -135,6 +135,38 @@
 
 // Prevent multiple simultaneous loads
 let isLoading = false;
+let hasRenderedLists = false;
+const initialLists = @json($initialLists ?? null);
+
+function applyListsResponse(lists) {
+    const loadingDiv = document.getElementById('lists-loading');
+    const statsDiv = document.getElementById('lists-stats');
+    const containerDiv = document.getElementById('lists-container');
+    const emptyDiv = document.getElementById('empty-state');
+    const paginationDiv = document.getElementById('pagination-container');
+
+    document.getElementById('total-lists').textContent = lists.total || 0;
+    statsDiv.style.display = 'block';
+
+    if (lists.data && lists.data.length > 0) {
+        renderLists(lists.data);
+        containerDiv.style.display = 'grid';
+        emptyDiv.style.display = 'none';
+        if (lists.last_page > 1) {
+            renderPagination(lists);
+            paginationDiv.style.display = 'block';
+        } else {
+            paginationDiv.style.display = 'none';
+        }
+    } else {
+        containerDiv.style.display = 'none';
+        emptyDiv.style.display = 'block';
+        paginationDiv.style.display = 'none';
+    }
+
+    loadingDiv.style.display = 'none';
+    hasRenderedLists = true;
+}
 
 async function loadLists() {
     if (isLoading) {
@@ -159,12 +191,14 @@ async function loadLists() {
 
     try {
         console.log('Starting loadLists function...');
-        
-        loadingDiv.style.display = 'block';
-        statsDiv.style.display = 'none';
-        containerDiv.style.display = 'none';
-        emptyDiv.style.display = 'none';
-        paginationDiv.style.display = 'none';
+
+        if (!hasRenderedLists) {
+            loadingDiv.style.display = 'block';
+            statsDiv.style.display = 'none';
+            containerDiv.style.display = 'none';
+            emptyDiv.style.display = 'none';
+            paginationDiv.style.display = 'none';
+        }
 
         // Get search and filter parameters
         const search = document.getElementById('search-input').value;
@@ -226,30 +260,15 @@ async function loadLists() {
             throw new Error('Server returned invalid JSON');
         }
 
-        // Update stats
-        document.getElementById('total-lists').textContent = lists.total || 0;
-        statsDiv.style.display = 'block';
-
-        if (lists.data && lists.data.length > 0) {
-            renderLists(lists.data);
-            containerDiv.style.display = 'grid';
-            emptyDiv.style.display = 'none';
-            if (lists.last_page > 1) {
-                renderPagination(lists);
-                paginationDiv.style.display = 'block';
-            } else {
-                paginationDiv.style.display = 'none';
-            }
-        } else {
-            containerDiv.style.display = 'none';
-            emptyDiv.style.display = 'block';
-            paginationDiv.style.display = 'none';
-        }
-
-        loadingDiv.style.display = 'none';
+        applyListsResponse(lists);
 
     } catch (error) {
         console.error('Failed to load lists:', error);
+
+        if (hasRenderedLists) {
+            alert('Er is een fout opgetreden bij het vernieuwen van de takenlijsten: ' + error.message);
+            return;
+        }
         
         // Show error state
         loadingDiv.innerHTML = `
@@ -476,23 +495,14 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeListsPage();
 });
 
-// Also trigger when page becomes visible (for navigation back)
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        setTimeout(loadLists, 100);
-    }
-});
-
-// Also trigger on page show (for browser back/forward)
-window.addEventListener('pageshow', function(event) {
-    setTimeout(loadLists, 100);
-});
-
 function initializeListsPage() {
     console.log('Initializing lists page...');
     
-    // Load lists immediately
-    loadLists();
+    if (initialLists) {
+        applyListsResponse(initialLists);
+    } else {
+        loadLists();
+    }
     
     // Search functionality
     const searchInput = document.getElementById('search-input');

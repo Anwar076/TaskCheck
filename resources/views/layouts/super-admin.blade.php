@@ -126,7 +126,7 @@
                 </div>
             </header>
 
-            <main class="flex-1 overflow-y-auto">
+            <main class="flex-1 overflow-y-auto" data-page-transition-root>
                 <div class="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
                     @if (session('success'))
                         <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">{{ session('success') }}</div>
@@ -179,6 +179,7 @@
         })();
     </script>
     @stack('scripts')
+    @include('partials.page-transitions')
     @include('partials.google-translate')
 </body>
 </html>

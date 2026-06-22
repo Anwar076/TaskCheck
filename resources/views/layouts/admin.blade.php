@@ -264,7 +264,7 @@
             </header>
 
             <!-- Clean Page content -->
-            <main class="flex-1 overflow-y-auto bg-slate-50">
+            <main class="flex-1 overflow-y-auto bg-slate-50" data-page-transition-root>
                 <div class="p-4 sm:p-6">
                     <!-- Flash Messages -->
                     @if (session('success') && empty($onboarding['active']))
@@ -1068,6 +1068,7 @@
         <x-admin-onboarding-tour :onboarding="$onboarding" />
     @endif
     @stack('scripts')
+    @include('partials.page-transitions')
     @include('partials.google-translate')
 </body>
 </html>

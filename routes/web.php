@@ -283,8 +283,12 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
         return view('admin.users.index-api');
     })->name('users.index');
     
-    Route::get('/submissions', function() {
-        return view('admin.submissions.index-api');
+    Route::get('/submissions', function(\Illuminate\Http\Request $request) {
+        $initialSubmissions = app(\App\Http\Controllers\Api\SubmissionController::class)
+            ->index($request)
+            ->getData(true);
+
+        return view('admin.submissions.index-api', compact('initialSubmissions'));
     })->name('submissions.index');
     
     // AI import routes must come before resource route with {list}

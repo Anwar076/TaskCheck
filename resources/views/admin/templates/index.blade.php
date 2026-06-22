@@ -37,7 +37,7 @@
         </div>
 
         {{-- Laden --}}
-        <div id="loading-templates" class="text-center py-16">
+        <div id="loading-templates" class="text-center py-16" style="{{ isset($initialTemplates) ? 'display: none;' : '' }}">
             <div class="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
             <p class="mt-3 text-sm text-slate-600">Templates laden...</p>
         </div>
@@ -97,10 +97,28 @@
 <script>
 let isLoading = false;
 let currentTemplates = [];
+let hasRenderedTemplates = false;
+const initialTemplates = @json($initialTemplates ?? null);
 
-document.addEventListener('DOMContentLoaded', loadTemplates);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) loadTemplates(); });
-window.addEventListener('pageshow', (e) => { if (e.persisted) loadTemplates(); });
+document.addEventListener('DOMContentLoaded', () => {
+    if (initialTemplates) {
+        applyTemplatesResponse(initialTemplates);
+    } else {
+        loadTemplates();
+    }
+});
+
+function applyTemplatesResponse(data) {
+    const loadingDiv = document.getElementById('loading-templates');
+    const errorDiv = document.getElementById('error-templates');
+    const contentDiv = document.getElementById('templates-content');
+
+    loadingDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    contentDiv.style.display = 'block';
+    renderTemplates(data.data || []);
+    hasRenderedTemplates = true;
+}
 
 async function loadTemplates() {
     if (isLoading) return;
@@ -108,23 +126,27 @@ async function loadTemplates() {
     const loadingDiv = document.getElementById('loading-templates');
     const errorDiv = document.getElementById('error-templates');
     const contentDiv = document.getElementById('templates-content');
-    loadingDiv.style.display = 'block';
+    if (!hasRenderedTemplates) {
+        loadingDiv.style.display = 'block';
+        contentDiv.style.display = 'none';
+        contentDiv.innerHTML = '';
+    }
     errorDiv.style.display = 'none';
-    contentDiv.style.display = 'none';
-    contentDiv.innerHTML = '';
     try {
         const res = await fetch(`/admin/templates?_=${Date.now()}`, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        loadingDiv.style.display = 'none';
-        contentDiv.style.display = 'block';
-        renderTemplates(data.data || []);
+        applyTemplatesResponse(data);
     } catch (err) {
         console.error(err);
-        loadingDiv.style.display = 'none';
-        errorDiv.style.display = 'block';
+        if (hasRenderedTemplates) {
+            alert('Er is een fout opgetreden bij het vernieuwen van templates.');
+        } else {
+            loadingDiv.style.display = 'none';
+            errorDiv.style.display = 'block';
+        }
     } finally {
         isLoading = false;
     }

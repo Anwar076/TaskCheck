@@ -79,7 +79,17 @@ class TaskTemplateController extends Controller
             ];
         });
 
-        return view('admin.templates.index', compact('templates', 'templateLibrary'));
+        $initialTemplates = [
+            'data' => $templates,
+            'total' => $templates->count(),
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => $templates->count(),
+            'from' => $templates->isNotEmpty() ? 1 : null,
+            'to' => $templates->count() ?: null,
+        ];
+
+        return view('admin.templates.index', compact('templates', 'templateLibrary', 'initialTemplates'));
     }
 
     /**

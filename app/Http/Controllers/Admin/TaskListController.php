@@ -50,7 +50,9 @@ class TaskListController extends Controller
             return response()->json($lists);
         }
 
-        return view('admin.lists.index-api');
+        return view('admin.lists.index-api', [
+            'initialLists' => $lists,
+        ]);
     }
 
     public function create()

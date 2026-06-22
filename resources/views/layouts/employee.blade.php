@@ -268,7 +268,7 @@
         </nav>
 
         <!-- Page Content -->
-        <main class="flex-1">
+        <main class="flex-1" data-page-transition-root>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Clean Flash Messages -->
                 @if (session('success'))
@@ -725,6 +725,7 @@
         });
     </script>
     @stack('scripts')
+    @include('partials.page-transitions')
     @include('partials.google-translate')
 </body>
 </html>

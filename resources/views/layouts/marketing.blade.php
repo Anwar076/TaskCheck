@@ -46,7 +46,9 @@
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-50">
-    @yield('content')
+    <main data-page-transition-root>
+        @yield('content')
+    </main>
     
     <!-- PWA Detection Script -->
     <script>
@@ -71,9 +73,9 @@
             checkPwaAndRedirect();
         });
     </script>
+    @include('partials.page-transitions')
     @include('partials.google-translate')
 </body>
 </html>
-
 
 

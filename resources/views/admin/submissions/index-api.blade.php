@@ -55,7 +55,7 @@
         </div>
 
         {{-- Laden --}}
-        <div id="submissions-loading" class="text-center py-16">
+        <div id="submissions-loading" class="text-center py-16" style="{{ isset($initialSubmissions) ? 'display: none;' : '' }}">
             <div class="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
             <p class="mt-3 text-sm text-slate-600">Inzendingen laden...</p>
         </div>
@@ -191,6 +191,9 @@
 <script>
 const apiBase = "{{ url('/api') }}";
 let currentPage = 1;
+let hasRenderedSubmissions = false;
+let isLoadingSubmissions = false;
+const initialSubmissions = @json($initialSubmissions ?? null);
 
 function escapeHtml(t) {
     if (!t) return '';
@@ -202,7 +205,12 @@ function escapeHtml(t) {
 let currentTab = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadSubmissions();
+    if (initialSubmissions) {
+        applySubmissionsResponse(initialSubmissions);
+    } else {
+        await loadSubmissions();
+    }
+
     const searchInput = document.getElementById('search-input');
     const statusFilter = document.getElementById('status-filter');
     const refreshBtn = document.getElementById('refresh-btn');
@@ -232,7 +240,82 @@ document.addEventListener('DOMContentLoaded', async () => {
     refreshBtn.addEventListener('click', () => loadSubmissions());
 });
 
+function applySubmissionsResponse(data) {
+    const loadingDiv = document.getElementById('submissions-loading');
+    const statsDiv = document.getElementById('submissions-stats');
+    const filtersDiv = document.getElementById('submissions-filters');
+    const tableDiv = document.getElementById('submissions-table');
+    const emptyDiv = document.getElementById('empty-state');
+    const errorDiv = document.getElementById('error-state');
+    const paginationDiv = document.getElementById('pagination-container');
+    const tabsDiv = document.getElementById('submissions-tabs');
+
+    const total = data.total ?? 0;
+    const items = data.data ?? [];
+    const meta = data.meta || {};
+
+    document.getElementById('total-submissions').textContent = total;
+    document.getElementById('in-progress-submissions').textContent = meta.in_progress_count ?? items.filter(s => s.status === 'in_progress').length;
+    document.getElementById('completed-submissions').textContent = meta.completed_count ?? items.filter(s => s.status === 'completed').length;
+    document.getElementById('reviewed-submissions').textContent = meta.reviewed_count ?? items.filter(s => s.status === 'reviewed').length;
+
+    const badge = document.getElementById('tab-to-review-badge');
+    if (meta.to_review_count !== undefined) {
+        badge.textContent = meta.to_review_count;
+        badge.classList.toggle('hidden', meta.to_review_count === 0);
+    }
+
+    tabsDiv.style.display = 'block';
+    statsDiv.style.display = 'grid';
+    filtersDiv.style.display = 'block';
+    loadingDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    tableDiv.style.display = 'none';
+    emptyDiv.style.display = 'none';
+    paginationDiv.style.display = 'none';
+
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        const isActive = (i === 0 && !currentTab) || (i === 1 && currentTab === 'to_review') || (i === 2 && currentTab === 'done');
+        b.classList.toggle('border-blue-600', isActive);
+        b.classList.toggle('text-blue-600', isActive);
+        b.classList.toggle('border-transparent', !isActive);
+        b.classList.toggle('text-slate-600', !isActive);
+    });
+
+    const statusWrap = document.getElementById('status-filter-wrap');
+    const statusFilterEl = document.getElementById('status-filter');
+    if (statusWrap) statusWrap.style.opacity = currentTab ? '0.6' : '1';
+    if (statusFilterEl) statusFilterEl.disabled = !!currentTab;
+
+    if (items.length > 0) {
+        renderSubmissions(items);
+        tableDiv.style.display = 'block';
+        if (data.last_page > 1) {
+            renderPagination(data);
+            paginationDiv.style.display = 'flex';
+        }
+    } else {
+        const emptyTitle = document.getElementById('empty-state-title');
+        const emptyDesc = document.getElementById('empty-state-desc');
+        if (currentTab === 'to_review') {
+            if (emptyTitle) emptyTitle.textContent = 'Geen inzendingen om te beoordelen';
+            if (emptyDesc) emptyDesc.textContent = 'Alle inzendingen zijn al beoordeeld of er zijn nog geen voltooide inzendingen.';
+        } else if (currentTab === 'done') {
+            if (emptyTitle) emptyTitle.textContent = 'Geen afgeronde inzendingen';
+            if (emptyDesc) emptyDesc.textContent = 'Er zijn nog geen beoordeelde of afgewezen inzendingen.';
+        } else {
+            if (emptyTitle) emptyTitle.textContent = 'Geen inzendingen';
+            if (emptyDesc) emptyDesc.textContent = 'Er zijn geen inzendingen die voldoen aan je filters.';
+        }
+        emptyDiv.style.display = 'block';
+    }
+
+    hasRenderedSubmissions = true;
+}
+
 async function loadSubmissions(page = 1) {
+    if (isLoadingSubmissions) return;
+    isLoadingSubmissions = true;
     if (page) currentPage = page;
     const loadingDiv = document.getElementById('submissions-loading');
     const statsDiv = document.getElementById('submissions-stats');
@@ -243,13 +326,15 @@ async function loadSubmissions(page = 1) {
     const paginationDiv = document.getElementById('pagination-container');
     const tabsDiv = document.getElementById('submissions-tabs');
 
-    loadingDiv.style.display = 'block';
-    statsDiv.style.display = 'none';
-    filtersDiv.style.display = 'none';
-    tableDiv.style.display = 'none';
-    emptyDiv.style.display = 'none';
+    if (!hasRenderedSubmissions) {
+        loadingDiv.style.display = 'block';
+        statsDiv.style.display = 'none';
+        filtersDiv.style.display = 'none';
+        tableDiv.style.display = 'none';
+        emptyDiv.style.display = 'none';
+        paginationDiv.style.display = 'none';
+    }
     errorDiv.style.display = 'none';
-    paginationDiv.style.display = 'none';
 
     try {
         const params = new URLSearchParams();
@@ -272,66 +357,17 @@ async function loadSubmissions(page = 1) {
             throw new Error(result.message || `HTTP ${res.status}`);
         }
 
-        const data = result;
-        const total = data.total ?? 0;
-        const items = data.data ?? [];
-
-        const meta = result.meta || {};
-        document.getElementById('total-submissions').textContent = total;
-        document.getElementById('in-progress-submissions').textContent = meta.in_progress_count ?? items.filter(s => s.status === 'in_progress').length;
-        document.getElementById('completed-submissions').textContent = meta.completed_count ?? items.filter(s => s.status === 'completed').length;
-        document.getElementById('reviewed-submissions').textContent = meta.reviewed_count ?? items.filter(s => s.status === 'reviewed').length;
-
-        const badge = document.getElementById('tab-to-review-badge');
-        if (meta.to_review_count !== undefined) {
-            badge.textContent = meta.to_review_count;
-            badge.classList.toggle('hidden', meta.to_review_count === 0);
-        }
-
-        tabsDiv.style.display = 'block';
-        statsDiv.style.display = 'grid';
-        filtersDiv.style.display = 'block';
-        loadingDiv.style.display = 'none';
-
-        document.querySelectorAll('.tab-btn').forEach((b, i) => {
-            const isActive = (i === 0 && !currentTab) || (i === 1 && currentTab === 'to_review') || (i === 2 && currentTab === 'done');
-            b.classList.toggle('border-blue-600', isActive);
-            b.classList.toggle('text-blue-600', isActive);
-            b.classList.toggle('border-transparent', !isActive);
-            b.classList.toggle('text-slate-600', !isActive);
-        });
-
-        const statusWrap = document.getElementById('status-filter-wrap');
-        const statusFilterEl = document.getElementById('status-filter');
-        if (statusWrap) statusWrap.style.opacity = currentTab ? '0.6' : '1';
-        if (statusFilterEl) statusFilterEl.disabled = !!currentTab;
-
-        if (items.length > 0) {
-            renderSubmissions(items);
-            tableDiv.style.display = 'block';
-            if (data.last_page > 1) {
-                renderPagination(data);
-                paginationDiv.style.display = 'flex';
-            }
-        } else {
-            const emptyTitle = document.getElementById('empty-state-title');
-            const emptyDesc = document.getElementById('empty-state-desc');
-            if (currentTab === 'to_review') {
-                if (emptyTitle) emptyTitle.textContent = 'Geen inzendingen om te beoordelen';
-                if (emptyDesc) emptyDesc.textContent = 'Alle inzendingen zijn al beoordeeld of er zijn nog geen voltooide inzendingen.';
-            } else if (currentTab === 'done') {
-                if (emptyTitle) emptyTitle.textContent = 'Geen afgeronde inzendingen';
-                if (emptyDesc) emptyDesc.textContent = 'Er zijn nog geen beoordeelde of afgewezen inzendingen.';
-            } else {
-                if (emptyTitle) emptyTitle.textContent = 'Geen inzendingen';
-                if (emptyDesc) emptyDesc.textContent = 'Er zijn geen inzendingen die voldoen aan je filters.';
-            }
-            emptyDiv.style.display = 'block';
-        }
+        applySubmissionsResponse(result);
     } catch (err) {
         console.error(err);
-        loadingDiv.style.display = 'none';
-        errorDiv.style.display = 'block';
+        if (hasRenderedSubmissions) {
+            alert('Er is een fout opgetreden bij het vernieuwen van inzendingen.');
+        } else {
+            loadingDiv.style.display = 'none';
+            errorDiv.style.display = 'block';
+        }
+    } finally {
+        isLoadingSubmissions = false;
     }
 }
 
