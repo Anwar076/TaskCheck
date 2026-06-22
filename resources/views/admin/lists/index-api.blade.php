@@ -287,9 +287,7 @@ function renderLists(lists) {
                         <p class="text-sm text-slate-600 mt-1 line-clamp-2">${escapeHtml(list.description || 'Geen beschrijving')}</p>
                     </div>
                     <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${list.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
-                            ${list.is_active ? 'Actief' : 'Inactief'}
-                        </span>
+                        ${renderListStatusBadge(list)}
                         ${list.template ? `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800">Template</span>` : ''}
                     </div>
                 </div>
@@ -341,6 +339,37 @@ function renderLists(lists) {
     `).join('');
     
     container.innerHTML = listsHtml;
+}
+
+function renderListStatusBadge(list) {
+    if (isListUnscheduled(list)) {
+        return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-100 text-amber-800">Ongepland</span>`;
+    }
+
+    return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${list.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
+        ${list.is_active ? 'Actief' : 'Inactief'}
+    </span>`;
+}
+
+function isListUnscheduled(list) {
+    const config = list.schedule_config || {};
+
+    if (list.schedule_type === 'weekly') {
+        return !Array.isArray(config.show_on_days) || config.show_on_days.length === 0;
+    }
+
+    if (list.schedule_type === 'custom') {
+        if (config.type === 'specific_days') {
+            const days = Array.isArray(config.days) ? config.days : config.show_on_days;
+            return !Array.isArray(days) || days.length === 0;
+        }
+
+        if (Array.isArray(config.show_on_days)) {
+            return config.show_on_days.length === 0;
+        }
+    }
+
+    return false;
 }
 
 function escapeHtml(text) {

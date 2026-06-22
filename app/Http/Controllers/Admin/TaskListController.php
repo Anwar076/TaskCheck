@@ -106,9 +106,11 @@ class TaskListController extends Controller
             if ($validatedData['schedule_type'] === 'daily') {
                 // Daily means all days of the week
                 $scheduleConfig['show_on_days'] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-            } elseif ($validatedData['schedule_type'] === 'weekly' && isset($validatedData['selected_days'])) {
+            } elseif ($validatedData['schedule_type'] === 'weekly') {
                 // Weekly with specific days selected
-                $scheduleConfig['show_on_days'] = $validatedData['selected_days'];
+                $scheduleConfig['show_on_days'] = $validatedData['selected_days'] ?? [];
+            } elseif ($validatedData['schedule_type'] === 'custom' && ($scheduleConfig['type'] ?? null) === 'specific_days') {
+                $scheduleConfig['show_on_days'] = $scheduleConfig['days'] ?? [];
             }
             
             $validatedData['schedule_config'] = $scheduleConfig;
@@ -539,18 +541,33 @@ class TaskListController extends Controller
         $existingConfig = is_array($list->schedule_config) ? $list->schedule_config : [];
         $scheduleConfig = array_merge($existingConfig, $validatedData['schedule_config'] ?? []);
 
+        $scheduledDays = null;
+
         if (in_array($validatedData['schedule_type'], ['daily', 'weekly', 'custom'])) {
             if ($validatedData['schedule_type'] === 'daily') {
                 // Daily means all days of the week
-                $scheduleConfig['show_on_days'] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-            } elseif ($validatedData['schedule_type'] === 'weekly' && isset($validatedData['selected_days'])) {
+                $scheduledDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                $scheduleConfig['show_on_days'] = $scheduledDays;
+            } elseif ($validatedData['schedule_type'] === 'weekly') {
                 // Weekly with specific days selected
-                $scheduleConfig['show_on_days'] = $validatedData['selected_days'];
+                $scheduledDays = $validatedData['selected_days'] ?? [];
+                $scheduleConfig['show_on_days'] = $scheduledDays;
+            } elseif ($validatedData['schedule_type'] === 'custom' && ($scheduleConfig['type'] ?? null) === 'specific_days') {
+                $scheduledDays = $scheduleConfig['days'] ?? [];
+                $scheduleConfig['show_on_days'] = $scheduledDays;
             }
         }
 
         if (isset($existingConfig['time_slots'])) {
-            $scheduleConfig['time_slots'] = $existingConfig['time_slots'];
+            $timeSlots = is_array($existingConfig['time_slots']) ? $existingConfig['time_slots'] : [];
+
+            if (is_array($scheduledDays)) {
+                $timeSlots = array_values(array_filter($timeSlots, function ($slot) use ($scheduledDays) {
+                    return in_array($slot['weekday'] ?? null, $scheduledDays, true);
+                }));
+            }
+
+            $scheduleConfig['time_slots'] = $timeSlots;
         }
 
         if ($request->boolean('default_time_slot_enabled') && $request->filled('default_time_slot_start')) {

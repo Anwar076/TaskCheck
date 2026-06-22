@@ -151,12 +151,17 @@
                             <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                                 <p class="text-sm text-blue-800">Kies op welke dagen deze lijst actief is.</p>
                             </div>
+                            @php
+                                $weekdaysList = ['monday' => 'Ma', 'tuesday' => 'Di', 'wednesday' => 'Wo', 'thursday' => 'Do', 'friday' => 'Vr', 'saturday' => 'Za', 'sunday' => 'Zo'];
+                                $selectedDays = old('selected_days', $list->getShowOnDays());
+                            @endphp
+                            <div id="weekly-unscheduled-warning"
+                                 class="{{ count($selectedDays) ? 'hidden' : '' }} rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                <span class="font-semibold">Ongepland.</span>
+                                Deze lijst heeft geen actieve dagen en verschijnt daardoor niet automatisch in de agenda.
+                            </div>
                             <label class="block text-sm font-medium text-slate-700">Dagen van de week</label>
                             <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                                @php
-                                    $weekdaysList = ['monday' => 'Ma', 'tuesday' => 'Di', 'wednesday' => 'Wo', 'thursday' => 'Do', 'friday' => 'Vr', 'saturday' => 'Za', 'sunday' => 'Zo'];
-                                    $selectedDays = old('selected_days', $list->getShowOnDays());
-                                @endphp
                                 @foreach($weekdaysList as $dayKey => $dayLabel)
                                 <label class="weekday-label flex flex-col items-center justify-center p-3 border-2 border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors has-[:checked]:bg-blue-600 has-[:checked]:border-blue-600 has-[:checked]:text-white">
                                     <input type="checkbox" name="selected_days[]" value="{{ $dayKey }}"
@@ -324,6 +329,20 @@ function toggleScheduleConfig() {
         custom.classList.remove('hidden');
         toggleCustomType();
     }
+
+    updateWeeklyPlanningWarning();
+}
+
+function updateWeeklyPlanningWarning() {
+    const warning = document.getElementById('weekly-unscheduled-warning');
+    const scheduleType = document.getElementById('schedule_type');
+    const checkedDays = document.querySelectorAll('.weekday-checkbox:checked');
+
+    if (!warning || !scheduleType) {
+        return;
+    }
+
+    warning.classList.toggle('hidden', scheduleType.value !== 'weekly' || checkedDays.length > 0);
 }
 
 function toggleCustomType() {
@@ -340,6 +359,9 @@ function toggleCustomType() {
 
 document.addEventListener('DOMContentLoaded', function() {
     toggleScheduleConfig();
+    document.querySelectorAll('.weekday-checkbox').forEach((checkbox) => {
+        checkbox.addEventListener('change', updateWeeklyPlanningWarning);
+    });
 });
 </script>
 @endsection
