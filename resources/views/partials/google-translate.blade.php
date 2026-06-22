@@ -1,27 +1,27 @@
 @php
     $translateVariant = $variant ?? 'floating';
     $translateButtonClass = $translateVariant === 'topbar'
-        ? 'inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors'
+        ? 'inline-flex h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors'
         : 'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-lg hover:bg-slate-50 transition-colors';
     $translatePanelClass = $translateVariant === 'topbar'
-        ? 'hidden absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50'
+        ? 'hidden absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl z-50'
         : 'hidden absolute right-0 bottom-12 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-2xl';
     $languages = [
-        ['code' => 'nl', 'label' => 'Nederlands', 'short' => 'NL'],
-        ['code' => 'en', 'label' => 'English', 'short' => 'EN'],
-        ['code' => 'de', 'label' => 'Deutsch', 'short' => 'DE'],
-        ['code' => 'fr', 'label' => 'Francais', 'short' => 'FR'],
-        ['code' => 'es', 'label' => 'Espanol', 'short' => 'ES'],
-        ['code' => 'it', 'label' => 'Italiano', 'short' => 'IT'],
-        ['code' => 'pt', 'label' => 'Portugues', 'short' => 'PT'],
-        ['code' => 'ar', 'label' => 'Arabic', 'short' => 'AR'],
-        ['code' => 'tr', 'label' => 'Turkce', 'short' => 'TR'],
-        ['code' => 'pl', 'label' => 'Polski', 'short' => 'PL'],
-        ['code' => 'ro', 'label' => 'Romana', 'short' => 'RO'],
+        ['code' => 'nl', 'label' => 'Nederlands', 'short' => 'NL', 'flag' => '🇳🇱'],
+        ['code' => 'en', 'label' => 'English', 'short' => 'EN', 'flag' => '🇬🇧'],
+        ['code' => 'fr', 'label' => 'Francais', 'short' => 'FR', 'flag' => '🇫🇷'],
+        ['code' => 'de', 'label' => 'Deutsch', 'short' => 'DE', 'flag' => '🇩🇪'],
+        ['code' => 'es', 'label' => 'Espanol', 'short' => 'ES', 'flag' => '🇪🇸'],
+        ['code' => 'tr', 'label' => 'Turkce', 'short' => 'TR', 'flag' => '🇹🇷'],
+        ['code' => 'pl', 'label' => 'Polski', 'short' => 'PL', 'flag' => '🇵🇱'],
+        ['code' => 'ar', 'label' => 'Arabic', 'short' => 'AR', 'flag' => '🇸🇦'],
+        ['code' => 'it', 'label' => 'Italiano', 'short' => 'IT', 'flag' => '🇮🇹'],
+        ['code' => 'pt', 'label' => 'Portugues', 'short' => 'PT', 'flag' => '🇵🇹'],
+        ['code' => 'ro', 'label' => 'Romana', 'short' => 'RO', 'flag' => '🇷🇴'],
     ];
 @endphp
 
-<div class="{{ $translateVariant === 'floating' ? 'fixed right-3 bottom-3 z-[9999]' : 'relative' }}" data-translate-root>
+<div class="{{ $translateVariant === 'floating' ? 'fixed right-3 bottom-3 z-[9999]' : 'relative' }} notranslate" translate="no" data-translate-root>
     <button
         type="button"
         class="{{ $translateButtonClass }}"
@@ -31,10 +31,10 @@
         data-translate-toggle
     >
         @if($translateVariant === 'topbar')
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.6 9h16.8M3.6 15h16.8"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.1 2.25 3.15 5.25 3.15 9S14.1 18.75 12 21c-2.1-2.25-3.15-5.25-3.15-9S9.9 5.25 12 3z"/>
+            <span class="text-lg leading-none notranslate" translate="no" data-translate-current-flag>🇳🇱</span>
+            <span class="text-sm font-semibold leading-none notranslate" translate="no" data-translate-current-code>NL</span>
+            <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
             </svg>
         @else
             <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -50,19 +50,17 @@
     </button>
 
     <div class="{{ $translatePanelClass }}" data-translate-panel>
-        <div class="px-2 pb-2 pt-1">
-            <p class="text-xs font-semibold text-slate-900">Taal kiezen</p>
-            <p class="mt-0.5 text-[11px] text-slate-500">Vertaal deze pagina</p>
-        </div>
         <div class="max-h-72 overflow-y-auto py-1">
             @foreach($languages as $language)
                 <button
                     type="button"
-                    class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                    class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
                     data-translate-lang="{{ $language['code'] }}"
+                    data-translate-short="{{ $language['short'] }}"
+                    data-translate-flag="{{ $language['flag'] }}"
                 >
-                    <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-700">
-                        {{ $language['short'] }}
+                    <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center text-xl leading-none">
+                        {{ $language['flag'] }}
                     </span>
                     <span class="min-w-0 flex-1 truncate">{{ $language['label'] }}</span>
                     <svg class="hidden h-4 w-4 text-blue-600" data-translate-check="{{ $language['code'] }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -122,6 +120,21 @@ body { top: 0 !important; margin-top: 0 !important; }
         const current = getCurrentLanguage();
         document.querySelectorAll('[data-translate-check]').forEach((icon) => {
             icon.classList.toggle('hidden', icon.dataset.translateCheck !== current);
+        });
+        document.querySelectorAll('[data-translate-root]').forEach((root) => {
+            const selected = root.querySelector(`[data-translate-lang="${current}"]`) || root.querySelector('[data-translate-lang="nl"]');
+            const flag = selected?.dataset.translateFlag || '🇳🇱';
+            const short = selected?.dataset.translateShort || 'NL';
+            const flagEl = root.querySelector('[data-translate-current-flag]');
+            const codeEl = root.querySelector('[data-translate-current-code]');
+
+            if (flagEl) flagEl.textContent = flag;
+            if (codeEl) codeEl.textContent = short;
+
+            root.querySelectorAll('[data-translate-lang]').forEach((button) => {
+                button.classList.toggle('bg-slate-100', button.dataset.translateLang === current);
+                button.classList.toggle('text-slate-900', button.dataset.translateLang === current);
+            });
         });
     }
 

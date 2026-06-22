@@ -30,6 +30,7 @@
             'weekday' => $day['key'],
             'workingHoursByDay' => $workingHoursByDay,
             'date' => $day['date'],
+            'createListUrl' => route('admin.lists.create'),
             'canCreate' => $selectableLists->isNotEmpty(),
             'lists' => $selectableLists->map(fn ($listItem) => [
                 'id' => $listItem->id,
@@ -197,12 +198,12 @@
 
                 @foreach($days as $day)
                     @php $createConfig = $dayCreateConfig($day); @endphp
-                    <div class="relative min-h-0 border-slate-200 bg-white {{ ($day['is_today'] ?? false) ? 'bg-blue-50/10' : '' }} {{ $createConfig['canCreate'] ? 'cursor-crosshair' : '' }}"
+                    <div class="relative min-h-0 border-slate-200 bg-white {{ ($day['is_today'] ?? false) ? 'bg-blue-50/10' : '' }} cursor-crosshair"
                          style="grid-column: 2; grid-row: {{ $timeGridStartRow }} / {{ $timeGridEndRow }};"
                          data-calendar-time-column
                          data-calendar-day-column
                          data-day-config='@json($createConfig)'
-                         title="{{ $createConfig['canCreate'] ? 'Klik of sleep om lijst te koppelen' : '' }}">
+                         title="{{ $createConfig['canCreate'] ? 'Klik of sleep om lijst te koppelen' : 'Sleep om een nieuwe takenlijst op dit tijdslot te starten' }}">
                         @foreach(($day['non_working_ranges'] ?? []) as $range)
                             <div class="calendar-non-working-block pointer-events-none absolute left-0 right-0 z-[1]"
                                  style="top: {{ $range['top_percent'] }}%; height: {{ $range['height_percent'] }}%;"
@@ -286,12 +287,12 @@
                 </div>
                 @foreach($days as $day)
                     @php $createConfig = $dayCreateConfig($day); @endphp
-                    <div class="relative border-r border-slate-200 bg-white last:border-r-0 {{ ($day['is_today'] ?? false) ? 'bg-blue-50/10' : '' }} {{ $createConfig['canCreate'] ? 'cursor-crosshair' : '' }}"
+                    <div class="relative border-r border-slate-200 bg-white last:border-r-0 {{ ($day['is_today'] ?? false) ? 'bg-blue-50/10' : '' }} cursor-crosshair"
                          style="height: {{ $gridHeight }}rem;"
                          data-calendar-time-column
                          data-calendar-day-column
                          data-day-config='@json($createConfig)'
-                         title="{{ $createConfig['canCreate'] ? 'Klik of sleep om lijst te koppelen' : '' }}">
+                         title="{{ $createConfig['canCreate'] ? 'Klik of sleep om lijst te koppelen' : 'Sleep om een nieuwe takenlijst op dit tijdslot te starten' }}">
                         @foreach(($day['non_working_ranges'] ?? []) as $range)
                             <div class="calendar-non-working-block pointer-events-none absolute left-0 right-0 z-[1]"
                                  style="top: {{ $range['top_percent'] }}%; height: {{ $range['height_percent'] }}%;"

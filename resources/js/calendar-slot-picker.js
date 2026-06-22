@@ -499,6 +499,12 @@ export function initCalendarSlotPicker() {
     const handleSlotSelection = (column, config, startMin, endMin) => {
         const range = resolveTimeRange(startMin, endMin);
         showSelection(column, range.startMin, range.endMin, range.startTime, range.endTime);
+
+        if (!config.canCreate) {
+            openNewListFromSelection(config, range.startTime, range.endTime);
+            return;
+        }
+
         openSchedulePopup(column, config, range.startTime, range.endTime);
     };
 
@@ -556,6 +562,22 @@ export function initCalendarSlotPicker() {
         } catch {
             window.alert('Plannen mislukt. Probeer opnieuw.');
         }
+    };
+
+    const openNewListFromSelection = (config, startTime, endTime) => {
+        if (!config?.createListUrl) {
+            showCalendarFeedback('Maak eerst een takenlijst aan voordat je iets kunt plannen.');
+            return;
+        }
+
+        const url = new URL(config.createListUrl, window.location.origin);
+        url.searchParams.set('schedule_type', 'weekly');
+        url.searchParams.append('selected_days[]', config.weekday);
+        url.searchParams.set('time_slots[0][weekday]', config.weekday);
+        url.searchParams.set('time_slots[0][start_time]', startTime);
+        url.searchParams.set('time_slots[0][end_time]', endTime);
+
+        window.location.href = url.toString();
     };
 
     const submitUpdatedSlot = async (button, payload) => {
@@ -852,10 +874,6 @@ export function initCalendarSlotPicker() {
 
             openEditPopup(timedList, column, config);
         });
-
-        if (!config.canCreate) {
-            return;
-        }
 
         let dragStartY = null;
         let dragEndY = null;

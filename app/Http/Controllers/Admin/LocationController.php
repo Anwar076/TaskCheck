@@ -41,11 +41,15 @@ class LocationController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'house_number' => ['nullable', 'string', 'max:30'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'city' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $validated['address'] = $this->formatAddress($validated);
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['company_id'] = auth()->user()->company_id;
 
@@ -65,11 +69,15 @@ class LocationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'house_number' => ['nullable', 'string', 'max:30'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'city' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $validated['address'] = $this->formatAddress($validated);
         $validated['is_active'] = $request->boolean('is_active');
         $location->update($validated);
 
@@ -85,5 +93,22 @@ class LocationController extends Controller
         return redirect()
             ->route('admin.locations.index')
             ->with('success', 'Locatie is gearchiveerd.');
+    }
+
+    private function formatAddress(array $data): ?string
+    {
+        $streetLine = trim(implode(' ', array_filter([
+            $data['street'] ?? null,
+            $data['house_number'] ?? null,
+        ], fn ($value) => filled($value))));
+
+        $cityLine = trim(implode(' ', array_filter([
+            $data['postal_code'] ?? null,
+            $data['city'] ?? null,
+        ], fn ($value) => filled($value))));
+
+        $address = implode(', ', array_filter([$streetLine, $cityLine], fn ($value) => filled($value)));
+
+        return $address !== '' ? $address : null;
     }
 }
