@@ -66,7 +66,6 @@
                 </a>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" data-calendar-schedule-close class="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100">Annuleren</button>
                 <button type="submit" id="calendar-list-schedule-submit" class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
                     Koppelen
                 </button>

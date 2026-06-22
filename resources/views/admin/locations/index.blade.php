@@ -48,7 +48,7 @@
         </div>
 
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-6 sm:p-8">
+            <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
                 @include('admin.settings.tabs', ['activeTab' => 'locations'])
 
                 <div class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden">

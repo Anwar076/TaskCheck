@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    @php
-        $versionFile = public_path('build/manifest.json');
-        $fallbackFile = public_path('sw.js');
-        $webAppVersion = 'onbekend';
-        $versionTimestamp = null;
-        if (file_exists($versionFile)) {
-            $versionTimestamp = filemtime($versionFile);
-        } elseif (file_exists($fallbackFile)) {
-            $versionTimestamp = filemtime($fallbackFile);
-        }
-        if ($versionTimestamp) {
-            $webAppVersion = 'v' . date('y.m.d-Hi', $versionTimestamp) . ' (' . date('d-m-Y H:i', $versionTimestamp) . ')';
-        }
-    @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -122,7 +108,10 @@
                         </button>
                         <h2 class="truncate text-base font-semibold text-slate-900 sm:text-lg">@yield('page-title', 'Super Admin')</h2>
                     </div>
-                    <a href="{{ route('welcome') }}" class="shrink-0 text-sm font-medium text-violet-700 hover:text-violet-900">Website</a>
+                    <div class="flex shrink-0 items-center gap-2">
+                        @include('partials.google-translate', ['variant' => 'topbar'])
+                        <a href="{{ route('welcome') }}" class="text-sm font-medium text-violet-700 hover:text-violet-900">Website</a>
+                    </div>
                 </div>
             </header>
 
@@ -135,7 +124,6 @@
                         <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-900">{{ session('error') }}</div>
                     @endif
                     @yield('content')
-                    <p class="mt-6 text-right text-xs text-slate-400">Web app versie: {{ $webAppVersion }}</p>
                 </div>
             </main>
         </div>
@@ -180,6 +168,5 @@
     </script>
     @stack('scripts')
     @include('partials.page-transitions')
-    @include('partials.google-translate')
 </body>
 </html>

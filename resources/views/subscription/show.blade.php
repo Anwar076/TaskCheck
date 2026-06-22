@@ -42,11 +42,11 @@
             </div>
 
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="p-6 sm:p-8">
+                <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
                 @include('admin.settings.tabs', ['activeTab' => 'subscription'])
 
                     <div class="grid md:grid-cols-2 gap-6 sm:gap-8">
-                        {{-- Huidig plan --}}
+                        {{-- Huidig abonnement --}}
                         <div class="space-y-5">
                             <div class="flex items-center gap-2">
                                 <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -54,7 +54,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                                     </svg>
                                 </div>
-                                <h3 class="text-lg font-bold text-slate-900">Huidig Plan</h3>
+                                <h3 class="text-lg font-bold text-slate-900">Huidig abonnement</h3>
                             </div>
 
                             @if($company->subscription_status === 'trial')
@@ -65,9 +65,30 @@
                                         </svg>
                                         Proefperiode
                                     </span>
-                                    <div class="space-y-1 text-slate-600">
-                                        <p class="flex justify-between"><span>Dagen resterend</span> <span class="font-semibold text-slate-900">{{ $company->trialDaysRemaining() }}</span></p>
-                                        <p class="flex justify-between"><span>Proefperiode eindigt</span> <span class="font-semibold text-slate-900">{{ $company->trial_ends_at->format('d M Y') }}</span></p>
+                                    <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M4.5 6.75h15A1.5 1.5 0 0 1 21 8.25v10.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.75V8.25a1.5 1.5 0 0 1 1.5-1.5Z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
+                                                <span class="text-sm font-medium text-slate-600">Dagen resterend</span>
+                                                <span class="text-base font-bold text-slate-900">{{ $company->trialDaysRemaining() }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="my-4 border-t border-slate-100"></div>
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5v15m0-15h12.75l-.75 3 .75 3H3.75"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
+                                                <span class="text-sm font-medium text-slate-600">Proefperiode eindigt</span>
+                                                <span class="text-base font-bold text-slate-900">{{ $company->trial_ends_at->format('d M Y') }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             @elseif($company->hasActiveSubscription())
@@ -98,16 +119,16 @@
                                     @endif
                                     @if(!empty($pendingPlanDetails))
                                         <div class="rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-3">
-                                            <p class="text-sm font-semibold text-indigo-900">Volgende planwijziging</p>
+                                            <p class="text-sm font-semibold text-indigo-900">Volgende abonnementswijziging</p>
                                             <p class="text-sm text-indigo-700 mt-1">
-                                                Je plan wijzigt naar <strong>{{ $pendingPlanDetails['name'] }}</strong>
+                                                Je abonnement wijzigt naar <strong>{{ $pendingPlanDetails['name'] }}</strong>
                                                 @if(isset($nextBillingDate) && !is_null($nextBillingDate))
                                                     op {{ $nextBillingDate->format('d M Y') }}.
                                                 @else
                                                     bij de volgende facturatie.
                                                 @endif
                                             </p>
-                                            <p class="text-xs text-indigo-700/80 mt-1">Je huidige plan blijft actief tot die datum. Er wordt nu niets dubbel afgerekend.</p>
+                                            <p class="text-xs text-indigo-700/80 mt-1">Je huidige abonnement blijft actief tot die datum. Er wordt nu niets dubbel afgerekend.</p>
                                         </div>
                                     @endif
                                 </div>
@@ -138,7 +159,7 @@
                                         </svg>
                                         {{ ucfirst($company->subscription_status) }}
                                     </span>
-                                    <p class="text-slate-600">Kies een plan om verder te gaan.</p>
+                                    <p class="text-slate-600">Kies een abonnement om verder te gaan.</p>
                                 </div>
                             @endif
 
@@ -147,7 +168,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
                                 </svg>
-                                Plan Wijzigen
+                                Abonnement wijzigen
                             </a>
                         </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Plan Kiezen')
+@section('page-title', 'Abonnement Kiezen')
 
 @section('content')
 @php
@@ -61,8 +61,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Kies Je Abonnement</h1>
-                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Kies het plan dat past bij jouw organisatie en start direct.</p>
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Kies je abonnement</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Kies het abonnement dat past bij jouw organisatie en start direct.</p>
                             </div>
                         </div>
                         @if($company)
@@ -78,7 +78,7 @@
             </div>
 
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="p-6 sm:p-8">
+                <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
                 @include('admin.settings.tabs', ['activeTab' => 'subscription'])
 
                     {{-- Trial banners --}}
@@ -92,7 +92,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-blue-900">Proefperiode Actief</h3>
-                                <p class="text-blue-700 text-sm mt-1">Je hebt nog {{ $trialDaysRemaining }} {{ $trialDaysRemaining === 1 ? 'dag' : 'dagen' }} in je gratis proefperiode. Kies een plan om na je proefperiode door te gaan.</p>
+                                <p class="text-blue-700 text-sm mt-1">Je hebt nog {{ $trialDaysRemaining }} {{ $trialDaysRemaining === 1 ? 'dag' : 'dagen' }} in je gratis proefperiode. Kies een abonnement om na je proefperiode door te gaan.</p>
                             </div>
                         </div>
                     @endif
@@ -106,7 +106,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-red-900">Proefperiode Verlopen</h3>
-                                <p class="text-red-700 text-sm mt-1">Je 14-dagen gratis proefperiode is afgelopen. Kies een abonnementsplan om de service te blijven gebruiken.</p>
+                                <p class="text-red-700 text-sm mt-1">Je 14-dagen gratis proefperiode is afgelopen. Kies een abonnement om de service te blijven gebruiken.</p>
                             </div>
                         </div>
                     @endif
@@ -119,13 +119,13 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="font-bold text-indigo-900">Planwijziging ingepland</h3>
-                                <p class="text-indigo-700 text-sm mt-1">Je nieuwe plan ({{ ucfirst($company->pending_subscription_plan) }}) gaat in bij de volgende facturatie. Tot die tijd blijft je huidige plan actief.</p>
+                                <h3 class="font-bold text-indigo-900">Abonnementswijziging ingepland</h3>
+                                <p class="text-indigo-700 text-sm mt-1">Je nieuwe abonnement ({{ ucfirst($company->pending_subscription_plan) }}) gaat in bij de volgende facturatie. Tot die tijd blijft je huidige abonnement actief.</p>
                             </div>
                         </div>
                     @endif
 
-                    {{-- Plan kaarten --}}
+                    {{-- Abonnement kaarten --}}
                     <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
                         @foreach($plans as $planKey => $plan)
                             @if(in_array($planKey, ['starter', 'professional', 'business'], true))
@@ -168,7 +168,7 @@
                                         <button type="submit"
                                                 class="w-full py-3.5 px-4 rounded-xl font-semibold transition-all shadow-sm {{ $currentPlan === $planKey && !$company?->pending_subscription_plan ? 'bg-slate-100 text-slate-500 cursor-default' : ($planKey === 'professional' ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200' : 'bg-slate-800 hover:bg-slate-900 text-white') }}">
                                             @if($currentPlan === $planKey && !$company?->pending_subscription_plan)
-                                                Huidig plan
+                                                Huidig abonnement
                                             @elseif($company?->hasActiveSubscription() && $company?->pending_subscription_plan === $planKey)
                                                 Ingepland voor volgende maand
                                             @else
@@ -186,7 +186,7 @@
                             <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            Alle plannen bevatten 14 dagen gratis proefperiode. Betaling verloopt veilig via Mollie.
+                            Alle abonnementen bevatten 14 dagen gratis proefperiode. Betaling verloopt veilig via Mollie.
                         </p>
                         <p class="mt-2 text-sm text-slate-500">
                             Er wordt bij het afrekenen 21% btw in rekening gebracht, het standaardtarief in Nederland.
