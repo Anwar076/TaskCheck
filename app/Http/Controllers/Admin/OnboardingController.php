@@ -69,6 +69,21 @@ class OnboardingController extends Controller
             ->with('success', 'Maak je eerste takenlijst. Daarna wijs je een medewerker toe.');
     }
 
+    public function skip(): RedirectResponse
+    {
+        $company = $this->company();
+
+        if (!$company->needsOnboarding()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        $company->completeOnboarding();
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', 'Onboarding overgeslagen. Je kunt alles later instellen via het menu.');
+    }
+
     private function company(): Company
     {
         $company = auth()->user()?->company;

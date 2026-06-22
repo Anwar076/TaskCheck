@@ -90,25 +90,7 @@ class AdminOnboardingService
         $routeName ??= '';
 
         if (str_starts_with($routeName, 'admin.settings')) {
-            return $this->stripHelpSlides([
-                [
-                    'target' => '[data-onboarding-target="org-fields"]',
-                    'title' => 'Organisatiegegevens',
-                    'body' => 'Hier beheer je naam, adres, telefoon en e-mail van je organisatie.',
-                    'placement' => 'left',
-                    'clickTarget' => false,
-                    'cta' => 'Pas je gegevens aan in het gemarkeerde blok.',
-                ],
-                [
-                    'target' => '[data-onboarding-target="org-save"]',
-                    'title' => 'Gegevens opslaan',
-                    'body' => 'Vergeet niet op Opslaan te klikken na wijzigingen.',
-                    'placement' => 'top',
-                    'clickTarget' => true,
-                    'highlightPad' => 8,
-                    'cta' => 'Klik op Opslaan om te bevestigen.',
-                ],
-            ]);
+            return $this->stripHelpSlides($this->organizationTourSlides());
         }
 
         if (str_starts_with($routeName, 'admin.users')) {
@@ -155,53 +137,134 @@ class AdminOnboardingService
     }
 
     /**
+     * @param array<string, mixed> $slide
+     * @return array<string, mixed>
+     */
+    private function formTourSlide(array $slide): array
+    {
+        return array_merge([
+            'clickTarget' => false,
+            'allowScroll' => true,
+            'highlightFullTarget' => true,
+            'highlightAnchor' => 'top',
+            'scrollBlock' => 'start',
+            'highlightPad' => 12,
+        ], $slide);
+    }
+
+    /**
+     * @param array<string, mixed> $slide
+     * @return array<string, mixed>
+     */
+    private function clickTourSlide(array $slide): array
+    {
+        return array_merge([
+            'clickTarget' => true,
+            'highlightPad' => 10,
+            'scrollBlock' => 'center',
+        ], $slide);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function organizationTourSlides(bool $onboarding = false): array
+    {
+        return [
+            $this->formTourSlide([
+                'target' => '[data-onboarding-target="org-profile"]',
+                'title' => $onboarding ? 'Organisatieprofiel' : 'Logo en naam',
+                'body' => $onboarding
+                    ? 'Upload je logo en vul je organisatienaam in.'
+                    : 'Beheer het logo en de naam van je organisatie.',
+                'placement' => 'left',
+                'cta' => 'Vul logo en organisatienaam in.',
+            ]),
+            $this->formTourSlide([
+                'target' => '[data-onboarding-target="org-contact"]',
+                'title' => 'Contactgegevens',
+                'body' => $onboarding
+                    ? 'Adres, telefoon en e-mail zijn verplicht voor facturen en je account.'
+                    : 'Hier beheer je adres, telefoon en e-mail van je organisatie.',
+                'placement' => 'left',
+                'cta' => 'Vul de contactvelden in het gemarkeerde blok in.',
+            ]),
+            $this->formTourSlide([
+                'target' => '[data-onboarding-target="org-working-hours"]',
+                'title' => 'Werktijden voor de agenda',
+                'body' => 'Stel per dag in wanneer je open bent. De agenda toont alleen deze uren — zo plan je takenlijsten op de juiste momenten.',
+                'placement' => 'left',
+                'cta' => 'Pas start- en eindtijd aan per dag indien nodig.',
+            ]),
+            $this->clickTourSlide([
+                'target' => '[data-onboarding-target="org-save"]',
+                'title' => $onboarding ? 'Sla je gegevens op' : 'Gegevens opslaan',
+                'body' => $onboarding
+                    ? 'Controleer je gegevens en werktijden. Klik op Opslaan om door te gaan naar medewerkers toevoegen.'
+                    : 'Vergeet niet op Opslaan te klikken na wijzigingen.',
+                'placement' => 'top',
+                'cta' => 'Klik op Opslaan om te bevestigen.',
+            ]),
+        ];
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private function usersTourSlides(int $employeeCount, ?string $routeName): array
     {
         if ($routeName === 'admin.users.create') {
             return [
-                [
-                    'target' => '[data-onboarding-target="user-fields"]',
-                    'title' => 'Vul de medewerker in',
-                    'body' => 'Naam, e-mail en wachtwoord zijn verplicht. Rol staat standaard op Medewerker.',
+                $this->formTourSlide([
+                    'target' => '[data-onboarding-target="user-basics"]',
+                    'title' => 'Naam en e-mail',
+                    'body' => 'Vul de naam en het e-mailadres in. De medewerker ontvangt daarna een uitnodiging om zelf een wachtwoord in te stellen.',
                     'placement' => 'left',
-                    'clickTarget' => false,
-                    'cta' => 'Vul de gemarkeerde velden in.',
-                ],
-                [
+                    'cta' => 'Vul naam en e-mail in het gemarkeerde blok in.',
+                ]),
+                $this->formTourSlide([
+                    'target' => '[data-onboarding-target="user-role"]',
+                    'title' => 'Rol en afdeling',
+                    'body' => 'Rol staat standaard op Medewerker — dat is meestal wat je nodig hebt. Afdeling en locatie zijn optioneel.',
+                    'placement' => 'left',
+                    'cta' => 'Controleer de rol en kies eventueel een afdeling.',
+                ]),
+                $this->clickTourSlide([
                     'target' => '[data-onboarding-target="user-save"]',
                     'title' => 'Maak de medewerker aan',
                     'body' => 'Als alles klopt, klik op Gebruiker aanmaken om het account op te slaan.',
                     'placement' => 'top',
-                    'clickTarget' => true,
-                    'highlightPad' => 8,
                     'cta' => 'Klik op de blauwe knop Gebruiker aanmaken.',
-                ],
+                ]),
             ];
         }
 
         if ($employeeCount >= 1) {
+            $justCreated = session()->pull('onboarding_user_created', false);
+
             return [
                 [
                     'target' => null,
-                    'title' => 'Team is klaar',
-                    'body' => 'Je hebt ' . $employeeCount . ' medewerker(s) toegevoegd. Ga verder om je eerste takenlijst te maken.',
-                    'action' => 'continue_users',
+                    'title' => $justCreated ? 'Medewerker aangemaakt' : 'Nog een medewerker toevoegen?',
+                    'body' => $justCreated
+                        ? 'De medewerker ontvangt een uitnodiging per e-mail. Wil je nog iemand toevoegen, of ga je verder met je eerste takenlijst?'
+                        : 'Je hebt al ' . $employeeCount . ' medewerker(s). Wil je er nog een toevoegen, of ga je verder met de onboarding?',
+                    'action' => 'users_more_choice',
+                    'placement' => 'center',
+                    'cta' => 'Kies hieronder wat je wilt doen.',
                 ],
             ];
         }
 
         return [
-            [
+            $this->clickTourSlide([
                 'target' => '[data-onboarding-target="add-user"]',
                 'title' => 'Voeg je eerste medewerker toe',
                 'body' => 'Medewerkers vullen later takenlijsten in. Klik hier om een account aan te maken.',
                 'placement' => 'left',
-                'clickTarget' => true,
-                'highlightPad' => 6,
+                'highlightPad' => 8,
                 'cta' => 'Klik op Gebruiker toevoegen.',
-            ],
+            ]),
         ];
     }
 
@@ -212,16 +275,15 @@ class AdminOnboardingService
     {
         if ($routeName === 'admin.templates.index') {
             return [
-                [
+                $this->formTourSlide([
                     'target' => '[data-onboarding-target="templates-grid"]',
                     'title' => 'Kies je template',
                     'body' => 'Blader door de templates en kies zelf welke het beste bij je bedrijf past. Klik op Lijst maken bij het template dat je wilt. Liever helemaal zelf beginnen? Dat kan ook — klik op Toch een eigen lijst maken in dit venster.',
                     'placement' => 'left',
-                    'clickTarget' => false,
                     'waitForTarget' => true,
                     'showCustomListOption' => true,
                     'cta' => 'Klik op Lijst maken bij een template naar keuze.',
-                ],
+                ]),
             ];
         }
 
@@ -232,47 +294,58 @@ class AdminOnboardingService
         $fromTemplate = $company->onboarding_list_mode === 'template' || request()->filled('template_id');
 
         $slides = [
-            [
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="list-basics"]',
                 'title' => 'Basisgegevens van je lijst',
                 'body' => $fromTemplate
                     ? 'De titel is al ingevuld vanuit je template. Pas de naam aan indien nodig. De beschrijving helpt medewerkers begrijpen waarvoor de lijst dient.'
                     : 'Geef je lijst een duidelijke titel. Beschrijving en categorie zijn optioneel, maar helpen je team de lijst sneller te herkennen.',
                 'placement' => 'left',
-                'clickTarget' => false,
                 'cta' => 'Controleer titel en beschrijving in het gemarkeerde blok.',
-            ],
+            ]),
         ];
 
         if ($fromTemplate) {
-            $slides[] = [
+            $slides[] = $this->formTourSlide([
                 'target' => '[data-onboarding-target="list-template-info"]',
                 'title' => 'Taken uit je template',
                 'body' => 'Het gekozen template kopieert automatisch alle taken naar deze lijst. Je hoeft ze niet handmatig toe te voegen — na aanmaken kun je ze nog bewerken.',
                 'placement' => 'left',
-                'clickTarget' => false,
                 'cta' => 'Je template staat al geselecteerd hieronder.',
-            ];
+            ]);
         }
 
-        $slides[] = [
+        $slides[] = $this->formTourSlide([
             'target' => '[data-onboarding-target="list-settings"]',
             'title' => 'Planning en instellingen',
-            'body' => 'Kies de prioriteit en hoe vaak de lijst herhaald wordt (bijv. dagelijks of wekelijks). Locatie is optioneel — handig als je meerdere vestigingen hebt.',
+            'body' => 'Kies de prioriteit, herhaling (bijv. dagelijks of wekelijks) en optioneel een locatie.',
             'placement' => 'left',
-            'clickTarget' => false,
             'cta' => 'Stel minimaal prioriteit en herhaling in.',
-        ];
+        ]);
 
-        $slides[] = [
+        $slides[] = $this->formTourSlide([
+            'target' => '[data-onboarding-target="list-time-slots"]',
+            'title' => 'Tijdslots in de agenda',
+            'body' => 'Optioneel: koppel vaste tijden aan weekdagen. Zo verschijnt de lijst automatisch op het juiste moment in de agenda.',
+            'placement' => 'left',
+            'cta' => 'Stel tijdslots in of sla deze stap over.',
+        ]);
+
+        $slides[] = $this->formTourSlide([
+            'target' => '[data-onboarding-target="list-extra-options"]',
+            'title' => 'Extra opties',
+            'body' => 'Digitale handtekening: de medewerker moet tekenen wanneer de lijst is afgerond. Actief: alleen aangevinkte lijsten zijn zichtbaar en uitvoerbaar in de app voor medewerkers.',
+            'placement' => 'left',
+            'cta' => 'Vink opties aan of uit waar nodig.',
+        ]);
+
+        $slides[] = $this->clickTourSlide([
             'target' => '[data-onboarding-target="list-save"]',
             'title' => 'Maak je lijst aan',
             'body' => 'Als alles klopt, klik op Lijst aanmaken. Daarna wijs je de lijst toe aan een medewerker zodat hij hem kan invullen.',
             'placement' => 'top',
-            'clickTarget' => true,
-            'highlightPad' => 8,
             'cta' => 'Klik op de blauwe knop Lijst aanmaken.',
-        ];
+        ]);
 
         return $slides;
     }
@@ -283,38 +356,43 @@ class AdminOnboardingService
     private function companyCalendarTourSlides(): array
     {
         return [
-            [
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="calendar-view-switch"]',
                 'title' => 'Week, dag of maand',
                 'body' => 'Schakel tussen week-, dag- en maandweergave. In dagweergave zie je lijsten op een uurrooster; in maandweergave het hele overzicht.',
                 'placement' => 'bottom',
-                'clickTarget' => false,
+                'allowScroll' => false,
+                'highlightFullTarget' => false,
+                'highlightPad' => 8,
                 'cta' => 'Kies de weergave die het best past.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="calendar-toolbar"]',
                 'title' => 'Alle lijsten in één agenda',
                 'body' => 'Hier zie je welke takenlijsten gepland staan. Klik op een lijst om taken te beheren. Filter eventueel op locatie bovenaan de pagina.',
                 'placement' => 'bottom',
-                'clickTarget' => false,
+                'allowScroll' => false,
+                'highlightFullTarget' => false,
+                'highlightPad' => 8,
                 'cta' => 'Gebruik de knoppen boven de agenda om te navigeren.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="calendar-schedule-help"]',
                 'title' => 'Lijsten op tijd plannen',
                 'body' => 'In week- of dagweergave kun je klikken of slepen in het tijdschema om een lijst aan een tijdslot te koppelen. Lijsten zonder vaste tijd staan op de rij Hele dag.',
                 'placement' => 'bottom',
-                'clickTarget' => false,
                 'cta' => 'Open week- of dagweergave om het tijdschema te gebruiken.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="calendar-add-list"]',
                 'title' => 'Nieuwe lijst toevoegen',
                 'body' => 'Via Lijst maak je snel een extra takenlijst aan en plan je die daarna in de agenda.',
                 'placement' => 'left',
-                'clickTarget' => false,
+                'allowScroll' => false,
+                'highlightFullTarget' => false,
+                'highlightPad' => 8,
                 'cta' => 'Klik op Lijst om een nieuwe takenlijst te maken.',
-            ],
+            ]),
         ];
     }
 
@@ -325,78 +403,78 @@ class AdminOnboardingService
     {
         if ($routeName !== 'admin.lists.show') {
             return [
-                [
+                $this->clickTourSlide([
                     'target' => '[data-onboarding-target="assign-list"]',
                     'title' => 'Koppel lijst aan medewerker',
                     'body' => 'Wijs de lijst toe zodat je medewerker hem kan invullen in de app.',
                     'placement' => 'left',
-                    'clickTarget' => true,
-                    'highlightPad' => 8,
                     'cta' => 'Klik op Lijst toewijzen.',
-                ],
+                ]),
             ];
         }
 
         return [
-            [
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="list-calendar-toolbar"]',
                 'title' => 'Agenda van je lijst',
                 'body' => 'Je lijst heeft een ingebouwde agenda. Geplande dagen en tijden zie je hier; in dagweergave staan taken van die dag eronder.',
                 'placement' => 'bottom',
-                'clickTarget' => false,
+                'allowScroll' => false,
+                'highlightFullTarget' => false,
+                'highlightPad' => 8,
                 'cta' => 'Gebruik de kalender bovenaan om de planning te bekijken.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="calendar-view-switch"]',
                 'title' => 'Week, dag of maand',
                 'body' => 'Week toont alle dagen van de week. Dag toont een uurrooster met tijdsloten. Maand geeft een langere planning.',
                 'placement' => 'bottom',
-                'clickTarget' => false,
+                'allowScroll' => false,
+                'highlightFullTarget' => false,
+                'highlightPad' => 8,
                 'cta' => 'Wissel van weergave via Week, Dag of Maand.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="list-add-task"]',
                 'title' => 'Taak toevoegen',
                 'body' => 'Klik op Taak om een nieuwe stap toe te voegen via het pop-up venster. Je hoeft de pagina niet te verlaten.',
                 'placement' => 'left',
-                'clickTarget' => false,
+                'allowScroll' => false,
+                'highlightFullTarget' => false,
+                'highlightPad' => 8,
                 'cta' => 'Optioneel: voeg extra taken toe.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="assignment-summary"]',
                 'title' => 'Medewerker toewijzen',
                 'body' => 'Je lijst is klaar. Wijs hem toe aan een medewerker — pas dan kan hij de checklist invullen in de app.',
                 'placement' => 'right',
-                'clickTarget' => false,
                 'cta' => 'Dit blok toont wie toegang heeft tot deze lijst.',
-            ],
-            [
+            ]),
+            $this->clickTourSlide([
                 'target' => '[data-onboarding-target="assign-list"]',
                 'title' => 'Lijst toewijzen',
                 'body' => 'Klik op Lijst toewijzen om een medewerker te kiezen die deze lijst gaat uitvoeren.',
                 'placement' => 'top',
-                'clickTarget' => true,
-                'highlightPad' => 8,
                 'cta' => 'Klik op de blauwe knop Lijst toewijzen.',
-            ],
-            [
+            ]),
+            $this->formTourSlide([
                 'target' => '[data-onboarding-target="assign-user-field"]',
                 'title' => 'Kies een medewerker',
                 'body' => 'Selecteer de medewerker die je eerder hebt aangemaakt. De startdatum staat standaard op vandaag — dat kun je aanpassen indien nodig.',
                 'placement' => 'left',
-                'clickTarget' => false,
                 'waitForTarget' => true,
+                'scrollBlock' => 'center',
                 'cta' => 'Kies een medewerker in het dropdown-menu.',
-            ],
-            [
+            ]),
+            $this->clickTourSlide([
                 'target' => '[data-onboarding-target="assign-save"]',
                 'title' => 'Bevestig de toewijzing',
                 'body' => 'Klik op Toewijzen om af te ronden. Je medewerker ziet de lijst daarna in de app — en je account is volledig ingesteld!',
                 'placement' => 'top',
-                'clickTarget' => true,
-                'highlightPad' => 8,
+                'waitForTarget' => true,
                 'cta' => 'Klik op Toewijzen om de onboarding te voltooien.',
-            ],
+            ]),
         ];
     }
 
@@ -423,25 +501,7 @@ class AdminOnboardingService
                     'action' => 'start',
                 ],
             ],
-            Company::ONBOARDING_STEP_ORGANIZATION => [
-                [
-                    'target' => '[data-onboarding-target="org-fields"]',
-                    'title' => 'Vul je bedrijfsgegevens in',
-                    'body' => 'Organisatienaam, adres, telefoon en e-mail zijn verplicht voor facturen en je account.',
-                    'placement' => 'left',
-                    'clickTarget' => false,
-                    'cta' => 'Vul de velden in het gemarkeerde blok in.',
-                ],
-                [
-                    'target' => '[data-onboarding-target="org-save"]',
-                    'title' => 'Sla je gegevens op',
-                    'body' => 'Als alles klopt, klik op Opslaan om door te gaan naar medewerkers toevoegen.',
-                    'placement' => 'top',
-                    'clickTarget' => true,
-                    'highlightPad' => 8,
-                    'cta' => 'Klik op de blauwe Opslaan-knop.',
-                ],
-            ],
+            Company::ONBOARDING_STEP_ORGANIZATION => $this->organizationTourSlides(true),
             Company::ONBOARDING_STEP_USERS => $this->usersTourSlides($employeeCount, $routeName),
             Company::ONBOARDING_STEP_LIST_CHOICE => [
                 [
@@ -464,7 +524,9 @@ class AdminOnboardingService
             'routes' => [
                 'start' => route('admin.onboarding.start'),
                 'continue_users' => route('admin.onboarding.users.continue'),
+                'users_create' => route('admin.users.create'),
                 'list_choice' => route('admin.onboarding.list-choice'),
+                'skip' => route('admin.onboarding.skip'),
             ],
             'can_continue_users' => $employeeCount >= 1,
         ];

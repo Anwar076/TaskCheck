@@ -32,7 +32,6 @@ export function initOnboardingTour(root) {
         bottom: root.querySelector('[data-tour-mask-bottom]'),
     };
     const ring = root.querySelector('[data-tour-ring]');
-    const ringInner = root.querySelector('[data-tour-ring-inner]');
     const badge = root.querySelector('[data-tour-badge]');
     const popover = root.querySelector('[data-tour-popover]');
     const arrow = root.querySelector('[data-tour-arrow]');
@@ -129,8 +128,27 @@ export function initOnboardingTour(root) {
             || rect.right > window.innerWidth - 16;
     };
 
+    const isTargetVisible = (target) => {
+        if (!target) {
+            return false;
+        }
+
+        if (target.closest('.hidden')) {
+            return false;
+        }
+
+        const rect = target.getBoundingClientRect();
+
+        return rect.width > 0 && rect.height > 0;
+    };
+
     const blockTourScroll = (event) => {
         if (!open) {
+            return;
+        }
+
+        const slide = slides[index];
+        if (slide?.allowScroll) {
             return;
         }
 
@@ -143,6 +161,11 @@ export function initOnboardingTour(root) {
 
     const blockTourScrollKeys = (event) => {
         if (!open) {
+            return;
+        }
+
+        const slide = slides[index];
+        if (slide?.allowScroll) {
             return;
         }
 
@@ -167,10 +190,22 @@ export function initOnboardingTour(root) {
         window.removeEventListener('keydown', blockTourScrollKeys, true);
     };
 
+    const applyScrollLock = () => {
+        unlockScroll();
+
+        if (!open || isHelpMode) {
+            return;
+        }
+
+        const slide = slides[index];
+        if (!slide?.allowScroll) {
+            lockScroll();
+        }
+    };
+
     const hideTargetUi = () => {
         Object.values(masks).forEach((el) => el?.classList.add('hidden'));
         ring?.classList.add('hidden');
-        ringInner?.classList.add('hidden');
         badge?.classList.add('hidden');
         arrow?.classList.add('hidden');
         backdrop?.classList.remove('hidden');
@@ -203,9 +238,51 @@ export function initOnboardingTour(root) {
         };
     };
 
+    const intersectWithViewport = (rect) => {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const top = Math.max(0, rect.top);
+        const left = Math.max(0, rect.left);
+        const right = Math.min(vw, rect.right);
+        const bottom = Math.min(vh, rect.bottom);
+
+        return {
+            top,
+            left,
+            right,
+            bottom,
+            width: Math.max(0, right - left),
+            height: Math.max(0, bottom - top),
+        };
+    };
+
+    const highlightRectFor = (rect, slide) => {
+        if (slide.highlightFullTarget) {
+            const margin = 12;
+            const width = Math.min(rect.width, window.innerWidth - margin * 2);
+            const left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin));
+
+            return {
+                top: rect.top,
+                left,
+                width,
+                height: rect.height,
+                right: left + width,
+                bottom: rect.top + rect.height,
+            };
+        }
+
+        return displayRectFor(rect, slide);
+    };
+
     const displayRectFor = (rect, slide) => {
-        const maxWidth = slide.maxHighlightWidth || Math.min(window.innerWidth - 48, 960);
-        const maxHeight = slide.maxHighlightHeight || Math.min(window.innerHeight - 96, 520);
+        const margin = 12;
+        const maxWidth = slide.maxHighlightWidth ?? Math.min(window.innerWidth - 48, 960);
+        const maxHeight = slide.maxHighlightHeight ?? (
+            slide.highlightFullTarget
+                ? window.innerHeight - margin * 2
+                : Math.min(window.innerHeight - 96, 520)
+        );
         const clipped = visibleRect(rect);
 
         if (clipped.width <= maxWidth && clipped.height <= maxHeight) {
@@ -214,10 +291,18 @@ export function initOnboardingTour(root) {
 
         const width = Math.min(clipped.width, maxWidth);
         const height = Math.min(clipped.height, maxHeight);
-        const centerX = Math.min(Math.max(rect.left + rect.width / 2, clipped.left + width / 2), clipped.right - width / 2);
-        const centerY = Math.min(Math.max(rect.top + rect.height / 2, clipped.top + height / 2), clipped.bottom - height / 2);
-        const left = centerX - width / 2;
-        const top = centerY - height / 2;
+        const left = slide.highlightAnchor === 'top'
+            ? clipped.left
+            : Math.min(
+                Math.max(rect.left + rect.width / 2 - width / 2, clipped.left),
+                clipped.right - width
+            );
+        const top = slide.highlightAnchor === 'top'
+            ? clipped.top
+            : Math.min(
+                Math.max(rect.top + rect.height / 2 - height / 2, clipped.top),
+                clipped.bottom - height
+            );
 
         return {
             top,
@@ -232,51 +317,63 @@ export function initOnboardingTour(root) {
     const updateMask = (box) => {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
+        const hole = intersectWithViewport(box);
 
         backdrop?.classList.add('hidden');
+
+        if (hole.width <= 0 || hole.height <= 0) {
+            Object.values(masks).forEach((el) => el?.classList.add('hidden'));
+            backdrop?.classList.remove('hidden');
+            return;
+        }
 
         if (masks.top) {
             masks.top.classList.remove('hidden');
             masks.top.style.top = '0';
             masks.top.style.left = '0';
             masks.top.style.width = `${vw}px`;
-            masks.top.style.height = `${Math.max(0, box.top)}px`;
+            masks.top.style.height = `${Math.max(0, hole.top)}px`;
         }
         if (masks.left) {
             masks.left.classList.remove('hidden');
-            masks.left.style.top = `${box.top}px`;
+            masks.left.style.top = `${hole.top}px`;
             masks.left.style.left = '0';
-            masks.left.style.width = `${Math.max(0, box.left)}px`;
-            masks.left.style.height = `${box.height}px`;
+            masks.left.style.width = `${Math.max(0, hole.left)}px`;
+            masks.left.style.height = `${hole.height}px`;
         }
         if (masks.right) {
             masks.right.classList.remove('hidden');
-            masks.right.style.top = `${box.top}px`;
-            masks.right.style.left = `${box.left + box.width}px`;
-            masks.right.style.width = `${Math.max(0, vw - box.left - box.width)}px`;
-            masks.right.style.height = `${box.height}px`;
+            masks.right.style.top = `${hole.top}px`;
+            masks.right.style.left = `${hole.left + hole.width}px`;
+            masks.right.style.width = `${Math.max(0, vw - hole.left - hole.width)}px`;
+            masks.right.style.height = `${hole.height}px`;
         }
         if (masks.bottom) {
             masks.bottom.classList.remove('hidden');
-            masks.bottom.style.top = `${box.top + box.height}px`;
+            masks.bottom.style.top = `${hole.top + hole.height}px`;
             masks.bottom.style.left = '0';
             masks.bottom.style.width = `${vw}px`;
-            masks.bottom.style.height = `${Math.max(0, vh - box.top - box.height)}px`;
+            masks.bottom.style.height = `${Math.max(0, vh - hole.top - hole.height)}px`;
         }
     };
 
     const positionRing = (box) => {
-        [ring, ringInner].forEach((el, i) => {
-            if (!el) {
-                return;
-            }
-            el.classList.remove('hidden');
-            const inset = i === 1 ? 4 : 0;
-            el.style.top = `${box.top + inset}px`;
-            el.style.left = `${box.left + inset}px`;
-            el.style.width = `${Math.max(0, box.width - inset * 2)}px`;
-            el.style.height = `${Math.max(0, box.height - inset * 2)}px`;
-        });
+        if (!ring) {
+            return;
+        }
+
+        const ringBox = intersectWithViewport(box);
+
+        if (ringBox.width <= 0 || ringBox.height <= 0) {
+            ring.classList.add('hidden');
+            return;
+        }
+
+        ring.classList.remove('hidden');
+        ring.style.top = `${ringBox.top}px`;
+        ring.style.left = `${ringBox.left}px`;
+        ring.style.width = `${Math.max(0, ringBox.width)}px`;
+        ring.style.height = `${Math.max(0, ringBox.height)}px`;
     };
 
     const positionBadge = (box, slide) => {
@@ -317,14 +414,14 @@ export function initOnboardingTour(root) {
             el.classList.add('onboarding-tour-clickable');
         }
 
-        const rect = displayRectFor(el.getBoundingClientRect(), slide);
+        const rect = highlightRectFor(el.getBoundingClientRect(), slide);
         const box = padRect(rect, slide.highlightPad ?? 10);
 
         updateMask(box);
         positionRing(box);
-        positionBadge(box, slide);
+        positionBadge(intersectWithViewport(box), slide);
 
-        return rect;
+        return intersectWithViewport(box);
     };
 
     const resetArrow = () => {
@@ -479,6 +576,21 @@ export function initOnboardingTour(root) {
             return;
         }
 
+        if (slide.action === 'users_more_choice') {
+            const createUrl = config.routes?.users_create || '/admin/users/create';
+            els.actions.innerHTML = `
+                <a href="${createUrl}" class="inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Nog een gebruiker toevoegen
+                </a>
+                <button type="button" data-tour-action="continue_users" class="inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700">
+                    Doorgaan met onboarding
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+            `;
+            return;
+        }
+
         if (slide.action === 'list_choice') {
             els.actions.innerHTML = `
                 <button type="button" data-tour-choice="template" class="inline-flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700">
@@ -597,19 +709,25 @@ export function initOnboardingTour(root) {
         }
         if (els.next) {
             const isLast = index >= slides.length - 1;
-            els.next.disabled = needsClick;
-            els.next.classList.toggle('opacity-40', needsClick);
-            els.next.classList.toggle('cursor-not-allowed', needsClick);
-            els.next.textContent = needsClick ? '↑ Klik op de pagina' : (isLast ? 'Klaar' : 'Volgende tip →');
+            const hasAction = Boolean(slide.action);
+            const nextDisabled = needsClick || hasAction;
+            els.next.disabled = nextDisabled;
+            els.next.classList.toggle('opacity-40', nextDisabled);
+            els.next.classList.toggle('cursor-not-allowed', nextDisabled);
+            els.next.textContent = needsClick
+                ? '↑ Klik op de pagina'
+                : (hasAction ? 'Kies een optie ↑' : (isLast ? 'Klaar' : 'Volgende tip →'));
         }
 
         const target = slide.target ? document.querySelector(slide.target) : null;
 
-        if (slide.target && !target) {
+        if (slide.target && (!target || (slide.waitForTarget && !isTargetVisible(target)))) {
             hideTargetUi();
             positionPopover(null, 'center');
             if (els.wait && slide.waitForTarget) {
-                els.wait.textContent = 'Even wachten tot de pagina geladen is…';
+                els.wait.textContent = target && !isTargetVisible(target)
+                    ? 'Klik op het gemarkeerde element op de pagina om verder te gaan…'
+                    : 'Even wachten tot de pagina geladen is…';
                 els.wait.classList.remove('hidden');
             }
             if (slide.waitForTarget) {
@@ -620,14 +738,19 @@ export function initOnboardingTour(root) {
 
         const paint = () => paintTarget(slide, target, { focusField: scrollToTarget });
 
-        if (target && scrollToTarget && shouldScrollToTarget(target)) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-            window.setTimeout(paint, 400);
+        if (target && scrollToTarget && (shouldScrollToTarget(target) || slide.scrollBlock)) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: slide.scrollBlock || 'nearest',
+                inline: 'nearest',
+            });
+            window.setTimeout(paint, 450);
         } else {
             paint();
         }
 
         requestAnimationFrame(paint);
+        applyScrollLock();
     };
 
     const scheduleRepaint = () => {
@@ -646,9 +769,7 @@ export function initOnboardingTour(root) {
         }
 
         if (open) {
-            if (!isHelpMode) {
-                lockScroll();
-            }
+            applyScrollLock();
             renderSlide();
         } else {
             unlockScroll();
@@ -670,6 +791,9 @@ export function initOnboardingTour(root) {
         if (slide?.clickTarget && slide?.target) {
             return;
         }
+        if (slide?.action) {
+            return;
+        }
         if (index < slides.length - 1) {
             index += 1;
             renderSlide();
@@ -686,6 +810,12 @@ export function initOnboardingTour(root) {
         }
         if (action === 'continue_users') {
             post(config.routes?.continue_users || '/admin/onboarding/users/continue');
+            return;
+        }
+        if (action === 'skip') {
+            if (window.confirm('Onboarding overslaan? Je kunt later alles zelf instellen via het menu.')) {
+                post(config.routes?.skip || '/admin/onboarding/skip');
+            }
             return;
         }
 
