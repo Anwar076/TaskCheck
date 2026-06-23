@@ -12,6 +12,7 @@ use App\Models\Organisation\Location;
 use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskTemplate;
 use App\Services\Admin\ListCalendarService;
+use App\Services\Admin\WeeklyOverviewService;
 use App\Services\Ai\AiUsageLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -1892,14 +1893,21 @@ PROMPT,
         $submission->update(['status' => $hasRejected ? 'rejected' : 'reviewed']);
     }
 
-    public function weeklyOverview(Request $request)
+    public function weeklyOverview(Request $request, WeeklyOverviewService $weeklyOverviewService)
     {
         $this->ensurePlanFeatureAvailable('weekly_overview');
 
-        // Date range setup
         $startDate = $request->get('start_date', now()->startOfWeek()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->endOfWeek()->format('Y-m-d'));
         $companyId = auth()->user()->company_id;
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end->copy()->startOfDay(), $start->copy()->endOfDay()];
+            $startDate = $start->toDateString();
+            $endDate = $end->toDateString();
+        }
 
         $selectedLocationId = null;
         if ($request->filled('location_id')) {
@@ -1915,63 +1923,67 @@ PROMPT,
             ->orderBy('name')
             ->get();
 
-        // Get employees with submissions in the date range
         $employees = \App\Models\Organisation\User::where('company_id', $companyId)
             ->where('role', 'employee')
-            ->when($selectedLocationId, function ($query) use ($selectedLocationId) {
-                $query->where('location_id', $selectedLocationId);
-            })
-            ->with(['submissions' => function ($query) use ($startDate, $endDate, $selectedLocationId) {
-                $query->whereBetween('created_at', [$startDate, $endDate])
-                      ->when($selectedLocationId, function ($submissionQuery) use ($selectedLocationId) {
-                          $submissionQuery->whereHas('taskList', function ($taskListQuery) use ($selectedLocationId) {
-                              $taskListQuery->where('location_id', $selectedLocationId);
-                          });
-                      })
-                      ->with(['taskList', 'submissionTasks']);
+            ->where('is_active', true)
+            ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
+            ->with(['submissions' => function ($query) use ($start, $end, $selectedLocationId) {
+                $query->whereBetween('created_at', [$start, $end])
+                    ->when($selectedLocationId, function ($submissionQuery) use ($selectedLocationId) {
+                        $submissionQuery->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $selectedLocationId));
+                    })
+                    ->with(['taskList:id,title']);
             }])
+            ->orderBy('name')
             ->get();
 
-        // Calculate overview data for each employee
         $overview = [];
         foreach ($employees as $employee) {
             $totalSubmissions = $employee->submissions->count();
+            if ($totalSubmissions === 0) {
+                continue;
+            }
+
             $completed = $employee->submissions->where('status', 'completed')->count();
             $reviewed = $employee->submissions->where('status', 'reviewed')->count();
             $inProgress = $employee->submissions->where('status', 'in_progress')->count();
             $rejected = $employee->submissions->where('status', 'rejected')->count();
-            
-            $completionRate = $totalSubmissions > 0 
-                ? round((($completed + $reviewed) / $totalSubmissions) * 100, 1) 
-                : 0;
-
-            // Calculate on-time and quality metrics (placeholder logic)
-            $onTimeRate = $totalSubmissions > 0 ? rand(75, 95) : 0;
-            $qualityScore = $totalSubmissions > 0 ? rand(3, 5) : 0;
+            $finished = $completed + $reviewed;
 
             $overview[] = [
                 'employee' => $employee,
                 'total_submissions' => $totalSubmissions,
                 'completed' => $completed,
                 'reviewed' => $reviewed,
+                'finished' => $finished,
                 'in_progress' => $inProgress,
                 'rejected' => $rejected,
-                'completion_rate' => $completionRate,
-                'on_time_rate' => $onTimeRate,
-                'quality_score' => $qualityScore,
-                'submissions' => $employee->submissions,
+                'completion_rate' => round(($finished / $totalSubmissions) * 100, 1),
             ];
         }
 
-        // Get active weekly lists for basic overview
+        usort($overview, fn (array $a, array $b) => $b['completion_rate'] <=> $a['completion_rate']);
+
         $lists = TaskList::with(['assignments.user', 'tasks'])
+            ->withCount(['submissions as period_submissions_count' => function ($query) use ($start, $end) {
+                $query->whereBetween('created_at', [$start, $end]);
+            }])
             ->where('company_id', $companyId)
-            ->where('schedule_type', 'weekly')
             ->where('is_active', true)
-            ->when($selectedLocationId, function ($query) use ($selectedLocationId) {
-                $query->where('location_id', $selectedLocationId);
-            })
+            ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
+            ->having('period_submissions_count', '>', 0)
+            ->orderByDesc('period_submissions_count')
+            ->orderBy('title')
+            ->take(12)
             ->get();
+
+        $summary = $weeklyOverviewService->buildSummary($companyId, $start, $end, $selectedLocationId);
+        $chartData = $weeklyOverviewService->buildChartData($companyId, $start, $end, $selectedLocationId);
+        $summary['active_employees'] = count($overview);
+        $summary['total_employees'] = $employees->count();
+        $summary['avg_lists_per_employee'] = $summary['active_employees'] > 0
+            ? round($summary['total_lists'] / $summary['active_employees'], 1)
+            : 0;
 
         return view('admin.lists.weekly-overview', compact(
             'lists',
@@ -1979,7 +1991,9 @@ PROMPT,
             'startDate',
             'endDate',
             'locations',
-            'selectedLocationId'
+            'selectedLocationId',
+            'summary',
+            'chartData',
         ));
     }
 
