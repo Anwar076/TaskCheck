@@ -46,6 +46,7 @@
                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="40" stroke="#e5e7eb" stroke-width="6" fill="none" />
                         <circle cx="50" cy="50" r="40"
+                            id="submission-progress-circle"
                             stroke="{{ $progressColor }}"
                             stroke-width="6"
                             fill="none"
@@ -56,13 +57,13 @@
                         </circle>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <div class="text-sm sm:text-base lg:text-lg font-bold {{ $textColor }}">
+                        <div id="submission-progress-percent" class="text-sm sm:text-base lg:text-lg font-bold {{ $textColor }}">
                             {{ $progressPercent }}%
                         </div>
                     </div>
                 </div>
 
-                <p class="text-[11px] sm:text-xs lg:text-sm text-gray-500 text-center">
+                <p id="submission-progress-count" class="text-[11px] sm:text-xs lg:text-sm text-gray-500 text-center">
                         {{ $completedTasks }}/{{ $totalTasks }} taken
                     </p>
                 </div>
@@ -636,7 +637,9 @@
         <!-- Final Submission - Always Visible -->
        {{-- Final Submission - Always Visible --}}
         @if($submission->status === 'in_progress')
-            <div class="mt-6 sm:mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden" id="final-submission-section">
+            <div class="mt-6 sm:mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+                 id="final-submission-section"
+                 data-ready="{{ $allRequiredCompleted ? '1' : '0' }}">
                 @if($allRequiredCompleted)
                     {{-- All Required Tasks Completed - Form Enabled --}}
                     <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-100 px-4 sm:px-6 py-4 sm:py-6">
@@ -740,7 +743,7 @@
                                     @if(!$allRequiredCompleted) disabled @endif></textarea>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end items-stretch sm:items-center">
                             <a href="{{ route('employee.dashboard') }}" 
                             class="w-full sm:w-auto inline-flex items-center justify-center px-5 sm:px-6 py-3 border border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -748,35 +751,25 @@
                                 </svg>
                                 Opslaan & Later Verder
                             </a>
-                            
-                            @if($allRequiredCompleted)
-                                <button type="submit" 
-                                        class="w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                        id="submit-checklist-btn">
+
+                            <div class="flex flex-col items-stretch sm:items-end gap-2">
+                                <button type="submit"
+                                        id="submit-checklist-btn"
+                                        @if(!$allRequiredCompleted) disabled @endif
+                                        class="w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white transition-all duration-200 shadow-lg {{ $allRequiredCompleted ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl transform hover:scale-105' : 'bg-gray-300 cursor-not-allowed opacity-70' }}">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     Checklist Indienen
                                 </button>
-                            @else
-                                <div class="w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-gray-400 bg-gray-200 cursor-not-allowed"
-                                    title="Voltooi eerst alle verplichte taken">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                    Checklist Indienen (Vergrendeld)
-                                </div>
-                                <p class="text-xs sm:text-sm text-amber-600 text-center mt-2">
-                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                    </svg>
+                                <p id="submit-checklist-hint" class="text-xs sm:text-sm text-amber-600 text-center sm:text-right {{ $allRequiredCompleted ? 'hidden' : '' }}">
                                     @if($hasRedoRequired)
                                         Voer de opnieuw vereiste taken eerst opnieuw uit
                                     @else
                                         Voltooi alle verplichte taken om in te kunnen dienen
                                     @endif
                                 </p>
-                            @endif
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -1057,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Checklist persistence & forms
     initializeChecklists();
-    setTimeout(updateFinalSubmissionForm, 500);
+    syncFinalSubmissionForm(false);
 
     // CSRF meta fallback
     if (!document.querySelector('meta[name="csrf-token"]')) {
@@ -1080,15 +1073,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Progress circle init
-    const progressCircle = document.querySelector('.progress-circle');
+    const progressCircle = document.getElementById('submission-progress-circle');
     if (progressCircle) {
         const circumference = 2 * Math.PI * 40;
         const progressPercent = {{ $progressPercent }};
         const offset = circumference - (progressPercent / 100) * circumference;
-        progressCircle.style.strokeDasharray = circumference;
-        progressCircle.style.strokeDashoffset = circumference;
+        progressCircle.style.strokeDasharray = String(circumference);
+        progressCircle.style.strokeDashoffset = String(circumference);
         setTimeout(() => {
-            progressCircle.style.strokeDashoffset = offset;
+            progressCircle.style.strokeDashoffset = String(offset);
         }, 500);
     }
 
@@ -1263,128 +1256,112 @@ function countTotalRequiredTasks() {
     return totalRequired;
 }
 
-// ✅ Geen scroll naar beneden meer
-function updateFinalSubmissionForm() {
+// ✅ Sync final submission block (single submit button)
+let finalSubmissionWasReady = null;
+
+function syncFinalSubmissionForm(showCelebration = false) {
     try {
         const completedRequiredTasks = countCompletedRequiredTasks();
         const totalRequiredTasks = countTotalRequiredTasks();
-        const finalSection = document.getElementById('final-submission-section');
-        if (!finalSection) return;
+        const ready = completedRequiredTasks >= totalRequiredTasks && totalRequiredTasks > 0;
 
-        if (completedRequiredTasks >= totalRequiredTasks && totalRequiredTasks > 0) {
-            enableFinalSubmissionForm();
-            showNotification('🎉 Alle verplichte taken zijn voltooid! Je kunt nu de checklist indienen.', 'success', 5000);
-        } else {
-            updateToDisabledState();
+        setFinalSubmissionReady(ready);
+
+        if (showCelebration && ready && finalSubmissionWasReady === false) {
+            showNotification('Alle verplichte taken zijn voltooid. Je kunt nu de checklist indienen.', 'success', 5000);
         }
+
+        finalSubmissionWasReady = ready;
     } catch (e) {
-        console.error('updateFinalSubmissionForm error:', e);
+        console.error('syncFinalSubmissionForm error:', e);
     }
 }
 
-function updateToDisabledState() {
+function setFinalSubmissionReady(ready) {
     const finalSection = document.getElementById('final-submission-section');
     if (!finalSection) return;
 
-    const header = finalSection.querySelector('.bg-gradient-to-r');
-    if (header) {
-        header.className = 'bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-100 px-4 sm:px-6 py-4 sm:py-6';
-        
-        const icon = header.querySelector('.w-9.h-9, .w-10.h-10');
-        if (icon) {
-            icon.className = 'w-9 h-9 sm:w-10 sm:h-10 bg-amber-500 rounded-xl flex items-center justify-center mr-0';
-            icon.innerHTML = `
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                </svg>
-            `;
-        }
-        
-        const title = header.querySelector('h3');
-        if (title) title.textContent = 'Checklist Indienen';
-        
-        const description = header.querySelector('p');
-        if (description) {
-            description.textContent = 'Voltooi eerst alle verplichte taken om de checklist in te kunnen dienen.';
-            description.className = 'text-sm sm:text-base text-amber-700 font-medium';
-        }
-    }
-}
-
-function enableFinalSubmissionForm() {
-    const finalSection = document.getElementById('final-submission-section');
-    if (!finalSection) return;
+    finalSection.dataset.ready = ready ? '1' : '0';
 
     const header = finalSection.querySelector('.bg-gradient-to-r');
     if (header) {
-        header.className = 'bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-100 px-4 sm:px-6 py-4 sm:py-6';
+        header.className = ready
+            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-100 px-4 sm:px-6 py-4 sm:py-6'
+            : 'bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-100 px-4 sm:px-6 py-4 sm:py-6';
+
         const icon = header.querySelector('.w-9.h-9, .w-10.h-10');
         if (icon) {
-            icon.className = 'w-9 h-9 sm:w-10 sm:h-10 bg-green-600 rounded-xl flex items-center justify-center mr-0';
-            icon.innerHTML = `
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            `;
+            icon.className = ready
+                ? 'w-9 h-9 sm:w-10 sm:h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0'
+                : 'w-9 h-9 sm:w-10 sm:h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0';
+            icon.innerHTML = ready
+                ? '<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+                : '<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>';
         }
+
         const title = header.querySelector('h3');
-        if (title) title.textContent = '🎉 Klaar om in te dienen!';
+        if (title) {
+            title.textContent = ready ? 'Klaar om in te dienen!' : 'Checklist Indienen';
+        }
+
         const description = header.querySelector('p');
         if (description) {
-            description.textContent = 'Alle verplichte taken zijn voltooid. Je kunt nu de checklist indienen voor review.';
-            description.className = 'text-sm sm:text-base text-gray-600';
+            description.textContent = ready
+                ? 'Alle verplichte taken zijn voltooid. Je kunt nu de checklist indienen voor review.'
+                : 'Voltooi eerst alle verplichte taken om de checklist in te kunnen dienen.';
+            description.className = ready
+                ? 'mt-1 text-sm sm:text-base text-gray-600'
+                : 'mt-1 text-sm sm:text-base text-amber-700 font-medium';
         }
     }
 
     const sigPad = finalSection.querySelector('#signature-pad-final');
-    if (sigPad) {
-        sigPad.classList.remove('opacity-50');
-        sigPad.style.pointerEvents = 'auto';
-        const sigInput = finalSection.querySelector('#signature-input-final');
-        if (sigInput) sigInput.required = true;
-        const help = sigPad.parentElement.parentElement.querySelector('p.text-xs, p.text-sm');
-        if (help) help.textContent = 'Teken je handtekening hierboven. Deze wordt opgeslagen als bewijs van voltooiing.';
-        const label = sigPad.parentElement.parentElement.querySelector('label');
-        if (label) label.innerHTML = 'Digitale Handtekening <span class="text-red-500">*</span>';
-    }
-
+    const sigInput = finalSection.querySelector('#signature-input-final');
     const clearBtn = finalSection.querySelector('button[onclick="clearSignaturePadFinal()"]');
-    if (clearBtn) {
-        clearBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        clearBtn.disabled = false;
-    }
-
     const notes = finalSection.querySelector('textarea[name="notes"]');
+    const submitBtn = finalSection.querySelector('#submit-checklist-btn');
+    const submitHint = finalSection.querySelector('#submit-checklist-hint');
+
+    if (sigPad) {
+        sigPad.classList.toggle('opacity-50', !ready);
+        sigPad.style.pointerEvents = ready ? 'auto' : 'none';
+    }
+    if (sigInput) {
+        sigInput.required = !!ready && !!sigPad;
+        if (!ready) {
+            sigInput.value = '';
+        }
+    }
+    if (clearBtn) {
+        clearBtn.disabled = !ready;
+        clearBtn.classList.toggle('opacity-50', !ready);
+        clearBtn.classList.toggle('cursor-not-allowed', !ready);
+    }
     if (notes) {
-        notes.classList.remove('opacity-50', 'bg-gray-50');
-        notes.disabled = false;
-        notes.placeholder = 'Eventuele aanvullende opmerkingen over deze checklist...';
-        const label = notes.parentElement.querySelector('label');
-        if (label) label.textContent = 'Aanvullende Opmerkingen (Optioneel)';
+        notes.disabled = !ready;
+        notes.classList.toggle('opacity-50', !ready);
+        notes.classList.toggle('bg-gray-50', !ready);
+        notes.placeholder = ready
+            ? 'Eventuele aanvullende opmerkingen over deze checklist...'
+            : 'Dit veld wordt beschikbaar nadat alle verplichte taken zijn voltooid.';
+    }
+    if (submitBtn) {
+        submitBtn.disabled = !ready;
+        submitBtn.className = ready
+            ? 'w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105'
+            : 'w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gray-300 cursor-not-allowed opacity-70';
+    }
+    if (submitHint) {
+        submitHint.classList.toggle('hidden', ready);
     }
 
-    const disabledBtn = finalSection.querySelector('.bg-gray-200');
-    const warn = finalSection.querySelector('.text-amber-600.text-center');
-    if (disabledBtn && warn) {
-        const container = disabledBtn.parentElement;
-        disabledBtn.remove();
-        warn.remove();
-
-        const enabledButton = document.createElement('button');
-        enabledButton.type = 'submit';
-        enabledButton.id = 'submit-checklist-btn';
-        enabledButton.className = 'w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105';
-        enabledButton.innerHTML = `
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Checklist Indienen
-        `;
-        container.appendChild(enabledButton);
+    if (ready) {
+        setupFinalSignaturePad();
     }
+}
 
-    setupFinalSignaturePad();
-    initializeFinalSubmissionAjax();
+function updateFinalSubmissionForm() {
+    syncFinalSubmissionForm(true);
 }
 
 function initializeFinalSubmissionAjax() {
@@ -1420,7 +1397,11 @@ function initializeFinalSubmissionAjax() {
             return;
         }
 
-        const submitButton = form.querySelector('button[type="submit"]');
+        const submitButton = form.querySelector('#submit-checklist-btn');
+        if (!submitButton || submitButton.disabled) {
+            showNotification('Voltooi eerst alle verplichte taken om de checklist in te dienen.', 'warning');
+            return;
+        }
         const original = submitButton.innerHTML;
         submitButton.disabled = true;
         submitButton.innerHTML = `
@@ -1454,7 +1435,7 @@ function initializeFinalSubmissionAjax() {
             if (!data.success) throw new Error(data.message || 'Onbekende fout opgetreden');
 
             try {
-                localStorage.setItem(completionStorageKey, Date.now().toString());
+                localStorage.setItem('completed_list_{{ $submission->taskList->id }}:' + new Date().toISOString().slice(0, 10), Date.now().toString());
             } catch (e) {
                 console.warn('Kon localStorage niet schrijven:', e);
             }
@@ -1476,8 +1457,10 @@ function initializeFinalSubmissionAjax() {
             } else if (err.message) msg = err.message;
             showNotification(msg, 'error');
             hideLoadingOverlay();
-            submitButton.disabled = false;
-            submitButton.innerHTML = original;
+            setFinalSubmissionReady(true);
+            if (submitButton) {
+                submitButton.innerHTML = original;
+            }
         });
     });
 }
@@ -1572,23 +1555,30 @@ function updateProgressIndicator() {
         const cards = document.querySelectorAll('.task-card');
         let completed = 0;
         cards.forEach(card => {
-            if (card.dataset.status === 'completed' || card.dataset.status === 'approved') completed++;
+            if (card.dataset.status === 'completed' || card.dataset.status === 'approved') {
+                completed++;
+            }
         });
         const total = cards.length;
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-        const progressCircle = document.querySelector('.progress-circle');
-        const progressText = document.querySelector('.text-base.sm\\:text-lg.font-bold');
-        const progressCount = document.querySelector('.text-xs.sm\\:text-sm.text-gray-500');
+        const progressCircle = document.getElementById('submission-progress-circle');
+        const progressText = document.getElementById('submission-progress-percent');
+        const progressCount = document.getElementById('submission-progress-count');
 
         if (progressCircle && progressText && progressCount) {
             const circumference = 2 * Math.PI * 40;
             const offset = circumference * (1 - (percent / 100));
-            progressCircle.style.strokeDashoffset = offset;
+            progressCircle.style.strokeDasharray = String(circumference);
+            progressCircle.style.strokeDashoffset = String(offset);
             progressText.textContent = percent + '%';
             progressCount.textContent = `${completed}/${total} taken`;
+
             const color = percent >= 100 ? '#22c55e' : (percent > 0 ? '#3b82f6' : '#ef4444');
             progressCircle.setAttribute('stroke', color);
+            progressText.className = 'text-sm sm:text-base lg:text-lg font-bold ' + (
+                percent >= 100 ? 'text-green-600' : (percent > 0 ? 'text-gray-900' : 'text-red-600')
+            );
         }
     } catch (e) {
         console.error('updateProgressIndicator error:', e);
