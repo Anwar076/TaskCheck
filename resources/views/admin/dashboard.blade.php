@@ -353,7 +353,7 @@
                                 </div>
                                 <div class="text-right shrink-0">
                                     <p class="text-2xl font-bold text-slate-900 tabular-nums">{{ $rate }}%</p>
-                                    <p class="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Voltooid</p>
+                                    <p class="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Voortgang</p>
                                 </div>
                             </div>
 
@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="text-right shrink-0">
                     <p class="text-2xl font-bold text-slate-900 tabular-nums">${employee.completion_rate}%</p>
-                    <p class="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Voltooid</p>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Voortgang</p>
                 </div>
             </div>
             ${activeBlock}

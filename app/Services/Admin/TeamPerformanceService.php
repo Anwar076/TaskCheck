@@ -29,7 +29,7 @@ class TeamPerformanceService
             ->get(['id', 'name', 'department']);
 
         $todaySubmissions = Submission::query()
-            ->with(['taskList:id,title'])
+            ->with(['taskList:id,title', 'submissionTasks:id,submission_id,status'])
             ->whereIn('user_id', $employees->pluck('id'))
             ->whereDate('created_at', $date)
             ->when($locationId, function ($query) use ($locationId) {
@@ -40,6 +40,8 @@ class TeamPerformanceService
         $submissionsByUser = $todaySubmissions->groupBy('user_id');
 
         $rows = [];
+        $teamProgressSum = 0.0;
+        $teamProgressCount = 0;
 
         foreach ($employees as $employee) {
             $userSubmissions = $submissionsByUser->get($employee->id, collect());
@@ -68,13 +70,25 @@ class TeamPerformanceService
                 continue;
             }
 
-            $completionRate = $totalLists > 0
-                ? round(($finishedLists / $totalLists) * 100, 1)
+            $listProgressValues = $totalListIds
+                ->map(fn (int $listId) => $this->listProgress(
+                    $userSubmissions->firstWhere('list_id', $listId)
+                ))
+                ->values();
+
+            $completionRate = $listProgressValues->isNotEmpty()
+                ? round($listProgressValues->avg(), 1)
                 : 0;
+
+            $teamProgressSum += $listProgressValues->sum();
+            $teamProgressCount += $listProgressValues->count();
 
             $activeSubmission = $inProgressSubmissions->sortByDesc('updated_at')->first();
             $isActiveNow = $activeSubmission !== null
                 && $activeSubmission->updated_at >= now()->subMinutes(15);
+            $activeListProgress = $activeSubmission
+                ? (int) round($this->listProgress($activeSubmission))
+                : null;
 
             $rows[] = [
                 'id' => $employee->id,
@@ -89,7 +103,7 @@ class TeamPerformanceService
                 'completion_rate' => $completionRate,
                 'is_active_now' => $isActiveNow,
                 'current_list' => $activeSubmission?->taskList?->title,
-                'progress' => $isActiveNow ? (int) ($activeSubmission->completion_percentage ?? 0) : null,
+                'progress' => $isActiveNow ? $activeListProgress : null,
                 'profile_url' => route('admin.users.show', $employee),
             ];
         }
@@ -117,8 +131,8 @@ class TeamPerformanceService
             'completion_rate' => 0,
         ];
 
-        if ($summary['total_lists'] > 0) {
-            $summary['completion_rate'] = round(($summary['finished_lists'] / $summary['total_lists']) * 100, 1);
+        if ($teamProgressCount > 0) {
+            $summary['completion_rate'] = round($teamProgressSum / $teamProgressCount, 1);
         }
 
         return [
@@ -126,5 +140,32 @@ class TeamPerformanceService
             'employees' => $rows,
             'updated_at' => now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * Task progress within a list (0–100). Finished submissions count as 100%.
+     */
+    private function listProgress(?Submission $submission): float
+    {
+        if ($submission === null) {
+            return 0;
+        }
+
+        if (in_array($submission->status, ['completed', 'reviewed'], true)) {
+            return 100;
+        }
+
+        $tasks = $submission->relationLoaded('submissionTasks')
+            ? $submission->submissionTasks
+            : $submission->submissionTasks()->get(['id', 'submission_id', 'status']);
+
+        $total = $tasks->count();
+        if ($total === 0) {
+            return 0;
+        }
+
+        $done = $tasks->whereIn('status', ['completed', 'approved'])->count();
+
+        return round(($done / $total) * 100, 1);
     }
 }
