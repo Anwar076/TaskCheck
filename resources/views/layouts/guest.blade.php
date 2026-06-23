@@ -17,33 +17,53 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased bg-gray-50">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center py-12 sm:px-0" data-page-transition-root>
-            <!-- Logo Section -->
-            <div class="mb-8">
-                <a href="/" class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold text-gray-900">TaskCheck</span>
-                </a>
-            </div>
 
+        <style>
+            @keyframes taskcheck-login-grid-drift {
+                from { background-position: 0 0; }
+                to { background-position: 56px 56px; }
+            }
+
+            .taskcheck-login-scene {
+                background: #eef3f9;
+            }
+
+            .taskcheck-login-grid {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                background-image:
+                    linear-gradient(to right, rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(15, 23, 42, 0.055) 1px, transparent 1px);
+                background-size: 56px 56px;
+                animation: taskcheck-login-grid-drift 4s linear infinite;
+            }
+
+            .taskcheck-login-vignette {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                background:
+                    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.45) 28%, rgba(238, 243, 249, 0) 58%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(238, 243, 249, 0.2));
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .taskcheck-login-grid {
+                    animation: none;
+                }
+            }
+        </style>
+    </head>
+    <body class="font-sans text-gray-900 antialiased">
+        <div class="taskcheck-login-scene relative min-h-screen overflow-hidden" data-page-transition-root>
+            <div class="taskcheck-login-grid" aria-hidden="true"></div>
+            <div class="taskcheck-login-vignette" aria-hidden="true"></div>
             <!-- Auth Card -->
-            <div class="w-full sm:max-w-md">
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div class="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+                <div class="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-7 shadow-xl backdrop-blur">
                     {{ $slot }}
                 </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="mt-8 text-center">
-                <p class="text-sm text-gray-500">
-                    © {{ date('Y') }} TaskCheck. Professional task management.
-                </p>
             </div>
         </div>
         @include('partials.page-transitions')

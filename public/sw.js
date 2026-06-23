@@ -1,9 +1,8 @@
 // ==== BASIS CONFIG ====
-const CACHE_NAME = 'taskcheck-v5.3.4';
+const CACHE_NAME = 'taskcheck-v5.3.5';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/logos/taskcheck-favicon.png',
-  '/logos/taskcheck-logo.png',
   '/offline.html',
 ];
 
@@ -15,6 +14,7 @@ const NEVER_CACHE = [
   '/password',
   '/refresh-csrf',
   '/sanctum/csrf-cookie',
+  '/logos/taskcheck-logo.png',
   '/employee/submissions', // altijd vers
   '/admin',                // admin schermen liever niet cachen
   '/api',                  // api calls niet via cache

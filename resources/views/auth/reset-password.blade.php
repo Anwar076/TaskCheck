@@ -1,117 +1,137 @@
 <x-guest-layout>
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 p-8 text-center">
-        <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Set New Password</h1>
-        <p class="text-gray-600">Create a new password for your account</p>
+    @php
+        $taskcheckLogoPath = public_path('logos/taskcheck-logo.png');
+        $taskcheckLogoVersion = file_exists($taskcheckLogoPath) ? filemtime($taskcheckLogoPath) : time();
+    @endphp
+
+    <div class="mb-8 flex justify-center">
+        <a href="{{ route('welcome') }}" class="inline-flex">
+            <img
+                src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
+                alt="TaskCheck - Maak elke controle aantoonbaar"
+                width="640"
+                height="160"
+                class="h-16 w-auto object-contain"
+                decoding="async"
+                fetchpriority="high"
+            >
+        </a>
     </div>
 
-    <!-- Reset Password Form -->
-    <div class="p-8">
-        <form method="POST" action="{{ route('password.store') }}" class="space-y-6">
-            @csrf
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-950">Nieuw wachtwoord instellen</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-500">
+            Kies een sterk nieuw wachtwoord voor uw TaskCheck-account.
+        </p>
+    </div>
 
-            <!-- Password Reset Token -->
-            <input type="hidden" name="token" value="{{ $request->route('token') }}">
+    <form method="POST" action="{{ route('password.store') }}" class="space-y-4">
+        @csrf
 
-            <!-- Email Address -->
-            <div>
-                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                        </svg>
-                    </div>
-                    <input id="email" 
-                           type="email" 
-                           name="email" 
-                           value="{{ old('email', $request->email) }}" 
-                           required 
-                           autofocus 
-                           autocomplete="username"
-                           class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('email') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Enter your email">
-                </div>
-                @error('email')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
+        <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-            <!-- Password -->
-            <div>
-                <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                    New Password
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                    <input id="password" 
-                           type="password" 
-                           name="password" 
-                           required 
-                           autocomplete="new-password"
-                           class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('password') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Enter your new password">
-                </div>
-                @error('password')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
+        <div class="space-y-2">
+            <label for="email" class="block text-sm font-semibold text-slate-800">
+                E-mailadres
+            </label>
+            <input id="email"
+                   type="email"
+                   name="email"
+                   value="{{ old('email', $request->email) }}"
+                   required
+                   autofocus
+                   autocomplete="username"
+                   class="block w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 @error('email') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
+                   placeholder="naam@bedrijf.nl">
+            @error('email')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
 
-            <!-- Confirm Password -->
-            <div>
-                <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Confirm New Password
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <input id="password_confirmation" 
-                           type="password" 
-                           name="password_confirmation" 
-                           required 
-                           autocomplete="new-password"
-                           class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('password_confirmation') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
-                           placeholder="Confirm your new password">
-                </div>
-                @error('password_confirmation')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Reset Button -->
-            <div>
-                <button type="submit" 
-                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        <div class="space-y-2">
+            <label for="password" class="block text-sm font-semibold text-slate-800">
+                Nieuw wachtwoord
+            </label>
+            <div class="relative">
+                <input id="password"
+                       type="password"
+                       name="password"
+                       required
+                       autocomplete="new-password"
+                       class="block w-full rounded-lg border border-slate-200 bg-white px-4 py-3 pr-11 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 @error('password') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
+                       placeholder="Minimaal 8 tekens">
+                <button
+                    type="button"
+                    class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center text-slate-400 transition hover:text-slate-600"
+                    aria-label="Wachtwoord tonen"
+                    data-password-toggle
+                    data-password-target="password"
+                >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/>
                     </svg>
-                    Reset Password
                 </button>
             </div>
-        </form>
-
-        <!-- Back to Login -->
-        <div class="mt-6 text-center">
-            <p class="text-sm text-gray-600">
-                Remember your password? 
-                <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                    Sign in here
-                </a>
-            </p>
+            @error('password')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
         </div>
-    </div>
+
+        <div class="space-y-2">
+            <label for="password_confirmation" class="block text-sm font-semibold text-slate-800">
+                Bevestig wachtwoord
+            </label>
+            <div class="relative">
+                <input id="password_confirmation"
+                       type="password"
+                       name="password_confirmation"
+                       required
+                       autocomplete="new-password"
+                       class="block w-full rounded-lg border border-slate-200 bg-white px-4 py-3 pr-11 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 @error('password_confirmation') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
+                       placeholder="Herhaal uw wachtwoord">
+                <button
+                    type="button"
+                    class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center text-slate-400 transition hover:text-slate-600"
+                    aria-label="Wachtwoord tonen"
+                    data-password-toggle
+                    data-password-target="password_confirmation"
+                >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/>
+                    </svg>
+                </button>
+            </div>
+            @error('password_confirmation')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <button type="submit"
+                class="flex w-full items-center justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100">
+            Wachtwoord opslaan
+        </button>
+    </form>
+
+    <a href="{{ route('login') }}" class="mt-6 flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-600">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+        </svg>
+        Terug naar inloggen
+    </a>
+
+    <script>
+        document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-password-target');
+                const passwordInput = targetId ? document.getElementById(targetId) : null;
+                if (!passwordInput) return;
+
+                const isHidden = passwordInput.type === 'password';
+                passwordInput.type = isHidden ? 'text' : 'password';
+                button.setAttribute('aria-label', isHidden ? 'Wachtwoord verbergen' : 'Wachtwoord tonen');
+            });
+        });
+    </script>
 </x-guest-layout>
