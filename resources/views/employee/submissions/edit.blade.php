@@ -824,6 +824,8 @@ function openCamera(taskId, mode) {
 function uploadFile(taskId) {
     const input = document.getElementById('file-input-' + taskId);
     if (input) {
+        // Allow selecting the same file again on a next pick.
+        input.value = '';
         input.click();
     } else {
         console.warn('File-input niet gevonden voor', taskId);
@@ -889,7 +891,6 @@ function handleFileSelect(input, taskId) {
     if (newFiles.length === 0) return;
 
     addProofFiles(taskId, newFiles);
-    input.value = '';
 }
 
 function renderProofFilePreviews(taskId) {
@@ -1096,13 +1097,39 @@ function clearSignaturePadFinal() {
     }
 }
 
+function buildTaskFormData(form, taskId) {
+    syncProofFilesToInput(taskId);
+
+    const storedProofFiles = getStoredProofFiles(taskId);
+    const formData = new FormData(form);
+
+    if (storedProofFiles.length === 0) {
+        return formData;
+    }
+
+    const fresh = new FormData();
+    for (const [key, value] of formData.entries()) {
+        if (key !== 'proof_files[]') {
+            fresh.append(key, value);
+        }
+    }
+
+    storedProofFiles.forEach(file => {
+        fresh.append('proof_files[]', file, file.name);
+    });
+
+    return fresh;
+}
+
 // ===== Helpers & AJAX for forms =====
 
 function validateTaskForm(form) {
     let isValid = true;
     const requiredProofType = form.dataset.requiredProofType || 'none';
+    const taskId = form.id.replace('task-form-', '');
     const mainFileInput = form.querySelector('input[type="file"][name="proof_files[]"]');
-    const hasProofFiles = !!(mainFileInput && mainFileInput.files && mainFileInput.files.length > 0);
+    syncProofFilesToInput(taskId);
+    const hasProofFiles = getStoredProofFiles(taskId).length > 0;
 
     const signatureCanvas = form.querySelector('canvas[id^="signature-pad-task-"]');
     if (signatureCanvas) {
@@ -1133,6 +1160,9 @@ function validateTaskForm(form) {
         field.classList.remove('border-red-500', 'border-red-300');
 
         if (field.type === 'file') {
+            if (field.name === 'proof_files[]') {
+                return;
+            }
             if (field.files.length === 0) {
                 field.classList.add('border-red-500');
                 if (requiredProofType === 'photo') {
@@ -1586,8 +1616,7 @@ function initializeChecklists() {
             `;
             showLoadingOverlay();
 
-            syncProofFilesToInput(taskId);
-            const formData = new FormData(form);
+            const formData = buildTaskFormData(form, taskId);
             const submitTaskForm = async (allowRetry = true) => {
                 const response = await fetch(form.action, {
                     method: 'POST',
