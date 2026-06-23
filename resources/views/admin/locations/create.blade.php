@@ -44,10 +44,34 @@
             @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
-        <div>
-            <x-form-label for="address" help="Het fysieke adres van deze vestiging.">Adres</x-form-label>
-            <input id="address" name="address" type="text" value="{{ old('address') }}" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
-            @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <div class="space-y-3">
+            <div>
+                <x-form-label for="street" help="Vul het adres op in losse onderdelen. Zo blijft het overzicht netjes en voorkomt dit onduidelijke adresregels.">Adres</x-form-label>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_9rem]">
+                <div>
+                    <label for="street" class="mb-1.5 block text-xs font-medium text-slate-600">Straatnaam</label>
+                    <input id="street" name="street" type="text" value="{{ old('street') }}" autocomplete="address-line1" placeholder="Bijv. Demostraat" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
+                    @error('street')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label for="house_number" class="mb-1.5 block text-xs font-medium text-slate-600">Nummer</label>
+                    <input id="house_number" name="house_number" type="text" value="{{ old('house_number') }}" autocomplete="address-line2" placeholder="1A" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
+                    @error('house_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                <div>
+                    <label for="postal_code" class="mb-1.5 block text-xs font-medium text-slate-600">Postcode</label>
+                    <input id="postal_code" name="postal_code" type="text" value="{{ old('postal_code') }}" autocomplete="postal-code" placeholder="1011 AB" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm uppercase">
+                    @error('postal_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label for="city" class="mb-1.5 block text-xs font-medium text-slate-600">Plaats</label>
+                    <input id="city" name="city" type="text" value="{{ old('city') }}" autocomplete="address-level2" placeholder="Amsterdam" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm">
+                    @error('city')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
         </div>
 
         <div>

@@ -19,6 +19,7 @@
     );
     $compact = $durationMinutes > 0 && $durationMinutes < 60;
     $tiny = $durationMinutes > 0 && $durationMinutes <= 30;
+    $roomy = $durationMinutes > 60;
     $contentPaddingClass = $tiny ? 'py-0.5' : ($compact ? 'py-1' : 'py-1.5');
     $contentTextClass = $tiny ? 'text-[10px]' : 'text-[11px]';
     $accentClass = str_replace('border-', 'bg-', $color['border']);
@@ -62,7 +63,7 @@
                 <span class="mt-0.5 block truncate font-medium">{{ $list->title }}</span>
             @else
                 <span class="block truncate font-semibold">{{ $entry['time_label'] }}@if(!empty($entry['is_default']))<span class="font-normal opacity-75"> · standaard</span>@endif</span>
-                <span class="mt-0.5 block truncate">{{ $list->title }}</span>
+                <span class="mt-0.5 block {{ $roomy ? 'overflow-hidden whitespace-normal break-words' : 'truncate' }}" @if($roomy) style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" @endif>{{ $list->title }}</span>
             @endif
         </div>
         @if(empty($entry['is_default']))

@@ -2,7 +2,7 @@
     use App\Services\Admin\ListCalendarService;
 
     $weekdayLabels = ListCalendarService::WEEKDAY_LABELS_FULL;
-    $initialTimeSlots = collect(old('time_slots', []))
+    $initialTimeSlots = collect(old('time_slots', request('time_slots', [])))
         ->filter(fn ($slot) => is_array($slot) && ! empty($slot['weekday']) && ! empty($slot['start_time']))
         ->values()
         ->all();

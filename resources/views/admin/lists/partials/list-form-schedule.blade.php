@@ -1,11 +1,11 @@
 @props(['list' => null])
 
 @php
-    $rawScheduleType = old('schedule_type', $list?->schedule_type ?? '');
+    $rawScheduleType = old('schedule_type', $list?->schedule_type ?? request('schedule_type', ''));
     $scheduleType = $rawScheduleType === 'custom' ? 'weekly' : $rawScheduleType;
     $scheduleCfg = is_array($list?->schedule_config ?? null) ? $list->schedule_config : [];
     $weekdaysList = ['monday' => 'Ma', 'tuesday' => 'Di', 'wednesday' => 'Wo', 'thursday' => 'Do', 'friday' => 'Vr', 'saturday' => 'Za', 'sunday' => 'Zo'];
-    $selectedDays = old('selected_days', ($list && in_array($list->schedule_type, ['weekly', 'custom'], true)) ? $list->getShowOnDays() : []);
+    $selectedDays = old('selected_days', ($list && in_array($list->schedule_type, ['weekly', 'custom'], true)) ? $list->getShowOnDays() : request('selected_days', []));
     $dueDateValue = old('due_date', $list?->due_date?->format('Y-m-d') ?? '');
     $showPlaceholder = $list === null && $scheduleType === '';
 @endphp

@@ -19,25 +19,6 @@
             </div>
         @endif
 
-        <!-- PWA Detection -->
-        @php
-            $isPwa = request()->query('source') === 'pwa' || 
-                     request()->header('User-Agent') && str_contains(request()->header('User-Agent'), 'wv') ||
-                     request()->header('X-PWABuilder-Rewrite') ||
-                     request()->headers->get('sec-fetch-dest') === 'empty';
-        @endphp
-
-        @if($isPwa)
-            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                    </svg>
-                    <p class="text-sm font-medium text-blue-800">📱 TaskCheck App - Sign in to continue</p>
-                </div>
-            </div>
-        @endif
-
         <form method="POST" action="{{ route('login') }}" class="space-y-6" id="login-form">
             @csrf
             <input type="hidden" name="remember" value="1">

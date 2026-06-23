@@ -17,6 +17,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
     
     <!-- API Client -->
     <script src="{{ asset('js/api-client.js') }}"></script>
