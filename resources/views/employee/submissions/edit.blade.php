@@ -374,7 +374,7 @@
                                                     @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
                                                         <button type="button" 
                                                                 class="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                                                onclick="openCamera('{{ $submissionTask->id }}', 'photo')">
+                                                                onclick="openCamera('{{ $task->id }}', 'photo')">
                                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -386,7 +386,7 @@
                                                     @if($task->required_proof_type === 'video' || $task->required_proof_type === 'any')
                                                         <button type="button" 
                                                                 class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                                onclick="openCamera('{{ $submissionTask->id }}', 'video')">
+                                                                onclick="openCamera('{{ $task->id }}', 'video')">
                                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                                             </svg>
@@ -396,7 +396,7 @@
 
                                                     <button type="button" 
                                                             class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                            onclick="uploadFile('{{ $submissionTask->id }}')">
+                                                            onclick="uploadFile('{{ $task->id }}')">
                                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                                         </svg>
@@ -409,7 +409,7 @@
                                                     @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
                                                         <button type="button" 
                                                                 class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                                                onclick="openCamera('{{ $submissionTask->id }}', 'photo')">
+                                                                onclick="openCamera('{{ $task->id }}', 'photo')">
                                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -421,7 +421,7 @@
                                                     @if($task->required_proof_type === 'video' || $task->required_proof_type === 'any')
                                                         <button type="button" 
                                                                 class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                                onclick="openCamera('{{ $submissionTask->id }}', 'video')">
+                                                                onclick="openCamera('{{ $task->id }}', 'video')">
                                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                                             </svg>
@@ -431,7 +431,7 @@
 
                                                     <button type="button" 
                                                             class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                            onclick="uploadFile('{{ $submissionTask->id }}')">
+                                                            onclick="uploadFile('{{ $task->id }}')">
                                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                                         </svg>
@@ -446,38 +446,38 @@
                                         {{-- Hoofd-input die naar de server gaat --}}
                                         <input 
                                             type="file" 
-                                            id="file-input-{{ $submissionTask->id }}" 
+                                            id="file-input-{{ $task->id }}" 
                                             name="proof_files[]" 
                                             multiple 
                                             class="hidden"
                                             @if($task->required_proof_type === 'photo') accept="image/*" @endif
                                             @if($task->required_proof_type === 'video') accept="video/*" @endif
-                                            onchange="handleFileSelect(this, '{{ $submissionTask->id }}')">
+                                            onchange="handleFileSelect(this, '{{ $task->id }}')">
 
                                         {{-- Camera-input voor foto (wordt via JS gekopieerd naar file-input) --}}
                                         @if($task->required_proof_type === 'photo' || $task->required_proof_type === 'any')
                                             <input 
                                                 type="file" 
-                                                id="camera-input-photo-{{ $submissionTask->id }}" 
+                                                id="camera-input-photo-{{ $task->id }}" 
                                                 accept="image/*" 
                                                 capture="environment"
                                                 class="hidden"
-                                                onchange="handleCameraCapture(this, '{{ $submissionTask->id }}')">
+                                                onchange="handleCameraCapture(this, '{{ $task->id }}')">
                                         @endif
 
                                         {{-- Camera-input voor video (wordt via JS gekopieerd naar file-input) --}}
                                         @if($task->required_proof_type === 'video' || $task->required_proof_type === 'any')
                                             <input 
                                                 type="file" 
-                                                id="camera-input-video-{{ $submissionTask->id }}" 
+                                                id="camera-input-video-{{ $task->id }}" 
                                                 accept="video/*" 
                                                 capture="environment"
                                                 class="hidden"
-                                                onchange="handleCameraCapture(this, '{{ $submissionTask->id }}')">
+                                                onchange="handleCameraCapture(this, '{{ $task->id }}')">
                                         @endif
                                         
                                         <!-- Preview area -->
-                                        <div id="preview-area-{{ $submissionTask->id }}" class="mt-4 space-y-2">
+                                        <div id="preview-area-{{ $task->id }}" class="mt-4 space-y-2">
                                             <!-- Preview items worden hier getoond -->
                                         </div>
                                         
@@ -1129,7 +1129,8 @@ function validateTaskForm(form) {
     const taskId = form.id.replace('task-form-', '');
     const mainFileInput = form.querySelector('input[type="file"][name="proof_files[]"]');
     syncProofFilesToInput(taskId);
-    const hasProofFiles = getStoredProofFiles(taskId).length > 0;
+    const hasProofFiles = getStoredProofFiles(taskId).length > 0
+        || !!(mainFileInput && mainFileInput.files && mainFileInput.files.length > 0);
 
     const signatureCanvas = form.querySelector('canvas[id^="signature-pad-task-"]');
     if (signatureCanvas) {
@@ -1148,11 +1149,15 @@ function validateTaskForm(form) {
 
     const requiredFields = form.querySelectorAll('[required]');
 
-    if (requiredProofType === 'photo' && !hasProofFiles) {
+    if (['photo', 'video', 'file'].includes(requiredProofType) && !hasProofFiles) {
         if (mainFileInput) {
             mainFileInput.classList.add('border-red-500');
         }
-        showNotification('Je hebt geen afbeelding toegevoegd aan de taak.', 'error');
+        if (requiredProofType === 'photo') {
+            showNotification('Je hebt geen afbeelding toegevoegd aan de taak.', 'error');
+        } else {
+            showNotification('Bewijs is vereist voor deze taak.', 'error');
+        }
         return false;
     }
 
