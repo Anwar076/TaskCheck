@@ -22,6 +22,16 @@ class ScheduleService
 
         foreach ($assignments as $assignment) {
             $taskList = $assignment->taskList;
+            $isDirectUserAssignment = (int) $assignment->user_id === (int) $user->id;
+
+            // Personal assignments are always visible on/after assigned_date (admin intent).
+            if ($isDirectUserAssignment) {
+                if (!$this->isTaskListCompletedOnDate($taskList, $user, $date)) {
+                    $availableLists->push($taskList);
+                }
+
+                continue;
+            }
             
             // Handle main lists with daily sublists
             if ($taskList->isMainList() && $taskList->schedule_type === 'daily' && $taskList->subLists->count() > 0) {
@@ -76,7 +86,7 @@ class ScheduleService
         $companyId = $user->company_id;
 
         $baseQuery = fn () => ListAssignment::with(['taskList'])
-            ->where('assigned_date', '<=', $date)
+            ->whereDate('assigned_date', '<=', $date->toDateString())
             ->where('is_active', true)
             ->whereHas('taskList', function ($query) use ($companyId) {
                 $query->where('is_active', true)

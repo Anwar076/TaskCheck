@@ -144,6 +144,40 @@ class TaskListTest extends TestCase
         ]);
     }
 
+    public function test_personal_assignment_is_visible_even_when_schedule_blocks_other_users(): void
+    {
+        $employees = User::where('role', 'employee')->take(2)->get();
+        $this->assertCount(2, $employees, 'Need at least two employees in seed data.');
+
+        [$assignedEmployee, $otherEmployee] = $employees;
+
+        $list = TaskList::create([
+            'title' => 'Weekly visibility test',
+            'description' => 'Should only show for assigned employee',
+            'created_by' => $assignedEmployee->id,
+            'company_id' => $assignedEmployee->company_id,
+            'schedule_type' => 'weekly',
+            'schedule_config' => ['show_on_days' => ['monday']],
+            'priority' => 'medium',
+            'is_active' => true,
+        ]);
+
+        ListAssignment::create([
+            'list_id' => $list->id,
+            'user_id' => $assignedEmployee->id,
+            'assigned_date' => today(),
+            'is_active' => true,
+        ]);
+
+        $scheduleService = app(\App\Services\ScheduleService::class);
+
+        $assignedLists = $scheduleService->getScheduledTasksForUser($assignedEmployee);
+        $otherLists = $scheduleService->getScheduledTasksForUser($otherEmployee);
+
+        $this->assertTrue($assignedLists->contains('id', $list->id));
+        $this->assertFalse($otherLists->contains('id', $list->id));
+    }
+
     public function test_user_assignment_is_not_visible_to_other_employees(): void
     {
         $employees = User::where('role', 'employee')->take(2)->get();

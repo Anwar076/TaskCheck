@@ -279,6 +279,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin'])->prefix('admin'
 Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_complete', 'company_profile_complete'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/live-monitoring', [AdminDashboardController::class, 'liveMonitoring'])->name('live-monitoring');
+    Route::get('/team-performance', [AdminDashboardController::class, 'teamPerformance'])->name('team-performance');
     
     // API-powered routes
     Route::get('/lists', [TaskListController::class, 'index'])->name('lists.index');

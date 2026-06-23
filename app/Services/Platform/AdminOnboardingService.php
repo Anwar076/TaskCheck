@@ -722,14 +722,14 @@ class AdminOnboardingService
         ]);
     }
 
-    public function handleAssignmentCreated(Company $company, int $listId): void
+    public function handleAssignmentCreated(Company $company, int $listId): bool
     {
         if (!$company->needsOnboarding() || $company->onboarding_step !== Company::ONBOARDING_STEP_ASSIGN) {
-            return;
+            return false;
         }
 
         if ((int) $company->onboarding_list_id !== $listId) {
-            return;
+            return false;
         }
 
         $hasUserAssignment = ListAssignment::query()
@@ -739,9 +739,11 @@ class AdminOnboardingService
             ->exists();
 
         if (!$hasUserAssignment) {
-            return;
+            return false;
         }
 
         $company->completeOnboarding();
+
+        return true;
     }
 }

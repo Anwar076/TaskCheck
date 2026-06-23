@@ -179,7 +179,9 @@ class TaskListController extends MobileController
 
             if (!$exists) {
                 ListAssignment::create($payload);
-                Notification::createListAssigned($selectedUser->id, $list->id, $list->title, 'user');
+                if ($selectedUser->isEmployee()) {
+                    Notification::createListAssigned($selectedUser->id, $list->id, $list->title, 'user');
+                }
             }
         } elseif ($validated['assignment_type'] === 'department') {
             $payload['department'] = $validated['department'];

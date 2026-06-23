@@ -58,8 +58,8 @@ class HorecaStarterPackService
                     'user_id' => $adminUser->id,
                     'is_active' => true,
                 ], [
-                    'department' => 'Kwaliteit',
-                    'role' => 'admin',
+                    'department' => null,
+                    'role' => null,
                     'assigned_date' => now()->toDateString(),
                 ]);
             }

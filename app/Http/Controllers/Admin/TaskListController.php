@@ -1527,12 +1527,14 @@ PROMPT,
                         'is_active' => true,
                     ]);
                     $assignments[] = $assignment;
-                    \App\Models\Communication\Notification::createListAssigned(
-                        (int) $selectedUser->id,
-                        (int) $list->id,
-                        (string) $list->title,
-                        'user'
-                    );
+                    if ($selectedUser->isEmployee()) {
+                        \App\Models\Communication\Notification::createListAssigned(
+                            (int) $selectedUser->id,
+                            (int) $list->id,
+                            (string) $list->title,
+                            'user'
+                        );
+                    }
                     \Log::info('Created user assignment', ['assignment_id' => $assignment->id, 'user_id' => $userId]);
                 } else {
                     $skippedAssignments++;
@@ -1558,7 +1560,7 @@ PROMPT,
 
                     $departmentUsers = \App\Models\Organisation\User::query()
                         ->where('company_id', auth()->user()->company_id)
-                        ->whereIn('role', ['employee', 'admin'])
+                        ->where('role', 'employee')
                         ->where('is_active', true)
                         ->where('department', $validatedData['department'])
                         ->when($list->location_id, fn ($q) => $q->where('location_id', $list->location_id))
@@ -1588,8 +1590,10 @@ PROMPT,
             if (count($assignments) > 0) {
                 $company = auth()->user()->company;
                 if ($company) {
-                    app(\App\Services\Platform\AdminOnboardingService::class)->handleAssignmentCreated($company, (int) $list->id);
-                    if ($company->fresh()->hasCompletedOnboarding()) {
+                    $onboardingJustCompleted = app(\App\Services\Platform\AdminOnboardingService::class)
+                        ->handleAssignmentCreated($company, (int) $list->id);
+
+                    if ($onboardingJustCompleted) {
                         if (request()->ajax() || request()->wantsJson()) {
                             return response()->json([
                                 'success' => true,

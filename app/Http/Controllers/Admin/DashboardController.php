@@ -8,11 +8,16 @@ use App\Models\Checklist\TaskList;
 use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use App\Models\Organisation\Location;
+use App\Services\Admin\TeamPerformanceService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        protected TeamPerformanceService $teamPerformanceService,
+    ) {}
+
     public function index(Request $request)
     {
         $companyId = auth()->user()->company_id;
@@ -110,37 +115,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Enhanced employee performance stats (last 30 days)
-        $employeeStats = User::where('company_id', $companyId)
-            ->whereIn('role', ['employee', 'admin'])
-            ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
-            ->withCount([
-                'submissions as total_submissions' => function ($query) use ($selectedLocationId) {
-                    $query->where('created_at', '>=', now()->subDays(30));
-                    if ($selectedLocationId) {
-                        $query->whereHas('taskList', function ($taskListQuery) use ($selectedLocationId) {
-                            $taskListQuery->where('location_id', $selectedLocationId);
-                        });
-                    }
-                },
-                'submissions as completed_submissions' => function ($query) use ($selectedLocationId) {
-                    $query->where('status', 'completed')
-                          ->where('created_at', '>=', now()->subDays(30));
-                    if ($selectedLocationId) {
-                        $query->whereHas('taskList', function ($taskListQuery) use ($selectedLocationId) {
-                            $taskListQuery->where('location_id', $selectedLocationId);
-                        });
-                    }
-                }
-            ])
-            ->take(10)
-            ->get()
-            ->map(function ($user) {
-                $user->completion_rate = $user->total_submissions > 0 
-                    ? round(($user->completed_submissions / $user->total_submissions) * 100, 1)
-                    : 0;
-                return $user;
-            });
+        // Team performance (today, list-based, refreshed via AJAX)
+        $teamPerformance = $this->teamPerformanceService->build($companyId, $selectedLocationId);
 
         // Daily activity for the last 7 days
         $dailyActivity = collect();
@@ -173,13 +149,29 @@ class DashboardController extends Controller
             'stats', 
             'recentSubmissions', 
             'rejectedTasks', 
-            'employeeStats',
+            'teamPerformance',
             'dailyActivity',
             'listStats',
             'priorityStats',
             'locations',
             'selectedLocationId'
         ));
+    }
+
+    public function teamPerformance(Request $request)
+    {
+        $companyId = auth()->user()->company_id;
+        $selectedLocationId = null;
+
+        if ($request->filled('location_id')) {
+            $candidateLocationId = (int) $request->get('location_id');
+            $locationExists = Location::where('company_id', $companyId)->where('id', $candidateLocationId)->exists();
+            if ($locationExists) {
+                $selectedLocationId = $candidateLocationId;
+            }
+        }
+
+        return response()->json($this->teamPerformanceService->build($companyId, $selectedLocationId));
     }
 
     private function getAverageCompletionTime()
