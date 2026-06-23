@@ -71,44 +71,45 @@ class ScheduleService
     /**
      * Get all assignments for a user
      */
-private function getUserAssignments($user, $date)
+    private function getUserAssignments($user, $date)
     {
         $companyId = $user->company_id;
-        
-        // Direct assignments - only from same company
-        $directAssignments = ListAssignment::with(['taskList'])
+
+        $baseQuery = fn () => ListAssignment::with(['taskList'])
+            ->where('assigned_date', '<=', $date)
+            ->where('is_active', true)
+            ->whereHas('taskList', function ($query) use ($companyId) {
+                $query->where('is_active', true)
+                    ->where('company_id', $companyId);
+            });
+
+        // Direct user assignments only (never match via null department/role columns)
+        $assignments = $baseQuery()
             ->where('user_id', $user->id)
-            ->where('assigned_date', '<=', $date)
-            ->where('is_active', true)
-            ->whereHas('taskList', function ($query) use ($companyId) {
-                $query->where('is_active', true)
-                      ->where('company_id', $companyId);
-            });
+            ->get();
 
-        // Department assignments - only from same company
-        $departmentAssignments = ListAssignment::with(['taskList'])
-            ->where('department', $user->department)
-            ->where('assigned_date', '<=', $date)
-            ->where('is_active', true)
-            ->whereHas('taskList', function ($query) use ($companyId) {
-                $query->where('is_active', true)
-                      ->where('company_id', $companyId);
-            });
+        // Department-wide assignments (exclude user-specific rows)
+        if (filled($user->department)) {
+            $assignments = $assignments->merge(
+                $baseQuery()
+                    ->whereNull('user_id')
+                    ->where('department', $user->department)
+                    ->get()
+            );
+        }
 
-        // Role assignments - only from same company
-        $roleAssignments = ListAssignment::with(['taskList'])
-            ->where('role', $user->role)
-            ->where('assigned_date', '<=', $date)
-            ->where('is_active', true)
-            ->whereHas('taskList', function ($query) use ($companyId) {
-                $query->where('is_active', true)
-                      ->where('company_id', $companyId);
-            });
+        // Role-based assignments (exclude user/department rows)
+        if (filled($user->role)) {
+            $assignments = $assignments->merge(
+                $baseQuery()
+                    ->whereNull('user_id')
+                    ->whereNull('department')
+                    ->where('role', $user->role)
+                    ->get()
+            );
+        }
 
-        return $directAssignments->get()
-            ->merge($departmentAssignments->get())
-            ->merge($roleAssignments->get())
-            ->unique('list_id');
+        return $assignments->unique('list_id');
     }
 
     /**
