@@ -824,62 +824,86 @@ function openCamera(taskId, mode) {
 function uploadFile(taskId) {
     const input = document.getElementById('file-input-' + taskId);
     if (input) {
-        input.click(); // normale upload / galerij
+        input.click();
     } else {
         console.warn('File-input niet gevonden voor', taskId);
     }
 }
 
-// ✅ Als de gebruiker een foto/video via de camera-input maakt
+window.taskProofFileStore = window.taskProofFileStore || {};
+
+function proofFileKey(file) {
+    return `${file.name}|${file.size}|${file.lastModified}`;
+}
+
+function getStoredProofFiles(taskId) {
+    return window.taskProofFileStore[taskId] || [];
+}
+
+function setStoredProofFiles(taskId, files) {
+    window.taskProofFileStore[taskId] = files;
+    syncProofFilesToInput(taskId);
+}
+
+function syncProofFilesToInput(taskId) {
+    const fileInput = document.getElementById('file-input-' + taskId);
+    if (!fileInput) return;
+
+    const dt = new DataTransfer();
+    getStoredProofFiles(taskId).forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+}
+
+function addProofFiles(taskId, newFiles) {
+    const existing = getStoredProofFiles(taskId);
+    const seen = new Set(existing.map(proofFileKey));
+    const merged = [...existing];
+
+    Array.from(newFiles).forEach(file => {
+        const key = proofFileKey(file);
+        if (!seen.has(key)) {
+            seen.add(key);
+            merged.push(file);
+        }
+    });
+
+    setStoredProofFiles(taskId, merged);
+    renderProofFilePreviews(taskId);
+}
+
 function handleCameraCapture(cameraInput, taskId) {
-    const fileInput = document.getElementById('file-input-' + taskId);
-    if (!fileInput || !cameraInput.files.length) return;
+    if (!cameraInput.files.length) return;
 
-    const dt = new DataTransfer();
+    addProofFiles(taskId, cameraInput.files);
+    cameraInput.value = '';
+    cameraInput.name = '';
 
-    // bestaande bestanden uit hoofd-input behouden
-    for (let i = 0; i < fileInput.files.length; i++) {
-        dt.items.add(fileInput.files[i]);
-    }
-
-    // nieuwe foto/video van camera toevoegen
-    for (let i = 0; i < cameraInput.files.length; i++) {
-        dt.items.add(cameraInput.files[i]);
-    }
-
-    // hoofd-input updaten
-    fileInput.files = dt.files;
-
-    // Fallback for browsers/devices where assigning FileList can fail silently:
-    // include camera input directly in form submit payload.
-    if (!fileInput.files || fileInput.files.length === 0) {
-        cameraInput.name = 'proof_files[]';
-    } else {
-        cameraInput.name = '';
-    }
-
-    // camera-input resetten zodat je opnieuw iets kunt opnemen
-    if (cameraInput.name !== 'proof_files[]') {
-        cameraInput.value = '';
-    }
-
-    // preview updaten op basis van hoofd-input
-    handleFileSelect(fileInput, taskId);
+    const photoInput = document.getElementById('camera-input-photo-' + taskId);
+    const videoInput = document.getElementById('camera-input-video-' + taskId);
+    if (photoInput && photoInput !== cameraInput) photoInput.name = '';
+    if (videoInput && videoInput !== cameraInput) videoInput.name = '';
 }
 
-// ✅ Bestaande, maar iets generieker: gebruikt altijd de files van de meegegeven input
 function handleFileSelect(input, taskId) {
+    const newFiles = Array.from(input.files || []);
+    if (newFiles.length === 0) return;
+
+    addProofFiles(taskId, newFiles);
+    input.value = '';
+}
+
+function renderProofFilePreviews(taskId) {
     const previewArea = document.getElementById('preview-area-' + taskId);
     if (!previewArea) return;
+
     previewArea.innerHTML = '';
 
-    // When normal file-input is populated, avoid sending stale camera fallback fields.
     const photoInput = document.getElementById('camera-input-photo-' + taskId);
     const videoInput = document.getElementById('camera-input-video-' + taskId);
     if (photoInput) photoInput.name = '';
     if (videoInput) videoInput.name = '';
 
-    Array.from(input.files).forEach(file => updateMediaPreview(taskId, file));
+    getStoredProofFiles(taskId).forEach(file => updateMediaPreview(taskId, file));
 }
 
 function updateMediaPreview(taskId, file) {
@@ -889,9 +913,11 @@ function updateMediaPreview(taskId, file) {
     const url = URL.createObjectURL(file);
     const isImg = file.type.startsWith('image/');
     const isVid = file.type.startsWith('video/');
+    const fileKey = proofFileKey(file);
 
     const row = document.createElement('div');
     row.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border flex-col sm:flex-row gap-3 sm:gap-0';
+    row.dataset.fileKey = fileKey;
 
     let mediaHtml = `
         <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -912,10 +938,10 @@ function updateMediaPreview(taskId, file) {
             ${mediaHtml}
             <div class="min-w-0">
                 <p class="text-sm font-medium text-gray-900 truncate">${file.name}</p>
-                <p class="text-xs text-gray-500">${Math.round(file.size/1024)} KB • ${isImg ? 'Foto' : (isVid ? 'Video' : 'Bestand')}</p>
+                <p class="text-xs text-gray-500">${Math.round(file.size / 1024)} KB • ${isImg ? 'Foto' : (isVid ? 'Video' : 'Bestand')}</p>
             </div>
         </div>
-        <button type="button" class="text-red-600 hover:text-red-800 self-end sm:self-center" onclick="removePreviewItem(this, '${taskId}', '${file.name}')">
+        <button type="button" class="text-red-600 hover:text-red-800 self-end sm:self-center" onclick="removePreviewItem(this, '${taskId}')">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -925,94 +951,18 @@ function updateMediaPreview(taskId, file) {
     previewArea.appendChild(row);
 }
 
-function removePreviewItem(btn, taskId, fileName) {
-    const row = btn.closest('div');
-    if (row) row.remove();
+function removePreviewItem(btn, taskId) {
+    const row = btn.closest('[data-file-key]');
+    if (!row) return;
 
-    const fileInput = document.getElementById('file-input-' + taskId);
-    if (!fileInput) return;
+    const fileKey = row.dataset.fileKey;
+    row.remove();
 
-    const dt = new DataTransfer();
-    Array.from(fileInput.files).forEach(f => {
-        if (f.name !== fileName) dt.items.add(f);
-    });
-    fileInput.files = dt.files;
-}
-
-function uploadFile(taskId) {
-    const fileInput = document.getElementById('file-input-' + taskId);
-    if (fileInput) fileInput.click();
-}
-
-
-function handleFileSelect(input, taskId) {
-    const previewArea = document.getElementById('preview-area-' + taskId);
-    if (!previewArea) return;
-    previewArea.innerHTML = '';
-
-    const photoInput = document.getElementById('camera-input-photo-' + taskId);
-    const videoInput = document.getElementById('camera-input-video-' + taskId);
-    if (photoInput) photoInput.name = '';
-    if (videoInput) videoInput.name = '';
-
-    Array.from(input.files).forEach(file => updateMediaPreview(taskId, file));
-}
-
-function updateMediaPreview(taskId, file) {
-    const previewArea = document.getElementById('preview-area-' + taskId);
-    if (!previewArea) return;
-
-    const url = URL.createObjectURL(file);
-    const isImg = file.type.startsWith('image/');
-    const isVid = file.type.startsWith('video/');
-
-    const row = document.createElement('div');
-    row.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border flex-col sm:flex-row gap-3 sm:gap-0';
-
-    let mediaHtml = `
-        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-        </div>
-    `;
-
-    if (isImg) {
-        mediaHtml = `<img src="${url}" alt="Preview" class="w-16 h-16 object-cover rounded-lg">`;
-    } else if (isVid) {
-        mediaHtml = `<video src="${url}" class="w-16 h-16 object-cover rounded-lg" muted></video>`;
-    }
-
-    row.innerHTML = `
-        <div class="flex items-center space-x-3 w-full sm:w-auto">
-            ${mediaHtml}
-            <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-900 truncate">${file.name}</p>
-                <p class="text-xs text-gray-500">${Math.round(file.size/1024)} KB • ${isImg ? 'Foto' : (isVid ? 'Video' : 'Bestand')}</p>
-            </div>
-        </div>
-        <button type="button" class="text-red-600 hover:text-red-800 self-end sm:self-center" onclick="removePreviewItem(this, '${taskId}', '${file.name}')">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
-    `;
-
-    previewArea.appendChild(row);
-}
-
-function removePreviewItem(btn, taskId, fileName) {
-    const row = btn.closest('div');
-    if (row) row.remove();
-
-    const fileInput = document.getElementById('file-input-' + taskId);
-    if (!fileInput) return;
-
-    const dt = new DataTransfer();
-    Array.from(fileInput.files).forEach(f => {
-        if (f.name !== fileName) dt.items.add(f);
-    });
-    fileInput.files = dt.files;
+    setStoredProofFiles(
+        taskId,
+        getStoredProofFiles(taskId).filter(file => proofFileKey(file) !== fileKey)
+    );
+    renderProofFilePreviews(taskId);
 }
 </script>
 
@@ -1636,6 +1586,7 @@ function initializeChecklists() {
             `;
             showLoadingOverlay();
 
+            syncProofFilesToInput(taskId);
             const formData = new FormData(form);
             const submitTaskForm = async (allowRetry = true) => {
                 const response = await fetch(form.action, {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Helpers\ProofFileHelper;
 use App\Services\Mobile\MobileTaskAccess;
 use Illuminate\Http\Request;
 class TaskController extends MobileController
@@ -42,7 +43,11 @@ class TaskController extends MobileController
 
         $validated = $request->validate($rules);
 
-        $proofFiles = $this->storeProofFiles($request, $submission->id, $submissionTask->proof_files);
+        $proofFiles = ProofFileHelper::mergeUploadedProofFiles(
+            $request,
+            $submission->id,
+            is_array($submissionTask->proof_files) ? $submissionTask->proof_files : []
+        );
 
         $update = [
             'proof_text' => $validated['proof_text'] ?? null,
@@ -77,7 +82,7 @@ class TaskController extends MobileController
         ]);
 
         $existing = is_array($submissionTask->proof_files) ? $submissionTask->proof_files : [];
-        $newFiles = $this->storeProofFiles($request, $submissionTask->submission_id, $existing);
+        $newFiles = ProofFileHelper::mergeUploadedProofFiles($request, $submissionTask->submission_id, $existing);
 
         $submissionTask->update([
             'proof_files' => $newFiles,
@@ -87,28 +92,4 @@ class TaskController extends MobileController
         return $this->success(null, 'Bewijs geüpload.');
     }
 
-    /**
-     * @param  array<int, array<string, mixed>>|null  $existing
-     * @return array<int, array<string, mixed>>
-     */
-    protected function storeProofFiles(Request $request, int $submissionId, ?array $existing = []): array
-    {
-        $proofFiles = $existing ?? [];
-
-        if (!$request->hasFile('proof_files')) {
-            return $proofFiles;
-        }
-
-        foreach ($request->file('proof_files') as $file) {
-            $path = $file->store('submissions/'.$submissionId, 'public');
-            $proofFiles[] = [
-                'path' => $path,
-                'original_name' => $file->getClientOriginalName(),
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-            ];
-        }
-
-        return $proofFiles;
-    }
 }

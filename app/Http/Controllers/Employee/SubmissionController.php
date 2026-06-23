@@ -302,19 +302,13 @@ class SubmissionController extends Controller
 
             $validated = $request->validate($rules, $messages);
 
-            // Handle file uploads
-            $proofFiles = [];
-            if ($request->hasFile('proof_files')) {
-                foreach ($request->file('proof_files') as $file) {
-                    $path = $file->store('submissions/' . $submission->id, 'public');
-                    $proofFiles[] = [
-                        'path' => $path,
-                        'original_name' => $file->getClientOriginalName(),
-                        'size' => $file->getSize(),
-                        'mime_type' => $file->getMimeType(),
-                    ];
-                }
-            }
+            // Handle file uploads (append to existing proof files)
+            $existingProofFiles = is_array($submissionTask->proof_files) ? $submissionTask->proof_files : [];
+            $proofFiles = \App\Helpers\ProofFileHelper::mergeUploadedProofFiles(
+                $request,
+                $submission->id,
+                $existingProofFiles
+            );
 
             // Update submission task
             $updateData = [

@@ -429,29 +429,15 @@
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                                     @foreach($submissionTask->proof_files as $file)
                                                         @php
-                                                            $filename = is_array($file) ? (isset($file['path']) ? basename($file['path']) : '') : basename($file);
                                                             $isImage = is_array($file) && isset($file['mime_type']) && strpos($file['mime_type'], 'image/') === 0;
                                                             $isVideo = is_array($file) && isset($file['mime_type']) && strpos($file['mime_type'], 'video/') === 0;
                                                         @endphp
                                                         <div class="bg-white bg-opacity-60 rounded-lg p-4">
-                                                            <div class="flex items-center space-x-2 mb-3">
-                                                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                    @if($isImage)
-                                                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                                                    @elseif($isVideo)
-                                                                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
-                                                                    @else
-                                                                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-5L9 2H4z" clip-rule="evenodd"/>
-                                                                    @endif
-                                                                </svg>
-                                                                <span class="text-sm font-medium text-purple-900">{{ $filename }}</span>
-                                                            </div>
-                                                            
                                                             @if($isImage && isset($file['path']))
                                                                 <img src="{{ url('storage/' . $file['path']) }}" 
-                                                                     alt="{{ $filename }}" 
+                                                                     alt="Bewijs foto" 
                                                                      class="w-full h-48 object-cover rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow" 
-                                                                     onclick="openImageModal('{{ url('storage/' . $file['path']) }}', '{{ $filename }}')" />
+                                                                     onclick="openImageModal('{{ url('storage/' . $file['path']) }}')" />
                                                             @elseif($isVideo && isset($file['path']))
                                                                 <video controls class="w-full h-48 rounded-lg shadow-sm border border-gray-200">
                                                                     <source src="{{ url('storage/' . $file['path']) }}" type="{{ $file['mime_type'] }}">
@@ -605,22 +591,20 @@
 
 <div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onclick="if(event.target===this)closeImageModal()">
     <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-            <h3 id="modalTitle" class="text-base font-semibold text-slate-900 truncate"></h3>
-            <button type="button" onclick="closeImageModal()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+        <div class="flex items-center justify-end px-4 py-3 border-b border-slate-200">
+            <button type="button" onclick="closeImageModal()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors" aria-label="Sluiten">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
         <div class="p-4 overflow-auto max-h-[calc(90vh-60px)]">
-            <img id="modalImage" src="" alt="" class="max-w-full max-h-[70vh] mx-auto rounded-lg object-contain">
+            <img id="modalImage" src="" alt="Bewijs foto" class="max-w-full max-h-[70vh] mx-auto rounded-lg object-contain">
         </div>
     </div>
 </div>
 
 <script>
-function openImageModal(imageSrc, title) {
+function openImageModal(imageSrc) {
     document.getElementById('modalImage').src = imageSrc;
-    document.getElementById('modalTitle').textContent = title;
     const modal = document.getElementById('imageModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
