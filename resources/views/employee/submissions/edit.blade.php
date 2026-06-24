@@ -493,6 +493,36 @@
                                     </div>
                                 @endif
 
+                                <details class="group rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white shadow-sm">
+                                    <summary class="list-none cursor-pointer px-4 py-3.5 select-none">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                                                    </svg>
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <p class="text-sm font-semibold text-slate-800">Opmerking toevoegen <span class="text-slate-500 font-medium">(optioneel)</span></p>
+                                                    <p class="text-xs text-slate-500">Extra context of bijzonderheden bij deze taak</p>
+                                                </div>
+                                            </div>
+                                            <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </div>
+                                    </summary>
+                                    <div class="border-t border-slate-200 px-4 pb-4 pt-3 bg-white/80">
+                                        <textarea
+                                            name="employee_comment"
+                                            rows="3"
+                                            class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+                                            placeholder="Bijv. bijzonderheden, afwijking, of extra context bij deze taak..."
+                                        >{{ old('employee_comment', $submissionTask->employee_comment) }}</textarea>
+                                        <p class="mt-1 text-xs text-gray-500">Dit veld is niet verplicht.</p>
+                                    </div>
+                                </details>
+
 
                                 <!-- Digital Signature for Individual Task -->
                                 @if($task->requires_signature)
@@ -579,6 +609,13 @@
                                         <div class="mb-4">
                                             <strong class="text-sm text-green-800">Notities:</strong>
                                             <p class="text-sm text-green-700 mt-1 bg-white p-3 rounded-lg border border-green-200">{{ $submissionTask->proof_text }}</p>
+                                        </div>
+                                    @endif
+
+                                    @if($submissionTask->employee_comment)
+                                        <div class="mb-4">
+                                            <strong class="text-sm text-green-800">Opmerking medewerker:</strong>
+                                            <p class="text-sm text-green-700 mt-1 bg-white p-3 rounded-lg border border-green-200">{{ $submissionTask->employee_comment }}</p>
                                         </div>
                                     @endif
 
@@ -1509,7 +1546,7 @@ function updateTaskToCompleted(taskId, completedAt) {
                     </div>
                     <div class="flex-1 text-sm sm:text-base">
                         <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                            ✅ Taak succesvol voltooid
+                             Taak succesvol voltooid
                         </div>
                         <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
                             Voltooid: ${new Date(completedAt).toLocaleDateString('nl-NL', { 
