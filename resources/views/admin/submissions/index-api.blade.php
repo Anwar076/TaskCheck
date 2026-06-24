@@ -120,7 +120,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                             </div>
-                            <input type="search" id="search-input" placeholder="Zoek op medewerker of lijst..." autocomplete="off"
+                            <input type="search" id="search-input" placeholder="Zoek op medewerker, teamlid of lijst..." autocomplete="off"
                                 class="block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                     </div>
@@ -145,16 +145,16 @@
 
         {{-- Tabel --}}
         <div id="submissions-table-wrap" class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden" style="display: none;">
-            <div id="submissions-table" class="overflow-x-auto" style="display: none;">
-                <table class="min-w-full divide-y divide-slate-200">
+            <div id="submissions-table" class="w-full" style="display: none;">
+                <table class="w-full table-fixed divide-y divide-slate-200">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Medewerker</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Takenlijst</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Voortgang</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Ingediend</th>
-                            <th class="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Acties</th>
+                            <th class="w-[26%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
+                            <th class="w-[24%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
+                            <th class="w-[12%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                            <th class="w-[12%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Voortgang</th>
+                            <th class="w-[14%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Ingediend</th>
+                            <th class="w-[12%] px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
                         </tr>
                     </thead>
                     <tbody id="submissions-tbody" class="divide-y divide-slate-200">
@@ -379,62 +379,160 @@ async function loadSubmissions(page = 1) {
     }
 }
 
+function escapeAttr(t) {
+    if (!t) return '';
+    return String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function renderTeamContributorNames(contributors) {
+    const maxVisible = 2;
+    const visible = contributors.slice(0, maxVisible);
+    const hidden = contributors.slice(maxVisible);
+
+    if (!visible.length) {
+        return '';
+    }
+
+    const namesHtml = visible.map(c => escapeHtml(c.name)).join(', ');
+    if (!hidden.length) {
+        return namesHtml;
+    }
+
+    const hiddenTitle = hidden.map(c => c.name).join(', ');
+    return `${namesHtml} <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-600 cursor-help" title="${escapeAttr(hiddenTitle)}">+${hidden.length}</span>`;
+}
+
+function statusConfig(status) {
+    const configs = {
+        in_progress: { bg: 'bg-amber-50', text: 'text-amber-800', ring: 'ring-amber-200', dot: 'bg-amber-500', border: 'border-l-amber-400', label: 'Bezig', progress: 'bg-amber-500' },
+        completed: { bg: 'bg-emerald-50', text: 'text-emerald-800', ring: 'ring-emerald-200', dot: 'bg-emerald-500', border: 'border-l-emerald-500', label: 'Afgerond', progress: 'bg-emerald-500' },
+        reviewed: { bg: 'bg-violet-50', text: 'text-violet-800', ring: 'ring-violet-200', dot: 'bg-violet-500', border: 'border-l-violet-500', label: 'Beoordeeld', progress: 'bg-violet-500' },
+        rejected: { bg: 'bg-red-50', text: 'text-red-800', ring: 'ring-red-200', dot: 'bg-red-500', border: 'border-l-red-500', label: 'Afgewezen', progress: 'bg-red-500' },
+    };
+    return configs[status] || { bg: 'bg-slate-50', text: 'text-slate-800', ring: 'ring-slate-200', dot: 'bg-slate-400', border: 'border-l-slate-300', label: status, progress: 'bg-blue-600' };
+}
+
+function formatSubmittedAt(iso) {
+    if (!iso) return { text: '—', title: '' };
+    const d = new Date(iso);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const diffDays = Math.round((startOfToday - startOfDate) / 86400000);
+    const time = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    const title = d.toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    let relative;
+    if (diffDays === 0) relative = 'Vandaag';
+    else if (diffDays === 1) relative = 'Gisteren';
+    else if (diffDays < 7) relative = `${diffDays}d`;
+    else relative = d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+    return { text: `${relative} ${time}`, title };
+}
+
 function renderSubmissions(items) {
     const tbody = document.getElementById('submissions-tbody');
     tbody.innerHTML = items.map(s => {
+        const isTeam = Boolean(s.is_team_submission);
+        const contributors = Array.isArray(s.contributors) ? s.contributors : [];
         const userName = s.user ? escapeHtml(s.user.name) : 'Onbekend';
-        const userEmail = s.user ? escapeHtml(s.user.email || '') : '';
         const userInitial = s.user && s.user.name ? s.user.name.charAt(0).toUpperCase() : 'U';
         const listTitle = s.task_list ? escapeHtml(s.task_list.title) : 'Onbekende lijst';
-        const listDesc = s.task_list && s.task_list.description ? escapeHtml(s.task_list.description) : '';
-        const statusColor = { in_progress: 'bg-amber-100 text-amber-800', completed: 'bg-emerald-100 text-emerald-800', reviewed: 'bg-violet-100 text-violet-800', rejected: 'bg-red-100 text-red-800' }[s.status] || 'bg-slate-100 text-slate-800';
-        const statusText = { in_progress: 'Bezig', completed: 'Afgerond', reviewed: 'Beoordeeld', rejected: 'Afgewezen' }[s.status] || s.status;
+        const listDepartments = Array.isArray(s.list_departments) ? s.list_departments : [];
+        const departmentLabel = listDepartments.length ? escapeHtml(listDepartments.join(', ')) : '';
+        const hasDepartment = listDepartments.length > 0;
+        const departmentInitial = listDepartments[0] ? escapeHtml(listDepartments[0].charAt(0).toUpperCase()) : 'A';
+        const st = statusConfig(s.status);
         const progress = s.progress_percentage ?? (s.submission_tasks && s.submission_tasks.length ? Math.round((s.submission_tasks.filter(t => t.status === 'completed').length / s.submission_tasks.length) * 100) : 0);
-        const submitted = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('nl-NL', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+        const progressColor = progress >= 100 ? st.progress : (s.status === 'in_progress' ? 'bg-amber-500' : 'bg-blue-600');
+        const submittedAt = s.completed_at || s.submitted_at || s.created_at;
+        const submittedFmt = formatSubmittedAt(submittedAt);
         const viewUrl = "{{ url('admin/submissions') }}/" + s.id;
         const reviewUrl = "{{ url('admin/submissions') }}/" + s.id;
-        const deviationDot = s.has_metric_deviation
-            ? '<span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500" title="Bevat kritieke afwijking"></span>'
+        const needsReview = s.status === 'completed';
+        const actionUrl = needsReview ? reviewUrl : viewUrl;
+        const actionLabel = needsReview ? 'Beoordelen' : 'Bekijken';
+        const actionClass = needsReview
+            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+            : 'bg-blue-50 text-blue-700 hover:bg-blue-100';
+        const deviationBadge = s.has_metric_deviation
+            ? `<span class="inline-block w-2 h-2 rounded-full bg-red-500 flex-shrink-0" title="Kritieke afwijking"></span>`
             : '';
-        return `
-        <tr class="hover:bg-slate-50 transition-colors">
-            <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                        <span class="text-sm font-semibold text-slate-700">${userInitial}</span>
+
+        const contributorAvatars = contributors.slice(0, 2).map(c => `
+            <div class="w-7 h-7 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-indigo-700" title="${escapeAttr(c.name)}">
+                ${escapeHtml((c.initials || c.name?.charAt(0) || '?').toUpperCase())}
+            </div>
+        `).join('');
+
+        const hiddenContributorNames = contributors.slice(2).map(c => c.name).join(', ');
+        const extraContributors = contributors.length > 2
+            ? `<div class="w-7 h-7 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[10px] font-bold text-slate-600 cursor-help" title="${escapeAttr(hiddenContributorNames)}">+${contributors.length - 2}</div>`
+            : '';
+
+        const teamNamesHtml = contributors.length > 0
+            ? renderTeamContributorNames(contributors)
+            : escapeHtml(userName);
+
+        const employeeCell = hasDepartment
+            ? `<div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <span class="text-xs font-semibold text-emerald-700">${departmentInitial}</span>
                     </div>
                     <div class="min-w-0">
-                        <div class="text-sm font-medium text-slate-900 truncate">${userName}</div>
-                        ${userEmail ? `<div class="text-xs text-slate-500 truncate">${userEmail}</div>` : ''}
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 flex-shrink-0">Afdeling</span>
+                            <span class="text-sm font-medium text-slate-900 truncate" title="${departmentLabel}">${departmentLabel}</span>
+                        </div>
                     </div>
-                </div>
-            </td>
-            <td class="px-4 sm:px-6 py-4">
-                <div class="min-w-0 max-w-[200px]">
-                    <div class="flex items-center gap-2">
-                        ${deviationDot}
-                        <div class="text-sm font-medium text-slate-900 truncate">${listTitle}</div>
+               </div>`
+            : isTeam
+            ? `<div class="flex items-center gap-2.5 min-w-0">
+                    <div class="flex -space-x-2 flex-shrink-0">
+                        ${contributorAvatars || `<div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center"><span class="text-xs font-semibold text-indigo-700">${userInitial}</span></div>`}
+                        ${extraContributors}
                     </div>
-                    ${listDesc ? `<div class="text-xs text-slate-500 truncate">${listDesc}</div>` : ''}
-                </div>
-            </td>
-            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${statusColor}">${statusText}</span>
-            </td>
-            <td class="px-4 sm:px-6 py-4">
-                <div class="flex items-center gap-2 min-w-[80px]">
-                    <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-600 rounded-full transition-all" style="width:${progress}%"></div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-800 flex-shrink-0">Team</span>
+                            <span class="text-sm font-medium text-slate-900 truncate">${teamNamesHtml}</span>
+                        </div>
                     </div>
-                    <span class="text-xs font-medium text-slate-600 w-8">${progress}%</span>
+               </div>`
+            : `<div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                        <span class="text-xs font-semibold text-slate-700">${userInitial}</span>
+                    </div>
+                    <span class="text-sm font-medium text-slate-900 truncate">${userName}</span>
+               </div>`;
+
+        return `
+        <tr class="group hover:bg-slate-50/80 transition-colors border-l-[3px] ${st.border}">
+            <td class="px-4 py-3 align-middle">
+                ${employeeCell}
+            </td>
+            <td class="px-4 py-3 align-middle">
+                <div class="flex items-center gap-2 min-w-0">
+                    ${deviationBadge}
+                    <span class="text-sm font-medium text-slate-900 truncate" title="${listTitle}">${listTitle}</span>
                 </div>
             </td>
-            <td class="px-4 sm:px-6 py-4 text-sm text-slate-500 whitespace-nowrap">${submitted}</td>
-            <td class="px-4 sm:px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                    <a href="${viewUrl}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-medium transition-colors">Bekijken</a>
-                    ${s.status === 'completed' ? `<a href="${reviewUrl}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg text-sm font-medium transition-colors">Beoordelen</a>` : ''}
+            <td class="px-4 py-3 align-middle">
+                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${st.bg} ${st.text}">
+                    <span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>
+                    ${st.label}
+                </span>
+            </td>
+            <td class="px-4 py-3 align-middle">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-0">
+                        <div class="h-full ${progressColor} rounded-full" style="width:${Math.min(progress, 100)}%"></div>
+                    </div>
+                    <span class="text-xs font-semibold tabular-nums text-slate-600 w-8 text-right flex-shrink-0">${progress}%</span>
                 </div>
+            </td>
+            <td class="px-4 py-3 align-middle text-sm text-slate-600 truncate" title="${escapeAttr(submittedFmt.title)}">${submittedFmt.text}</td>
+            <td class="px-4 py-3 align-middle text-right">
+                <a href="${actionUrl}" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
             </td>
         </tr>`;
     }).join('');

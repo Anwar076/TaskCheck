@@ -92,6 +92,21 @@ class TaskList extends Model
         return $this->belongsTo(Location::class);
     }
 
+    /**
+     * @return array<int, string>
+     */
+    public function assignedDepartmentLabels(): array
+    {
+        $this->loadMissing('assignments');
+
+        return $this->assignments
+            ->pluck('department')
+            ->filter(fn ($department) => filled($department))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

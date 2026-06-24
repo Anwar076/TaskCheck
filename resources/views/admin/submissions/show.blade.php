@@ -13,18 +13,59 @@
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
 
+        @php
+            $teamContributors = $submission->contributorTaskSummary();
+            $teamContributorCount = count($teamContributors);
+            $listDepartments = $submission->taskList?->assignedDepartmentLabels() ?? [];
+        @endphp
+
         {{-- Hero --}}
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden mb-6 sm:mb-8">
             <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                    <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
-                            <span class="text-xl sm:text-2xl font-bold text-white">{{ substr($submission->user->name, 0, 1) }}</span>
-                        </div>
+                    <div class="flex items-start gap-4 min-w-0">
+                        @if($submission->is_team_submission)
+                            <div class="flex -space-x-2 flex-shrink-0">
+                                @forelse(collect($teamContributors)->take(4) as $contributor)
+                                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 backdrop-blur border-2 border-white/40 flex items-center justify-center">
+                                        <span class="text-lg sm:text-xl font-bold text-white">{{ $contributor['initials'] }}</span>
+                                    </div>
+                                @empty
+                                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                                        <span class="text-lg sm:text-xl font-bold text-white">{{ substr($submission->user->name ?? 'T', 0, 1) }}</span>
+                                    </div>
+                                @endforelse
+                                @if($teamContributorCount > 4)
+                                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/30 backdrop-blur border-2 border-white/40 flex items-center justify-center">
+                                        <span class="text-sm font-bold text-white">+{{ $teamContributorCount - 4 }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center flex-shrink-0">
+                                <span class="text-xl sm:text-2xl font-bold text-white">{{ substr($submission->user->name, 0, 1) }}</span>
+                            </div>
+                        @endif
                         <div class="min-w-0">
                             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Inzending beoordelen</h1>
                             <p class="mt-1 text-blue-100 text-base sm:text-lg">{{ $submission->taskList->title }}</p>
-                            <p class="mt-0.5 text-blue-200/90 text-sm sm:text-base">{{ $submission->user->name }} • {{ $submission->user->email }}</p>
+                            @if(!empty($listDepartments))
+                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                    @foreach($listDepartments as $department)
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/15 text-white border border-white/20">{{ $department }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
+                            @if($submission->is_team_submission)
+                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/15 text-white border border-white/20">Team checklist</span>
+                                    <span class="text-blue-200/90 text-sm">
+                                        {{ $teamContributorCount > 0 ? $teamContributorCount . ' medewerker' . ($teamContributorCount === 1 ? '' : 's') . ' actief' : 'Gestart door ' . $submission->user->name }}
+                                    </span>
+                                </div>
+                            @else
+                                <p class="mt-0.5 text-blue-200/90 text-sm sm:text-base">{{ $submission->user->name }} • {{ $submission->user->email }}</p>
+                            @endif
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
@@ -99,6 +140,40 @@
                 </div>
             </div>
         </div>
+
+        @if($submission->is_team_submission)
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6 sm:mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-900">Team bijdrage</h3>
+                        <p class="text-sm text-slate-500 mt-0.5">Wie heeft welke taken ingevuld in deze gezamenlijke checklist</p>
+                    </div>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        {{ $teamContributorCount > 0 ? $teamContributorCount . ' medewerker' . ($teamContributorCount === 1 ? '' : 's') : 'Nog geen taken ingevuld' }}
+                    </span>
+                </div>
+
+                @if($teamContributorCount > 0)
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        @foreach($teamContributors as $contributor)
+                            <div class="rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                                    {{ $contributor['initials'] }}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-slate-900 truncate">{{ $contributor['name'] }}</p>
+                                    <p class="text-xs text-slate-500">{{ $contributor['completed_tasks'] }} taak{{ $contributor['completed_tasks'] === 1 ? '' : 'en' }} ingevuld</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                        Deze teamchecklist is gestart door {{ $submission->user->name }}, maar er zijn nog geen taken afgerond door teamleden.
+                    </div>
+                @endif
+            </div>
+        @endif
 
         @php
             $aiReview = $submission->metadata['ai_review'] ?? null;
@@ -291,6 +366,17 @@
                                                 @endif
                                                 {{ $taskStatusLabels[$ts] ?? ucfirst(str_replace('_', ' ', $ts)) }}
                                             </span>
+                                            @php
+                                                $taskCompleter = $submissionTask->completedBy;
+                                                if (!$taskCompleter && !$submission->is_team_submission && in_array($ts, ['completed', 'approved', 'rejected', 'redo_requested'])) {
+                                                    $taskCompleter = $submission->user;
+                                                }
+                                            @endphp
+                                            @if($taskCompleter)
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border bg-indigo-50 text-indigo-800 border-indigo-200">
+                                                    Ingevuld door {{ $taskCompleter->name }}
+                                                </span>
+                                            @endif
                                             @if($aiTask)
                                                 @php
                                                     $aiColor = $aiTask['status'] === 'ok'
@@ -409,7 +495,7 @@
                                     </div>
                                 @endif
 
-                                @if($submissionTask->proof_text || $submissionTask->proof_files || $submissionTask->digital_signature || !empty($aiTask['comment'] ?? null) || !empty($aiTask['image_feedback'] ?? null))
+                                @if($submissionTask->proof_text || $submissionTask->employee_comment || $submissionTask->proof_files || $submissionTask->digital_signature || !empty($aiTask['comment'] ?? null) || !empty($aiTask['image_feedback'] ?? null))
                                     <div class="mt-6">
                                         <div class="bg-violet-50 rounded-xl p-5 sm:p-6 border border-violet-100">
                                             <div class="flex items-center gap-3 mb-4">
@@ -422,6 +508,13 @@
                                                 <div class="mb-4 p-4 bg-white/80 rounded-xl">
                                                     <p class="text-sm font-medium text-violet-900 mb-2">Omschrijving</p>
                                                     <p class="text-slate-700 leading-relaxed">{{ $submissionTask->proof_text }}</p>
+                                                </div>
+                                            @endif
+
+                                            @if($submissionTask->employee_comment)
+                                                <div class="mb-4 p-4 bg-white/80 rounded-xl">
+                                                    <p class="text-sm font-medium text-violet-900 mb-2">Opmerking medewerker</p>
+                                                    <p class="text-slate-700 leading-relaxed">{{ $submissionTask->employee_comment }}</p>
                                                 </div>
                                             @endif
                                             

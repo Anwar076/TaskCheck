@@ -19,7 +19,7 @@ class SubmissionController extends Controller
         try {
             $companyId = auth()->user()->company_id;
 
-            $query = Submission::with(['user', 'taskList', 'submissionTasks.task'])
+            $query = Submission::with(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy'])
                 ->where('company_id', $companyId)
                 ->orderBy('created_at', 'desc');
 
@@ -33,6 +33,10 @@ class SubmissionController extends Controller
                     })
                     ->orWhereHas('taskList', function ($listQ) use ($searchTerm) {
                         $listQ->where('title', 'like', "%{$searchTerm}%");
+                    })
+                    ->orWhereHas('submissionTasks.completedBy', function ($contributorQ) use ($searchTerm) {
+                        $contributorQ->where('name', 'like', "%{$searchTerm}%")
+                            ->orWhere('email', 'like', "%{$searchTerm}%");
                     });
                 });
             }
@@ -92,6 +96,10 @@ class SubmissionController extends Controller
                 $submission->total_tasks = $totalTasks;
                 $submission->completed_tasks = $completedTasks;
                 $submission->has_metric_deviation = $hasMetricDeviation;
+                $submission->participant_label = $submission->participantLabel();
+                $submission->contributors = $submission->contributorTaskSummary();
+                $submission->contributor_count = count($submission->contributors);
+                $submission->list_departments = $submission->taskList?->assignedDepartmentLabels() ?? [];
                 
                 return $submission;
             });
