@@ -11,25 +11,32 @@ use Illuminate\Support\Facades\Mail;
 
 class SendCompanyReportsCommand extends Command
 {
-    protected $signature = 'reports:send-company';
+    protected $signature = 'reports:send-company {--force : Testverzending, negeert tijdstip en dubbele-check}';
 
     protected $description = 'Verstuur dagelijkse of wekelijkse bedrijfsrapportages per e-mail';
 
     public function handle(CompanyReportingService $reportingService): int
     {
         $nowNl = now('Europe/Amsterdam')->seconds(0);
-        $currentTime = $nowNl->format('H:i:00');
+        $force = (bool) $this->option('force');
 
         $companies = Company::query()
             ->where('reporting_enabled', true)
             ->whereNotNull('reporting_frequency')
             ->whereNotNull('reporting_send_time')
-            ->whereTime('reporting_send_time', '=', $currentTime)
             ->whereNotNull('email')
-            ->get();
+            ->get()
+            ->filter(function (Company $company) use ($nowNl, $force) {
+                if ($force) {
+                    return true;
+                }
+
+                return $this->matchesSendTime($company, $nowNl);
+            })
+            ->values();
 
         if ($companies->isEmpty()) {
-            $this->info('Geen rapportages op dit tijdstip.');
+            $this->info('Geen rapportages op dit tijdstip ('.$nowNl->format('H:i').' NL).');
 
             return self::SUCCESS;
         }
@@ -37,7 +44,9 @@ class SendCompanyReportsCommand extends Command
         $sent = 0;
         /** @var Company $company */
         foreach ($companies as $company) {
-            if (! $this->shouldSendNow($company, $nowNl)) {
+            if (! $force && ! $this->shouldSendNow($company, $nowNl)) {
+                $this->line(sprintf('Overgeslagen (al verstuurd): %s', $company->name));
+
                 continue;
             }
 
@@ -57,6 +66,20 @@ class SendCompanyReportsCommand extends Command
         $this->info("Totaal verstuurd: {$sent}");
 
         return self::SUCCESS;
+    }
+
+    private function matchesSendTime(Company $company, Carbon $nowNl): bool
+    {
+        $configured = $this->configuredSendTime($company);
+
+        return $configured->format('H:i') === $nowNl->format('H:i');
+    }
+
+    private function configuredSendTime(Company $company): Carbon
+    {
+        $time = (string) $company->reporting_send_time;
+
+        return Carbon::createFromFormat('H:i:s', strlen($time) === 5 ? $time.':00' : $time, 'Europe/Amsterdam');
     }
 
     private function shouldSendNow(Company $company, Carbon $nowNl): bool
