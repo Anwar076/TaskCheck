@@ -291,16 +291,8 @@ class UserController extends Controller
             return;
         }
 
-        $planLimits = [
-            'starter' => ['admin' => 1, 'employee' => 5],
-            'professional' => ['admin' => 2, 'employee' => 10],
-            'business' => ['admin' => 5, 'employee' => 20],
-            'enterprise' => ['admin' => 5, 'employee' => 20],
-            'custom' => ['admin' => null, 'employee' => null],
-        ];
-
         $planKey = $company->subscription_plan ?: 'starter';
-        $limits = $planLimits[$planKey] ?? $planLimits['starter'];
+        $limits = Company::planRoleLimits($planKey);
         $roleLimit = $limits[$targetRole] ?? null;
 
         if ($roleLimit === null) {
@@ -321,16 +313,8 @@ class UserController extends Controller
 
     private function getRoleLimitsAndUsage(?Company $company): array
     {
-        $planLimits = [
-            'starter' => ['admin' => 1, 'employee' => 5],
-            'professional' => ['admin' => 2, 'employee' => 10],
-            'business' => ['admin' => 5, 'employee' => 20],
-            'enterprise' => ['admin' => 5, 'employee' => 20],
-            'custom' => ['admin' => null, 'employee' => null],
-        ];
-
         $planKey = $company?->subscription_plan ?: 'starter';
-        $limits = $planLimits[$planKey] ?? $planLimits['starter'];
+        $limits = Company::planRoleLimits($planKey);
 
         if (!$company) {
             return [

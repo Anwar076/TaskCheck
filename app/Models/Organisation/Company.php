@@ -47,6 +47,7 @@ class Company extends Model
         'onboarding_list_mode',
         'onboarding_list_id',
         'onboarding_completed_at',
+        'trial_expired_email_sent_at',
     ];
 
     public const ONBOARDING_STEP_WELCOME = 'welcome';
@@ -73,6 +74,7 @@ class Company extends Model
         'working_hours' => 'array',
         'reporting_enabled' => 'boolean',
         'reporting_last_sent_at' => 'datetime',
+        'trial_expired_email_sent_at' => 'datetime',
     ];
 
     public const WEEKDAYS = [
@@ -100,15 +102,15 @@ class Company extends Model
             'price_monthly' => 99,
             'price_annual' => 79,
             'max_users' => 12, // 2 admins + 10 medewerkers
-            'max_locations' => 2,
+            'max_locations' => 1,
             'max_storage_gb' => 50,
         ],
         'business' => [
             'name' => 'Business',
             'price_monthly' => 179,
             'price_annual' => 143,
-            'max_users' => 25, // 5 admins + 20 medewerkers
-            'max_locations' => 3,
+            'max_users' => 23, // 3 admins + 20 medewerkers
+            'max_locations' => 2,
             'max_storage_gb' => -1,
         ],
         // Legacy paid enterprise plan (kept for backward compatibility).
@@ -129,6 +131,64 @@ class Company extends Model
             'max_storage_gb' => -1, // Unlimited
         ],
     ];
+
+    public const PLAN_ROLE_LIMITS = [
+        'starter' => ['admin' => 1, 'employee' => 5],
+        'professional' => ['admin' => 2, 'employee' => 10],
+        'business' => ['admin' => 3, 'employee' => 20],
+        'enterprise' => ['admin' => 3, 'employee' => 20],
+        'custom' => ['admin' => null, 'employee' => null],
+    ];
+
+    /**
+     * @return array{admin: int|null, employee: int|null}
+     */
+    public static function planRoleLimits(?string $planKey): array
+    {
+        $key = $planKey ?: 'starter';
+
+        return self::PLAN_ROLE_LIMITS[$key] ?? self::PLAN_ROLE_LIMITS['starter'];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function planMarketingFeatures(string $planKey): array
+    {
+        return match ($planKey) {
+            'starter' => [
+                '1 admin account',
+                '5 medewerker accounts',
+                '1 locatie',
+                'Taken met foto- en videobewijs',
+                'Realtime voortgangsoverzicht',
+                'Mobiele webapp (installeerbaar)',
+            ],
+            'professional' => [
+                '2 admin accounts',
+                '10 medewerker accounts',
+                '1 locatie',
+                'AI-import (PDF, Excel, Word of foto)',
+                'Weekoverzicht & rapportages',
+                'Taken met foto- en videobewijs',
+                'Realtime voortgangsoverzicht',
+                'Mobiele webapp (installeerbaar)',
+                'Priority support',
+            ],
+            'business' => [
+                '3 admin accounts',
+                '20 medewerker accounts',
+                '2 locaties',
+                'Uitgebreide rapportages per locatie',
+                'Inzicht in prestaties per team en locatie',
+                'Taken met foto- en videobewijs',
+                'Realtime voortgangsoverzicht',
+                'Mobiele webapp (installeerbaar)',
+                'Priority support',
+            ],
+            default => [],
+        };
+    }
 
     // Relationships
     public function users()
@@ -202,6 +262,7 @@ class Company extends Model
         $this->update([
             'subscription_status' => 'trial',
             'trial_ends_at' => now()->addDays(14),
+            'trial_expired_email_sent_at' => null,
         ]);
     }
 

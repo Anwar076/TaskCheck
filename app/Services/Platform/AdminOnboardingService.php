@@ -537,6 +537,17 @@ class AdminOnboardingService
                 'placement' => 'left',
                 'cta' => 'Pas start- en eindtijd aan per dag indien nodig.',
             ]),
+            $this->formTourSlide([
+                'target' => '[data-onboarding-target="org-reporting"]',
+                'title' => 'Rapportage via e-mail',
+                'body' => $onboarding
+                    ? 'Optioneel: ontvang dagelijks of wekelijks een samenvatting per e-mail op het adres bij je contactgegevens.'
+                    : 'Stel in of je automatisch rapportages per e-mail wilt ontvangen.',
+                'placement' => 'left',
+                'cta' => $onboarding
+                    ? 'Zet het aan als je dit wilt; je kunt het later altijd wijzigen.'
+                    : 'Kies frequentie en tijdstip voor je rapportages.',
+            ]),
             $this->clickTourSlide([
                 'target' => '[data-onboarding-target="org-save"]',
                 'title' => $onboarding ? 'Sla je gegevens op' : 'Gegevens opslaan',

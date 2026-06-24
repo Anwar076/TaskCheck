@@ -93,73 +93,105 @@
                         @endphp
                         
                         <!-- Notifications Dropdown -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" 
-                                    class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        <div class="relative" x-data="{ open: false }" data-employee-notification-root>
+                            <button
+                                type="button"
+                                @click="open = !open"
+                                class="relative p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                                title="Notificaties"
+                                aria-label="Notificaties openen"
+                                :aria-expanded="open.toString()"
+                            >
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
                                 </svg>
-                                @if($unreadCount > 0)
-                                    <span data-unread-count-badge class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-red-500 rounded-full">
-                                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                                    </span>
-                                @endif
+                                <span data-unread-count-badge class="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white {{ $unreadCount > 0 ? '' : 'hidden' }}">
+                                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                                </span>
                             </button>
-                            
-                            <!-- Dropdown Panel -->
-                            <div x-show="open" 
-                                 @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden flex flex-col"
-                                 style="display: none;">
-                                <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                                    <h3 class="text-sm font-semibold text-gray-900">Notificaties</h3>
-                                    @if($unreadCount > 0)
-                                        <span class="text-xs text-gray-500">{{ $unreadCount }} ongelezen</span>
-                                    @endif
+
+                            <div
+                                x-show="open"
+                                @click.away="open = false"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-[22rem] max-w-[90vw] rounded-2xl border border-slate-200 bg-white shadow-xl z-50 overflow-hidden"
+                                style="display: none;"
+                            >
+                                <div class="border-b border-slate-100 px-4 py-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <h3 class="text-sm font-semibold text-slate-900">Notificaties</h3>
+                                        @if($unreadCount > 0)
+                                            <span class="text-[11px] font-medium text-slate-500">{{ $unreadCount }} ongelezen</span>
+                                        @endif
+                                    </div>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <a
+                                            href="{{ route('employee.notifications.index') }}"
+                                            class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                                        >
+                                            Alle notificaties
+                                        </a>
+                                        <button
+                                            type="button"
+                                            data-employee-mark-all-read
+                                            class="inline-flex items-center rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-colors {{ $unreadCount > 0 ? '' : 'hidden' }}"
+                                        >
+                                            Markeer alles gelezen
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="overflow-y-auto flex-1">
+
+                                <div class="max-h-80 overflow-y-auto" data-employee-notification-list>
                                     @if($unreadNotifications->count() > 0)
                                         @foreach($unreadNotifications as $notification)
-                                            <a href="{{ route('employee.notifications.index') }}" 
-                                               class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition-colors">
-                                                <div class="flex items-start space-x-3">
-                                                    <div class="flex-shrink-0 mt-1">
-                                                        <div class="h-2 w-2 bg-blue-500 rounded-full"></div>
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="text-sm font-medium text-gray-900 truncate">
-                                                            {{ $notification->title ?? 'Nieuwe notificatie' }}
-                                                        </p>
-                                                        <p class="text-xs text-gray-600 truncate mt-1">
-                                                            {{ Str::limit($notification->message ?? '', 60) }}
-                                                        </p>
-                                                        <p class="text-xs text-gray-500 mt-1">
-                                                            {{ $notification->created_at->diffForHumans() }}
-                                                        </p>
-                                                    </div>
+                                            @php
+                                                $notificationData = is_array($notification->data) ? $notification->data : [];
+                                                $notificationUrl = $notificationData['url'] ?? null;
+                                                if (! $notificationUrl && ! empty($notificationData['submission_id'])) {
+                                                    $notificationUrl = url('/employee/submissions/'.$notificationData['submission_id']);
+                                                }
+                                                $notificationUrl = $notificationUrl ?: route('employee.notifications.index');
+                                                if (is_string($notificationUrl) && str_ends_with($notificationUrl, '/edit')) {
+                                                    $notificationUrl = substr($notificationUrl, 0, -5);
+                                                }
+                                            @endphp
+                                            <div class="border-b border-slate-100 px-4 py-3 last:border-b-0" data-employee-notification-item="{{ $notification->id }}">
+                                                <p class="text-sm font-semibold text-slate-900">{{ $notification->title ?? 'Nieuwe melding' }}</p>
+                                                @if(!empty($notification->message))
+                                                    <p class="mt-1 text-xs text-slate-600">{{ Str::limit($notification->message, 120) }}</p>
+                                                @endif
+                                                <p class="mt-1 text-[11px] text-slate-400">{{ $notification->created_at->diffForHumans() }}</p>
+                                                <div class="mt-2 flex items-center gap-2">
+                                                    <a
+                                                        href="{{ $notificationUrl }}"
+                                                        class="inline-flex items-center rounded-md border border-blue-200 px-2.5 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        Openen
+                                                    </a>
+                                                    <button
+                                                        type="button"
+                                                        data-employee-mark-read-notification
+                                                        data-notification-id="{{ $notification->id }}"
+                                                        class="inline-flex items-center rounded-md border border-emerald-200 px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 transition-colors"
+                                                    >
+                                                        Markeer gelezen
+                                                    </button>
                                                 </div>
-                                            </a>
+                                            </div>
                                         @endforeach
                                     @else
                                         <div class="px-4 py-8 text-center">
-                                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                            <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
                                             </svg>
-                                            <p class="mt-2 text-sm text-gray-500">Geen nieuwe notificaties</p>
+                                            <p class="mt-3 text-sm text-slate-500">Nog geen nieuwe meldingen.</p>
                                         </div>
                                     @endif
-                                </div>
-                                <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
-                                    <a href="{{ route('employee.notifications.index') }}" 
-                                       class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700">
-                                        Alle notificaties bekijken
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -351,7 +383,83 @@
         const vapidKeyUrl = @json(route('push.vapid-public-key', [], false));
         const pushSubscribeUrl = @json(route('push.subscribe', [], false));
         const notificationMarkReadUrlTemplate = @json(route('employee.notifications.mark-read', ['notification' => '__ID__'], false));
+        const notificationMarkAllReadUrl = @json(route('employee.notifications.mark-all-read', [], false));
         const csrfTokenValue = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        function employeeNotificationEmptyStateHtml() {
+            return `
+                <div class="px-4 py-8 text-center">
+                    <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+                    </svg>
+                    <p class="mt-3 text-sm text-slate-500">Nog geen nieuwe meldingen.</p>
+                </div>
+            `;
+        }
+
+        function updateUnreadBadges(count) {
+            const badges = document.querySelectorAll('[data-unread-count-badge]');
+            badges.forEach((badge) => {
+                badge.classList.toggle('hidden', !count || count <= 0);
+                if (count && count > 0) {
+                    badge.textContent = count > 9 ? '9+' : String(count);
+                }
+            });
+
+            document.querySelector('[data-employee-mark-all-read]')?.classList.toggle('hidden', !count || count <= 0);
+
+            syncAppIconBadge(count || 0);
+        }
+
+        async function markEmployeeNotificationAsRead(notificationId) {
+            if (!notificationId) {
+                return;
+            }
+
+            const url = notificationMarkReadUrlTemplate.replace('__ID__', String(notificationId));
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfTokenValue,
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            document.querySelector(`[data-employee-notification-item="${notificationId}"]`)?.remove();
+
+            const list = document.querySelector('[data-employee-notification-list]');
+            if (list && !list.querySelector('[data-employee-notification-item]')) {
+                list.innerHTML = employeeNotificationEmptyStateHtml();
+            }
+
+            const currentUnread = Number(document.querySelector('[data-unread-count-badge]')?.textContent || 0);
+            updateUnreadBadges(Math.max(0, currentUnread - 1));
+        }
+
+        async function markAllEmployeeNotificationsAsRead() {
+            const response = await fetch(notificationMarkAllReadUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfTokenValue,
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const list = document.querySelector('[data-employee-notification-list]');
+            if (list) {
+                list.innerHTML = employeeNotificationEmptyStateHtml();
+            }
+
+            updateUnreadBadges(0);
+        }
 
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -364,21 +472,6 @@
             }
 
             return outputArray;
-        }
-
-        function updateUnreadBadges(count) {
-            const badges = document.querySelectorAll('[data-unread-count-badge]');
-            badges.forEach((badge) => {
-                if (!count || count <= 0) {
-                    badge.style.display = 'none';
-                    return;
-                }
-
-                badge.style.display = 'inline-flex';
-                badge.textContent = count > 9 ? '9+' : String(count);
-            });
-
-            syncAppIconBadge(count || 0);
         }
 
         async function syncAppIconBadge(count) {
@@ -712,6 +805,21 @@
             }
 
             startRealtimeNotificationPolling();
+
+            document.querySelector('[data-employee-notification-root]')?.addEventListener('click', async (event) => {
+                const markReadButton = event.target.closest('[data-employee-mark-read-notification]');
+                if (markReadButton) {
+                    event.preventDefault();
+                    await markEmployeeNotificationAsRead(markReadButton.dataset.notificationId);
+                    return;
+                }
+
+                const markAllButton = event.target.closest('[data-employee-mark-all-read]');
+                if (markAllButton) {
+                    event.preventDefault();
+                    await markAllEmployeeNotificationsAsRead();
+                }
+            });
 
             const mobileMenuButton = document.querySelector('.mobile-menu-button');
             const mobileMenu = document.querySelector('.mobile-menu');

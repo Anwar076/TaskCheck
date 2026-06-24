@@ -334,7 +334,7 @@
                         </div>
                         <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Alles wat je nodig hebt om direct te beginnen met digitale checklists en controle.</p>
                         <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (['1 admin account', '5 medewerker accounts', '1 locatie', 'Taken met foto- en videobewijs', 'Realtime voortgangsoverzicht', 'Mobiele webapp (installeerbaar)'] as $item)
+                            @foreach (\App\Models\Organisation\Company::planMarketingFeatures('starter') as $item)
                                 <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
                                     <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80">
                                         <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
@@ -369,7 +369,7 @@
                         </div>
                         <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Meer inzicht, minder handmatig werk en sneller schakelen dankzij AI en rapportages.</p>
                         <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (['2 admin accounts', '10 medewerker accounts', '2 locaties', 'AI-import (PDF, Excel, Word of foto)', 'Weekoverzicht & rapportages', 'Taken met foto- en videobewijs', 'Realtime voortgangsoverzicht', 'Mobiele webapp (installeerbaar)', 'Priority support'] as $item)
+                            @foreach (\App\Models\Organisation\Company::planMarketingFeatures('professional') as $item)
                                 <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
                                     <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 ring-1 ring-blue-100/90">
                                         <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
@@ -400,7 +400,7 @@
                         </div>
                         <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Volledige controle over meerdere locaties, met diep inzicht in prestaties en kwaliteit per vestiging.</p>
                         <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (['5 admin accounts', '20 medewerker accounts', '3 locaties', 'Uitgebreide rapportages per locatie', 'Inzicht in prestaties per team en locatie', 'Taken met foto- en videobewijs', 'Realtime voortgangsoverzicht', 'Mobiele webapp (installeerbaar)', 'Priority support'] as $item)
+                            @foreach (\App\Models\Organisation\Company::planMarketingFeatures('business') as $item)
                                 <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
                                     <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80">
                                         <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>

@@ -210,7 +210,7 @@
                             </span>
                             <span class="text-xs font-semibold tracking-wide text-slate-500">Live voortgang</span>
                         </div>
-                        <span class="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">3 locaties</span>
+                        <span class="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">2 locaties</span>
                     </div>
                     <div class="space-y-4">
                         <div class="hero-v-row flex gap-3">

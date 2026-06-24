@@ -511,7 +511,7 @@
                                                 </div>
                                             @endif
 
-                                            @if($submissionTask->employee_comment)
+                                            @if($submissionTask->employee_comment && $submissionTask->task->required_proof_type !== 'text')
                                                 <div class="mb-4 p-4 bg-white/80 rounded-xl">
                                                     <p class="text-sm font-medium text-violet-900 mb-2">Opmerking medewerker</p>
                                                     <p class="text-slate-700 leading-relaxed">{{ $submissionTask->employee_comment }}</p>

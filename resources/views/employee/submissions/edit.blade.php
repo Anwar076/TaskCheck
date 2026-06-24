@@ -493,6 +493,7 @@
                                     </div>
                                 @endif
 
+                                @if($task->required_proof_type !== 'text')
                                 <details class="group rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white shadow-sm">
                                     <summary class="list-none cursor-pointer px-4 py-3.5 select-none">
                                         <div class="flex items-center justify-between gap-3">
@@ -522,6 +523,7 @@
                                         <p class="mt-1 text-xs text-gray-500">Dit veld is niet verplicht.</p>
                                     </div>
                                 </details>
+                                @endif
 
 
                                 <!-- Digital Signature for Individual Task -->
@@ -612,7 +614,7 @@
                                         </div>
                                     @endif
 
-                                    @if($submissionTask->employee_comment)
+                                    @if($submissionTask->employee_comment && $task->required_proof_type !== 'text')
                                         <div class="mb-4">
                                             <strong class="text-sm text-green-800">Opmerking medewerker:</strong>
                                             <p class="text-sm text-green-700 mt-1 bg-white p-3 rounded-lg border border-green-200">{{ $submissionTask->employee_comment }}</p>

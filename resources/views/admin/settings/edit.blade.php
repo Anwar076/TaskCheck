@@ -306,7 +306,7 @@
             </div>
         </div>
 
-        <div class="scroll-mt-28 rounded-xl border-b border-gray-200 pb-6">
+        <div class="scroll-mt-28 rounded-xl border-b border-gray-200 pb-6" data-onboarding-target="org-reporting">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-3 11H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2z"/>

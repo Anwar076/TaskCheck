@@ -4,37 +4,12 @@
 
 @section('content')
 @php
+    use App\Models\Organisation\Company;
+
     $planFeatures = [
-        'starter' => [
-            '1 admin account',
-            '5 medewerker accounts',
-            '1 locatie',
-            'Taken met foto- en videobewijs',
-            'Realtime voortgangsoverzicht',
-            'Mobiele webapp (installeerbaar)',
-        ],
-        'professional' => [
-            '2 admin accounts',
-            '10 medewerker accounts',
-            '2 locaties',
-            'AI-import (PDF, Excel, Word of foto)',
-            'Weekoverzicht & rapportages',
-            'Taken met foto- en videobewijs',
-            'Realtime voortgangsoverzicht',
-            'Mobiele webapp (installeerbaar)',
-            'Priority support',
-        ],
-        'business' => [
-            '5 admin accounts',
-            '20 medewerker accounts',
-            '3 locaties',
-            'Uitgebreide rapportages per locatie',
-            'Inzicht in prestaties per team en locatie',
-            'Taken met foto- en videobewijs',
-            'Realtime voortgangsoverzicht',
-            'Mobiele webapp (installeerbaar)',
-            'Priority support',
-        ],
+        'starter' => Company::planMarketingFeatures('starter'),
+        'professional' => Company::planMarketingFeatures('professional'),
+        'business' => Company::planMarketingFeatures('business'),
     ];
 @endphp
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
