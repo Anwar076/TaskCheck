@@ -137,8 +137,9 @@ class TaskListController extends MobileController
         ];
 
         if ($request->input('assignment_type') === 'user') {
-            $rules['user_id'] = ['required', 'integer'];
-            $rules['user_ids'] = ['sometimes', 'integer'];
+            $rules['user_ids'] = ['required', 'array', 'min:1'];
+            $rules['user_ids.*'] = ['integer'];
+            $rules['user_id'] = ['sometimes', 'integer'];
         } elseif ($request->input('assignment_type') === 'department') {
             $rules['department'] = ['required', 'string', 'max:100'];
         } elseif ($request->input('assignment_type') === 'role') {
@@ -158,29 +159,33 @@ class TaskListController extends MobileController
         ];
 
         if ($validated['assignment_type'] === 'user') {
-            $userId = (int) ($validated['user_id'] ?? $validated['user_ids'] ?? 0);
-            $selectedUser = User::query()
-                ->where('id', $userId)
-                ->where('company_id', $companyId)
-                ->whereIn('role', ['employee', 'admin'])
-                ->where('is_active', true)
-                ->first();
+            $userIds = array_values(array_unique(array_map(
+                'intval',
+                $validated['user_ids'] ?? (isset($validated['user_id']) ? [$validated['user_id']] : [])
+            )));
 
-            if (!$selectedUser) {
-                throw ValidationException::withMessages(['user_id' => 'Ongeldige medewerker.']);
-            }
+            foreach ($userIds as $userId) {
+                $selectedUser = User::query()
+                    ->where('id', $userId)
+                    ->where('company_id', $companyId)
+                    ->whereIn('role', ['employee', 'admin'])
+                    ->where('is_active', true)
+                    ->first();
 
-            $payload['user_id'] = $selectedUser->id;
+                if (!$selectedUser) {
+                    throw ValidationException::withMessages(['user_ids' => 'Ongeldige medewerker geselecteerd.']);
+                }
 
-            $exists = ListAssignment::where('list_id', $list->id)
-                ->where('user_id', $selectedUser->id)
-                ->where('is_active', true)
-                ->exists();
+                $exists = ListAssignment::where('list_id', $list->id)
+                    ->where('user_id', $selectedUser->id)
+                    ->where('is_active', true)
+                    ->exists();
 
-            if (!$exists) {
-                ListAssignment::create($payload);
-                if ($selectedUser->isEmployee()) {
-                    Notification::createListAssigned($selectedUser->id, $list->id, $list->title, 'user');
+                if (!$exists) {
+                    ListAssignment::create(array_merge($payload, ['user_id' => $selectedUser->id]));
+                    if ($selectedUser->isEmployee()) {
+                        Notification::createListAssigned($selectedUser->id, $list->id, $list->title, 'user');
+                    }
                 }
             }
         } elseif ($validated['assignment_type'] === 'department') {

@@ -7,21 +7,36 @@ use App\Models\Submissions\Submission;
 use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\Mobile\MobileTaskAccess;
+use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 
 class SubmissionController extends MobileController
 {
     public function __construct(
         protected MobileTaskAccess $taskAccess,
+        protected ScheduleService $scheduleService,
     ) {}
 
     public function index(Request $request)
     {
         $user = $request->user();
+        $accessibleListIds = $this->scheduleService->getScheduledTasksForUser($user)->pluck('id');
 
         $query = Submission::query()
             ->with(['taskList.location', 'submissionTasks'])
-            ->where('user_id', $user->id)
+            ->where('company_id', $user->company_id)
+            ->where(function ($submissionQuery) use ($user, $accessibleListIds) {
+                $submissionQuery->where(function ($personalQuery) use ($user) {
+                    $personalQuery->where('user_id', $user->id)
+                        ->where('is_team_submission', false);
+                })->orWhere(function ($teamQuery) use ($user, $accessibleListIds) {
+                    $teamQuery->where('is_team_submission', true)
+                        ->where(function ($accessQuery) use ($user, $accessibleListIds) {
+                            $accessQuery->whereIn('list_id', $accessibleListIds)
+                                ->orWhereHas('submissionTasks', fn ($taskQuery) => $taskQuery->where('completed_by_user_id', $user->id));
+                        });
+                });
+            })
             ->orderByDesc('created_at');
 
         if ($request->filled('status')) {
@@ -39,9 +54,12 @@ class SubmissionController extends MobileController
 
         $submission = Submission::query()
             ->with(['taskList.location', 'submissionTasks.task'])
-            ->where('user_id', $user->id)
             ->where('company_id', $user->company_id)
             ->findOrFail($id);
+
+        if (!$this->taskAccess->userCanAccessSubmission($user, $submission)) {
+            return $this->error('Geen toegang tot deze inzending.', 403);
+        }
 
         $this->taskAccess->syncMissingSubmissionTasks($submission);
 
@@ -54,9 +72,12 @@ class SubmissionController extends MobileController
 
         $submission = Submission::query()
             ->with(['taskList', 'submissionTasks.task'])
-            ->where('user_id', $user->id)
             ->where('company_id', $user->company_id)
             ->findOrFail($id);
+
+        if (!$this->taskAccess->userCanAccessSubmission($user, $submission)) {
+            return $this->error('Geen toegang tot deze inzending.', 403);
+        }
 
         $incomplete = $submission->submissionTasks()
             ->whereHas('task', fn ($q) => $q->where('is_required', true))

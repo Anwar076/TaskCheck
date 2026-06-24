@@ -45,7 +45,7 @@ class SubmissionTaskController extends MobileController
             ]);
 
             Notification::createTaskRejected(
-                $submissionTask->submission->user_id,
+                app(\App\Services\CollaborativeSubmissionService::class)->notifyUserIdForTask($submissionTask),
                 $submissionTask->task->title,
                 $validated['rejection_reason'],
                 $submissionTask->submission_id

@@ -7,6 +7,7 @@ use App\Models\Organisation\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\BelongsToCompany;
+use Illuminate\Support\Collection;
 
 class Submission extends Model
 {
@@ -18,6 +19,7 @@ class Submission extends Model
         'started_at',
         'completed_at',
         'status',
+        'is_team_submission',
         'employee_signature',
         'manager_signature',
         'digital_signature',
@@ -34,6 +36,7 @@ class Submission extends Model
             'completed_at' => 'datetime',
             'signature_date' => 'datetime',
             'metadata' => 'json',
+            'is_team_submission' => 'boolean',
         ];
     }
 
@@ -111,5 +114,73 @@ class Submission extends Model
     public function getRejectedTasksAttribute()
     {
         return $this->submissionTasks()->where('status', 'rejected')->with('task')->get();
+    }
+
+    public function teamContributors(): Collection
+    {
+        $this->loadMissing('submissionTasks.completedBy');
+
+        return $this->submissionTasks
+            ->map(fn (SubmissionTask $submissionTask) => $submissionTask->completedBy)
+            ->filter()
+            ->unique('id')
+            ->values();
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string, initials: string, completed_tasks: int}>
+     */
+    public function contributorTaskSummary(): array
+    {
+        $this->loadMissing('submissionTasks.completedBy');
+
+        $summary = [];
+
+        foreach ($this->submissionTasks as $submissionTask) {
+            $userId = (int) ($submissionTask->completed_by_user_id ?? 0);
+            if ($userId === 0) {
+                continue;
+            }
+
+            if (!isset($summary[$userId])) {
+                $user = $submissionTask->completedBy;
+                $summary[$userId] = [
+                    'id' => $userId,
+                    'name' => (string) ($user?->name ?? 'Onbekend'),
+                    'initials' => mb_strtoupper(mb_substr((string) ($user?->name ?? '?'), 0, 1)),
+                    'completed_tasks' => 0,
+                ];
+            }
+
+            if (in_array($submissionTask->status, ['completed', 'approved'], true)) {
+                $summary[$userId]['completed_tasks']++;
+            }
+        }
+
+        return collect($summary)
+            ->sortByDesc('completed_tasks')
+            ->values()
+            ->all();
+    }
+
+    public function participantLabel(): string
+    {
+        if (!$this->is_team_submission) {
+            return (string) ($this->user?->name ?? 'Onbekend');
+        }
+
+        $contributors = $this->teamContributors();
+
+        if ($contributors->isEmpty()) {
+            return 'Team · ' . ($this->user?->name ?? 'checklist');
+        }
+
+        $names = $contributors->pluck('name')->filter()->values();
+
+        if ($names->count() <= 2) {
+            return 'Team · ' . $names->join(', ');
+        }
+
+        return 'Team · ' . $names->take(2)->join(', ') . ' +' . ($names->count() - 2);
     }
 }

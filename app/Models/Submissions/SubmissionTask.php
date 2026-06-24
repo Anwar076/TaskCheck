@@ -15,6 +15,7 @@ class SubmissionTask extends Model
         'submission_id',
         'task_id',
         'proof_text',
+        'employee_comment',
         'proof_files',
         'checklist_progress',
         'digital_signature',
@@ -25,6 +26,7 @@ class SubmissionTask extends Model
         'redo_requested',
         'redo_reason',
         'completed_at',
+        'completed_by_user_id',
         'reviewed_at',
         'rejected_at',
         'reviewed_by',
@@ -57,6 +59,11 @@ class SubmissionTask extends Model
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function completedBy()
+    {
+        return $this->belongsTo(User::class, 'completed_by_user_id');
     }
 
     // Scopes
@@ -101,9 +108,11 @@ class SubmissionTask extends Model
             'reviewed_at' => now(),
         ]);
 
-        // Create notification for the employee
+        $notifyUserId = app(\App\Services\CollaborativeSubmissionService::class)
+            ->notifyUserIdForTask($this);
+
         return Notification::createTaskRejected(
-            $this->submission->user_id,
+            $notifyUserId,
             $this->task->title,
             $reason,
             $this->submission_id
@@ -120,9 +129,11 @@ class SubmissionTask extends Model
             'reviewed_at' => now(),
         ]);
 
-        // Create notification for the employee
+        $notifyUserId = app(\App\Services\CollaborativeSubmissionService::class)
+            ->notifyUserIdForTask($this);
+
         return Notification::createRedoRequested(
-            $this->submission->user_id,
+            $notifyUserId,
             $this->task->title,
             $this->submission_id,
             $reason

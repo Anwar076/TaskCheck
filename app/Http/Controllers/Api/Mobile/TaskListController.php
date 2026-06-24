@@ -7,6 +7,7 @@ use App\Models\Submissions\SubmissionTask;
 use App\Models\Checklist\TaskList;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\Mobile\MobileTaskAccess;
+use App\Services\CollaborativeSubmissionService;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 
@@ -15,6 +16,7 @@ class TaskListController extends MobileController
     public function __construct(
         protected ScheduleService $scheduleService,
         protected MobileTaskAccess $taskAccess,
+        protected CollaborativeSubmissionService $collaborativeSubmissionService,
     ) {}
 
     public function index(Request $request)
@@ -89,26 +91,13 @@ class TaskListController extends MobileController
             return $this->success(['submission_id' => $existing->id]);
         }
 
-        $submission = Submission::create([
-            'user_id' => $user->id,
-            'list_id' => $list->id,
-            'company_id' => $user->company_id,
-            'started_at' => now(),
-            'status' => 'in_progress',
-            'metadata' => [
-                'user_agent' => $request->userAgent(),
-                'ip_address' => $request->ip(),
-                'source' => 'mobile',
-            ],
+        $submission = $this->collaborativeSubmissionService->resolveOrCreateTodaySubmission($user, $list, [
+            'user_agent' => $request->userAgent(),
+            'ip_address' => $request->ip(),
+            'source' => 'mobile',
         ]);
 
-        foreach ($this->taskAccess->tasksForToday($list) as $task) {
-            SubmissionTask::create([
-                'submission_id' => $submission->id,
-                'task_id' => $task->id,
-                'status' => 'pending',
-            ]);
-        }
+        $this->taskAccess->syncMissingSubmissionTasks($submission);
 
         return $this->success(['submission_id' => $submission->id], 'Takenlijst gestart.');
     }

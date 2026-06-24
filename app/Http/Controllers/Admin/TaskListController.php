@@ -1490,56 +1490,59 @@ PROMPT,
             $skippedAssignments = 0;
 
             if ($validatedData['assignment_type'] === 'user') {
-                // Assign to specific user
-                $userId = $validatedData['user_ids'];
+                $userIds = array_values(array_unique(array_map(
+                    'intval',
+                    is_array($validatedData['user_ids']) ? $validatedData['user_ids'] : [$validatedData['user_ids']]
+                )));
 
-                $selectedUser = \App\Models\Organisation\User::query()
-                    ->where('id', $userId)
-                    ->where('company_id', auth()->user()->company_id)
-                    ->whereIn('role', ['employee', 'admin'])
-                    ->where('is_active', true)
-                    ->first();
+                foreach ($userIds as $userId) {
+                    $selectedUser = \App\Models\Organisation\User::query()
+                        ->where('id', $userId)
+                        ->where('company_id', auth()->user()->company_id)
+                        ->whereIn('role', ['employee', 'admin'])
+                        ->where('is_active', true)
+                        ->first();
 
-                if (!$selectedUser) {
-                    throw ValidationException::withMessages([
-                        'user_ids' => 'Geselecteerde medewerker is ongeldig voor jouw bedrijf.',
-                    ]);
-                }
-
-                if ($list->location_id && (int) $selectedUser->location_id !== (int) $list->location_id) {
-                    throw ValidationException::withMessages([
-                        'user_ids' => 'Deze medewerker hoort niet bij de locatie van deze takenlijst.',
-                    ]);
-                }
-                
-                // Check if assignment already exists
-                $existingAssignment = \App\Models\Checklist\ListAssignment::where('list_id', $list->id)
-                    ->where('user_id', $userId)
-                    ->where('is_active', true)
-                    ->first();
-
-                if (!$existingAssignment) {
-                    $assignment = \App\Models\Checklist\ListAssignment::create([
-                        'list_id' => $list->id,
-                        'user_id' => $userId,
-                        'department' => null,
-                        'assigned_date' => $validatedData['assigned_date'],
-                        'due_date' => $validatedData['due_date'] ?? null,
-                        'is_active' => true,
-                    ]);
-                    $assignments[] = $assignment;
-                    if ($selectedUser->isEmployee()) {
-                        \App\Models\Communication\Notification::createListAssigned(
-                            (int) $selectedUser->id,
-                            (int) $list->id,
-                            (string) $list->title,
-                            'user'
-                        );
+                    if (!$selectedUser) {
+                        throw ValidationException::withMessages([
+                            'user_ids' => 'Een of meer geselecteerde medewerkers zijn ongeldig voor jouw bedrijf.',
+                        ]);
                     }
-                    \Log::info('Created user assignment', ['assignment_id' => $assignment->id, 'user_id' => $userId]);
-                } else {
-                    $skippedAssignments++;
-                    \Log::info('Skipped duplicate user assignment', ['user_id' => $userId]);
+
+                    if ($list->location_id && (int) $selectedUser->location_id !== (int) $list->location_id) {
+                        throw ValidationException::withMessages([
+                            'user_ids' => $selectedUser->name . ' hoort niet bij de locatie van deze takenlijst.',
+                        ]);
+                    }
+
+                    $existingAssignment = \App\Models\Checklist\ListAssignment::where('list_id', $list->id)
+                        ->where('user_id', $userId)
+                        ->where('is_active', true)
+                        ->first();
+
+                    if (!$existingAssignment) {
+                        $assignment = \App\Models\Checklist\ListAssignment::create([
+                            'list_id' => $list->id,
+                            'user_id' => $userId,
+                            'department' => null,
+                            'assigned_date' => $validatedData['assigned_date'],
+                            'due_date' => $validatedData['due_date'] ?? null,
+                            'is_active' => true,
+                        ]);
+                        $assignments[] = $assignment;
+                        if ($selectedUser->isEmployee()) {
+                            \App\Models\Communication\Notification::createListAssigned(
+                                (int) $selectedUser->id,
+                                (int) $list->id,
+                                (string) $list->title,
+                                'user'
+                            );
+                        }
+                        \Log::info('Created user assignment', ['assignment_id' => $assignment->id, 'user_id' => $userId]);
+                    } else {
+                        $skippedAssignments++;
+                        \Log::info('Skipped duplicate user assignment', ['user_id' => $userId]);
+                    }
                 }
             } elseif ($validatedData['assignment_type'] === 'department') {
                 // Check if department assignment already exists
@@ -1700,7 +1703,7 @@ PROMPT,
 
     public function showSubmission(\App\Models\Submissions\Submission $submission)
     {
-        $submission->load(['user', 'taskList', 'submissionTasks.task']);
+        $submission->load(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy']);
         
         return view('admin.submissions.show', compact('submission'));
     }
@@ -1777,7 +1780,7 @@ PROMPT,
             ]);
 
             $created = Notification::createTaskRejected(
-                $submissionTask->submission->user_id,
+                app(\App\Services\CollaborativeSubmissionService::class)->notifyUserIdForTask($submissionTask),
                 $submissionTask->task->title,
                 $validatedData['rejection_reason'],
                 $submissionTask->submission_id
@@ -1786,7 +1789,7 @@ PROMPT,
             // Safety net: if model-level helper failed to return/create, create notification here as backup.
             if (!$created) {
                 $created = Notification::createTaskRejected(
-                    $submissionTask->submission->user_id,
+                    app(\App\Services\CollaborativeSubmissionService::class)->notifyUserIdForTask($submissionTask),
                     $submissionTask->task->title,
                     $validatedData['rejection_reason'],
                     $submissionTask->submission_id

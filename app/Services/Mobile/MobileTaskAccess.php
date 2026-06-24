@@ -6,6 +6,7 @@ use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\User;
+use App\Services\CollaborativeSubmissionService;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 
@@ -13,6 +14,7 @@ class MobileTaskAccess
 {
     public function __construct(
         protected ScheduleService $scheduleService,
+        protected CollaborativeSubmissionService $collaborativeSubmissionService,
     ) {}
 
     public function userCanAccessList(User $user, TaskList $list): bool
@@ -28,11 +30,12 @@ class MobileTaskAccess
 
     public function todaySubmission(User $user, TaskList $list): ?Submission
     {
-        return Submission::query()
-            ->where('user_id', $user->id)
-            ->where('list_id', $list->id)
-            ->whereDate('created_at', today())
-            ->first();
+        return $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list);
+    }
+
+    public function userCanAccessSubmission(User $user, Submission $submission): bool
+    {
+        return $this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission);
     }
 
     public function tasksForToday(TaskList $list)
@@ -71,13 +74,16 @@ class MobileTaskAccess
     {
         $user = $request->user();
 
-        return SubmissionTask::query()
+        $submissionTask = SubmissionTask::query()
             ->where('id', $submissionTaskId)
-            ->whereHas('submission', function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                    ->where('company_id', $user->company_id);
-            })
-            ->with(['submission', 'task'])
+            ->whereHas('submission', fn ($query) => $query->where('company_id', $user->company_id))
+            ->with(['submission.taskList', 'task'])
             ->first();
+
+        if (!$submissionTask || !$this->userCanAccessSubmission($user, $submissionTask->submission)) {
+            return null;
+        }
+
+        return $submissionTask;
     }
 }

@@ -54,6 +54,7 @@ class TaskController extends MobileController
             'proof_files' => $proofFiles,
             'status' => 'completed',
             'completed_at' => now(),
+            'completed_by_user_id' => $request->user()->id,
             'redo_requested' => false,
         ];
 

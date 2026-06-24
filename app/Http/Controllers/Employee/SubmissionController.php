@@ -8,16 +8,21 @@ use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use App\Models\Checklist\ListAssignment;
 use App\Services\ScheduleService;
+use App\Services\CollaborativeSubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SubmissionController extends Controller
 {
     protected $scheduleService;
+    protected $collaborativeSubmissionService;
 
-    public function __construct(ScheduleService $scheduleService)
-    {
+    public function __construct(
+        ScheduleService $scheduleService,
+        CollaborativeSubmissionService $collaborativeSubmissionService
+    ) {
         $this->scheduleService = $scheduleService;
+        $this->collaborativeSubmissionService = $collaborativeSubmissionService;
     }
 
     /**
@@ -60,10 +65,7 @@ class SubmissionController extends Controller
         // Status filter "openstaand": only lists not completed/reviewed
         if ($request->filled('status') && $request->status === 'openstaand') {
             $assignedLists = $assignedLists->filter(function ($list) use ($user) {
-                $submission = Submission::where('user_id', $user->id)
-                    ->where('list_id', $list->id)
-                    ->whereDate('created_at', today())
-                    ->first();
+                $submission = $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list);
                 return !$submission || in_array($submission->status, ['in_progress', 'rejected', 'redo_requested']);
             })->values();
         }
@@ -101,10 +103,7 @@ class SubmissionController extends Controller
         }]);
         
         // Check if user has already started this list today
-        $existingSubmission = Submission::where('user_id', $user->id)
-            ->where('list_id', $list->id)
-            ->whereDate('created_at', today())
-            ->first();
+        $existingSubmission = $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list);
 
         return view('employee.lists.show', compact('list', 'existingSubmission'));
     }
@@ -127,54 +126,19 @@ class SubmissionController extends Controller
         }
 
         // Check if user has already started this list today
-        $existingSubmission = Submission::where('user_id', $user->id)
-            ->where('list_id', $list->id)
-            ->whereDate('created_at', today())
-            ->first();
+        $existingSubmission = $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list);
 
         if ($existingSubmission) {
             return redirect()->route('employee.submissions.edit', ['submission' => $existingSubmission->id, 'updated' => time()])
-                ->with('info', 'You have already started this list today.');
+                ->with('info', 'Deze lijst is vandaag al gestart.');
         }
 
-        // Ensure list belongs to same company
-        if ($list->company_id !== $user->company_id) {
-            abort(403, 'You do not have access to this task list.');
-        }
-
-        // Create new submission
-        $submission = Submission::create([
-            'user_id' => $user->id,
-            'list_id' => $list->id,
-            'company_id' => $user->company_id,
-            'started_at' => now(),
-            'status' => 'in_progress',
-            'metadata' => [
-                'user_agent' => $request->userAgent(),
-                'ip_address' => $request->ip(),
-            ],
+        $submission = $this->collaborativeSubmissionService->resolveOrCreateTodaySubmission($user, $list, [
+            'user_agent' => $request->userAgent(),
+            'ip_address' => $request->ip(),
         ]);
 
-        // Create submission tasks for each task in the list
-        // Load tasks with weekday filtering - tasks with weekday should only show on that day
-        $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
-        
-        // Always filter tasks by weekday - only show tasks for today or tasks without weekday (general tasks)
-        $tasks = $list->tasks()
-            ->where('is_active', true)
-            ->where(function ($query) use ($todayWeekday) {
-                $query->whereNull('weekday')      // General tasks (no specific day) - always show
-                      ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
-            })
-            ->get();
-        
-        foreach ($tasks as $task) {
-            SubmissionTask::create([
-                'submission_id' => $submission->id,
-                'task_id' => $task->id,
-                'status' => 'pending',
-            ]);
-        }
+        $this->ensureSubmissionTasksExist($submission, $list);
 
         return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
             ->with('success', 'Takenlijst succesvol gestart!');
@@ -187,46 +151,16 @@ class SubmissionController extends Controller
     {
         $user = auth()->user();
         
-        // Check if user owns this submission and belongs to same company
-        if ($submission->user_id !== $user->id || $submission->company_id !== $user->company_id) {
+        // Check if user can access this submission
+        if (!$this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
             abort(403, 'You do not have access to this submission.');
         }
 
     $submission->load(['taskList', 'submissionTasks.task']);
     
     // Check if there are tasks in the list that are not yet in the submission
-    // This can happen if tasks were added to the list after the submission was created
-    // or if weekday filtering changed which tasks should be included
-    $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
-    
-    // Get all tasks that should be in this submission (filtered by weekday)
-    $tasksThatShouldBeIncluded = $submission->taskList->tasks()
-        ->where('is_active', true)
-        ->where(function ($query) use ($todayWeekday) {
-            $query->whereNull('weekday')      // General tasks (no specific day) - always show
-                  ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
-        })
-        ->pluck('id');
-    
-    // Get task IDs that are already in the submission
-    $existingTaskIds = $submission->submissionTasks->pluck('task_id');
-    
-    // Find missing task IDs
-    $missingTaskIds = $tasksThatShouldBeIncluded->diff($existingTaskIds);
-    
-    // Add missing tasks to the submission
-    if ($missingTaskIds->count() > 0) {
-        foreach ($missingTaskIds as $taskId) {
-            \App\Models\Submissions\SubmissionTask::create([
-                'submission_id' => $submission->id,
-                'task_id' => $taskId,
-                'status' => 'pending',
-            ]);
-        }
-        
-        // Reload the submission with the new tasks
-        $submission->load(['taskList', 'submissionTasks.task']);
-    }
+    $this->ensureSubmissionTasksExist($submission, $submission->taskList);
+    $submission->load(['taskList', 'submissionTasks.task']);
     
     // Laat ALLE taken zien die bij deze submission horen
     return view('employee.submissions.edit', compact('submission'));
@@ -240,8 +174,7 @@ class SubmissionController extends Controller
         try {
             $user = auth()->user();
             
-            // Check if user owns this submission and belongs to same company
-            if ($submission->user_id !== $user->id || $submission->company_id !== $user->company_id) {
+            if (!$this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
@@ -258,7 +191,10 @@ class SubmissionController extends Controller
             $task = $submissionTask->task;
 
             // Validate based on required proof type
-            $rules = ['proof_text' => 'nullable|string'];
+            $rules = [
+                'proof_text' => 'nullable|string',
+                'employee_comment' => 'nullable|string|max:2000',
+            ];
             $messages = [
                 'proof_files.required' => 'Bewijs is vereist voor deze taak.',
                 'proof_files.*.file' => 'Elk bestand moet geldig zijn.',
@@ -313,10 +249,12 @@ class SubmissionController extends Controller
             // Update submission task
             $updateData = [
                 'proof_text' => $validated['proof_text'] ?? null,
+                'employee_comment' => $validated['employee_comment'] ?? null,
                 'proof_files' => $proofFiles,
                 'status' => 'completed',
                 'completed_at' => now(),
-                'redo_requested' => false, // Reset redo flag when task is completed again
+                'completed_by_user_id' => $user->id,
+                'redo_requested' => false,
             ];
 
             // Add digital signature if provided
@@ -399,8 +337,8 @@ class SubmissionController extends Controller
         try {
             $user = auth()->user();
             
-            // Check if user owns this submission and belongs to same company
-            if ($submission->user_id !== $user->id || $submission->company_id !== $user->company_id) {
+            // Check if user can access this submission
+            if (!$this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
@@ -528,5 +466,30 @@ class SubmissionController extends Controller
         // Use the ScheduleService to check if the user has access and the list is scheduled
         $assignedLists = $this->scheduleService->getScheduledTasksForUser($user);
         return $assignedLists->contains('id', $list->id);
+    }
+
+    private function ensureSubmissionTasksExist(Submission $submission, TaskList $list): void
+    {
+        $todayWeekday = strtolower(now()->format('l'));
+
+        $tasksThatShouldBeIncluded = $list->tasks()
+            ->where('is_active', true)
+            ->where(function ($query) use ($todayWeekday) {
+                $query->whereNull('weekday')
+                    ->orWhere('weekday', $todayWeekday);
+            })
+            ->pluck('id');
+
+        $submission->loadMissing('submissionTasks');
+        $existingTaskIds = $submission->submissionTasks->pluck('task_id');
+        $missingTaskIds = $tasksThatShouldBeIncluded->diff($existingTaskIds);
+
+        foreach ($missingTaskIds as $taskId) {
+            SubmissionTask::create([
+                'submission_id' => $submission->id,
+                'task_id' => $taskId,
+                'status' => 'pending',
+            ]);
+        }
     }
 }

@@ -251,15 +251,8 @@ class ScheduleService
      */
     private function isTaskListCompletedOnDate($taskList, $user, $date)
     {
-        $query = Submission::where('user_id', $user->id)
-            ->where('list_id', $taskList->id)
-            ->whereIn('status', ['completed', 'reviewed']);
-
-        if ($taskList->schedule_type === 'once') {
-            return $query->exists();
-        }
-
-        return $query->whereDate('created_at', $date)->exists();
+        return app(\App\Services\CollaborativeSubmissionService::class)
+            ->isListCompletedOnDate($taskList, $user, $date);
     }
 
     /**

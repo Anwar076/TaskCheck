@@ -280,7 +280,8 @@ class DashboardController extends Controller
         }
 
         // Get active user sessions (submissions in progress)
-        $activeSessions = Submission::with(['user', 'taskList', 'submissionTasks.task'])
+        $activeSessions = Submission::with(['user', 'taskList', 'submissionTasks.task', 'submissionTasks.completedBy'])
+            ->where('company_id', $companyId)
             ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
                 $query->where('company_id', $companyId);
                 if ($selectedLocationId) {
@@ -306,78 +307,12 @@ class DashboardController extends Controller
                 
                 return $hasRecentTaskActivity || $isRecentlyCreated;
             })
-            ->map(function ($submission) {
-                // Calculate progress using the model's attribute
-                $progressPercentage = $submission->completion_percentage ?? 0;
-                
-                // Count tasks
-                $totalTasks = $submission->submissionTasks->count();
-                $completedTasks = $submission->submissionTasks->where('status', 'completed')->count();
-                
-                // Find current task
-                $currentTask = $submission->submissionTasks
-                    ->whereIn('status', ['in_progress', 'pending'])
-                    ->first();
-                
-                // Determine session status based on recent activity
-                $status = 'Active';
-                $lastActivity = $submission->updated_at;
-                
-                // Check for recent task activity (more accurate)
-                $recentTaskActivity = $submission->submissionTasks
-                    ->where('updated_at', '>=', now()->subMinutes(10))
-                    ->count();
-                
-                $mostRecentTaskUpdate = $submission->submissionTasks
-                    ->max('updated_at');
-                
-                // Use the most recent activity from either submission or tasks
-                if ($mostRecentTaskUpdate && $mostRecentTaskUpdate > $lastActivity) {
-                    $lastActivity = $mostRecentTaskUpdate;
-                }
-                
-                // Improved status determination
-                if ($recentTaskActivity > 0 || $lastActivity >= now()->subMinutes(10)) {
-                    if ($currentTask) {
-                        $status = 'Working'; // Actively working on a task
-                    } else {
-                        $status = 'Active'; // Recent activity but between tasks
-                    }
-                } elseif ($lastActivity >= now()->subMinutes(30)) {
-                    $status = 'Idle'; // Some recent activity but not very recent
-                } else {
-                    $status = 'Paused'; // No recent activity
-                }
-
-                // Calculate time active in whole minutes
-                $timeActiveMinutes = $submission->started_at ? 
-                    $submission->started_at->diffInMinutes(now()) : 
-                    $submission->created_at->diffInMinutes(now());
-
-                return [
-                    'user_name' => $submission->user->name,
-                    'user_id' => $submission->user->id,
-                    'task_list_title' => $submission->taskList->title,
-                    'progress_percentage' => $progressPercentage,
-                    'total_tasks' => $totalTasks,
-                    'completed_tasks' => $completedTasks,
-                    'current_task' => $currentTask ? 
-                        (strlen($currentTask->task->description) > 50 ? 
-                            substr($currentTask->task->description, 0, 50) . '...' : 
-                            $currentTask->task->description) 
-                        : 'Aan het starten...',
-                    'status' => $status,
-                    'started_at' => $submission->started_at ? $submission->started_at->diffForHumans() : $submission->created_at->diffForHumans(),
-                    'last_activity' => \Carbon\Carbon::parse($lastActivity)->diffForHumans(),
-                    'submission_id' => $submission->id,
-                    'time_active' => $this->formatTimeActive($timeActiveMinutes),
-                    'time_active_minutes' => $timeActiveMinutes,
-                    'recent_task_activity' => $recentTaskActivity, // Debug info
-                ];
-            });
+            ->map(fn ($submission) => $this->mapLiveActiveSession($submission))
+            ->values();
 
         // Get recently completed submissions (last 2 hours)
-        $recentCompletions = Submission::with(['user', 'taskList'])
+        $recentCompletions = Submission::with(['user', 'taskList', 'submissionTasks.completedBy'])
+            ->where('company_id', $companyId)
             ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
                 $query->where('company_id', $companyId);
                 if ($selectedLocationId) {
@@ -396,15 +331,17 @@ class DashboardController extends Controller
                         $submission->created_at->diffInMinutes($submission->completed_at) : 0);
 
                 return [
-                    'user_name' => $submission->user->name,
+                    'user_name' => $this->liveSessionParticipantLabel($submission),
                     'task_list_title' => $submission->taskList->title,
                     'completed_at' => $submission->completed_at->diffForHumans(),
                     'completion_time' => $completionTime,
+                    'is_team_submission' => (bool) $submission->is_team_submission,
                 ];
             });
 
         // Get users who started tasks in the last hour but haven't been active
-        $staleUsers = Submission::with(['user', 'taskList'])
+        $staleUsers = Submission::with(['user', 'taskList', 'submissionTasks.completedBy'])
+            ->where('company_id', $companyId)
             ->whereHas('taskList', function ($query) use ($companyId, $selectedLocationId) {
                 $query->where('company_id', $companyId);
                 if ($selectedLocationId) {
@@ -419,11 +356,20 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($submission) {
                 return [
-                    'user_name' => $submission->user->name,
+                    'user_name' => $this->liveSessionParticipantLabel($submission),
                     'task_list_title' => $submission->taskList->title,
                     'inactive_duration' => $submission->updated_at->diffForHumans(),
+                    'is_team_submission' => (bool) $submission->is_team_submission,
                 ];
             });
+
+        $activeParticipantCount = $activeSessions->sum(function (array $session) {
+            if (!empty($session['is_team_submission']) && !empty($session['active_workers'])) {
+                return count($session['active_workers']);
+            }
+
+            return 1;
+        });
 
         return response()->json([
             'activeSessions' => $activeSessions,
@@ -432,12 +378,110 @@ class DashboardController extends Controller
             'timestamp' => now()->toISOString(),
             'selected_location_id' => $selectedLocationId,
             'summary' => [
-                'active_users' => $activeSessions->count(),
+                'active_users' => $activeParticipantCount,
                 'avg_progress' => round($activeSessions->avg('progress_percentage') ?? 0, 1),
                 'completed_last_2h' => $recentCompletions->count(),
                 'stale_sessions' => $staleUsers->count(),
             ]
         ]);
+    }
+
+    private function mapLiveActiveSession(Submission $submission): array
+    {
+        $totalTasks = $submission->submissionTasks->count();
+        $completedTasks = $submission->submissionTasks
+            ->whereIn('status', ['completed', 'approved'])
+            ->count();
+        $progressPercentage = $totalTasks > 0
+            ? (int) round(($completedTasks / $totalTasks) * 100)
+            : 0;
+
+        $currentTask = $submission->submissionTasks
+            ->whereIn('status', ['in_progress', 'pending'])
+            ->first();
+
+        $status = 'Active';
+        $lastActivity = $submission->updated_at;
+
+        $recentTaskActivity = $submission->submissionTasks
+            ->where('updated_at', '>=', now()->subMinutes(10))
+            ->count();
+
+        $mostRecentTaskUpdate = $submission->submissionTasks->max('updated_at');
+
+        if ($mostRecentTaskUpdate && $mostRecentTaskUpdate > $lastActivity) {
+            $lastActivity = $mostRecentTaskUpdate;
+        }
+
+        if ($recentTaskActivity > 0 || $lastActivity >= now()->subMinutes(10)) {
+            $status = $currentTask ? 'Working' : 'Active';
+        } elseif ($lastActivity >= now()->subMinutes(30)) {
+            $status = 'Idle';
+        } else {
+            $status = 'Paused';
+        }
+
+        $timeActiveMinutes = $submission->started_at
+            ? $submission->started_at->diffInMinutes(now())
+            : $submission->created_at->diffInMinutes(now());
+
+        $recentWorkers = $submission->submissionTasks
+            ->where('updated_at', '>=', now()->subMinutes(30))
+            ->map(fn ($task) => $task->completedBy)
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        if ($recentWorkers->isEmpty() && $submission->user) {
+            $recentWorkers = collect([$submission->user]);
+        }
+
+        return [
+            'user_name' => $this->liveSessionParticipantLabel($submission, $recentWorkers),
+            'user_id' => $submission->user?->id,
+            'task_list_title' => $submission->taskList->title,
+            'progress_percentage' => $progressPercentage,
+            'total_tasks' => $totalTasks,
+            'completed_tasks' => $completedTasks,
+            'current_task' => $currentTask
+                ? (strlen($currentTask->task->description) > 50
+                    ? substr($currentTask->task->description, 0, 50) . '...'
+                    : $currentTask->task->description)
+                : 'Aan het starten...',
+            'status' => $status,
+            'started_at' => $submission->started_at
+                ? $submission->started_at->diffForHumans()
+                : $submission->created_at->diffForHumans(),
+            'last_activity' => \Carbon\Carbon::parse($lastActivity)->diffForHumans(),
+            'submission_id' => $submission->id,
+            'time_active' => $this->formatTimeActive($timeActiveMinutes),
+            'time_active_minutes' => $timeActiveMinutes,
+            'recent_task_activity' => $recentTaskActivity,
+            'is_team_submission' => (bool) $submission->is_team_submission,
+            'active_workers' => $recentWorkers->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ])->values()->all(),
+        ];
+    }
+
+    private function liveSessionParticipantLabel(Submission $submission, $recentWorkers = null): string
+    {
+        if (!$submission->is_team_submission) {
+            return (string) ($submission->user->name ?? 'Medewerker');
+        }
+
+        $workers = $recentWorkers ?? $submission->submissionTasks
+            ->map(fn ($task) => $task->completedBy)
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        if ($workers->isEmpty()) {
+            return 'Team · ' . ($submission->user->name ?? 'checklist');
+        }
+
+        return 'Team · ' . $workers->pluck('name')->join(', ');
     }
 
     private function formatTimeActive($minutes)

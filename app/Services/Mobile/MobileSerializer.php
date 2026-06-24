@@ -238,6 +238,7 @@ class MobileSerializer
         return [
             'id' => $submission->id,
             'status' => $submission->status,
+            'is_team_submission' => (bool) $submission->is_team_submission,
             'list_title' => $submission->taskList?->title,
             'progress_percentage' => $totalTasks > 0
                 ? (int) round(($completedTasks / $totalTasks) * 100)
@@ -299,7 +300,7 @@ class MobileSerializer
 
     public static function adminSubmissionDetail(Submission $submission): array
     {
-        $submission->loadMissing(['user', 'taskList.location', 'submissionTasks.task']);
+        $submission->loadMissing(['user', 'taskList.location', 'submissionTasks.task', 'submissionTasks.completedBy']);
 
         $metadata = is_array($submission->metadata) ? $submission->metadata : [];
 
@@ -319,6 +320,11 @@ class MobileSerializer
                     'rejection_reason' => $st->rejection_reason,
                     'redo_reason' => $st->redo_reason,
                     'completed_at' => $st->completed_at?->toIso8601String(),
+                    'completed_by' => $st->completedBy ? [
+                        'id' => $st->completedBy->id,
+                        'name' => $st->completedBy->name,
+                        'email' => $st->completedBy->email,
+                    ] : null,
                 ];
             })->values()->all(),
         ]);
