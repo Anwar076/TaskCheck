@@ -78,9 +78,14 @@ class CompanySettingsController extends Controller
             }
         }
 
-        // Handle logo removal
-        if ($request->boolean('remove_logo') && $company->logo_path) {
-            Storage::disk('public')->delete($company->logo_path);
+        $removeLogo = $request->boolean('remove_logo');
+
+        // Handle logo removal before uploads, so an explicit remove action cannot be overridden.
+        if ($removeLogo) {
+            if ($company->logo_path) {
+                Storage::disk('public')->delete($company->logo_path);
+            }
+
             $validated['logo_path'] = null;
         }
 
@@ -116,7 +121,7 @@ class CompanySettingsController extends Controller
             ->all();
 
         // Handle logo upload
-        if ($request->hasFile('logo')) {
+        if (!$removeLogo && $request->hasFile('logo')) {
             // Delete old logo if exists
             if ($company->logo_path) {
                 Storage::disk('public')->delete($company->logo_path);

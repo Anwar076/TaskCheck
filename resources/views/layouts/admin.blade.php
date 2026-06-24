@@ -225,6 +225,9 @@
                                     >
                                         Meldingen toestaan
                                     </button>
+                                    <p class="mt-2 hidden text-[11px] leading-4 text-slate-500" data-admin-notification-permission-help>
+                                        Als de browser geen venster toont, staat toegang geblokkeerd in de browserinstellingen voor deze website.
+                                    </p>
                                 </div>
                                 <div class="max-h-80 overflow-y-auto" data-admin-notification-list>
                                     <div class="px-4 py-3 text-sm text-slate-500">Nog geen nieuwe meldingen.</div>
@@ -832,22 +835,35 @@
         function updateAdminPermissionUi() {
             const permissionState = document.querySelector('[data-admin-notification-permission-state]');
             const enableButton = document.querySelector('[data-admin-enable-notifications]');
-            if (!permissionState || !enableButton || !('Notification' in window)) return;
+            const permissionHelp = document.querySelector('[data-admin-notification-permission-help]');
+            if (!permissionState || !enableButton) return;
+
+            if (!('Notification' in window)) {
+                permissionState.textContent = 'Browser machtiging: niet ondersteund';
+                enableButton.classList.add('hidden');
+                permissionHelp?.classList.add('hidden');
+                return;
+            }
 
             if (Notification.permission === 'granted') {
                 permissionState.textContent = 'Browser machtiging: toegestaan';
                 enableButton.classList.add('hidden');
+                permissionHelp?.classList.add('hidden');
                 return;
             }
 
             if (Notification.permission === 'denied') {
                 permissionState.textContent = 'Browser machtiging: geblokkeerd';
-                enableButton.classList.add('hidden');
+                enableButton.textContent = 'Opnieuw vragen';
+                enableButton.classList.remove('hidden');
+                permissionHelp?.classList.remove('hidden');
                 return;
             }
 
             permissionState.textContent = 'Browser machtiging: nog niet gegeven';
+            enableButton.textContent = 'Meldingen toestaan';
             enableButton.classList.remove('hidden');
+            permissionHelp?.classList.add('hidden');
         }
 
         async function requestAdminNotificationPermission() {
@@ -859,6 +875,9 @@
 
                 if (permission === 'granted') {
                     await subscribeForBackgroundPush();
+                } else if (permission === 'denied') {
+                    const permissionHelp = document.querySelector('[data-admin-notification-permission-help]');
+                    permissionHelp?.classList.remove('hidden');
                 }
             } catch (error) {
                 console.warn('Admin notification permission request failed', error);
