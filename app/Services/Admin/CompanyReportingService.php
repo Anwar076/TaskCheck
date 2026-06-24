@@ -2,14 +2,16 @@
 
 namespace App\Services\Admin;
 
-use App\Models\Checklist\TaskList;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\User;
-use App\Models\Submissions\Submission;
 use Carbon\Carbon;
 
 class CompanyReportingService
 {
+    public function __construct(
+        private WeeklyOverviewService $weeklyOverviewService
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -19,61 +21,68 @@ class CompanyReportingService
         $now = $referenceTime->copy()->timezone($timezone);
 
         if ($frequency === Company::REPORTING_FREQUENCY_WEEKLY) {
-            $periodStart = $now->copy()->startOfWeek();
-            $periodEnd = $now->copy()->endOfWeek();
+            $periodEnd = $now->copy()->subWeek()->endOfWeek()->endOfDay();
+            $periodStart = $periodEnd->copy()->startOfWeek()->startOfDay();
             $periodLabel = 'Weekrapportage';
+            $periodDescription = 'Vorige week';
         } else {
-            $periodStart = $now->copy()->startOfDay();
-            $periodEnd = $now->copy()->endOfDay();
+            $periodStart = $now->copy()->subDay()->startOfDay();
+            $periodEnd = $now->copy()->subDay()->endOfDay();
             $periodLabel = 'Dagrapportage';
+            $periodDescription = 'Gisteren';
         }
 
-        $submissionQuery = Submission::query()
-            ->where('company_id', $company->id)
-            ->whereBetween('created_at', [$periodStart->copy()->utc(), $periodEnd->copy()->utc()]);
+        $companyId = (int) $company->id;
+        $summary = $this->weeklyOverviewService->buildSummary($companyId, $periodStart, $periodEnd);
+        $employeeOverview = $this->weeklyOverviewService->buildEmployeeOverview($companyId, $periodStart, $periodEnd);
+        $topLists = $this->weeklyOverviewService->buildTopLists($companyId, $periodStart, $periodEnd, null, 10);
 
-        $totalSubmissions = (clone $submissionQuery)->count();
-        $pendingReview = (clone $submissionQuery)->where('status', 'completed')->count();
-        $reviewed = (clone $submissionQuery)->where('status', 'reviewed')->count();
-        $rejected = (clone $submissionQuery)->where('status', 'rejected')->count();
-        $inProgress = (clone $submissionQuery)->where('status', 'in_progress')->count();
-
-        $topLists = TaskList::query()
-            ->where('company_id', $company->id)
-            ->withCount(['submissions' => function ($query) use ($periodStart, $periodEnd) {
-                $query->whereBetween('created_at', [$periodStart->copy()->utc(), $periodEnd->copy()->utc()]);
-            }])
-            ->orderByDesc('submissions_count')
-            ->take(5)
-            ->get(['id', 'title'])
-            ->filter(fn (TaskList $list) => $list->submissions_count > 0)
-            ->values();
-
-        $activeEmployees = User::query()
-            ->where('company_id', $company->id)
+        $totalEmployees = User::query()
+            ->where('company_id', $companyId)
             ->where('role', 'employee')
             ->where('is_active', true)
             ->count();
 
+        $activeEmployees = count($employeeOverview);
+        $summary['active_employees'] = $activeEmployees;
+        $summary['total_employees'] = $totalEmployees;
+        $summary['avg_lists_per_employee'] = $activeEmployees > 0
+            ? round($summary['total_lists'] / $activeEmployees, 1)
+            : 0;
+
+        if ($frequency === Company::REPORTING_FREQUENCY_DAILY) {
+            $previousDayStart = $periodStart->copy()->subDay()->startOfDay();
+            $previousDayEnd = $periodStart->copy()->subDay()->endOfDay();
+            $previousTotal = $this->weeklyOverviewService->buildSummary($companyId, $previousDayStart, $previousDayEnd)['total_lists'];
+            $summary['period_growth'] = $previousTotal > 0
+                ? round((($summary['total_lists'] - $previousTotal) / $previousTotal) * 100, 1)
+                : 0;
+        } else {
+            $previousWeekStart = $periodStart->copy()->subWeek()->startOfDay();
+            $previousWeekEnd = $periodEnd->copy()->subWeek()->endOfDay();
+            $previousTotal = $this->weeklyOverviewService->buildSummary($companyId, $previousWeekStart, $previousWeekEnd)['total_lists'];
+            $summary['period_growth'] = $previousTotal > 0
+                ? round((($summary['total_lists'] - $previousTotal) / $previousTotal) * 100, 1)
+                : 0;
+        }
+
         return [
             'title' => $periodLabel,
+            'period_description' => $periodDescription,
             'frequency' => $frequency,
             'generated_at' => $now,
             'period_start' => $periodStart,
             'period_end' => $periodEnd,
-            'stats' => [
-                'total_submissions' => $totalSubmissions,
-                'pending_review' => $pendingReview,
-                'reviewed' => $reviewed,
-                'rejected' => $rejected,
-                'in_progress' => $inProgress,
-                'active_employees' => $activeEmployees,
-            ],
-            'top_lists' => $topLists->map(fn (TaskList $list) => [
-                'title' => $list->title,
-                'submissions_count' => (int) $list->submissions_count,
-            ])->all(),
-            'dashboard_url' => route('admin.dashboard'),
+            'summary' => $summary,
+            'employee_overview' => array_map(
+                fn (array $row) => array_diff_key($row, ['employee' => true]),
+                $employeeOverview
+            ),
+            'top_lists' => $topLists,
+            'overview_url' => route('admin.weekly-overview', [
+                'start_date' => $periodStart->toDateString(),
+                'end_date' => $periodEnd->toDateString(),
+            ]),
         ];
     }
 }

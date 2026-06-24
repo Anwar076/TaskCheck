@@ -1930,42 +1930,10 @@ PROMPT,
             ->where('role', 'employee')
             ->where('is_active', true)
             ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
-            ->with(['submissions' => function ($query) use ($start, $end, $selectedLocationId) {
-                $query->whereBetween('created_at', [$start, $end])
-                    ->when($selectedLocationId, function ($submissionQuery) use ($selectedLocationId) {
-                        $submissionQuery->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $selectedLocationId));
-                    })
-                    ->with(['taskList:id,title']);
-            }])
             ->orderBy('name')
             ->get();
 
-        $overview = [];
-        foreach ($employees as $employee) {
-            $totalSubmissions = $employee->submissions->count();
-            if ($totalSubmissions === 0) {
-                continue;
-            }
-
-            $completed = $employee->submissions->where('status', 'completed')->count();
-            $reviewed = $employee->submissions->where('status', 'reviewed')->count();
-            $inProgress = $employee->submissions->where('status', 'in_progress')->count();
-            $rejected = $employee->submissions->where('status', 'rejected')->count();
-            $finished = $completed + $reviewed;
-
-            $overview[] = [
-                'employee' => $employee,
-                'total_submissions' => $totalSubmissions,
-                'completed' => $completed,
-                'reviewed' => $reviewed,
-                'finished' => $finished,
-                'in_progress' => $inProgress,
-                'rejected' => $rejected,
-                'completion_rate' => round(($finished / $totalSubmissions) * 100, 1),
-            ];
-        }
-
-        usort($overview, fn (array $a, array $b) => $b['completion_rate'] <=> $a['completion_rate']);
+        $overview = $weeklyOverviewService->buildEmployeeOverview($companyId, $start, $end, $selectedLocationId);
 
         $lists = TaskList::with(['assignments.user', 'tasks'])
             ->withCount(['submissions as period_submissions_count' => function ($query) use ($start, $end) {
