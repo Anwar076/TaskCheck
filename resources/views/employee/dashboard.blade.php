@@ -19,16 +19,18 @@
                     <!-- Greeting Content -->
                     <div class="flex-1 min-w-0">
                         <div class="mb-4 sm:mb-6">
+                            @php
+                                $nowNl = now('Europe/Amsterdam')->locale('nl');
+                                $hourNl = (int) $nowNl->format('G');
+                                $greeting = $hourNl < 12 ? 'morgen' : ($hourNl < 17 ? 'middag' : 'avond');
+                            @endphp
                             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 break-words">
-                                Goede{{ now()->hour < 12 ? 'morgen' : (now()->hour < 17 ? 'middag' : 'avond') }}, 
+                                Goede{{ $greeting }},
                                 <span class="text-blue-600">{{ explode(' ', auth()->user()->name)[0] }}</span>
                             </h1>
                             <p class="text-gray-600 text-sm sm:text-base lg:text-lg break-words">
-                                @php
-                                    $now = \Carbon\Carbon::now()->locale('nl');
-                                @endphp
-                                {{ $now->translatedFormat('l, j F Y') }}
-                                <span class="ml-2 text-gray-500 font-medium" id="current-time">{{ $now->format('H:i') }}</span>
+                                {{ $nowNl->translatedFormat('l, j F Y') }}
+                                <span class="ml-2 text-gray-500 font-medium" id="current-time">{{ $nowNl->format('H:i') }}</span>
                             </p>
                         </div>
                         
@@ -791,9 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update huidige tijd elke minuut en check voor te late taken
     function updateTime() {
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTimeStr = `${hours}:${minutes}`;
+        const currentTimeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
         const timeElement = document.getElementById('current-time');
         if (timeElement) {
             timeElement.textContent = currentTimeStr;

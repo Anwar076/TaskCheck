@@ -18,13 +18,18 @@
                                 </svg>
                             </div>
                             <div>
+                                @php
+                                    $nowNl = now('Europe/Amsterdam')->locale('nl');
+                                    $hourNl = (int) $nowNl->format('G');
+                                    $greeting = $hourNl < 12 ? 'morgen' : ($hourNl < 17 ? 'middag' : 'avond');
+                                @endphp
                                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
-                                    Goede{{ now()->hour < 12 ? 'morgen' : (now()->hour < 17 ? 'middag' : 'avond') }},
+                                    Goede{{ $greeting }},
                                     <span class="text-blue-100">{{ explode(' ', auth()->user()->name ?? 'Beheerder')[0] }}</span>
                                 </h1>
                                 <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">
-                                    {{ \Carbon\Carbon::now()->locale('nl')->translatedFormat('l, j F Y') }}
-                                    <span class="ml-2 font-medium" id="dashboard-time">{{ \Carbon\Carbon::now()->format('H:i') }}</span>
+                                    {{ $nowNl->translatedFormat('l, j F Y') }}
+                                    <span class="ml-2 font-medium" id="dashboard-time">{{ $nowNl->format('H:i') }}</span>
                                 </p>
                             </div>
                         </div>
@@ -427,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('dashboard-time');
         if (el) {
             const now = new Date();
-            el.textContent = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            el.textContent = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
         }
     }
     updateTime();
@@ -494,7 +499,10 @@ document.addEventListener('DOMContentLoaded', function() {
         data.activeSessions.forEach(s => {
             const st = statusStyles[s.status] || { border: 'border-slate-400', badge: 'bg-slate-100 text-slate-800', label: s.status || '-' };
             const statusLabel = st.label || s.status;
-            html += `<a href="/admin/submissions/${s.submission_id}" class="block p-4 bg-slate-50 rounded-xl hover:bg-slate-100 border-l-4 ${st.border} mb-3 transition-colors"><div class="flex justify-between items-start gap-3"><div><p class="font-semibold text-slate-900">${s.task_list_title}</p><p class="text-sm text-slate-500">${s.user_name} • ${s.time_active || '-'}</p><div class="mt-2 flex items-center gap-2"><div class="flex-1 bg-slate-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:${s.progress_percentage || 0}%"></div></div><span class="text-xs font-medium">${s.progress_percentage || 0}%</span></div></div><span class="text-xs px-2 py-1 rounded-lg font-medium ${st.badge}">${statusLabel}</span></div></a>`;
+            const teamBadge = s.is_team_submission
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-100 text-indigo-800 mr-2">Team</span>'
+                : '';
+            html += `<a href="/admin/submissions/${s.submission_id}" class="block p-4 bg-slate-50 rounded-xl hover:bg-slate-100 border-l-4 ${st.border} mb-3 transition-colors"><div class="flex justify-between items-start gap-3"><div><p class="font-semibold text-slate-900">${teamBadge}${s.task_list_title}</p><p class="text-sm text-slate-500">${s.user_name} • ${s.time_active || '-'}</p><div class="mt-2 flex items-center gap-2"><div class="flex-1 bg-slate-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:${s.progress_percentage || 0}%"></div></div><span class="text-xs font-medium">${s.progress_percentage || 0}%</span></div></div><span class="text-xs px-2 py-1 rounded-lg font-medium ${st.badge}">${statusLabel}</span></div></a>`;
         });
         return html || '<p class="text-slate-500">Geen gegevens</p>';
     }
@@ -528,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeBlock = employee.is_active_now && employee.current_list
             ? `<div class="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
                 <div class="flex items-center justify-between gap-2 text-xs">
-                    <span class="font-semibold text-blue-800 truncate">Bezig: ${employee.current_list}</span>
+                    <span class="font-semibold text-blue-800 truncate">${employee.is_team_active ? 'Team bezig' : 'Bezig'}: ${employee.current_list}</span>
                     <span class="text-blue-600 font-bold tabular-nums">${employee.progress ?? 0}%</span>
                 </div>
                 <div class="mt-2 w-full bg-blue-100 rounded-full h-1.5 overflow-hidden">

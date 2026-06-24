@@ -4,13 +4,16 @@ namespace App\Services\Admin;
 
 use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
+use App\Services\CollaborativeSubmissionService;
 use App\Services\ScheduleService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class TeamPerformanceService
 {
     public function __construct(
         protected ScheduleService $scheduleService,
+        protected CollaborativeSubmissionService $collaborativeSubmissionService,
     ) {}
 
     /**
@@ -26,35 +29,50 @@ class TeamPerformanceService
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
             ->orderBy('name')
-            ->get(['id', 'name', 'department']);
+            ->get(['id', 'name', 'department', 'company_id', 'role']);
 
         $todaySubmissions = Submission::query()
-            ->with(['taskList:id,title', 'submissionTasks:id,submission_id,status'])
-            ->whereIn('user_id', $employees->pluck('id'))
+            ->with([
+                'taskList:id,title',
+                'submissionTasks:id,submission_id,status,completed_by_user_id,updated_at',
+            ])
+            ->where('company_id', $companyId)
             ->whereDate('created_at', $date)
             ->when($locationId, function ($query) use ($locationId) {
                 $query->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId));
             })
             ->get();
 
-        $submissionsByUser = $todaySubmissions->groupBy('user_id');
+        $personalSubmissionsByUser = $todaySubmissions
+            ->where('is_team_submission', false)
+            ->groupBy('user_id');
+
+        $teamSubmissionsByListId = $todaySubmissions
+            ->where('is_team_submission', true)
+            ->keyBy('list_id');
 
         $rows = [];
         $teamProgressSum = 0.0;
         $teamProgressCount = 0;
 
         foreach ($employees as $employee) {
-            $userSubmissions = $submissionsByUser->get($employee->id, collect());
+            $personalSubmissions = $personalSubmissionsByUser->get($employee->id, collect());
             $scheduledLists = $this->scheduleService->getScheduledTasksForUser($employee, $date);
+            $relevantSubmissions = $this->relevantSubmissionsForEmployee(
+                $employee,
+                $scheduledLists,
+                $personalSubmissions,
+                $teamSubmissionsByListId
+            );
 
             $openListIds = $scheduledLists->pluck('id')->unique();
-            $finishedListIds = $userSubmissions
+            $finishedListIds = $relevantSubmissions
                 ->whereIn('status', ['completed', 'reviewed'])
                 ->pluck('list_id')
                 ->unique();
-            $inProgressSubmissions = $userSubmissions->whereIn('status', ['in_progress', 'redo_requested']);
+            $inProgressSubmissions = $relevantSubmissions->whereIn('status', ['in_progress', 'redo_requested']);
             $inProgressListIds = $inProgressSubmissions->pluck('list_id')->unique();
-            $pendingReview = $userSubmissions->where('status', 'completed')->count();
+            $pendingReview = $relevantSubmissions->where('status', 'completed')->count();
 
             $totalListIds = $openListIds
                 ->merge($finishedListIds)
@@ -66,13 +84,19 @@ class TeamPerformanceService
             $inProgressLists = $inProgressListIds->count();
             $openLists = $openListIds->diff($finishedListIds)->diff($inProgressListIds)->count();
 
-            if ($totalLists === 0 && $userSubmissions->isEmpty()) {
+            if ($totalLists === 0 && $relevantSubmissions->isEmpty()) {
                 continue;
             }
 
             $listProgressValues = $totalListIds
                 ->map(fn (int $listId) => $this->listProgress(
-                    $userSubmissions->firstWhere('list_id', $listId)
+                    $this->submissionForList(
+                        $employee,
+                        $listId,
+                        $scheduledLists,
+                        $personalSubmissions,
+                        $teamSubmissionsByListId
+                    )
                 ))
                 ->values();
 
@@ -83,12 +107,10 @@ class TeamPerformanceService
             $teamProgressSum += $listProgressValues->sum();
             $teamProgressCount += $listProgressValues->count();
 
-            $activeSubmission = $inProgressSubmissions->sortByDesc('updated_at')->first();
-            $isActiveNow = $activeSubmission !== null
-                && $activeSubmission->updated_at >= now()->subMinutes(15);
-            $activeListProgress = $activeSubmission
-                ? (int) round($this->listProgress($activeSubmission))
-                : null;
+            [$isActiveNow, $activeSubmission, $activeListProgress, $isTeamActive] = $this->resolveActiveSession(
+                $employee,
+                $inProgressSubmissions
+            );
 
             $rows[] = [
                 'id' => $employee->id,
@@ -102,6 +124,7 @@ class TeamPerformanceService
                 'pending_review' => $pendingReview,
                 'completion_rate' => $completionRate,
                 'is_active_now' => $isActiveNow,
+                'is_team_active' => $isTeamActive,
                 'current_list' => $activeSubmission?->taskList?->title,
                 'progress' => $isActiveNow ? $activeListProgress : null,
                 'profile_url' => route('admin.users.show', $employee),
@@ -126,7 +149,7 @@ class TeamPerformanceService
             'finished_lists' => array_sum(array_column($rows, 'finished_lists')),
             'in_progress_lists' => array_sum(array_column($rows, 'in_progress_lists')),
             'open_lists' => array_sum(array_column($rows, 'open_lists')),
-            'pending_review' => array_sum(array_column($rows, 'pending_review')),
+            'pending_review' => $todaySubmissions->where('status', 'completed')->count(),
             'active_now' => count(array_filter($rows, fn (array $row) => $row['is_active_now'])),
             'completion_rate' => 0,
         ];
@@ -140,6 +163,103 @@ class TeamPerformanceService
             'employees' => $rows,
             'updated_at' => now()->toIso8601String(),
         ];
+    }
+
+    private function relevantSubmissionsForEmployee(
+        User $employee,
+        Collection $scheduledLists,
+        Collection $personalSubmissions,
+        Collection $teamSubmissionsByListId
+    ): Collection {
+        $submissions = collect();
+
+        foreach ($scheduledLists as $list) {
+            $submission = $this->submissionForList(
+                $employee,
+                $list->id,
+                $scheduledLists,
+                $personalSubmissions,
+                $teamSubmissionsByListId
+            );
+
+            if ($submission && !$submissions->contains('id', $submission->id)) {
+                $submissions->push($submission);
+            }
+        }
+
+        foreach ($personalSubmissions as $submission) {
+            if (!$submissions->contains('id', $submission->id)) {
+                $submissions->push($submission);
+            }
+        }
+
+        return $submissions->unique('id')->values();
+    }
+
+    private function submissionForList(
+        User $employee,
+        int $listId,
+        Collection $scheduledLists,
+        Collection $personalSubmissions,
+        Collection $teamSubmissionsByListId
+    ): ?Submission {
+        $list = $scheduledLists->firstWhere('id', $listId);
+
+        if ($list && $this->collaborativeSubmissionService->usesTeamSubmission($list)) {
+            return $teamSubmissionsByListId->get($listId)
+                ?? $personalSubmissions->firstWhere('list_id', $listId);
+        }
+
+        if ((int) ($personalSubmissions->firstWhere('list_id', $listId)?->user_id) === (int) $employee->id) {
+            return $personalSubmissions->firstWhere('list_id', $listId);
+        }
+
+        return $personalSubmissions->firstWhere('list_id', $listId);
+    }
+
+    /**
+     * @return array{0: bool, 1: ?Submission, 2: ?int, 3: bool}
+     */
+    private function resolveActiveSession(User $employee, Collection $inProgressSubmissions): array
+    {
+        $recentThreshold = now()->subMinutes(15);
+
+        foreach ($inProgressSubmissions->sortByDesc('updated_at') as $submission) {
+            if ($submission->is_team_submission) {
+                $recentTaskByEmployee = $submission->submissionTasks
+                    ->where('completed_by_user_id', $employee->id)
+                    ->where('updated_at', '>=', $recentThreshold)
+                    ->isNotEmpty();
+
+                if (!$recentTaskByEmployee) {
+                    continue;
+                }
+
+                return [
+                    true,
+                    $submission,
+                    (int) round($this->listProgress($submission)),
+                    true,
+                ];
+            }
+
+            if ((int) $submission->user_id !== (int) $employee->id) {
+                continue;
+            }
+
+            if ($submission->updated_at < $recentThreshold) {
+                continue;
+            }
+
+            return [
+                true,
+                $submission,
+                (int) round($this->listProgress($submission)),
+                false,
+            ];
+        }
+
+        return [false, null, null, false];
     }
 
     /**
