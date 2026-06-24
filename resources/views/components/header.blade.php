@@ -1,16 +1,21 @@
 <!-- Navbar -->
+@php
+    $taskcheckLogoPath = public_path('logos/taskcheck-logo.png');
+    $taskcheckLogoVersion = file_exists($taskcheckLogoPath) ? filemtime($taskcheckLogoPath) : time();
+@endphp
+
 <nav id="siteHeader" class="fixed top-0 w-full z-50 border-b border-white/40 bg-white/70 backdrop-blur-xl transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
-        <div class="flex justify-between items-center h-20 sm:h-24">
+        <div class="flex h-16 items-center justify-between sm:h-20">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 <img
-                    src="{{ asset('logos/taskcheck-logo.png') }}"
+                    src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
                     alt="TaskCheck — Maak elke controle aantoonbaar"
                     width="640"
                     height="160"
                     fetchpriority="high"
                     decoding="async"
-                    class="h-16 sm:h-20 w-auto shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03]"
+                    class="h-12 w-auto shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03] sm:h-14"
                 >
             </a>
 

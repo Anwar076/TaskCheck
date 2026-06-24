@@ -15,7 +15,7 @@ class StarterPackService
     /**
      * @return array{templates_imported: int, already_active: bool}
      */
-    public function activate(Company $company, User $adminUser, string $packSlug): array
+    public function activate(Company $company, User $adminUser, string $packSlug, ?array $templateNames = null): array
     {
         $pack = StarterPackCatalog::find($packSlug);
         if (! $pack) {
@@ -34,7 +34,7 @@ class StarterPackService
             ];
         }
 
-        return DB::transaction(function () use ($company, $packSlug, $adminUser) {
+        return DB::transaction(function () use ($company, $packSlug, $adminUser, $templateNames) {
             $this->ensureGlobalTemplates($packSlug);
 
             $globalTemplates = TaskTemplate::withoutGlobalScopes()
@@ -44,6 +44,18 @@ class StarterPackService
                 ->with('templateTasks')
                 ->orderBy('name')
                 ->get();
+
+            if (is_array($templateNames)) {
+                $selectedTemplateNames = collect($templateNames)
+                    ->map(fn ($name) => trim((string) $name))
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                $globalTemplates = $globalTemplates
+                    ->whereIn('name', $selectedTemplateNames->all())
+                    ->values();
+            }
 
             $templatesImported = 0;
 

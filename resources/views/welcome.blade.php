@@ -352,15 +352,15 @@
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Kies de oplossing voor jouw team</h2>
             <p class="mt-4 text-slate-500 text-lg">Direct naar onze meest bezochte pagina&rsquo;s voor horeca en schoonmaak.</p>
         </div>
-        <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+        <div class="stagger grid sm:grid-cols-2 lg:grid-cols-6 gap-5">
             @foreach([
                 ['Horeca App', 'Personeel, checklists en werkcontrole voor restaurants en cafés.', 'seo.horeca-app', '#2563eb'],
                 ['Restaurant Checklist App', 'Opening, sluiting en HACCP digitaal afvinken.', 'seo.restaurant-checklist-app', '#4f46e5'],
                 ['HACCP Formulieren', 'Stop met papier — registreer controles digitaal.', 'seo.haccp-formulieren', '#059669'],
                 ['Temperatuurregistratie App', 'Koeling, vriezer en producten met foto bewijs.', 'seo.temperatuurregistratie-app', '#0891b2'],
                 ['App Schoonmaakbedrijf', 'Werkcontrole en rapportages voor schoonmaakteams.', 'seo.app-schoonmaakbedrijf', '#0d9488'],
-            ] as [$title, $desc, $route, $col])
-            <div class="s-item flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all">
+            ] as $index => [$title, $desc, $route, $col])
+            <div class="s-item flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200 hover:shadow-md sm:col-span-1 lg:col-span-2 {{ $index === 3 ? 'lg:col-start-2' : '' }}">
                 <h3 class="font-extrabold text-slate-900 text-base leading-snug">{{ $title }}</h3>
                 <p class="mt-2 text-sm text-slate-500 leading-relaxed flex-1">{{ $desc }}</p>
                 <a href="{{ route($route) }}"
@@ -846,7 +846,7 @@
                 ['Werkt TaskCheck ook voor meerdere locaties?','Ja. Per locatie stel je eigen checklists in. Vanuit één dashboard zie je de voortgang van alle locaties.'],
                 ['Kan ik TaskCheck gebruiken op mobiel?','Ja, TaskCheck werkt volledig op mobiel, tablet en desktop. Er is ook een installeerbare webapp voor iOS en Android.'],
             ] as [$q,$a])
-            <div>
+            <div class="faq-item cursor-pointer transition-colors hover:bg-slate-50" data-faq-item>
                 <button type="button" class="faq-trigger flex min-h-[3rem] w-full touch-manipulation items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-slate-50 sm:min-h-0 sm:px-6 sm:py-5" aria-expanded="false">
                     <span class="break-words text-sm font-semibold text-slate-900 pr-2">{{ $q }}</span>
                     <svg class="faq-icon h-5 w-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -954,13 +954,26 @@
     });
 })();
 
+function toggleFaq(trigger) {
+    if (!trigger) return;
+
+    var body = trigger.nextElementSibling, icon = trigger.querySelector('.faq-icon'), open = body.classList.contains('open');
+    document.querySelectorAll('.faq-body').forEach(function (b) { b.classList.remove('open'); });
+    document.querySelectorAll('.faq-icon').forEach(function (i) { i.classList.remove('open'); });
+    document.querySelectorAll('.faq-trigger').forEach(function (b) { b.setAttribute('aria-expanded','false'); });
+    if (!open) { body.classList.add('open'); icon.classList.add('open'); trigger.setAttribute('aria-expanded','true'); }
+}
+
 document.querySelectorAll('.faq-trigger').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        var body = this.nextElementSibling, icon = this.querySelector('.faq-icon'), open = body.classList.contains('open');
-        document.querySelectorAll('.faq-body').forEach(function (b) { b.classList.remove('open'); });
-        document.querySelectorAll('.faq-icon').forEach(function (i) { i.classList.remove('open'); });
-        document.querySelectorAll('.faq-trigger').forEach(function (b) { b.setAttribute('aria-expanded','false'); });
-        if (!open) { body.classList.add('open'); icon.classList.add('open'); this.setAttribute('aria-expanded','true'); }
+    btn.addEventListener('click', function (event) {
+        event.stopPropagation();
+        toggleFaq(this);
+    });
+});
+
+document.querySelectorAll('[data-faq-item]').forEach(function (item) {
+    item.addEventListener('click', function () {
+        toggleFaq(this.querySelector('.faq-trigger'));
     });
 });
 

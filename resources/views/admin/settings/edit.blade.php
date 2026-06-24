@@ -69,34 +69,41 @@
                 <div>
                     <x-form-label help="Upload het logo van je organisatie. Dit kan op facturen en in de app verschijnen.">Logo</x-form-label>
                     <div class="flex flex-col items-start gap-4">
-                        <div class="relative w-32 h-32 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden group">
-                            <div class="text-center p-4 {{ $company->logo_path ? 'hidden' : '' }}" id="logo-placeholder">
-                                <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                <p class="mt-2 text-xs text-gray-500">Geen logo</p>
+                        <label
+                            for="logo"
+                            id="logo-dropzone"
+                            class="group flex w-full max-w-md cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/80 px-6 py-8 text-center transition hover:border-blue-300 hover:bg-blue-50/60 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100"
+                        >
+                            <input type="file" name="logo" id="logo" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="sr-only">
+
+                            <div class="relative mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div class="text-center p-4 {{ $company->logo_path ? 'hidden' : '' }}" id="logo-placeholder">
+                                    <svg class="mx-auto h-10 w-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <img src="{{ $company->logo_path ? Storage::url($company->logo_path) : '' }}" alt="Logo" class="h-full w-full object-contain p-2 {{ $company->logo_path ? '' : 'hidden' }}" id="logo-preview">
                             </div>
-                            <img src="{{ $company->logo_path ? Storage::url($company->logo_path) : '' }}" alt="Logo" class="w-full h-full object-contain p-2 {{ $company->logo_path ? '' : 'hidden' }}" id="logo-preview">
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <label class="cursor-pointer inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                                </svg>
-                                Upload
-                                <input type="file" name="logo" id="logo" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="sr-only">
-                            </label>
-                            @if($company->logo_path)
-                            <label class="inline-flex items-center px-3 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer">
-                                <input type="checkbox" name="remove_logo" value="1" id="remove_logo" class="sr-only">
+
+                            <span class="text-sm font-semibold text-slate-900">Klik om een logo te kiezen</span>
+                            <span class="mt-1 text-sm text-slate-500">of sleep een afbeelding hierheen</span>
+                            <span class="mt-3 inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+                                PNG, JPG, GIF of WEBP · max. 2MB
+                            </span>
+                        </label>
+                        @if($company->logo_path)
+                        <input type="hidden" name="remove_logo" value="0" id="remove_logo">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" id="remove_logo_button" class="inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
-                                Verwijderen
-                            </label>
-                            @endif
+                                <span data-logo-remove-button-text>Verwijderen</span>
+                            </button>
+                            <p id="logo-remove-status" class="hidden text-xs font-medium text-red-600">Logo wordt verwijderd zodra je opslaat.</p>
                         </div>
-                        <p class="text-xs text-gray-500">PNG, JPG of GIF. Max 2MB. Aanbevolen: 256×256px</p>
+                        @endif
+                        <p class="text-xs text-gray-500">Aanbevolen formaat: 256×256px. Vierkante logo’s tonen het mooist.</p>
                         @error('logo')
                             <p class="text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -377,36 +384,101 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoInput = document.getElementById('logo');
     const logoPreview = document.getElementById('logo-preview');
     const logoPlaceholder = document.getElementById('logo-placeholder');
+    const logoDropzone = document.getElementById('logo-dropzone');
+    const removeLogoInput = document.getElementById('remove_logo');
+    const removeLogoButton = document.getElementById('remove_logo_button');
+    const removeLogoStatus = document.getElementById('logo-remove-status');
+    const removeLogoButtonText = document.querySelector('[data-logo-remove-button-text]');
+
+    function showLogoPreview(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+
+        if (removeLogoInput) {
+            removeLogoInput.value = '0';
+        }
+        if (removeLogoStatus) {
+            removeLogoStatus.classList.add('hidden');
+        }
+        if (removeLogoButtonText) {
+            removeLogoButtonText.textContent = 'Verwijderen';
+        }
+        if (removeLogoButton) {
+            removeLogoButton.classList.remove('border-red-300', 'bg-red-100');
+        }
+        if (logoDropzone) {
+            logoDropzone.classList.remove('border-red-200', 'bg-red-50/50');
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (logoPreview) {
+                logoPreview.src = e.target.result;
+                logoPreview.classList.remove('hidden');
+            }
+            if (logoPlaceholder) {
+                logoPlaceholder.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
 
     if (logoInput) {
         logoInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (logoPreview) {
-                        logoPreview.src = e.target.result;
-                        logoPreview.classList.remove('hidden');
-                    }
-                    if (logoPlaceholder) {
-                        logoPlaceholder.classList.add('hidden');
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
+            showLogoPreview(file);
         });
     }
 
-    // Remove logo checkbox - when checked, hide preview
-    const removeCheckbox = document.querySelector('input[name="remove_logo"]');
-    if (removeCheckbox && logoPreview && logoPlaceholder) {
-        removeCheckbox.addEventListener('change', function() {
-            if (this.checked) {
+    if (logoDropzone && logoInput) {
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            logoDropzone.addEventListener(eventName, function(event) {
+                event.preventDefault();
+                logoDropzone.classList.add('border-blue-500', 'bg-blue-50', 'ring-4', 'ring-blue-100');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            logoDropzone.addEventListener(eventName, function(event) {
+                event.preventDefault();
+                logoDropzone.classList.remove('border-blue-500', 'bg-blue-50', 'ring-4', 'ring-blue-100');
+            });
+        });
+
+        logoDropzone.addEventListener('drop', function(event) {
+            const file = event.dataTransfer.files[0];
+            if (!file) return;
+
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            logoInput.files = dataTransfer.files;
+            logoInput.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
+
+    if (removeLogoButton) {
+        removeLogoButton.addEventListener('click', function() {
+            if (removeLogoInput) {
+                removeLogoInput.value = '1';
+            }
+            if (logoInput) {
+                logoInput.value = '';
+            }
+            if (logoPreview) {
+                logoPreview.src = '';
                 logoPreview.classList.add('hidden');
+            }
+            if (logoPlaceholder) {
                 logoPlaceholder.classList.remove('hidden');
-            } else {
-                logoPreview.classList.remove('hidden');
-                logoPlaceholder.classList.add('hidden');
+            }
+            if (removeLogoStatus) {
+                removeLogoStatus.classList.remove('hidden');
+            }
+            if (removeLogoButtonText) {
+                removeLogoButtonText.textContent = 'Verwijderd na opslaan';
+            }
+            removeLogoButton.classList.add('border-red-300', 'bg-red-100');
+            if (logoDropzone) {
+                logoDropzone.classList.add('border-red-200', 'bg-red-50/50');
             }
         });
     }

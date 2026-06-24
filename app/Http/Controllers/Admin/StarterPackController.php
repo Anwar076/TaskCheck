@@ -7,6 +7,7 @@ use App\Services\Templates\StarterPackCatalog;
 use App\Services\Templates\StarterPackService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class StarterPackController extends Controller
@@ -36,10 +37,17 @@ class StarterPackController extends Controller
             abort(404);
         }
 
+        $availableTemplateNames = collect($pack['templates'] ?? [])->pluck('name')->all();
+        $validated = $request->validate([
+            'templates' => ['required', 'array', 'min:1'],
+            'templates.*' => ['required', 'string', Rule::in($availableTemplateNames)],
+        ]);
+
         $result = $starterPackService->activate(
             auth()->user()->company,
             auth()->user(),
             $slug,
+            $validated['templates'],
         );
 
         if ($result['already_active']) {
