@@ -89,12 +89,40 @@ class AdminOnboardingService
     {
         $routeName ??= '';
 
-        if (str_starts_with($routeName, 'admin.settings')) {
-            return $this->stripHelpSlides($this->organizationTourSlides());
+        if ($routeName === 'admin.dashboard') {
+            return $this->dashboardHelpSlides();
         }
 
-        if (str_starts_with($routeName, 'admin.users')) {
-            return $this->stripHelpSlides($this->usersTourSlides($employeeCount, $routeName));
+        if ($routeName === 'admin.live-monitoring') {
+            return $this->liveMonitoringHelpSlides();
+        }
+
+        if ($routeName === 'admin.weekly-overview') {
+            return $this->weeklyOverviewHelpSlides();
+        }
+
+        if ($routeName === 'admin.lists.index') {
+            return $this->listsIndexHelpSlides();
+        }
+
+        if ($routeName === 'admin.lists.calendar') {
+            return $this->stripHelpSlides($this->companyCalendarTourSlides());
+        }
+
+        if ($routeName === 'admin.lists.create') {
+            return $this->stripHelpSlides($this->listCreateTourSlides($company, 'admin.lists.create'));
+        }
+
+        if ($routeName === 'admin.lists.show') {
+            return $this->stripHelpSlides($this->listShowTourSlides('admin.lists.show'));
+        }
+
+        if ($routeName === 'admin.lists.edit') {
+            return $this->listEditHelpSlides();
+        }
+
+        if ($routeName === 'admin.lists.ai-import') {
+            return $this->aiImportHelpSlides();
         }
 
         if ($routeName === 'admin.starter-packs.index') {
@@ -105,25 +133,334 @@ class AdminOnboardingService
             return $this->stripHelpSlides($this->listCreateTourSlides($company, 'admin.templates.index'));
         }
 
-        if ($routeName === 'admin.lists.create') {
-            return $this->stripHelpSlides($this->listCreateTourSlides($company, 'admin.lists.create'));
+        if (str_starts_with($routeName, 'admin.settings')) {
+            return $this->stripHelpSlides($this->organizationTourSlides());
         }
 
-        if ($routeName === 'admin.lists.calendar') {
-            return $this->stripHelpSlides($this->companyCalendarTourSlides());
+        if ($routeName === 'admin.users.index') {
+            return $this->usersIndexHelpSlides($employeeCount);
         }
 
-        if ($routeName === 'admin.lists.show') {
-            return $this->stripHelpSlides($this->listShowTourSlides('admin.lists.show'));
+        if ($routeName === 'admin.users.create') {
+            return $this->stripHelpSlides($this->usersTourSlides($employeeCount, $routeName));
+        }
+
+        if (str_starts_with($routeName, 'admin.users')) {
+            return $this->userDetailHelpSlides($routeName);
+        }
+
+        if (str_starts_with($routeName, 'admin.submissions')) {
+            return $this->submissionsHelpSlides($routeName);
+        }
+
+        if (str_starts_with($routeName, 'admin.notifications')) {
+            return $this->notificationsHelpSlides($routeName);
+        }
+
+        if (str_starts_with($routeName, 'admin.locations')) {
+            return $this->locationsHelpSlides($routeName);
+        }
+
+        if (str_starts_with($routeName, 'admin.templates')) {
+            return $this->templatesHelpSlides($routeName, $company);
+        }
+
+        if (str_starts_with($routeName, 'admin.tasks')) {
+            return $this->tasksHelpSlides($routeName);
+        }
+
+        if (str_starts_with($routeName, 'admin.lists')) {
+            return $this->listsMiscHelpSlides($routeName);
+        }
+
+        return [$this->helpCenterSlide(
+            'Hulp bij TaskCheck',
+            'Gebruik het menu links om tussen onderdelen te wisselen. Op de meeste pagina\'s vind je actieknoppen rechtsboven — bijvoorbeeld om lijsten toe te wijzen of inzendingen te beoordelen.'
+        )];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function helpCenterSlide(string $title, string $body, ?string $cta = null): array
+    {
+        $slide = [
+            'target' => null,
+            'title' => $title,
+            'body' => $body,
+            'placement' => 'center',
+        ];
+
+        if ($cta) {
+            $slide['cta'] = $cta;
+        }
+
+        return $slide;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function dashboardHelpSlides(): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Dashboard',
+                'Je startpagina met een overzicht van vandaag: open lijsten, recente activiteit en teamvoortgang. Alles wat je nodig hebt om snel te zien hoe het gaat.',
+                'Scroll naar Teamprestaties voor live voortgang per medewerker.'
+            ),
+            $this->helpCenterSlide(
+                'Teamprestaties',
+                'Hier zie je per medewerker hoeveel lijsten klaar zijn en wie nu bezig is. De voortgang is gebaseerd op taken binnen lijsten, niet alleen op afgeronde checklists.',
+                'Klik op Ververs voor de nieuwste cijfers.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function liveMonitoringHelpSlides(): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Live monitoring',
+                'Volg in realtime welke medewerkers bezig zijn met een checklist. Je ziet op welke lijst ze werken en hoever ze zijn.',
+                'Handig om te checken of alles op schema loopt.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function weeklyOverviewHelpSlides(): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Weekoverzicht',
+                'Analyseer prestaties over een gekozen periode. Filter op locatie en datums om trends, teamresultaten en meest gebruikte lijsten te bekijken.',
+                'Gebruik de snelknoppen Deze week of Vorige week om snel te wisselen.'
+            ),
+            $this->helpCenterSlide(
+                'Grafieken en team',
+                'De trendgrafiek toont ingediende en afgeronde lijsten per dag. Onderaan zie je prestaties per medewerker en welke lijsten het meest gebruikt worden.',
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listsIndexHelpSlides(): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Takenlijsten',
+                'Hier staan al je checklists. Maak nieuwe lijsten aan, open een lijst om taken te beheren, of wijs lijsten toe aan medewerkers.',
+                'Klik op een lijst om taken, planning en toewijzingen te beheren.'
+            ),
+            $this->helpCenterSlide(
+                'Nieuwe lijst',
+                'Via Lijst aanmaken start je zelf een lijst. Via Templates kies je een kant-en-klare basis. Via AI-import kun je een bestaand document omzetten naar een lijst.',
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listEditHelpSlides(): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Lijst bewerken',
+                'Pas titel, beschrijving, planning en opties aan. Wijzigingen zijn zichtbaar voor medewerkers zodra je opslaat en de lijst actief is.',
+                'Scroll naar tijdslots om vaste momenten in de agenda te plannen.'
+            ),
+            $this->helpCenterSlide(
+                'Taken en toewijzing',
+                'Taken beheer je op de lijstpagina (niet hier). Toewijzingen aan medewerkers stel je in via Lijst toewijzen op het overzicht van de lijst.',
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function aiImportHelpSlides(): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'AI-import',
+                'Upload een PDF, foto, Excel of Word-document — of beschrijf kort wat je nodig hebt. TaskCheck zet dit om naar een takenlijst met stappen en bewijsvelden.',
+                'Controleer de gegenereerde lijst altijd voordat je opslaat.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function usersIndexHelpSlides(int $employeeCount): array
+    {
+        return [
+            $this->clickTourSlide([
+                'target' => '[data-onboarding-target="add-user"]',
+                'title' => 'Medewerkers beheren',
+                'body' => 'Hier zie je alle accounts in je organisatie. Medewerkers vullen later checklists in via de app of het medewerkerportaal.',
+                'placement' => 'left',
+                'cta' => $employeeCount > 0
+                    ? 'Je hebt ' . $employeeCount . ' medewerker(s). Voeg er gerust meer toe via Gebruiker toevoegen.'
+                    : 'Klik op Gebruiker toevoegen om je eerste medewerker aan te maken.',
+            ]),
+            $this->helpCenterSlide(
+                'Rollen',
+                'Medewerkers zien alleen hun toegewezen lijsten. Admins beheren instellingen, lijsten en inzendingen. Wijs lijsten toe via de lijstpagina, niet via dit scherm.',
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function userDetailHelpSlides(string $routeName): array
+    {
+        $isEdit = str_contains($routeName, 'edit');
+
+        return [
+            $this->helpCenterSlide(
+                $isEdit ? 'Medewerker bewerken' : 'Medewerker bekijken',
+                $isEdit
+                    ? 'Pas naam, e-mail, afdeling of locatie aan. De medewerker behoudt toegang zolang het account actief is.'
+                    : 'Bekijk gegevens en activiteit van deze medewerker. Open een inzending om details of bewijs te controleren.',
+                'Wijs lijsten toe via Takenlijsten → lijst openen → Lijst toewijzen.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function submissionsHelpSlides(string $routeName): array
+    {
+        if ($routeName === 'admin.submissions.show') {
+            return [
+                $this->helpCenterSlide(
+                    'Inzending beoordelen',
+                    'Bekijk per taak het bewijs van de medewerker: foto\'s, video\'s, notities en handtekeningen. Keur taken goed of af, of vraag om opnieuw uit te voeren.',
+                    'Goedgekeurde taken tellen mee als voltooid. Bij afkeur krijgt de medewerker een melding.'
+                ),
+                $this->helpCenterSlide(
+                    'Checklist afronden',
+                    'Als alle taken zijn beoordeeld, rond je de hele inzending af. De status wordt dan Goedgekeurd of Afgewezen afhankelijk van de taken.',
+                ),
+            ];
         }
 
         return [
-            [
-                'target' => null,
-                'title' => 'Hulp bij TaskCheck',
-                'body' => 'Op elke pagina leggen we uit wat je kunt doen. Ga naar Instellingen, Gebruikers, Templates, Lijsten of Agenda en klik opnieuw op Heb je hulp nodig?',
-                'placement' => 'center',
-            ],
+            $this->helpCenterSlide(
+                'Inzendingen',
+                'Overzicht van ingediende checklists. Filter op status om te zien wat wacht op beoordeling, goedgekeurd is of opnieuw moet.',
+                'Klik op een rij om de details en bewijsbestanden te openen.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function notificationsHelpSlides(string $routeName): array
+    {
+        if ($routeName === 'admin.notifications.create') {
+            return [
+                $this->helpCenterSlide(
+                    'Melding versturen',
+                    'Stuur een bericht naar je team — bijvoorbeeld een reminder of belangrijke wijziging. Medewerkers zien dit in hun app en op het dashboard.',
+                    'Houd het kort en duidelijk; voeg een link toe als dat helpt.'
+                ),
+            ];
+        }
+
+        return [
+            $this->helpCenterSlide(
+                'Meldingen',
+                'Alle systeem- en teammeldingen op één plek. Markeer als gelezen om je inbox op orde te houden.',
+                'Via Melding maken stuur je zelf een bericht naar medewerkers.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function locationsHelpSlides(string $routeName): array
+    {
+        $isCreate = str_contains($routeName, 'create');
+        $isEdit = str_contains($routeName, 'edit');
+
+        return [
+            $this->helpCenterSlide(
+                $isCreate ? 'Locatie toevoegen' : ($isEdit ? 'Locatie bewerken' : 'Locaties'),
+                $isCreate || $isEdit
+                    ? 'Geef de locatie een herkenbare naam. Koppel lijsten en medewerkers aan een locatie om te filteren in agenda en rapportages.'
+                    : 'Beheer vestigingen of afdelingen. Locaties helpen lijsten, medewerkers en rapportages te scheiden.',
+                'Medewerkers en lijsten kunnen optioneel aan één locatie gekoppeld worden.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function templatesHelpSlides(string $routeName, Company $company): array
+    {
+        if ($routeName === 'admin.templates.index') {
+            return $this->stripHelpSlides($this->listCreateTourSlides($company, 'admin.templates.index'));
+        }
+
+        if (str_contains($routeName, 'create') || str_contains($routeName, 'edit')) {
+            return [
+                $this->helpCenterSlide(
+                    str_contains($routeName, 'create') ? 'Template aanmaken' : 'Template bewerken',
+                    'Templates zijn herbruikbare blauwdrukken voor takenlijsten. Voeg taken toe met bewijstype (foto, handtekening, tekst). Maak daarna via Lijst maken een echte lijst voor je team.',
+                ),
+            ];
+        }
+
+        return [
+            $this->helpCenterSlide(
+                'Template bekijken',
+                'Bekijk welke taken in dit template zitten. Gebruik Lijst maken om er direct een actieve takenlijst van te maken voor je organisatie.',
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function tasksHelpSlides(string $routeName): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Taak beheren',
+                'Elke taak kan verplicht zijn en bewijs vereisen (foto, video, tekst of handtekening). Medewerkers moeten dit invullen voordat ze de taak als klaar markeren.',
+                'Open de lijstpagina om taken toe te voegen of te herschikken.'
+            ),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listsMiscHelpSlides(string $routeName): array
+    {
+        return [
+            $this->helpCenterSlide(
+                'Takenlijst',
+                'Beheer je checklist: taken, planning in de agenda, en toewijzing aan medewerkers. Alleen toegewezen medewerkers zien de lijst in hun app.',
+                'Tip: open Week- of Dagweergave op de lijstpagina om tijdslots in te plannen.'
+            ),
         ];
     }
 
