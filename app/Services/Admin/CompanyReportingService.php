@@ -70,6 +70,7 @@ class CompanyReportingService
             'title' => $periodLabel,
             'period_description' => $periodDescription,
             'frequency' => $frequency,
+            'has_data' => ($summary['total_lists'] ?? 0) > 0,
             'generated_at' => $now,
             'period_start' => $periodStart,
             'period_end' => $periodEnd,
