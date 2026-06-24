@@ -18,6 +18,10 @@
                 ->values()
                 ->all();
             $workingHours = $company->normalizedWorkingHours();
+            $reportingEnabled = old('reporting_enabled', $company->reporting_enabled) ? true : false;
+            $reportingFrequency = old('reporting_frequency', $company->reporting_frequency ?? \App\Models\Organisation\Company::REPORTING_FREQUENCY_DAILY);
+            $reportingTime = old('reporting_send_time', $company->reporting_send_time ? substr((string) $company->reporting_send_time, 0, 5) : '09:00');
+            $reportingWeeklyDay = (int) old('reporting_weekly_day', $company->reporting_weekly_day ?? 1);
         @endphp
         <div class="mb-6 sm:mb-8">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
@@ -295,6 +299,64 @@
             </div>
         </div>
 
+        <div class="scroll-mt-28 rounded-xl border-b border-gray-200 pb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-3 11H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2z"/>
+                </svg>
+                Rapportage via e-mail
+            </h2>
+            <p class="mb-4 text-sm text-gray-500">Kies of je een samenvatting wilt ontvangen per e-mail, dagelijks of wekelijks op een vast tijdstip.</p>
+
+            <div class="space-y-4">
+                <label class="inline-flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <input type="hidden" name="reporting_enabled" value="0">
+                    <input id="reporting-enabled" type="checkbox" name="reporting_enabled" value="1" @checked($reportingEnabled) class="rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                    <span class="text-sm font-medium text-slate-800">Rapportage e-mails ontvangen</span>
+                </label>
+
+                <div id="reporting-settings-fields" class="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <x-form-label for="reporting_frequency">Frequentie</x-form-label>
+                        <select id="reporting_frequency" name="reporting_frequency" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="{{ \App\Models\Organisation\Company::REPORTING_FREQUENCY_DAILY }}" @selected($reportingFrequency === \App\Models\Organisation\Company::REPORTING_FREQUENCY_DAILY)>Dagelijks</option>
+                            <option value="{{ \App\Models\Organisation\Company::REPORTING_FREQUENCY_WEEKLY }}" @selected($reportingFrequency === \App\Models\Organisation\Company::REPORTING_FREQUENCY_WEEKLY)>Wekelijks</option>
+                        </select>
+                        @error('reporting_frequency')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <x-form-label for="reporting_send_time">Tijdstip</x-form-label>
+                        <input type="time" id="reporting_send_time" name="reporting_send_time" value="{{ $reportingTime }}" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <p class="mt-1 text-xs text-gray-500">Tijdzone: Nederland (Europe/Amsterdam)</p>
+                        @error('reporting_send_time')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div id="reporting-weekly-day-wrap" class="md:pt-0">
+                        <x-form-label for="reporting_weekly_day">Dag (wekelijks)</x-form-label>
+                        <select id="reporting_weekly_day" name="reporting_weekly_day" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="1" @selected($reportingWeeklyDay === 1)>Maandag</option>
+                            <option value="2" @selected($reportingWeeklyDay === 2)>Dinsdag</option>
+                            <option value="3" @selected($reportingWeeklyDay === 3)>Woensdag</option>
+                            <option value="4" @selected($reportingWeeklyDay === 4)>Donderdag</option>
+                            <option value="5" @selected($reportingWeeklyDay === 5)>Vrijdag</option>
+                            <option value="6" @selected($reportingWeeklyDay === 6)>Zaterdag</option>
+                            <option value="7" @selected($reportingWeeklyDay === 7)>Zondag</option>
+                        </select>
+                        @error('reporting_weekly_day')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Opslaan -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
             <p class="text-sm text-gray-500">Wijzigingen worden direct opgeslagen voor alle gebruikers van uw organisatie.</p>
@@ -432,6 +494,29 @@ document.addEventListener('DOMContentLoaded', function() {
             renderDepartmentTags(next);
         });
     }
+
+    const reportingEnabled = document.getElementById('reporting-enabled');
+    const reportingFields = document.getElementById('reporting-settings-fields');
+    const reportingFrequency = document.getElementById('reporting_frequency');
+    const reportingWeeklyDayWrap = document.getElementById('reporting-weekly-day-wrap');
+
+    function syncReportingUi() {
+        const enabled = Boolean(reportingEnabled?.checked);
+        const weekly = reportingFrequency?.value === 'weekly';
+
+        if (reportingFields) {
+            reportingFields.classList.toggle('opacity-50', !enabled);
+            reportingFields.classList.toggle('pointer-events-none', !enabled);
+        }
+
+        if (reportingWeeklyDayWrap) {
+            reportingWeeklyDayWrap.classList.toggle('hidden', !weekly);
+        }
+    }
+
+    reportingEnabled?.addEventListener('change', syncReportingUi);
+    reportingFrequency?.addEventListener('change', syncReportingUi);
+    syncReportingUi();
 });
 </script>
 @endsection

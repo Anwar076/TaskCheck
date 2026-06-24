@@ -59,6 +59,10 @@ class CompanySettingsController extends Controller
             'working_hours.*.enabled' => ['nullable', 'boolean'],
             'working_hours.*.start' => ['required', 'date_format:H:i'],
             'working_hours.*.end' => ['required', 'date_format:H:i'],
+            'reporting_enabled' => ['nullable', 'boolean'],
+            'reporting_frequency' => ['nullable', 'in:daily,weekly'],
+            'reporting_send_time' => ['nullable', 'date_format:H:i'],
+            'reporting_weekly_day' => ['nullable', 'integer', 'between:1,7'],
             'logo' => [
                 'nullable',
                 'image',
@@ -115,6 +119,17 @@ class CompanySettingsController extends Controller
             })
             ->all();
 
+        $validated['reporting_enabled'] = $request->boolean('reporting_enabled');
+        if ($validated['reporting_enabled']) {
+            $validated['reporting_frequency'] = $validated['reporting_frequency'] ?? Company::REPORTING_FREQUENCY_DAILY;
+            $validated['reporting_send_time'] = $validated['reporting_send_time'] ?? '09:00';
+            $validated['reporting_weekly_day'] = (int) ($validated['reporting_weekly_day'] ?? 1);
+        } else {
+            $validated['reporting_frequency'] = null;
+            $validated['reporting_send_time'] = null;
+            $validated['reporting_weekly_day'] = 1;
+        }
+
         // Handle logo upload
         if ($request->hasFile('logo')) {
             // Delete old logo if exists
@@ -126,7 +141,7 @@ class CompanySettingsController extends Controller
             $validated['logo_path'] = $path;
         }
 
-        unset($validated['logo'], $validated['remove_logo'], $validated['departments_text'], $validated['departments']);
+        unset($validated['logo'], $validated['remove_logo'], $validated['departments_text']);
         $company->update($validated);
         $company->refresh();
 

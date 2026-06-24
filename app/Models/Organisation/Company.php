@@ -25,6 +25,11 @@ class Company extends Model
         'departments',
         'working_hours',
         'calendar_time_mode',
+        'reporting_enabled',
+        'reporting_frequency',
+        'reporting_send_time',
+        'reporting_weekly_day',
+        'reporting_last_sent_at',
         'subscription_plan',
         'pending_subscription_plan',
         'subscription_status',
@@ -55,6 +60,8 @@ class Company extends Model
 
     public const CALENDAR_TIME_MODE_WORKING_HOURS = 'working_hours';
     public const CALENDAR_TIME_MODE_24_HOURS = '24_hours';
+    public const REPORTING_FREQUENCY_DAILY = 'daily';
+    public const REPORTING_FREQUENCY_WEEKLY = 'weekly';
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
@@ -64,6 +71,8 @@ class Company extends Model
         'is_active' => 'boolean',
         'departments' => 'array',
         'working_hours' => 'array',
+        'reporting_enabled' => 'boolean',
+        'reporting_last_sent_at' => 'datetime',
     ];
 
     public const WEEKDAYS = [

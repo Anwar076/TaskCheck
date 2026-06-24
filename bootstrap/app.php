@@ -33,5 +33,6 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('platform:check-alerts')->everyFiveMinutes();
+        $schedule->command('reports:send-company')->everyMinute();
     })
     ->create();
