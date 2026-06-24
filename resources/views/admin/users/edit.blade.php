@@ -139,7 +139,10 @@
                                 @endforeach
                             </select>
                             @if(empty($departments ?? []))
-                                <p class="mt-1.5 text-xs text-slate-500">Nog geen afdelingen ingesteld. Voeg ze toe bij instellingen.</p>
+                                <p class="mt-1.5 text-xs text-slate-500">
+                                    Nog geen afdelingen ingesteld.
+                                    <a href="{{ route('admin.settings.edit') }}" class="font-medium text-blue-600 hover:underline">Voeg ze toe bij instellingen</a>.
+                                </p>
                             @endif
                             @error('department')
                                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>

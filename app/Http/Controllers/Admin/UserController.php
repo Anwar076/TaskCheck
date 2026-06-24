@@ -40,15 +40,11 @@ class UserController extends Controller
     public function create()
     {
         $companyId = auth()->user()->company_id;
-        $departments = collect(auth()->user()->company?->departments ?? [])
-            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
-            ->values()
-            ->all();
 
         return view('admin.users.create', [
             'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
             'locations' => Location::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get(),
-            'departments' => $departments,
+            'departments' => $this->departmentOptions(),
         ]);
     }
 
@@ -89,6 +85,7 @@ class UserController extends Controller
         $validated['password'] = Str::password(32);
         $validated['is_active'] = $request->has('is_active');
         $validated['company_id'] = auth()->user()->company_id;
+        $validated['department'] = filled($validated['department'] ?? null) ? $validated['department'] : null;
 
         $user = User::create($validated);
 
@@ -140,16 +137,12 @@ class UserController extends Controller
         }
         
         $companyId = auth()->user()->company_id;
-        $departments = collect(auth()->user()->company?->departments ?? [])
-            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
-            ->values()
-            ->all();
 
         return view('admin.users.edit', [
             'user' => $user,
             'roleLimits' => $this->getRoleLimitsAndUsage(auth()->user()->company),
             'locations' => Location::where('company_id', $companyId)->orderByDesc('is_active')->orderBy('name')->get(),
-            'departments' => $departments,
+            'departments' => $this->departmentOptions($user),
         ]);
     }
 
@@ -202,6 +195,7 @@ class UserController extends Controller
         }
 
         $validated['is_active'] = $request->has('is_active');
+        $validated['department'] = filled($validated['department'] ?? null) ? $validated['department'] : null;
 
         $user->update($validated);
 
@@ -275,6 +269,20 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index', ['updated' => time()])
             ->with('success', 'Gebruiker succesvol verwijderd.');
+    }
+
+    private function departmentOptions(?User $user = null): array
+    {
+        $departments = collect(auth()->user()->company?->departments ?? [])
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->values();
+
+        $current = old('department', $user?->department);
+        if (filled($current) && !$departments->contains($current)) {
+            $departments->push($current);
+        }
+
+        return $departments->unique()->values()->all();
     }
 
     private function ensureRoleLimitNotExceeded(?Company $company, string $targetRole): void
