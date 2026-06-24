@@ -282,15 +282,15 @@ class AdminOnboardingService
                 'target' => null,
                 'title' => $onboarding ? 'Compliance starterpacks' : 'Starterpacks',
                 'body' => $onboarding
-                    ? 'Horeca en food branches hebben kant-en-klare compliance-controlelijsten. Activeer één starterpack en alle templates komen direct in je bibliotheek — HACCP, temperatuur, hygiëne en meer.'
-                    : 'Activeer een branche-pakket om kant-en-klare compliance-templates te importeren.',
+                    ? 'Horeca en food branches hebben kant-en-klare compliance-controlelijsten. Kies een starterpack en bepaal daarna zelf welke templates je wilt toevoegen — HACCP, temperatuur, hygiëne en meer.'
+                    : 'Activeer een branche-pakket om kant-en-klare compliance-templates te importeren. Je kiest bij het activeren zelf welke controlelijsten meegaan.',
                 'placement' => 'center',
                 'cta' => $onboarding ? 'Lees even door, daarna kies je een pack of ga verder.' : null,
             ],
             $this->formTourSlide([
                 'target' => '[data-onboarding-target="starter-packs-section"]',
                 'title' => 'Kies je branche',
-                'body' => 'Elk starterpack bevat tientallen kant-en-klare controlelijsten voor jouw sector. Klik op Starterpack activeren bij het pakket dat bij je bedrijf past. Je kunt later altijd deactiveren.',
+                'body' => 'Elk starterpack bevat kant-en-klare controlelijsten voor jouw sector. Gebruik de uitklapper om alle inbegrepen lijsten te bekijken en klik op Starterpack activeren bij het pakket dat bij je bedrijf past.',
                 'placement' => 'bottom',
                 'allowScroll' => true,
                 'highlightPad' => 12,
@@ -299,8 +299,15 @@ class AdminOnboardingService
             ]),
             [
                 'target' => null,
+                'title' => 'Controlelijsten kiezen',
+                'body' => 'Na het klikken op Starterpack activeren opent een popup. Daar staan alle controlelijsten standaard aangevinkt. Vink uit wat je niet nodig hebt, of gebruik Alles aanvinken en Alles uitvinken om snel te starten.',
+                'placement' => 'center',
+                'cta' => 'Activeer alleen de controlelijsten die je echt wilt gebruiken.',
+            ],
+            [
+                'target' => null,
                 'title' => 'Klaar met starterpacks?',
-                'body' => 'Heb je een pack geactiveerd? Super — je templates staan klaar. Geen pack nodig? Geen probleem. In de volgende stap kies je hoe je je eerste takenlijst maakt.',
+                'body' => 'Heb je een pack geactiveerd? Dan staan alleen de gekozen templates klaar. Geen pack nodig? Geen probleem. In de volgende stap kies je hoe je je eerste takenlijst maakt.',
                 'action' => 'continue_starter_pack',
                 'placement' => 'center',
                 'cta' => 'Klik op Doorgaan om verder te gaan.',

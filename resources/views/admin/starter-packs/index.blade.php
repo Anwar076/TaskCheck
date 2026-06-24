@@ -95,16 +95,40 @@
                         <p class="text-sm text-slate-600 leading-relaxed mb-4">{{ $pack['description'] }}</p>
 
                         <div class="mb-5">
+                            @php
+                                $templateNames = collect($pack['templates'] ?? [])->pluck('name');
+                                $visibleTemplates = $templateNames->take(5);
+                                $hiddenTemplates = $templateNames->skip(5);
+                                $hiddenTemplateCount = $hiddenTemplates->count();
+                            @endphp
                             <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Inbegrepen templates</p>
                             <ul class="space-y-1.5">
-                                @foreach($pack['templates_preview'] as $templateName)
+                                @foreach($visibleTemplates as $templateName)
                                     <li class="flex items-start gap-2 text-sm text-slate-700">
                                         <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                                         <span>{{ $templateName }}</span>
                                     </li>
                                 @endforeach
-                                @if($pack['template_count'] > count($pack['templates_preview']))
-                                    <li class="text-xs text-slate-500 pl-6">+ {{ $pack['template_count'] - count($pack['templates_preview']) }} extra controlelijsten</li>
+                                @if($hiddenTemplateCount > 0)
+                                    <li>
+                                        <details class="group">
+                                            <summary class="ml-6 inline-flex cursor-pointer select-none items-center gap-1.5 rounded-lg py-1 text-sm font-medium text-slate-600 transition-colors hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                                                <span class="group-open:hidden">Toon {{ $hiddenTemplateCount }} extra controlelijsten</span>
+                                                <span class="hidden group-open:inline">Verberg extra controlelijsten</span>
+                                                <svg class="h-4 w-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </summary>
+                                            <ul class="mt-1.5 space-y-1.5">
+                                                @foreach($hiddenTemplates as $templateName)
+                                                    <li class="flex items-start gap-2 text-sm text-slate-700">
+                                                        <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                                        <span>{{ $templateName }}</span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </details>
+                                    </li>
                                 @endif
                             </ul>
                         </div>
@@ -124,17 +148,68 @@
                                     </form>
                                 </div>
                             @else
-                                <form method="POST" action="{{ route('admin.starter-packs.activate', $pack['slug']) }}" onsubmit="return confirm('Starterpack &quot;{{ $pack['name'] }}&quot; activeren? Alle {{ $pack['template_count'] }} controlelijsten worden toegevoegd aan je templates.');">
-                                    @csrf
-                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-                                        Starterpack activeren
-                                    </button>
-                                </form>
+                                <button type="button" data-open-starter-pack-modal="{{ $pack['slug'] }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                                    Starterpack activeren
+                                </button>
                             @endif
                         </div>
                     </div>
                 </article>
+
+                @unless($pack['is_active'])
+                    <div id="starter-pack-modal-{{ $pack['slug'] }}" class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="starter-pack-modal-title-{{ $pack['slug'] }}">
+                        <button type="button" class="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" data-close-starter-pack-modal="{{ $pack['slug'] }}" aria-label="Sluiten"></button>
+
+                        <div class="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+                            <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">Starterpack activeren</p>
+                                    <h2 id="starter-pack-modal-title-{{ $pack['slug'] }}" class="mt-1 text-xl font-bold text-slate-900">{{ $pack['name'] }}</h2>
+                                    <p class="mt-1 text-sm text-slate-500">Kies welke controlelijsten je wilt toevoegen. Alles staat standaard aangevinkt.</p>
+                                </div>
+                                <button type="button" class="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" data-close-starter-pack-modal="{{ $pack['slug'] }}" aria-label="Sluiten">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <form method="POST" action="{{ route('admin.starter-packs.activate', $pack['slug']) }}" data-starter-pack-form="{{ $pack['slug'] }}" class="flex min-h-0 flex-1 flex-col">
+                                @csrf
+                                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3 sm:px-6">
+                                    <p class="text-sm font-medium text-slate-700"><span data-selected-template-count="{{ $pack['slug'] }}">{{ $pack['template_count'] }}</span> van {{ $pack['template_count'] }} geselecteerd</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button" data-select-all-templates="{{ $pack['slug'] }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Alles aanvinken</button>
+                                        <button type="button" data-clear-all-templates="{{ $pack['slug'] }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Alles uitvinken</button>
+                                    </div>
+                                </div>
+
+                                <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+                                    <div class="space-y-2">
+                                        @foreach($pack['templates'] ?? [] as $template)
+                                            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-200 hover:bg-blue-50/40">
+                                                <input type="checkbox" name="templates[]" value="{{ $template['name'] }}" checked data-starter-pack-template="{{ $pack['slug'] }}" class="mt-1 rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                                <span class="min-w-0">
+                                                    <span class="block text-sm font-semibold text-slate-900">{{ $template['name'] }}</span>
+                                                    @if(!empty($template['description']))
+                                                        <span class="mt-0.5 block text-xs leading-relaxed text-slate-500">{{ $template['description'] }}</span>
+                                                    @endif
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    <p class="mt-3 hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700" data-template-selection-error="{{ $pack['slug'] }}">Selecteer minimaal één controlelijst.</p>
+                                </div>
+
+                                <div class="flex flex-col-reverse gap-2 border-t border-slate-100 bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                                    <button type="button" data-close-starter-pack-modal="{{ $pack['slug'] }}" class="inline-flex justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Annuleren</button>
+                                    <button type="submit" class="inline-flex justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">Geselecteerde controlelijsten activeren</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endunless
             @endforeach
         </div>
 
@@ -167,4 +242,122 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const activeModalIds = new Set();
+
+    function getModal(slug) {
+        return document.getElementById(`starter-pack-modal-${slug}`);
+    }
+
+    function getTemplateCheckboxes(slug) {
+        return Array.from(document.querySelectorAll(`[data-starter-pack-template="${slug}"]`));
+    }
+
+    function updateSelectedCount(slug) {
+        const checkboxes = getTemplateCheckboxes(slug);
+        const selectedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+        const countElement = document.querySelector(`[data-selected-template-count="${slug}"]`);
+        const errorElement = document.querySelector(`[data-template-selection-error="${slug}"]`);
+
+        if (countElement) {
+            countElement.textContent = selectedCount;
+        }
+        if (errorElement && selectedCount > 0) {
+            errorElement.classList.add('hidden');
+        }
+
+        return selectedCount;
+    }
+
+    function openModal(slug) {
+        const modal = getModal(slug);
+        if (!modal) return;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        activeModalIds.add(slug);
+        document.body.classList.add('overflow-hidden');
+        updateSelectedCount(slug);
+
+        const firstCheckbox = modal.querySelector(`[data-starter-pack-template="${slug}"]`);
+        if (firstCheckbox) {
+            firstCheckbox.focus({ preventScroll: true });
+        }
+    }
+
+    function closeModal(slug) {
+        const modal = getModal(slug);
+        if (!modal) return;
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        activeModalIds.delete(slug);
+
+        if (activeModalIds.size === 0) {
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    document.querySelectorAll('[data-open-starter-pack-modal]').forEach((button) => {
+        button.addEventListener('click', function () {
+            openModal(this.dataset.openStarterPackModal);
+        });
+    });
+
+    document.querySelectorAll('[data-close-starter-pack-modal]').forEach((button) => {
+        button.addEventListener('click', function () {
+            closeModal(this.dataset.closeStarterPackModal);
+        });
+    });
+
+    document.querySelectorAll('[data-select-all-templates]').forEach((button) => {
+        button.addEventListener('click', function () {
+            const slug = this.dataset.selectAllTemplates;
+            getTemplateCheckboxes(slug).forEach((checkbox) => {
+                checkbox.checked = true;
+            });
+            updateSelectedCount(slug);
+        });
+    });
+
+    document.querySelectorAll('[data-clear-all-templates]').forEach((button) => {
+        button.addEventListener('click', function () {
+            const slug = this.dataset.clearAllTemplates;
+            getTemplateCheckboxes(slug).forEach((checkbox) => {
+                checkbox.checked = false;
+            });
+            updateSelectedCount(slug);
+        });
+    });
+
+    document.querySelectorAll('[data-starter-pack-template]').forEach((checkbox) => {
+        checkbox.addEventListener('change', function () {
+            updateSelectedCount(this.dataset.starterPackTemplate);
+        });
+    });
+
+    document.querySelectorAll('[data-starter-pack-form]').forEach((form) => {
+        form.addEventListener('submit', function (event) {
+            const slug = this.dataset.starterPackForm;
+            const selectedCount = updateSelectedCount(slug);
+            const errorElement = document.querySelector(`[data-template-selection-error="${slug}"]`);
+
+            if (selectedCount === 0) {
+                event.preventDefault();
+                if (errorElement) {
+                    errorElement.classList.remove('hidden');
+                }
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+
+        Array.from(activeModalIds).forEach((slug) => closeModal(slug));
+    });
+});
+</script>
 @endsection
