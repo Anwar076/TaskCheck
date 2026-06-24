@@ -7,18 +7,19 @@
         ? 'hidden absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl z-50'
         : 'hidden absolute right-0 bottom-12 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-2xl';
     $languages = [
-        ['code' => 'nl', 'label' => 'Nederlands', 'short' => 'NL', 'flag' => '🇳🇱'],
-        ['code' => 'en', 'label' => 'English', 'short' => 'EN', 'flag' => '🇬🇧'],
-        ['code' => 'fr', 'label' => 'Francais', 'short' => 'FR', 'flag' => '🇫🇷'],
-        ['code' => 'de', 'label' => 'Deutsch', 'short' => 'DE', 'flag' => '🇩🇪'],
-        ['code' => 'es', 'label' => 'Espanol', 'short' => 'ES', 'flag' => '🇪🇸'],
-        ['code' => 'tr', 'label' => 'Turkce', 'short' => 'TR', 'flag' => '🇹🇷'],
-        ['code' => 'pl', 'label' => 'Polski', 'short' => 'PL', 'flag' => '🇵🇱'],
-        ['code' => 'ar', 'label' => 'Arabic', 'short' => 'AR', 'flag' => '🇸🇦'],
-        ['code' => 'it', 'label' => 'Italiano', 'short' => 'IT', 'flag' => '🇮🇹'],
-        ['code' => 'pt', 'label' => 'Portugues', 'short' => 'PT', 'flag' => '🇵🇹'],
-        ['code' => 'ro', 'label' => 'Romana', 'short' => 'RO', 'flag' => '🇷🇴'],
+        ['code' => 'nl', 'label' => 'Nederlands', 'short' => 'NL', 'flag' => 'nl'],
+        ['code' => 'en', 'label' => 'English', 'short' => 'EN', 'flag' => 'gb'],
+        ['code' => 'fr', 'label' => 'Francais', 'short' => 'FR', 'flag' => 'fr'],
+        ['code' => 'de', 'label' => 'Deutsch', 'short' => 'DE', 'flag' => 'de'],
+        ['code' => 'es', 'label' => 'Espanol', 'short' => 'ES', 'flag' => 'es'],
+        ['code' => 'tr', 'label' => 'Turkce', 'short' => 'TR', 'flag' => 'tr'],
+        ['code' => 'pl', 'label' => 'Polski', 'short' => 'PL', 'flag' => 'pl'],
+        ['code' => 'ar', 'label' => 'Arabic', 'short' => 'AR', 'flag' => 'sa'],
+        ['code' => 'it', 'label' => 'Italiano', 'short' => 'IT', 'flag' => 'it'],
+        ['code' => 'pt', 'label' => 'Portugues', 'short' => 'PT', 'flag' => 'pt'],
+        ['code' => 'ro', 'label' => 'Romana', 'short' => 'RO', 'flag' => 'ro'],
     ];
+    $flagCdnBase = 'https://flagcdn.com/24x18';
 @endphp
 
 <div class="{{ $translateVariant === 'floating' ? 'fixed right-3 bottom-3 z-[9999]' : 'relative' }} notranslate" translate="no" data-translate-root>
@@ -31,7 +32,15 @@
         data-translate-toggle
     >
         @if($translateVariant === 'topbar')
-            <span class="text-lg leading-none notranslate" translate="no" data-translate-current-flag>🇳🇱</span>
+            <img
+                src="{{ $flagCdnBase }}/nl.png"
+                alt=""
+                width="24"
+                height="18"
+                class="h-4 w-6 rounded-sm object-cover shadow-sm notranslate"
+                translate="no"
+                data-translate-current-flag
+            >
             <span class="text-sm font-semibold leading-none notranslate" translate="no" data-translate-current-code>NL</span>
             <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
@@ -49,7 +58,7 @@
         @endif
     </button>
 
-    <div class="{{ $translatePanelClass }}" data-translate-panel>
+    <div class="{{ $translatePanelClass }} translate-language-panel" data-translate-panel>
         <div class="max-h-72 overflow-y-auto py-1">
             @foreach($languages as $language)
                 <button
@@ -59,8 +68,15 @@
                     data-translate-short="{{ $language['short'] }}"
                     data-translate-flag="{{ $language['flag'] }}"
                 >
-                    <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center text-xl leading-none">
-                        {{ $language['flag'] }}
+                    <span class="inline-flex h-[18px] w-6 shrink-0 overflow-hidden rounded-sm shadow-sm ring-1 ring-slate-200/80">
+                        <img
+                            src="{{ $flagCdnBase }}/{{ $language['flag'] }}.png"
+                            alt=""
+                            width="24"
+                            height="18"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        >
                     </span>
                     <span class="min-w-0 flex-1 truncate">{{ $language['label'] }}</span>
                     <svg class="hidden h-4 w-4 text-blue-600" data-translate-check="{{ $language['code'] }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -83,8 +99,17 @@ iframe.skiptranslate,
 #goog-gt-tt { display: none !important; visibility: hidden !important; }
 html,
 body { top: 0 !important; margin-top: 0 !important; }
-.skiptranslate { font-size: 0 !important; }
 .goog-te-gadget { height: 0 !important; overflow: hidden !important; }
+#google_translate_element .skiptranslate,
+iframe.skiptranslate {
+    font-size: 0 !important;
+}
+.translate-language-panel {
+    font-size: 0.875rem;
+}
+.translate-language-panel img {
+    display: block;
+}
 .translate-widget-host {
     position: absolute;
     width: 1px;
@@ -99,6 +124,11 @@ body { top: 0 !important; margin-top: 0 !important; }
 (function () {
     const storageKey = 'taskcheck:translate-language';
     const includedLanguages = 'nl,en,de,fr,es,it,pt,ar,tr,pl,ro';
+    const flagCdnBase = @json($flagCdnBase);
+
+    function flagUrl(code) {
+        return `${flagCdnBase}/${code || 'nl'}.png`;
+    }
 
     function setCookie(name, value) {
         const expires = new Date();
@@ -123,12 +153,18 @@ body { top: 0 !important; margin-top: 0 !important; }
         });
         document.querySelectorAll('[data-translate-root]').forEach((root) => {
             const selected = root.querySelector(`[data-translate-lang="${current}"]`) || root.querySelector('[data-translate-lang="nl"]');
-            const flag = selected?.dataset.translateFlag || '🇳🇱';
+            const flagCode = selected?.dataset.translateFlag || 'nl';
             const short = selected?.dataset.translateShort || 'NL';
             const flagEl = root.querySelector('[data-translate-current-flag]');
             const codeEl = root.querySelector('[data-translate-current-code]');
 
-            if (flagEl) flagEl.textContent = flag;
+            if (flagEl) {
+                if (flagEl.tagName === 'IMG') {
+                    flagEl.src = flagUrl(flagCode);
+                } else {
+                    flagEl.textContent = flagCode.toUpperCase();
+                }
+            }
             if (codeEl) codeEl.textContent = short;
 
             root.querySelectorAll('[data-translate-lang]').forEach((button) => {
