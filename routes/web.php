@@ -431,3 +431,7 @@ Route::get('/blog/haccp-lijsten', function () {
     return view('blog.haccp-lijsten');
 })->name('blog.haccp-lijsten');
 
+Route::get('/blog/haccp-richtlijnen-checklist', function () {
+    return view('blog.haccp-richtlijnen-checklist');
+})->name('blog.haccp-richtlijnen-checklist');
+
