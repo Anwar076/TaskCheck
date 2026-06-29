@@ -11,12 +11,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-LARAVEL_ROOT = PROJECT_ROOT.parent
-SEO_VIEWS_DIR = LARAVEL_ROOT / "resources" / "views" / "seo"
-BLOG_VIEWS_DIR = LARAVEL_ROOT / "resources" / "views" / "blog"
-WEB_ROUTES_FILE = LARAVEL_ROOT / "routes" / "web.php"
-SITEMAP_FILE = LARAVEL_ROOT / "public" / "sitemap.xml"
-LLMS_TXT_FILE = LARAVEL_ROOT / "llms.txt"
+_DEFAULT_LARAVEL_ROOT = PROJECT_ROOT.parent
+
+
+def _laravel_root() -> Path:
+    custom = os.getenv("GIT_REPO_ROOT", "").strip()
+    if custom:
+        return Path(custom).expanduser().resolve()
+    return _DEFAULT_LARAVEL_ROOT.resolve()
 
 
 @dataclass
@@ -39,6 +41,7 @@ class Config:
     git_base_branch: str = field(default_factory=lambda: os.getenv("GIT_BASE_BRANCH", "main"))
     git_remote: str = field(default_factory=lambda: os.getenv("GIT_REMOTE", "origin"))
     git_auto_commit: bool = field(default_factory=lambda: os.getenv("GIT_AUTO_COMMIT", "true").lower() == "true")
+    git_repo_root: str = field(default_factory=lambda: os.getenv("GIT_REPO_ROOT", "").strip())
     proactive_alerts: bool = field(
         default_factory=lambda: os.getenv("PROACTIVE_ALERTS", "true").lower() == "true"
     )
@@ -51,8 +54,6 @@ class Config:
     daily_auto_action: bool = field(
         default_factory=lambda: os.getenv("DAILY_AUTO_ACTION", "true").lower() == "true"
     )
-    sitemap_path: Path = field(default_factory=lambda: SITEMAP_FILE)
-    llms_txt_path: Path = field(default_factory=lambda: LLMS_TXT_FILE)
     sitemap_public_url: str = field(
         default_factory=lambda: os.getenv("SITEMAP_PUBLIC_URL", "https://taskcheck.nl/sitemap.xml")
     )
@@ -71,17 +72,11 @@ class Config:
     gsc_default_days: int = field(default_factory=lambda: int(os.getenv("GSC_DEFAULT_DAYS", "28")))
     gsc_trend_days: int = field(default_factory=lambda: int(os.getenv("GSC_TREND_DAYS", "14")))
 
-    project_root: Path = PROJECT_ROOT
+    project_root: Path = field(default_factory=lambda: PROJECT_ROOT)
     data_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data")
     generated_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "generated")
     pending_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "pending")
     template_path: Path = field(default_factory=lambda: PROJECT_ROOT / "seo_template.blade.php")
-    reference_page: Path = field(
-        default_factory=lambda: SEO_VIEWS_DIR / "haccp-app.blade.php"
-    )
-    reference_blog: Path = field(
-        default_factory=lambda: BLOG_VIEWS_DIR / "nvwa-spoedsluitingen-plaagdieren-2026.blade.php"
-    )
     allowed_keywords_path: Path = field(
         default_factory=lambda: PROJECT_ROOT / "allowed_keywords.txt"
     )
@@ -91,11 +86,27 @@ class Config:
     company_context_path: Path = field(
         default_factory=lambda: PROJECT_ROOT / "company_context.py"
     )
-
-    seo_views_dir: Path = SEO_VIEWS_DIR
-    blog_views_dir: Path = BLOG_VIEWS_DIR
-    web_routes_file: Path = WEB_ROUTES_FILE
     site_domain: str = "taskcheck.nl"
+
+    laravel_root: Path = field(init=False)
+    seo_views_dir: Path = field(init=False)
+    blog_views_dir: Path = field(init=False)
+    web_routes_file: Path = field(init=False)
+    sitemap_path: Path = field(init=False)
+    llms_txt_path: Path = field(init=False)
+    reference_page: Path = field(init=False)
+    reference_blog: Path = field(init=False)
+
+    def __post_init__(self) -> None:
+        root = _laravel_root()
+        self.laravel_root = root
+        self.seo_views_dir = root / "resources" / "views" / "seo"
+        self.blog_views_dir = root / "resources" / "views" / "blog"
+        self.web_routes_file = root / "routes" / "web.php"
+        self.sitemap_path = root / "public" / "sitemap.xml"
+        self.llms_txt_path = root / "llms.txt"
+        self.reference_page = self.seo_views_dir / "haccp-app.blade.php"
+        self.reference_blog = self.blog_views_dir / "nvwa-spoedsluitingen-plaagdieren-2026.blade.php"
 
 
 def get_config() -> Config:

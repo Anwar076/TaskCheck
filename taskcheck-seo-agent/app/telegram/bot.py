@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from telegram.error import Conflict, NetworkError
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -54,6 +55,20 @@ class SEOBot:
         self.app.add_handler(
             MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message)
         )
+
+        async def on_error(update, context) -> None:
+            err = context.error
+            if isinstance(err, Conflict):
+                logger.error(
+                    "Telegram Conflict: deze bot draait al ergens anders (lokaal of andere server). "
+                    "Stop de andere instantie — er mag maar één polling-sessie tegelijk zijn."
+                )
+            elif isinstance(err, NetworkError):
+                logger.warning("Telegram netwerkfout (retry): %s", err)
+            else:
+                logger.exception("Telegram onverwachte fout: %s", err)
+
+        self.app.add_error_handler(on_error)
 
         return self.app
 

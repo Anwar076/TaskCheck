@@ -334,12 +334,13 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
                 self.bot.notifier.notify_action_approved(action)
                 if result.get("mode") == "git_only":
                     return (
-                        "✅ Klaargezet via Git (niet live gezet).\n\n"
+                        "✅ Klaargezet via Git (nog niet live op productie).\n\n"
+                        f"Repo: {result.get('repo_root', '—')}\n"
                         f"Branch: {result.get('branch')}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
                         f"Bestanden: {result.get('paths')}\n"
                         f"{self._discovery_summary(result)}\n\n"
-                        "Volgende stap: /push — daarna GSC sitemap + URL-inspectie."
+                        "Volgende stap: /push → GitHub → Plesk deployt automatisch."
                     )
                 gsc_note = await self._maybe_run_direct_gsc(result)
                 return (
@@ -572,7 +573,12 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         return opps[0]["keyword"] if opps else "—"
 
     async def _push_to_main(self) -> str:
-        repo_root = self.config.project_root.parent
+        repo_root = self.publisher._repo_root()
+        if not repo_root:
+            return (
+                "⚠️ Geen git repository op deze machine (.git ontbreekt).\n\n"
+                "Gebruik /push op je Windows-pc (waar git staat), of commit handmatig."
+            )
         base = self.config.git_base_branch
         remote = self.config.git_remote
         try:
