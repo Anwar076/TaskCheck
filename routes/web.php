@@ -218,6 +218,10 @@ Route::get('/temperatuurregistratie-systeem-vriezer', function () {
     return view('seo.temperatuurregistratie-systeem-vriezer');
 })->name('seo.temperatuurregistratie-systeem-vriezer');
 
+Route::get('/welke-software-voor-schoonmaakbedrijven-werkt-goed-op-mobiel', function () {
+    return view('seo.welke-software-voor-schoonmaakbedrijven-werkt-goed-op-mobiel');
+})->name('seo.welke-software-voor-schoonmaakbedrijven-werkt-goed-op-mobiel');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
