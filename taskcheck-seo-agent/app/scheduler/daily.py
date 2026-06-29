@@ -103,6 +103,13 @@ def run_bot(with_scheduler: bool = True) -> None:
 
 def main() -> None:
     """Start scheduler + Telegram bot tegelijk (24/7 modus)."""
+    from app.utils.git_health import check_git_health
+
+    health = check_git_health()
+    logger.info("SEO Agent starten\n%s", health.summary())
+    if not health.ok and get_config().publish_mode == "git_only":
+        logger.warning("Git niet volledig geconfigureerd — goedkeuren kan falen")
+
     logger.info("SEO Agent volledig gestart (bot + scheduler + kans-alerts)")
     run_bot(with_scheduler=True)
 

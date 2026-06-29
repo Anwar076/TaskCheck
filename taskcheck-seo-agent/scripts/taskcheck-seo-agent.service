@@ -1,0 +1,20 @@
+# systemd user service — kopieer naar ~/.config/systemd/user/
+#
+# systemctl --user daemon-reload
+# systemctl --user enable --now taskcheck-seo-agent
+#
+[Unit]
+Description=TaskCheck SEO Agent (Telegram 24/7)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/git/laravel_e55cd2/taskcheck-seo-agent
+Environment=GIT_REPO_ROOT=%h/git/laravel_e55cd2
+Environment=PUBLISH_MODE=git_only
+ExecStart=%h/git/laravel_e55cd2/taskcheck-seo-agent/venv/bin/python run.py daemon
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=default.target

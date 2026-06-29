@@ -88,9 +88,12 @@ class CommandHandler:
         return f"Periode: {label}\n"
 
     async def cmd_status(self, update, context) -> None:
+        from app.utils.git_health import check_git_health
+
         period = self._period_from_context(context)
         await update.message.reply_text(f"📊 SEO status ophalen ({period.label})...")
         try:
+            git = check_git_health()
             analysis = self.analyzer.find_opportunities(
                 days=period.days,
                 trend_days=period.trend_days,
@@ -102,6 +105,9 @@ class CommandHandler:
 
             text = f"""📊 SEO Status — TaskCheck
 {self._period_line(analysis)}
+🖥 Runtime
+{git.summary()}
+
 Impressies: {cur['impressions']:,} ({changes['impressions']:+,})
 Klikken: {cur['clicks']:,} ({changes['clicks']:+,})
 CTR: {cur['ctr']}% ({changes['ctr']:+.1f}%)

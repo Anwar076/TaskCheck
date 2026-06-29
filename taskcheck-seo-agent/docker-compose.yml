@@ -1,0 +1,21 @@
+# 24/7 SEO agent — mount je volledige TaskCheck git clone
+#
+# Gebruik:
+#   1. Clone repo op server: git clone https://github.com/Anwar076/TaskCheck.git /opt/taskcheck
+#   2. Kopieer .env + credentials.json naar taskcheck-seo-agent/
+#   3. docker compose up -d
+#
+services:
+  seo-agent:
+    build: .
+    container_name: taskcheck-seo-agent
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ..:/repo:rw
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+      - ./credentials.json:/app/credentials.json:ro
+    environment:
+      GIT_REPO_ROOT: /repo
+      PUBLISH_MODE: git_only
