@@ -435,3 +435,7 @@ Route::get('/blog/haccp-richtlijnen-checklist', function () {
     return view('blog.haccp-richtlijnen-checklist');
 })->name('blog.haccp-richtlijnen-checklist');
 
+Route::get('/blog/logboek-horeca', function () {
+    return view('blog.logboek-horeca');
+})->name('blog.logboek-horeca');
+
