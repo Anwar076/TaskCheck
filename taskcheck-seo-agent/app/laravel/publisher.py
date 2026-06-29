@@ -8,6 +8,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from app.laravel.blog_index import BlogIndexUpdater
 from app.laravel.discovery_assets import DiscoveryAssets, extract_blade_meta
 from app.seo.page_registry import get_page_registry
 from app.utils.config import get_config
@@ -26,6 +27,7 @@ class LaravelPublisher:
         self.config = get_config()
         self.registry = get_page_registry()
         self.discovery = DiscoveryAssets()
+        self.blog_index = BlogIndexUpdater()
         self._cached_repo_root: Path | None = None
         self._active_branch: str | None = None
 
@@ -187,7 +189,10 @@ class LaravelPublisher:
 
         route_added = self._add_blog_route(slug)
         discovery = self._register_discovery(target, slug, page_type="blog")
+        index_card = self.blog_index.add_card(slug, target)
         discovery_paths = self._discovery_paths(discovery)
+        if index_card.get("added") and index_card.get("path"):
+            discovery_paths.append(Path(index_card["path"]))
 
         if self._uses_git():
             return self._commit_changes(
@@ -196,12 +201,12 @@ class LaravelPublisher:
                 changed_paths=[target, self.config.web_routes_file, *discovery_paths],
                 url=discovery.get("url", f"https://{self.config.site_domain}/blog/{slug}"),
                 route_added=route_added,
-                discovery=discovery,
+                discovery={**discovery, "blog_index": index_card},
                 branch=branch,
             )
 
         return self._direct_result(
-            slug, target, discovery, route_added, f"blog.{slug}", page_type="blog"
+            slug, target, {**discovery, "blog_index": index_card}, route_added, f"blog.{slug}", page_type="blog"
         )
 
     def _direct_result(
