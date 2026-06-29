@@ -210,6 +210,10 @@ Route::get('/schoonmaak-checklist-voorbeeld', function () {
     return view('seo.schoonmaak-checklist-voorbeeld');
 })->name('seo.schoonmaak-checklist-voorbeeld');
 
+Route::get('/horeca-check-app', function () {
+    return view('seo.horeca-check-app');
+})->name('seo.horeca-check-app');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
@@ -415,3 +419,7 @@ require __DIR__.'/auth.php';
 Route::fallback(function () {
     abort(404);
 });
+Route::get('/blog/nvwa-update-horeca-inspecties-juni-2026', function () {
+    return view('blog.nvwa-update-horeca-inspecties-juni-2026');
+})->name('blog.nvwa-update-horeca-inspecties-juni-2026');
+
