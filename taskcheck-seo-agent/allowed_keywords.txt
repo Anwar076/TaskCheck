@@ -1,0 +1,20 @@
+# Horeca SEO keywords whitelist — agent filtert GSC data op deze termen
+haccp
+horeca
+nvwa
+checklist
+registratie
+temperatuur
+schoonmaak
+opening
+sluiting
+restaurant
+hotel
+bakkerij
+slagerij
+app
+digitaal
+controle
+inspectie
+hygiëne
+voedselveiligheid

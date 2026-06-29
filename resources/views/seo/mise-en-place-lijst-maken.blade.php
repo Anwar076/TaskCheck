@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle = 'Mise en Place Lijst Maken | Voorbeeld voor Horeca | TaskCheck';
-        $seoDescription = 'Een mise en place lijst maken voor restaurant, caf&eacute; of lunchroom? Bekijk voorbeelden en digitaliseer je voorbereiding met TaskCheck.';
+        $seoTitle       = 'Mise en Place Lijst Maken voor Horeca | Gratis Digitale Checklist | TaskCheck';
+        $seoDescription = 'Direct een mise en place lijst maken voor jouw restaurant, lunchroom, hotel of bakkerij? Digitaliseer je keukenvoorbereiding met TaskCheck. Inclusief gratis 14 dagen proefperiode, HACCP, NVWA en meer.';
         $seoUrl = route('seo.mise-en-place-lijst-maken');
         $seoImage = asset('images/taskcheck-horeca-seo-hero.webp');
     @endphp
@@ -89,7 +89,12 @@
                 </div>
 
                 <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 sm:mt-6 sm:gap-x-6">
-                    @foreach(['Voorbeelden inbegrepen', 'Digitaal afvinken', 'HACCP gecombineerd', 'Geen creditcard proefperiode'] as $b)
+                    @foreach([
+
+                ['Digitale HACCP Checklist', route('seo.haccp-checklist')],
+                ['Temperatuurregistratie', route('seo.temperatuurregistratie')],
+                ['NVWA Controle', route('seo.nvwa-controle')],
+                ['Digitale Checklists', route('seo.digitale-checklists')],'Voorbeelden inbegrepen', 'Digitaal afvinken', 'HACCP gecombineerd', 'Geen creditcard proefperiode'] as $b)
                     <span class="flex items-center gap-1.5 text-xs text-slate-500">
                         <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                         {{ $b }}
@@ -357,6 +362,7 @@
             </div>
         </section>
     </div>
+<section class="py-12"><div class="max-w-4xl mx-auto px-4"><h2 class="text-2xl font-bold mb-4">Voorbeeld mise en place lijst voor verschillende horecazaken</h2><p class="mb-3">Elke horecazaak heeft zijn eigen voorbereidingen. Bekijk hieronder voorbeelden per type zaak en ontdek hoe je deze eenvoudig digitaliseert via TaskCheck.</p><ul class="list-disc ml-6 mb-3"><li><strong>Restaurant:</strong> Mise en place voor lunch en diner, wijnkoeling, dagverse voorbereidingen.</li><li><strong>Lunchroom:</strong> Broodjes, salades, koffiezetapparatuur, schoonmaakrondes.</li><li><strong>Fastfood:</strong> Voorraden, frituuroliën, temperatuurchecks, schoonmaakstations.</li><li><strong>Hotel:</strong> Ontbijtbuffet, roomservice, HACCP-registratie, voorraadbeheer.</li><li><strong>Bakkerij:</strong> Deeg voorbereiding, ovencontrole, koelcel temperatuur, schoonmaak.</li><li><strong>Slagerij:</strong> Vleesvoorbereiding, hygiënechecks, temperatuur- en allergenenregistratie.</li></ul><p class="mb-3">Met TaskCheck maak je voor ieder type zaak een eigen digitale checklist op maat.</p></div></section>
 </main>
 
 @include('components.footer')

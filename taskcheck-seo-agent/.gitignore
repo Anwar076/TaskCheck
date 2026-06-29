@@ -1,0 +1,24 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+
+# Secrets & lokale config
+.env
+credentials.json
+config/credentials.json
+
+# Runtime / gegenereerde werkbestanden
+data/*
+!data/.gitkeep
+generated/*
+!generated/.gitkeep
+pending/*
+!pending/.gitkeep
+*.log
+
+# IDE
+.idea/
+.vscode/
