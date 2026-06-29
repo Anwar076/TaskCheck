@@ -13,7 +13,10 @@ from app.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
+SCOPES = [
+    "https://www.googleapis.com/auth/webmasters",
+    "https://www.googleapis.com/auth/webmasters.readonly",
+]
 
 
 class GSCClient:
@@ -142,4 +145,32 @@ class GSCClient:
             "rising": rising[:15],
             "falling": falling[:15],
             "new": new_keywords[:15],
+        }
+
+    def submit_sitemap(self, feedpath: str) -> None:
+        """Dien sitemap opnieuw in bij Google Search Console."""
+        self.service.sitemaps().submit(
+            siteUrl=self.site_url,
+            feedpath=feedpath,
+        ).execute()
+
+    def inspect_url(self, inspection_url: str) -> dict[str, Any]:
+        """Inspecteer indexatiestatus van een URL."""
+        body = {
+            "inspectionUrl": inspection_url,
+            "siteUrl": self.site_url,
+        }
+        response = self.service.urlInspection().index().inspect(body=body).execute()
+        result = response.get("inspectionResult", {})
+        index_status = result.get("indexStatusResult", {})
+
+        return {
+            "url": inspection_url,
+            "verdict": index_status.get("verdict", "UNKNOWN"),
+            "coverage_state": index_status.get("coverageState", ""),
+            "indexing_state": index_status.get("indexingState", ""),
+            "page_fetch_state": index_status.get("pageFetchState", ""),
+            "robots_txt_state": index_status.get("robotsTxtState", ""),
+            "last_crawl_time": index_status.get("lastCrawlTime", ""),
+            "google_canonical": index_status.get("googleCanonical", ""),
         }

@@ -165,6 +165,18 @@
     <priority>0.8</priority>
   </url>
 
+  <url>
+    <loc>https://taskcheck.nl/horeca-check-app</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/temperatuurregistratie-systeem-vriezer</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- Blog -->
   <url>
     <loc>https://taskcheck.nl/blog/horeca-personeel-controleren-checklist-app</loc>
@@ -201,5 +213,11 @@
     <lastmod>2026-06-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://taskcheck.nl/blog/nvwa-update-horeca-inspecties-juni-2026</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

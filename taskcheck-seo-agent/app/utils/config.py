@@ -15,6 +15,8 @@ LARAVEL_ROOT = PROJECT_ROOT.parent
 SEO_VIEWS_DIR = LARAVEL_ROOT / "resources" / "views" / "seo"
 BLOG_VIEWS_DIR = LARAVEL_ROOT / "resources" / "views" / "blog"
 WEB_ROUTES_FILE = LARAVEL_ROOT / "routes" / "web.php"
+SITEMAP_FILE = LARAVEL_ROOT / "public" / "sitemap.xml"
+LLMS_TXT_FILE = LARAVEL_ROOT / "llms.txt"
 
 
 @dataclass
@@ -48,6 +50,23 @@ class Config:
     )
     daily_auto_action: bool = field(
         default_factory=lambda: os.getenv("DAILY_AUTO_ACTION", "true").lower() == "true"
+    )
+    sitemap_path: Path = field(default_factory=lambda: SITEMAP_FILE)
+    llms_txt_path: Path = field(default_factory=lambda: LLMS_TXT_FILE)
+    sitemap_public_url: str = field(
+        default_factory=lambda: os.getenv("SITEMAP_PUBLIC_URL", "https://taskcheck.nl/sitemap.xml")
+    )
+    gsc_submit_sitemap: bool = field(
+        default_factory=lambda: os.getenv("GSC_SUBMIT_SITEMAP", "true").lower() == "true"
+    )
+    gsc_inspect_urls: bool = field(
+        default_factory=lambda: os.getenv("GSC_INSPECT_URLS", "true").lower() == "true"
+    )
+    auto_gsc_after_push: bool = field(
+        default_factory=lambda: os.getenv("AUTO_GSC_AFTER_PUSH", "true").lower() == "true"
+    )
+    auto_gsc_on_direct_publish: bool = field(
+        default_factory=lambda: os.getenv("AUTO_GSC_ON_DIRECT_PUBLISH", "true").lower() == "true"
     )
 
     project_root: Path = PROJECT_ROOT

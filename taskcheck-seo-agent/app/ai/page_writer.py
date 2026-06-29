@@ -10,7 +10,7 @@ from app.ai.brain import AIBrain
 from app.competitor.analyzer import CompetitorAnalyzer
 from app.seo.page_registry import get_page_registry
 from app.utils.config import get_config
-from app.utils.files import slugify, write_text
+from app.utils.files import slugify, sanitize_blade_ld_json, write_blade
 from app.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -44,14 +44,14 @@ class PageWriter:
         competitor_data = self.competitor.compare_with_taskcheck(keyword)
         content = self.brain.generate_page_content(keyword, competitor_data)
 
-        blade = self._render_blade(content, slug, route_name)
+        blade = sanitize_blade_ld_json(self._render_blade(content, slug, route_name))
         output_path = self.config.generated_dir / f"{slug}.blade.php"
         self.config.generated_dir.mkdir(parents=True, exist_ok=True)
-        write_text(output_path, blade)
+        write_blade(output_path, blade)
 
         pending_path = self.config.pending_dir / f"{slug}.blade.php"
         self.config.pending_dir.mkdir(parents=True, exist_ok=True)
-        write_text(pending_path, blade)
+        write_blade(pending_path, blade)
 
         return {
             "keyword": keyword,
@@ -400,10 +400,14 @@ class PageWriter:
         )
 
     def _render_related_links(self, links: list) -> str:
+        from app.seo.page_registry import is_valid_route
+
         lines = []
         for link in links:
             label = link.get("label", "") if isinstance(link, dict) else link[0]
             route = link.get("route", "") if isinstance(link, dict) else link[1]
+            if route and not is_valid_route(route):
+                continue
             lines.append(
                 f'            <a href="{{{{ route(\'{route}\') }}}}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">{self._escape_html(label)}</a>'
             )

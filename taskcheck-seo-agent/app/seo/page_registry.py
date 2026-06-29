@@ -271,5 +271,27 @@ class SEOPageRegistry:
 
 
 @lru_cache(maxsize=1)
+def get_laravel_route_names() -> frozenset[str]:
+    """Alle Laravel route-namen uit web.php en auth.php."""
+    config = get_config()
+    names: set[str] = set()
+    for route_file in (
+        config.web_routes_file,
+        config.web_routes_file.parent / "auth.php",
+    ):
+        if route_file.exists():
+            names.update(re.findall(r"->name\('([^']+)'\)", read_text(route_file)))
+    return frozenset(names)
+
+
+def get_seo_route_names() -> list[str]:
+    return sorted(r for r in get_laravel_route_names() if r.startswith("seo."))
+
+
+def is_valid_route(name: str) -> bool:
+    return name in get_laravel_route_names()
+
+
+@lru_cache(maxsize=1)
 def get_page_registry() -> SEOPageRegistry:
     return SEOPageRegistry()

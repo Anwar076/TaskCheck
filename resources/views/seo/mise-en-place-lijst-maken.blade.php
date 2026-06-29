@@ -89,12 +89,7 @@
                 </div>
 
                 <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 sm:mt-6 sm:gap-x-6">
-                    @foreach([
-
-                ['Digitale HACCP Checklist', route('seo.haccp-checklist')],
-                ['Temperatuurregistratie', route('seo.temperatuurregistratie')],
-                ['NVWA Controle', route('seo.nvwa-controle')],
-                ['Digitale Checklists', route('seo.digitale-checklists')],'Voorbeelden inbegrepen', 'Digitaal afvinken', 'HACCP gecombineerd', 'Geen creditcard proefperiode'] as $b)
+                    @foreach(['Voorbeelden inbegrepen', 'Digitaal afvinken', 'HACCP gecombineerd', 'Geen creditcard proefperiode'] as $b)
                     <span class="flex items-center gap-1.5 text-xs text-slate-500">
                         <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                         {{ $b }}

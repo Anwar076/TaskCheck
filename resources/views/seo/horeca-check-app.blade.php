@@ -47,54 +47,54 @@
     <meta property="og:image"       content="{{ $seoImage }}">
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
         "mainEntity": [
             {
-                "@type": "Question",
+                "@@type": "Question",
                 "name": "Wat is een horeca check app?",
                 "acceptedAnswer": {
-                    "@type": "Answer",
+                    "@@type": "Answer",
                     "text": "Een horeca check app is een digitale tool waarmee je dagelijkse controles, zoals HACCP, NVWA-inspecties, schoonmaak en temperatuurregistraties, eenvoudig digitaal uitvoert en vastlegt."
                 }
             },
             {
-                "@type": "Question",
+                "@@type": "Question",
                 "name": "Kan ik met TaskCheck temperatuurmetingen vastleggen?",
                 "acceptedAnswer": {
-                    "@type": "Answer",
+                    "@@type": "Answer",
                     "text": "Ja, je kunt eenvoudig temperaturen van koelingen, vriezers en producten registreren. Je ontvangt automatisch waarschuwingen bij afwijkingen."
                 }
             },
             {
-                "@type": "Question",
+                "@@type": "Question",
                 "name": "Is TaskCheck geschikt voor meerdere locaties?",
                 "acceptedAnswer": {
-                    "@type": "Answer",
+                    "@@type": "Answer",
                     "text": "Zeker! Je beheert checklists en rapportages per vestiging en hebt realtime inzicht in alle locaties."
                 }
             },
             {
-                "@type": "Question",
+                "@@type": "Question",
                 "name": "Kan ik foto’s of video’s toevoegen als bewijs?",
                 "acceptedAnswer": {
-                    "@type": "Answer",
+                    "@@type": "Answer",
                     "text": "Ja, bij elke taak kun je foto’s, video’s en notities toevoegen als bewijslast voor controles en schoonmaak."
                 }
             },
             {
-                "@type": "Question",
+                "@@type": "Question",
                 "name": "Hoe helpt TaskCheck bij een NVWA-inspectie?",
                 "acceptedAnswer": {
-                    "@type": "Answer",
+                    "@@type": "Answer",
                     "text": "Met TaskCheck heb je altijd complete, digitale rapportages en bewijslast paraat, zodat je goed voorbereid bent op elke NVWA-controle."
                 }
             },
             {
-                "@type": "Question",
+                "@@type": "Question",
                 "name": "Vervangt TaskCheck papieren HACCP-registraties?",
                 "acceptedAnswer": {
-                    "@type": "Answer",
+                    "@@type": "Answer",
                     "text": "TaskCheck digitaliseert al je HACCP- en andere checklists. Controleer altijd welke registraties voor jouw zaak verplicht zijn."
                 }
             }

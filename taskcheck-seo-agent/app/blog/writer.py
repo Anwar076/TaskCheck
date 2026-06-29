@@ -9,7 +9,7 @@ from typing import Any
 from app.ai.brain import AIBrain
 from app.seo.page_registry import get_page_registry
 from app.utils.config import get_config
-from app.utils.files import slugify, write_text
+from app.utils.files import slugify, write_blade
 
 
 class BlogWriter:
@@ -30,8 +30,8 @@ class BlogWriter:
 
         generated_path = self.config.generated_dir / f"blog-{slug}.blade.php"
         pending_path = self.config.pending_dir / f"blog-{slug}.blade.php"
-        write_text(generated_path, blade)
-        write_text(pending_path, blade)
+        write_blade(generated_path, blade)
+        write_blade(pending_path, blade)
 
         return {
             "topic": topic,

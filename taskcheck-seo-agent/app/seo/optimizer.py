@@ -7,11 +7,17 @@ from typing import Any
 
 from app.ai.brain import AIBrain
 from app.competitor.analyzer import CompetitorAnalyzer
+from app.seo.page_registry import is_valid_route
 from app.utils.config import get_config
-from app.utils.files import read_text, write_text
+from app.utils.files import read_text, write_blade
 from app.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+RELATED_LINKS_FOREACH = re.compile(
+    r"(Gerelateerde pagina.*?@foreach\(\[\s*)([\s\S]*?)(\s*\]\s+as\s+\$link\))",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 class PageOptimizer:
@@ -38,7 +44,7 @@ class PageOptimizer:
         optimized = self._apply_improvements(content, improvements)
         backup_path = self.config.pending_dir / f"{slug}.optimized.blade.php"
         self.config.pending_dir.mkdir(parents=True, exist_ok=True)
-        write_text(backup_path, optimized)
+        write_blade(backup_path, optimized)
 
         return {
             "slug": slug,
@@ -99,16 +105,29 @@ class PageOptimizer:
         return content[: match.start(2)] + new_block + content[match.end(2) :]
 
     def _add_internal_links(self, content: str, links: list) -> str:
-        link_html = ""
-        for link in links:
-            label = link.get("label", "")
-            route = link.get("route", "")
-            link_html += f"\n                ['{label}', route('{route}')],"
+        match = RELATED_LINKS_FOREACH.search(content)
+        if not match:
+            logger.warning("Gerelateerde pagina's sectie niet gevonden; interne links overgeslagen")
+            return content
 
-        if "Gerelateerde pagina" in content and link_html:
-            content = content.replace(
-                "@foreach([",
-                f"@foreach([\n{link_html}",
-                1,
-            )
-        return content
+        existing = match.group(2)
+        existing_routes = set(re.findall(r"route\('([^']+)'\)", existing))
+        additions: list[str] = []
+
+        for link in links:
+            label = link.get("label", "").replace("'", "\\'")
+            route = link.get("route", "")
+            if not route or not is_valid_route(route):
+                logger.warning("Ongeldige route overgeslagen bij optimalisatie: %s", route)
+                continue
+            if route in existing_routes:
+                continue
+            additions.append(f"                    ['{label}', route('{route}')],")
+            existing_routes.add(route)
+
+        if not additions:
+            return content
+
+        separator = "" if not existing.strip() or existing.rstrip().endswith(",") else ",\n"
+        new_block = existing + separator + "\n".join(additions)
+        return content[: match.start(2)] + new_block + content[match.end(2) :]

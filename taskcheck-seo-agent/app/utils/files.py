@@ -97,3 +97,25 @@ def extract_json_from_response(text: str) -> dict:
     if fence_match:
         text = fence_match.group(1).strip()
     return json.loads(text)
+
+
+def sanitize_blade_ld_json(content: str) -> str:
+    """Escape JSON-LD @-keys in Blade zodat @type/@context geen syntax errors geven."""
+    def fix_block(match: re.Match[str]) -> str:
+        block = match.group(0)
+        block = re.sub(r'(?<!@)"@context"', '"@@context"', block)
+        block = re.sub(r'(?<!@)"@type"', '"@@type"', block)
+        block = re.sub(r'(?<!@)"@id"', '"@@id"', block)
+        return block
+
+    return re.sub(
+        r'<script\s+type=["\']application/ld\+json["\'][^>]*>.*?</script>',
+        fix_block,
+        content,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+
+
+def write_blade(path: Path, content: str) -> None:
+    """Schrijf Blade-bestand met JSON-LD escaping."""
+    write_text(path, sanitize_blade_ld_json(content))

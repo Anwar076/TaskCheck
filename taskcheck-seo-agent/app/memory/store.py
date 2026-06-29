@@ -29,6 +29,7 @@ class MemoryStore:
             "published_pages": [],
             "optimized_pages": [],
             "notified_opportunities": {},
+            "gsc_url_queue": [],
         })
 
     def save(self, data: dict[str, Any]) -> None:
@@ -220,3 +221,22 @@ class MemoryStore:
         notified = data.setdefault("notified_opportunities", {})
         notified[key] = self._now()
         self.save(data)
+
+    def add_gsc_queue_item(self, url: str, title: str = "") -> None:
+        if not url:
+            return
+        data = self.load()
+        queue = data.setdefault("gsc_url_queue", [])
+        if any(item.get("url") == url for item in queue):
+            return
+        queue.append({"url": url, "title": title, "queued_at": self._now()})
+        self.save(data)
+
+    def drain_gsc_queue(self) -> list[dict[str, Any]]:
+        data = self.load()
+        queue = data.pop("gsc_url_queue", [])
+        self.save(data)
+        return queue
+
+    def peek_gsc_queue(self) -> list[dict[str, Any]]:
+        return list(self.load().get("gsc_url_queue", []))

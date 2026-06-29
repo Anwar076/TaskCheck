@@ -7,6 +7,7 @@ from typing import Any
 
 from openai import OpenAI
 
+from app.seo.page_registry import get_seo_route_names
 from app.utils.config import get_config
 from app.utils.files import extract_json_from_response, load_company_context, read_text
 from app.utils.logger import setup_logger
@@ -150,12 +151,16 @@ Geef ALLEEN geldige JSON terug:
         if competitor_insights:
             competitor_text = f"\nConcurrentie-inzichten:\n{json.dumps(competitor_insights, ensure_ascii=False, indent=2)}"
 
+        valid_routes = ", ".join(get_seo_route_names()[:40])
         prompt = f"""
 {self.company_context}
 
 Schrijf content voor een SEO landingspagina op TaskCheck.nl.
 
 Zoekwoord: {keyword}
+
+Beschikbare Laravel route-namen voor related_links (gebruik ALLEEN deze exacte namen):
+{valid_routes}, pricing, register, blog
 
 Gebruik dezelfde stijl, toon en structuur als deze referentiepagina (HACCP app):
 {reference[:6000]}
@@ -216,12 +221,16 @@ Minimaal 5 FAQ items. Minimaal 6 features en 6 benefits.
         competitor_insights: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Genereer verbeteringen voor een bestaande pagina."""
+        valid_routes = ", ".join(get_seo_route_names()[:40])
         prompt = f"""
 {self.company_context}
 
 Je bent een Senior SEO Specialist. Analyseer deze bestaande SEO-pagina en stel verbeteringen voor.
 
 Pagina: {page_slug}
+
+Beschikbare Laravel route-namen voor internal_links_to_add (gebruik ALLEEN deze exacte namen):
+{valid_routes}, pricing, register, blog
 
 Huidige content (fragment):
 {page_content[:12000]}
@@ -242,6 +251,7 @@ Geef ALLEEN geldige JSON:
   "seo_description": "verbeterde description of null",
   "extra_content_section": "HTML sectie om toe te voegen of null",
   "internal_links_to_add": [{{"label": "...", "route": "seo.xxx"}}],
+  "internal_links_to_add_note": "Alleen routes uit de lijst hierboven; voeg links toe aan de sectie Gerelateerde pagina's, NIET aan trust badges",
   "expected_position_change": "8 → 5",
   "expected_ctr_change": "+1.2%",
   "summary": "korte samenvatting voor Telegram"

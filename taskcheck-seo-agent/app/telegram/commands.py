@@ -9,6 +9,7 @@ from app.ai.brain import AIBrain
 from app.ai.page_writer import PageAlreadyExistsError, PageWriter
 from app.blog.writer import BlogWriter
 from app.gsc.client import GSCClient
+from app.gsc.post_publish import format_gsc_telegram, run_post_deploy_gsc
 from app.laravel.publisher import LaravelPublisher
 from app.memory.store import MemoryStore
 from app.reporting.daily_report import DailyReporter
@@ -62,7 +63,7 @@ class CommandHandler:
             "/cancel — Laatste actie annuleren\n"
             "/hold — Actie parkeren\n"
             "/pending — Openstaande acties\n"
-            "/push — Merge huidige branch naar main en push\n"
+            "/push — Merge naar main, push + GSC sitemap/inspectie\n"
             "/help — Deze help"
         )
 
@@ -295,16 +296,23 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
                 self.memory.add_published_page(action["slug"], action.get("keyword", ""))
                 if action.get("keyword"):
                     self.memory.add_processed_keyword(action["keyword"])
+                self._queue_gsc_url(result)
                 self.bot.notifier.notify_action_approved(action)
                 if result.get("mode") == "git_only":
                     return (
                         "✅ Klaargezet via Git (niet live gezet).\n\n"
                         f"Branch: {result.get('branch')}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
-                        f"Bestanden: {result.get('paths')}\n\n"
-                        "Volgende stap: push branch en merge/deploy naar productie."
+                        f"Bestanden: {result.get('paths')}\n"
+                        f"{self._discovery_summary(result)}\n\n"
+                        "Volgende stap: /push — daarna GSC sitemap + URL-inspectie."
                     )
-                return f"✅ Gepubliceerd!\n\nPagina: {result['url']}\nZoekwoord: {action.get('keyword', slug)}"
+                gsc_note = await self._maybe_run_direct_gsc(result)
+                return (
+                    f"✅ Gepubliceerd!\n\nPagina: {result['url']}\n"
+                    f"Zoekwoord: {action.get('keyword', slug)}\n"
+                    f"{self._discovery_summary(result)}\n{gsc_note}"
+                )
             if action["type"] == "optimize_page":
                 result = self.publisher.apply_optimization(action["slug"])
                 self.memory.update_pending_action(action["id"], "approved")
@@ -315,25 +323,36 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
                         "✅ Optimalisatie klaargezet via Git (niet live gezet).\n\n"
                         f"Branch: {result.get('branch')}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
-                        f"Bestanden: {result.get('paths')}\n\n"
-                        "Volgende stap: push branch en merge/deploy naar productie."
+                        f"Bestanden: {result.get('paths')}\n"
+                        f"{self._discovery_summary(result)}\n\n"
+                        "Volgende stap: /push naar productie."
                     )
-                return f"✅ Optimalisatie toegepast!\n\nPagina: {slug}\nBestand: {result['view_path']}"
+                return (
+                    f"✅ Optimalisatie toegepast!\n\nPagina: {slug}\n"
+                    f"Bestand: {result['view_path']}\n{self._discovery_summary(result)}"
+                )
             if action["type"] == "create_blog":
                 result = self.publisher.publish_blog(action["slug"])
                 self.memory.update_pending_action(action["id"], "approved")
                 if action.get("keyword"):
                     self.memory.add_processed_keyword(action["keyword"])
+                self._queue_gsc_url(result)
                 self.bot.notifier.notify_action_approved(action)
                 if result.get("mode") == "git_only":
                     return (
                         "✅ Blog klaargezet via Git (niet live gezet).\n\n"
                         f"Branch: {result.get('branch')}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
-                        f"Bestanden: {result.get('paths')}\n\n"
-                        "Volgende stap: push branch en merge/deploy."
+                        f"Bestanden: {result.get('paths')}\n"
+                        f"{self._discovery_summary(result)}\n\n"
+                        "Volgende stap: /push — daarna GSC sitemap + URL-inspectie."
                     )
-                return f"✅ Blog gepubliceerd!\n\nURL: {result['url']}\nOnderwerp: {action.get('keyword', slug)}"
+                gsc_note = await self._maybe_run_direct_gsc(result)
+                return (
+                    f"✅ Blog gepubliceerd!\n\nURL: {result['url']}\n"
+                    f"Onderwerp: {action.get('keyword', slug)}\n"
+                    f"{self._discovery_summary(result)}\n{gsc_note}"
+                )
             self.memory.update_pending_action(action["id"], "approved")
             return "✅ Actie goedgekeurd."
         except Exception as exc:
@@ -544,7 +563,17 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
             if current != base:
                 self._git(["checkout", current], repo_root)
 
-            return f"✅ Gepusht naar {remote}/{base} vanaf branch {current}."
+            gsc_note = ""
+            if self.config.auto_gsc_after_push:
+                queue = self.memory.drain_gsc_queue()
+                urls = [item["url"] for item in queue if item.get("url")]
+                try:
+                    gsc_result = run_post_deploy_gsc(urls)
+                    gsc_note = "\n\n" + format_gsc_telegram(gsc_result)
+                except Exception as exc:
+                    gsc_note = f"\n\n⚠️ GSC na push mislukt: {exc}"
+
+            return f"✅ Gepusht naar {remote}/{base} vanaf branch {current}.{gsc_note}"
         except Exception as exc:
             return f"⚠️ Push naar main mislukt: {exc}"
 
@@ -560,3 +589,37 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
             err = (proc.stderr or "").strip() or (proc.stdout or "").strip() or "onbekende git-fout"
             raise RuntimeError(f"git {' '.join(args)} -> {err}")
         return proc
+
+    def _queue_gsc_url(self, result: dict) -> None:
+        url = result.get("url")
+        if url:
+            self.memory.add_gsc_queue_item(url)
+
+    async def _maybe_run_direct_gsc(self, result: dict) -> str:
+        if not self.config.auto_gsc_on_direct_publish:
+            return ""
+        url = result.get("url")
+        if not url:
+            return ""
+        try:
+            gsc_result = run_post_deploy_gsc([url])
+            return format_gsc_telegram(gsc_result)
+        except Exception as exc:
+            return f"⚠️ GSC: {exc}"
+
+    def _discovery_summary(self, result: dict) -> str:
+        discovery = result.get("discovery")
+        if not discovery or not isinstance(discovery, dict):
+            return ""
+        lines: list[str] = []
+        if discovery.get("url"):
+            lines.append(f"🌐 {discovery['url']}")
+        sitemap = discovery.get("sitemap", {})
+        if sitemap.get("added"):
+            lines.append("🗺️ Toegevoegd aan sitemap.xml")
+        elif sitemap.get("updated"):
+            lines.append("🗺️ Sitemap lastmod bijgewerkt")
+        llms = discovery.get("llms", {})
+        if llms.get("added"):
+            lines.append(f"📄 Toegevoegd aan llms.txt ({llms.get('section', '')})")
+        return "\n".join(lines)

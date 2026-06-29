@@ -8,9 +8,10 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from app.laravel.discovery_assets import DiscoveryAssets, extract_blade_meta
 from app.seo.page_registry import get_page_registry
 from app.utils.config import get_config
-from app.utils.files import read_text, write_text, blade_slug
+from app.utils.files import read_text, write_text, write_blade, blade_slug
 from app.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -20,6 +21,7 @@ class LaravelPublisher:
     def __init__(self) -> None:
         self.config = get_config()
         self.registry = get_page_registry()
+        self.discovery = DiscoveryAssets()
 
     def publish_page(self, slug: str, source_path: Path | None = None) -> dict[str, str]:
         """Kopieer blade-bestand naar Laravel en voeg route toe."""
@@ -32,18 +34,21 @@ class LaravelPublisher:
             raise FileNotFoundError(f"Bronbestand niet gevonden: {source_path}")
 
         target = self.config.seo_views_dir / f"{slug}.blade.php"
-        shutil.copy2(source_path, target)
+        self._install_blade(source_path, target)
         logger.info("Pagina gepubliceerd: %s", target)
 
         route_added = self._add_route(slug)
+        discovery = self._register_discovery(target, slug, page_type="seo")
+        discovery_paths = self._discovery_paths(discovery)
 
         if self._git_only():
             return self._commit_changes(
                 slug=slug,
                 action_type="create_page",
-                changed_paths=[target, self.config.web_routes_file],
-                url=f"https://taskcheck.nl/{slug}",
+                changed_paths=[target, self.config.web_routes_file, *discovery_paths],
+                url=discovery.get("url", f"https://{self.config.site_domain}/{slug}"),
                 route_added=route_added,
+                discovery=discovery,
             )
 
         return {
@@ -52,7 +57,8 @@ class LaravelPublisher:
             "view_path": str(target),
             "route_name": f"seo.{slug}",
             "route_added": str(route_added),
-            "url": f"https://taskcheck.nl/{slug}",
+            "url": discovery.get("url", f"https://{self.config.site_domain}/{slug}"),
+            "discovery": discovery,
         }
 
     def apply_optimization(self, slug: str) -> dict[str, str]:
@@ -68,18 +74,30 @@ class LaravelPublisher:
         if target.exists():
             shutil.copy2(target, backup)
 
-        shutil.copy2(source, target)
+        self._install_blade(source, target)
         logger.info("Optimalisatie toegepast: %s", target)
+
+        discovery = self.discovery.touch_url(slug, page_type="seo")
+        discovery_paths = []
+        if discovery.get("updated"):
+            discovery_paths.append(self.config.sitemap_path)
 
         if self._git_only():
             return self._commit_changes(
                 slug=slug,
                 action_type="optimize_page",
-                changed_paths=[target],
+                changed_paths=[target, *discovery_paths],
                 backup=str(backup),
+                discovery=discovery,
             )
 
-        return {"mode": "direct", "slug": slug, "view_path": str(target), "backup": str(backup)}
+        return {
+            "mode": "direct",
+            "slug": slug,
+            "view_path": str(target),
+            "backup": str(backup),
+            "discovery": discovery,
+        }
 
     def publish_blog(self, slug: str, source_path: Path | None = None) -> dict[str, str]:
         """Kopieer blog-concept naar Laravel blog map en voeg blogroute toe."""
@@ -92,18 +110,21 @@ class LaravelPublisher:
             raise FileNotFoundError(f"Blog bronbestand niet gevonden: {source_path}")
 
         target = self.config.blog_views_dir / f"{slug}.blade.php"
-        shutil.copy2(source_path, target)
+        self._install_blade(source_path, target)
         logger.info("Blog gepubliceerd: %s", target)
 
         route_added = self._add_blog_route(slug)
+        discovery = self._register_discovery(target, slug, page_type="blog")
+        discovery_paths = self._discovery_paths(discovery)
 
         if self._git_only():
             return self._commit_changes(
                 slug=slug,
                 action_type="create_blog",
-                changed_paths=[target, self.config.web_routes_file],
-                url=f"https://taskcheck.nl/blog/{slug}",
+                changed_paths=[target, self.config.web_routes_file, *discovery_paths],
+                url=discovery.get("url", f"https://{self.config.site_domain}/blog/{slug}"),
                 route_added=route_added,
+                discovery=discovery,
             )
 
         return {
@@ -112,8 +133,29 @@ class LaravelPublisher:
             "view_path": str(target),
             "route_name": f"blog.{slug}",
             "route_added": str(route_added),
-            "url": f"https://taskcheck.nl/blog/{slug}",
+            "url": discovery.get("url", f"https://{self.config.site_domain}/blog/{slug}"),
+            "discovery": discovery,
         }
+
+    def _register_discovery(self, blade_path: Path, slug: str, page_type: str) -> dict:
+        content = read_text(blade_path)
+        title, description = extract_blade_meta(content)
+        return self.discovery.register_page(
+            slug=slug,
+            page_type=page_type,
+            title=title or None,
+            description=description or None,
+        )
+
+    def _discovery_paths(self, discovery: dict) -> list[Path]:
+        paths: list[Path] = []
+        sitemap = discovery.get("sitemap", {})
+        llms = discovery.get("llms", {})
+        if sitemap.get("added") or sitemap.get("updated"):
+            paths.append(self.config.sitemap_path)
+        if llms.get("added"):
+            paths.append(self.config.llms_txt_path)
+        return paths
 
     def _add_route(self, slug: str) -> bool:
         routes_file = self.config.web_routes_file
@@ -195,6 +237,10 @@ Route::get('/blog/{slug}', function () {{
                     pending.append(blade_slug(path))
         return pending
 
+    def _install_blade(self, source: Path, target: Path) -> None:
+        """Kopieer Blade naar Laravel met JSON-LD escaping."""
+        write_blade(target, read_text(source))
+
     def _git_only(self) -> bool:
         return self.config.publish_mode == "git_only"
 
@@ -206,6 +252,7 @@ Route::get('/blog/{slug}', function () {{
         url: str | None = None,
         route_added: bool | None = None,
         backup: str | None = None,
+        discovery: dict | None = None,
     ) -> dict[str, str]:
         """Maak branch + commit zodat deployment via git kan."""
         repo_root = self.config.project_root.parent
@@ -246,6 +293,8 @@ Route::get('/blog/{slug}', function () {{
             result["route_added"] = str(route_added)
         if backup:
             result["backup"] = backup
+        if discovery:
+            result["discovery"] = discovery
         return result
 
     def _commit_prefix(self, action_type: str) -> str:
