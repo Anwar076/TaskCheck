@@ -38,12 +38,15 @@ class GSCClient:
         self,
         dimensions: list[str],
         days: int = 28,
-        row_limit: int = 250,
+        row_limit: int | None = None,
         start_date: str | None = None,
         end_date: str | None = None,
     ) -> list[dict[str, Any]]:
         if not start_date or not end_date:
             start_date, end_date = self._date_range(days)
+
+        if row_limit is None:
+            row_limit = min(2500, max(250, days * 12))
 
         body = {
             "startDate": start_date,
@@ -94,7 +97,7 @@ class GSCClient:
         prev = previous[0] if previous else {"clicks": 0, "impressions": 0, "ctr": 0, "position": 0}
 
         return {
-            "period": {"start": start, "end": end},
+            "period": {"start": start, "end": end, "days": days},
             "current": cur,
             "previous": prev,
             "changes": {
@@ -113,11 +116,21 @@ class GSCClient:
 
         current = {
             r["query"]: r
-            for r in self.query(["query"], start_date=mid.isoformat(), end_date=end.isoformat(), row_limit=500)
+            for r in self.query(
+                ["query"],
+                start_date=mid.isoformat(),
+                end_date=end.isoformat(),
+                row_limit=min(2500, max(500, days * 12)),
+            )
         }
         previous = {
             r["query"]: r
-            for r in self.query(["query"], start_date=start.isoformat(), end_date=(mid - timedelta(days=1)).isoformat(), row_limit=500)
+            for r in self.query(
+                ["query"],
+                start_date=start.isoformat(),
+                end_date=(mid - timedelta(days=1)).isoformat(),
+                row_limit=min(2500, max(500, days * 12)),
+            )
         }
 
         rising, falling, new_keywords = [], [], []

@@ -68,6 +68,8 @@ class Config:
     auto_gsc_on_direct_publish: bool = field(
         default_factory=lambda: os.getenv("AUTO_GSC_ON_DIRECT_PUBLISH", "true").lower() == "true"
     )
+    gsc_default_days: int = field(default_factory=lambda: int(os.getenv("GSC_DEFAULT_DAYS", "28")))
+    gsc_trend_days: int = field(default_factory=lambda: int(os.getenv("GSC_TREND_DAYS", "14")))
 
     project_root: Path = PROJECT_ROOT
     data_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data")

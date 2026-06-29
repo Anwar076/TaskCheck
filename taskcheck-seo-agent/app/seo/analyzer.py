@@ -19,6 +19,7 @@ class SEOAnalyzer:
         self.config = get_config()
         self.gsc = GSCClient()
         self.registry = get_page_registry()
+        self.memory = MemoryStore()
 
     def _existing_slugs(self) -> set[str]:
         return set(self.registry.list_slugs())
@@ -30,12 +31,6 @@ class SEOAnalyzer:
         q = query.lower()
         return any(term in q for term in allowed)
 
-    def __init__(self) -> None:
-        self.config = get_config()
-        self.gsc = GSCClient()
-        self.registry = get_page_registry()
-        self.memory = MemoryStore()
-
     def _is_excluded(self, query: str, slug: str, exclude_keywords: set[str], exclude_slugs: set[str]) -> bool:
         if slug in exclude_slugs:
             return True
@@ -43,18 +38,35 @@ class SEOAnalyzer:
             return True
         return False
 
-    def find_opportunities(self, exclude_handled: bool = True) -> dict[str, Any]:
+    def find_opportunities(
+        self,
+        exclude_handled: bool = True,
+        days: int | None = None,
+        trend_days: int | None = None,
+        period_label: str | None = None,
+    ) -> dict[str, Any]:
         """Detecteer SEO-kansen uit GSC data."""
+        from app.gsc.periods import resolve_gsc_period
+
+        if days is None:
+            period = resolve_gsc_period()
+            days = period.days
+            trend_days = period.trend_days
+            period_label = period.label
+        else:
+            trend_days = trend_days or max(1, min(days // 2, 90))
+            period_label = period_label or f"afgelopen {days} dagen"
+
         exclude_slugs: set[str] = set()
         exclude_keywords: set[str] = set()
         if exclude_handled:
             exclude_slugs = self.memory.get_completed_slugs()
             exclude_keywords = self.memory.get_completed_keywords()
 
-        summary = self.gsc.get_summary(days=28)
-        queries = self.gsc.get_query_data(days=28)
-        pages = self.gsc.get_page_data(days=28)
-        trends = self.gsc.compare_queries(days=14)
+        summary = self.gsc.get_summary(days=days)
+        queries = self.gsc.get_query_data(days=days)
+        pages = self.gsc.get_page_data(days=days)
+        trends = self.gsc.compare_queries(days=trend_days)
         existing_slugs = self._existing_slugs()
 
         new_page_opportunities = []
@@ -170,6 +182,13 @@ class SEOAnalyzer:
         return {
             "summary": summary,
             "trends": trends,
+            "gsc_period": {
+                "days": days,
+                "trend_days": trend_days,
+                "label": period_label,
+                "start": summary.get("period", {}).get("start"),
+                "end": summary.get("period", {}).get("end"),
+            },
             "new_page_opportunities": new_page_opportunities[:10],
             "blog_opportunities": blog_opportunities[:10],
             "improve_opportunities": improve_opportunities[:10],

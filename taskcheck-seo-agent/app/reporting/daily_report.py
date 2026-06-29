@@ -22,9 +22,19 @@ class DailyReporter:
         self.competitor = CompetitorAnalyzer()
         self.memory = MemoryStore()
 
-    def generate(self) -> str:
+    def generate(
+        self,
+        days: int | None = None,
+        trend_days: int | None = None,
+        period_label: str | None = None,
+    ) -> str:
         handled = list(self.memory.get_completed_keywords())
-        analysis = self.analyzer.find_opportunities(exclude_handled=True)
+        analysis = self.analyzer.find_opportunities(
+            exclude_handled=True,
+            days=days,
+            trend_days=trend_days,
+            period_label=period_label,
+        )
         decision = self.brain.analyze_opportunities(analysis, handled=handled)
 
         summary = analysis["summary"]
@@ -32,6 +42,10 @@ class DailyReporter:
         prev = summary["previous"]
         changes = summary["changes"]
         trends = analysis.get("trends", {})
+        gsc_period = analysis.get("gsc_period", {})
+        period_note = gsc_period.get("label", "afgelopen 28 dagen")
+        if gsc_period.get("start") and gsc_period.get("end"):
+            period_note = f"{period_note} ({gsc_period['start']} t/m {gsc_period['end']})"
 
         rising = trends.get("rising", [])[:3]
         falling = trends.get("falling", [])[:3]
@@ -74,6 +88,7 @@ class DailyReporter:
         report = f"""Goedemorgen {self.config.owner_name} 👋
 
 SEO Rapport — TaskCheck
+Periode: {period_note}
 ({analysis.get('analyzed_queries', '?')} zoekwoorden geanalyseerd)
 
 Impressies:

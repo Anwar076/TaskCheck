@@ -16,6 +16,7 @@ from app.reporting.daily_report import DailyReporter
 from app.seo.analyzer import SEOAnalyzer
 from app.seo.optimizer import PageOptimizer
 from app.seo.page_registry import get_page_registry
+from app.gsc.periods import resolve_gsc_period
 from app.telegram.intents import detect_intent
 from app.utils.config import get_config
 from app.utils.files import slugify
@@ -50,11 +51,11 @@ class CommandHandler:
             "24/7 modus: start met `python run.py daemon` (bot + kans-alerts).\n"
             "Je kunt me ook gewoon vragen stellen in chat.\n\n"
             "Commando's:\n"
-            "/status — Hoe gaat SEO vandaag?\n"
-            "/report — Dagelijks rapport\n"
-            "/kansen — Grootste SEO-kansen\n"
-            "/stijgers — Zoekwoorden die stijgen\n"
-            "/dalers — Zoekwoorden die dalen\n"
+            "/status [periode] — SEO status (bijv. week, 90, 3m)\n"
+            "/report [periode] — Rapport (week / maand / 3m)\n"
+            "/kansen [periode] — Grootste SEO-kansen\n"
+            "/stijgers [periode] — Zoekwoorden die stijgen\n"
+            "/dalers [periode] — Zoekwoorden die dalen\n"
             "/nieuw [zoekwoord] — Nieuwe SEO-pagina maken\n"
             "/verbeter [slug] — Pagina optimaliseren\n"
             "/blog [onderwerp] — Nieuw blogconcept maken\n"
@@ -70,16 +71,37 @@ class CommandHandler:
     async def cmd_help(self, update, context) -> None:
         await self.cmd_start(update, context)
 
+    def _period_from_context(self, context):
+        from app.gsc.periods import resolve_gsc_period
+
+        args = getattr(context, "args", None) or []
+        return resolve_gsc_period(" ".join(args) if args else None)
+
+    def _period_line(self, analysis: dict) -> str:
+        p = analysis.get("gsc_period", {})
+        if not p:
+            return ""
+        start, end = p.get("start"), p.get("end")
+        label = p.get("label", "")
+        if start and end:
+            return f"Periode: {label} ({start} t/m {end})\n"
+        return f"Periode: {label}\n"
+
     async def cmd_status(self, update, context) -> None:
-        await update.message.reply_text("📊 SEO status ophalen...")
+        period = self._period_from_context(context)
+        await update.message.reply_text(f"📊 SEO status ophalen ({period.label})...")
         try:
-            analysis = self.analyzer.find_opportunities()
+            analysis = self.analyzer.find_opportunities(
+                days=period.days,
+                trend_days=period.trend_days,
+                period_label=period.label,
+            )
             summary = analysis["summary"]
             cur = summary["current"]
             changes = summary["changes"]
 
             text = f"""📊 SEO Status — TaskCheck
-
+{self._period_line(analysis)}
 Impressies: {cur['impressions']:,} ({changes['impressions']:+,})
 Klikken: {cur['clicks']:,} ({changes['clicks']:+,})
 CTR: {cur['ctr']}% ({changes['ctr']:+.1f}%)
@@ -94,21 +116,31 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
             await update.message.reply_text(f"⚠️ Kon status niet ophalen: {exc}")
 
     async def cmd_report(self, update, context) -> None:
-        await update.message.reply_text("📋 Rapport genereren...")
+        period = self._period_from_context(context)
+        await update.message.reply_text(f"📋 Rapport genereren ({period.label})...")
         try:
-            report = self.reporter.generate()
+            report = self.reporter.generate(
+                days=period.days,
+                trend_days=period.trend_days,
+                period_label=period.label,
+            )
             await update.message.reply_text(report)
         except Exception as exc:
             await update.message.reply_text(f"⚠️ Rapport mislukt: {exc}")
 
     async def cmd_kansen(self, update, context) -> None:
         try:
-            analysis = self.analyzer.find_opportunities()
+            period = self._period_from_context(context)
+            analysis = self.analyzer.find_opportunities(
+                days=period.days,
+                trend_days=period.trend_days,
+                period_label=period.label,
+            )
             opps = analysis.get("new_page_opportunities", [])[:5]
             if not opps:
-                await update.message.reply_text("Geen nieuwe pagina-kansen gevonden.")
+                await update.message.reply_text(f"Geen nieuwe pagina-kansen ({period.label}).")
                 return
-            lines = ["🎯 Grootste SEO-kansen:\n"]
+            lines = [f"🎯 Grootste SEO-kansen ({period.label}):\n"]
             for i, o in enumerate(opps, 1):
                 lines.append(f"{i}. {o['keyword']}\n   Pos {o['position']} · {o['impressions']} imp · {o['reason']}")
             await update.message.reply_text("\n".join(lines))
@@ -117,12 +149,13 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
 
     async def cmd_stijgers(self, update, context) -> None:
         try:
-            trends = self.gsc.compare_queries(days=14)
+            period = self._period_from_context(context)
+            trends = self.gsc.compare_queries(days=period.trend_days)
             rising = trends.get("rising", [])[:8]
             if not rising:
-                await update.message.reply_text("Geen stijgers gevonden.")
+                await update.message.reply_text(f"Geen stijgers ({period.label}).")
                 return
-            lines = ["📈 Stijgers:\n"]
+            lines = [f"📈 Stijgers ({period.label}):\n"]
             for r in rising:
                 lines.append(f"• {r['query']}: {r.get('prev_position', '?')} → {r['position']} (+{r.get('change_position', 0)})")
             await update.message.reply_text("\n".join(lines))
@@ -131,12 +164,13 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
 
     async def cmd_dalers(self, update, context) -> None:
         try:
-            trends = self.gsc.compare_queries(days=14)
+            period = self._period_from_context(context)
+            trends = self.gsc.compare_queries(days=period.trend_days)
             falling = trends.get("falling", [])[:8]
             if not falling:
-                await update.message.reply_text("Geen dalers gevonden.")
+                await update.message.reply_text(f"Geen dalers ({period.label}).")
                 return
-            lines = ["📉 Dalers:\n"]
+            lines = [f"📉 Dalers ({period.label}):\n"]
             for f in falling:
                 lines.append(f"• {f['query']}: {f.get('prev_position', '?')} → {f['position']} ({f.get('change_position', 0)})")
             await update.message.reply_text("\n".join(lines))
