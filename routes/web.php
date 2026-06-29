@@ -435,3 +435,7 @@ Route::get('/blog/haccp-richtlijnen-checklist', function () {
     return view('blog.haccp-richtlijnen-checklist');
 })->name('blog.haccp-richtlijnen-checklist');
 
+Route::get('/blog/haccp-temperatuur-lijsten', function () {
+    return view('blog.haccp-temperatuur-lijsten');
+})->name('blog.haccp-temperatuur-lijsten');
+
