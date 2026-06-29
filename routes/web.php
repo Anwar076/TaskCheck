@@ -439,3 +439,7 @@ Route::get('/blog/haccp-temperatuur-lijsten', function () {
     return view('blog.haccp-temperatuur-lijsten');
 })->name('blog.haccp-temperatuur-lijsten');
 
+Route::get('/blog/logboek-horeca', function () {
+    return view('blog.logboek-horeca');
+})->name('blog.logboek-horeca');
+

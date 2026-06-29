@@ -273,6 +273,31 @@
 
             
             <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.logboek-horeca') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+                         alt="Logboek horeca: waarom en hoe je grip houdt op voedselveiligheid"
+                         loading="lazy"
+                         decoding="async"
+                         width="800"
+                         height="450">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-900 ring-1 ring-orange-200/70">Horeca</span>
+                        <span class="text-xs text-slate-400">29 jun 2026 · 6 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.logboek-horeca') }}">Logboek horeca: waarom en hoe je grip houdt op voedselveiligheid</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Een goed logboek is de ruggengraat van elke horecazaak. Van HACCP tot NVWA-inspecties: zo helpt een digitaal logboek bij dagelijkse controles en hygiëne.</p>
+                    <a href="{{ route('blog.logboek-horeca') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </article>
+
+            <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.haccp-temperatuur-lijsten') }}" class="blog-card__media block">
                     <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
                          alt="HACCP temperatuur lijsten: essentieel voor elke horecazaak"
