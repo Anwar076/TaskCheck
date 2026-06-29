@@ -214,6 +214,10 @@ Route::get('/horeca-check-app', function () {
     return view('seo.horeca-check-app');
 })->name('seo.horeca-check-app');
 
+Route::get('/temperatuurregistratie-systeem-vriezer', function () {
+    return view('seo.temperatuurregistratie-systeem-vriezer');
+})->name('seo.temperatuurregistratie-systeem-vriezer');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
