@@ -70,13 +70,20 @@ class LaravelPublisher:
     def _require_git_repo(self) -> Path:
         repo = self._repo_root()
         if not repo:
+            plesk_hint = ""
+            near = self.config.project_root.parent
+            if (near.parent / "git").is_dir():
+                plesk_hint = (
+                    f"\nPlesk gedetecteerd: zet in .env:\n"
+                    f"GIT_REPO_ROOT={near.parent / 'git'}/laravel_e55cd2\n"
+                    f"(pas mapnaam aan als die anders heet)\n"
+                )
             raise GitRepositoryRequiredError(
                 "Publiceren geblokkeerd: geen git repository (.git) gevonden.\n\n"
-                f"Laravel pad: {self.config.laravel_root}\n\n"
-                "Zet GIT_REPO_ROOT in .env naar je git clone (bijv. "
-                "C:\\laragon\\www\\surveycams of ~/git/laravel_e55cd2).\n"
-                "Run de bot alleen op een machine met git — nooit direct op Plesk httpdocs.\n"
-                "Daarna: goedkeuren → /push → Plesk deployt van GitHub."
+                f"Huidig Laravel pad: {self.config.laravel_root}\n"
+                f"{plesk_hint}\n"
+                "Aanbevolen: run de bot op je Windows-pc (C:\\laragon\\www\\surveycams).\n"
+                "Workflow: goedkeuren → /push → GitHub → Plesk deployt."
             )
         return repo
 

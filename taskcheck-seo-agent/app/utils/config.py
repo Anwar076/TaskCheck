@@ -14,11 +14,26 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_LARAVEL_ROOT = PROJECT_ROOT.parent
 
 
+def _plesk_git_repo(near: Path) -> Path | None:
+    """Plesk: httpdocs + ../git/laravel_* bevat vaak de echte git clone."""
+    git_dir = near.parent / "git"
+    if not git_dir.is_dir():
+        return None
+    for child in sorted(git_dir.iterdir()):
+        if child.is_dir() and (child / ".git").exists():
+            return child.resolve()
+    return None
+
+
 def _laravel_root() -> Path:
     custom = os.getenv("GIT_REPO_ROOT", "").strip()
     if custom:
         return Path(custom).expanduser().resolve()
-    return _DEFAULT_LARAVEL_ROOT.resolve()
+    default = _DEFAULT_LARAVEL_ROOT.resolve()
+    plesk_repo = _plesk_git_repo(default)
+    if plesk_repo:
+        return plesk_repo
+    return default
 
 
 @dataclass
