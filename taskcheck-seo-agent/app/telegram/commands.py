@@ -668,4 +668,7 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         llms = discovery.get("llms", {})
         if llms.get("added"):
             lines.append(f"📄 Toegevoegd aan llms.txt ({llms.get('section', '')})")
+        blog_index = discovery.get("blog_index", {})
+        if blog_index.get("added"):
+            lines.append("📰 Blogkaart toegevoegd op /blog")
         return "\n".join(lines)
