@@ -427,3 +427,7 @@ Route::get('/blog/nvwa-update-horeca-inspecties-juni-2026', function () {
     return view('blog.nvwa-update-horeca-inspecties-juni-2026');
 })->name('blog.nvwa-update-horeca-inspecties-juni-2026');
 
+Route::get('/blog/haccp-lijsten', function () {
+    return view('blog.haccp-lijsten');
+})->name('blog.haccp-lijsten');
+
