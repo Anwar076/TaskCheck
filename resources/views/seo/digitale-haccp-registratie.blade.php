@@ -2,18 +2,20 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle       = 'Digitale HACCP Registratie | HACCP Registraties Online Beheren | TaskCheck';
-        $seoDescription = 'Stap over op digitale HACCP registratie. Registreer controles, temperaturen, schoonmaak en bewijs eenvoudig online met TaskCheck. Start 14 dagen gratis.';
+        $seoTitle       = 'Digitale HACCP Registratie voor Horeca | NVWA-proof & Gratis Proberen | TaskCheck';
+        $seoDescription = 'Direct NVWA-proof werken met digitale HACCP registratie. TaskCheck is dé app voor horeca, bakkerij, hotel, slagerij: HACCP, temperatuur, schoonmaak en meer. Start 14 dagen gratis – geen creditcard!';
         $seoKeywords    = 'digitale HACCP registratie, HACCP registratie digitaal, digitale HACCP app, HACCP registraties online, voedselveiligheid registratie, HACCP software horeca';
         $seoUrl         = route('seo.digitale-haccp-registratie');
         $seoImage       = asset('images/taskcheck-horeca-seo-hero.webp');
-        $faqItems = [
-            ['Wat is digitale HACCP registratie?', 'Digitale HACCP registratie betekent dat voedselveiligheidscontroles digitaal worden vastgelegd in plaats van op papier.'],
+        $faqItems = [['Wat is digitale HACCP registratie?', 'Digitale HACCP registratie betekent dat voedselveiligheidscontroles digitaal worden vastgelegd in plaats van op papier.'],
             ['Kan ik temperatuurregistraties digitaal uitvoeren?', 'Ja. Met TaskCheck registreer je eenvoudig temperaturen van koelingen, vriezers en producten.'],
             ['Kan ik foto\'s toevoegen als bewijs?', 'Ja. Bij iedere registratie kun je foto\'s, video\'s, opmerkingen en handtekeningen toevoegen.'],
             ['Is TaskCheck geschikt voor meerdere locaties?', 'Ja. Je kunt meerdere vestigingen beheren vanuit één dashboard.'],
             ['Vervangt TaskCheck papieren HACCP formulieren?', 'TaskCheck helpt bedrijven om HACCP-processen digitaal vast te leggen en overzichtelijk te beheren.'],
-        ];
+            ['Hoe voldoet TaskCheck aan de eisen van de NVWA tijdens inspecties?', 'TaskCheck houdt rekening met de actuele NVWA-richtlijnen. Rapportages zijn direct te tonen tijdens een controle en voldoen aan alle wettelijke eisen.'],
+            ['Is TaskCheck veilig en voldoen mijn gegevens aan de AVG?', 'Ja, TaskCheck slaat alle gegevens veilig op binnen de EU en voldoet volledig aan de AVG (GDPR). Alleen bevoegde medewerkers hebben toegang tot de data.'],
+            ['Hoe stap ik eenvoudig over van papieren HACCP naar digitaal?', 'Met TaskCheck importeer je bestaande formulieren eenvoudig of gebruik je kant-en-klare sjablonen. Je team werkt direct digitaal via mobiel of tablet.'],
+            ['Welke horecaondernemingen gebruiken TaskCheck voor HACCP registratie?', 'TaskCheck wordt gebruikt door restaurants, lunchrooms, hotels, bakkerijen, slagerijen en fastfoodconcepten in heel Nederland.'],];
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -452,7 +454,11 @@
                 ['Opening checklist horeca', route('seo.opening-checklist-horeca')],
                 ['Sluitingschecklist horeca', route('seo.sluitings-checklist-horeca')],
                 ['Schoonmaak checklist', route('seo.schoonmaak-checklist')],
-                ['Prijzen', route('pricing')],
+                ['Prijzen', route('pricing')],                    ['Digitale checklist app', route('seo.digitale-checklist-app')],
+                    ['Horeca checklist app', route('seo.horeca-checklist-app')],
+                    ['Temperatuurregistratie app', route('seo.temperatuurregistratie-app')],
+                    ['Checklist app met foto-bewijs', route('seo.checklist-app-met-foto-bewijs')],
+                    ['Schoonmaak checklist app', route('seo.schoonmaak-checklist-app')],
             ] as $link)
             <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
                 {{ $link[0] }}
@@ -462,6 +468,7 @@
         </div>
     </div>
 </section>
+<section class="bg-blue-50 py-16"><div class="max-w-5xl mx-auto px-4"><h2 class="text-2xl font-bold mb-6">Hoe helpt TaskCheck bij een NVWA-inspectie?</h2><p class="mb-4">Tijdens een NVWA-inspectie moet je direct kunnen aantonen dat je HACCP-controles actueel en compleet zijn. Met TaskCheck toon je alle digitale registraties – inclusief temperatuurmetingen, schoonmaakchecks en inspectierapporten – direct op je tablet of smartphone. De NVWA accepteert digitale rapportages, waardoor je geen papieren mappen meer hoeft te laten zien.</p><ul class="list-disc ml-6 mb-4"><li>Altijd actuele registratie, nooit meer vergeten</li><li>Foto- en videobewijs direct bij elke controle</li><li>Rapportages delen met inspecteur in één klik</li></ul><p class="mb-4">Bekijk hoe een restaurant TaskCheck succesvol inzet bij de jaarlijkse NVWA-controle:</p><blockquote class="bg-white border-l-4 border-blue-500 p-4 text-blue-900 mb-4">“Tijdens de inspectie konden we alles direct laten zien. De inspecteur was onder de indruk van de overzichtelijke rapportages. Geen stress meer!” – Restaurantmanager, Utrecht</blockquote></div></section><section class="bg-white py-10"><div class="max-w-5xl mx-auto px-4"><h2 class="text-xl font-bold mb-4">USP’s per branche</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><h3 class="font-semibold mb-1">Voor restaurants & lunchrooms</h3><ul class="list-disc ml-6 text-sm"><li>Snelle dagelijkse checks</li><li>Meerdere locaties beheren</li><li>Realtime inzicht voor managers</li></ul></div><div><h3 class="font-semibold mb-1">Voor bakkerijen & slagerijen</h3><ul class="list-disc ml-6 text-sm"><li>Temperatuurregistratie vriezers/koelingen</li><li>Bewijs toevoegen bij productie en schoonmaak</li><li>Voldoen aan branche-eisen</li></ul></div><div><h3 class="font-semibold mb-1">Voor hotels & fastfood</h3><ul class="list-disc ml-6 text-sm"><li>Personeel werkt eenvoudig via mobiel</li><li>Rapportages per afdeling/vestiging</li><li>Snelle onboarding nieuwe medewerkers</li></ul></div></div></div></section>
 </main>
 
 @include('components.footer')
