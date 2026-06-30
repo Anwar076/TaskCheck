@@ -108,6 +108,29 @@ class GSCClient:
             },
         }
 
+    def get_single_day_summary(self, day: date) -> dict[str, Any]:
+        """GSC-totalen voor één kalenderdag."""
+        iso = day.isoformat()
+        rows = self.query([], start_date=iso, end_date=iso)
+        if rows:
+            return rows[0]
+        return {"clicks": 0, "impressions": 0, "ctr": 0.0, "position": 0.0}
+
+    def compare_two_days(self, day_a: date, day_b: date) -> dict[str, Any]:
+        """Vergelijk twee kalenderdagen (GSC-data, ~3 dagen vertraging)."""
+        a = self.get_single_day_summary(day_a)
+        b = self.get_single_day_summary(day_b)
+        return {
+            "day_a": {"date": day_a.isoformat(), **a},
+            "day_b": {"date": day_b.isoformat(), **b},
+            "changes": {
+                "clicks": b["clicks"] - a["clicks"],
+                "impressions": b["impressions"] - a["impressions"],
+                "ctr": round(b["ctr"] - a["ctr"], 2),
+                "position": round(b["position"] - a["position"], 1),
+            },
+        }
+
     def compare_queries(self, days: int = 14) -> dict[str, list[dict[str, Any]]]:
         """Vergelijk recente periode met vorige periode per zoekwoord."""
         end = date.today() - timedelta(days=3)

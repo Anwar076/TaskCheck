@@ -15,6 +15,9 @@ STOP_WORDS = {
     "naar", "als", "is", "are", "the", "a", "an", "of", "uit", "door",
 }
 
+SEO_SOURCES = frozenset({"live", "route_only", "pending", "generated"})
+BLOG_SOURCES = frozenset({"live_blog", "route_only_blog"})
+
 
 @dataclass
 class PageMatch:
@@ -138,7 +141,30 @@ class SEOPageRegistry:
         return list(pages.values())
 
     def find_match(self, keyword: str, slug: str | None = None) -> PageMatch | None:
-        """Zoek een bestaande pagina die bij dit zoekwoord hoort."""
+        """Zoek een bestaande pagina (SEO of blog) die bij dit zoekwoord hoort."""
+        return self._find_match_in(keyword, slug, sources=None)
+
+    def find_seo_match(self, keyword: str, slug: str | None = None) -> PageMatch | None:
+        """Zoek alleen een SEO-landingspagina — geen blog-match."""
+        return self._find_match_in(keyword, slug, sources=SEO_SOURCES)
+
+    def find_blog_match(self, keyword: str, slug: str | None = None) -> PageMatch | None:
+        """Zoek alleen een blogpagina."""
+        return self._find_match_in(keyword, slug, sources=BLOG_SOURCES)
+
+    def is_seo_slug(self, slug: str) -> bool:
+        self.refresh()
+        return any(
+            p["slug"] == slug and p.get("source") in SEO_SOURCES
+            for p in self._pages
+        )
+
+    def _find_match_in(
+        self,
+        keyword: str,
+        slug: str | None,
+        sources: frozenset[str] | None,
+    ) -> PageMatch | None:
         self.refresh()
 
         slug = slug or slugify(keyword)
@@ -146,7 +172,11 @@ class SEOPageRegistry:
         slug_norm = self._normalize(slug)
         keyword_tokens = self._tokenize(keyword)
 
-        for page in self._pages:
+        pages = self._pages
+        if sources is not None:
+            pages = [p for p in pages if p.get("source") in sources]
+
+        for page in pages:
             page_slug = page["slug"]
             page_slug_norm = self._normalize(page_slug)
 
@@ -156,7 +186,7 @@ class SEOPageRegistry:
             if slug_norm and (slug_norm in page_slug_norm or page_slug_norm in slug_norm):
                 return self._match(page, "slug_similar", 0.95, f"Vergelijkbare slug: {page_slug}")
 
-        for page in self._pages:
+        for page in pages:
             title = page.get("title", "")
             if title and keyword_norm in self._normalize(title):
                 return self._match(page, "title_contains", 0.9, f"Titel bevat zoekwoord: {title[:60]}")
@@ -172,7 +202,7 @@ class SEOPageRegistry:
                     )
 
         best: PageMatch | None = None
-        for page in self._pages:
+        for page in pages:
             page_tokens = page.get("tokens") or self._tokenize(page["slug"])
             slug_score = self._token_overlap(keyword_tokens, page_tokens)
             if slug_score >= 0.66:

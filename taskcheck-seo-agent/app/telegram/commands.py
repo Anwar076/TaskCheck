@@ -18,7 +18,14 @@ from app.seo.optimizer import PageOptimizer
 from app.seo.page_registry import get_page_registry
 from app.gsc.periods import resolve_gsc_period
 from app.telegram.chat import ChatRouter
-from app.telegram.intents import detect_intent, extract_create_blog_topic, extract_create_page_keyword
+from app.telegram.intents import (
+    detect_intent,
+    extract_blog_topics_from_history,
+    extract_compare_dates,
+    extract_create_blog_topic,
+    extract_create_page_keyword,
+    extract_page_keyword_from_history,
+)
 from app.utils.config import get_config
 from app.utils.files import slugify
 from app.utils.logger import setup_logger
@@ -140,6 +147,29 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         except Exception as exc:
             await update.message.reply_text(f"⚠️ Rapport mislukt: {exc}")
 
+    async def cmd_compare_dates(self, update, context, day_a, day_b) -> None:
+        await update.message.reply_text(
+            f"📊 SEO vergelijken: {day_a.strftime('%d-%m-%Y')} vs {day_b.strftime('%d-%m-%Y')}..."
+        )
+        try:
+            data = self.gsc.compare_two_days(day_a, day_b)
+            a, b = data["day_a"], data["day_b"]
+            ch = data["changes"]
+            text = f"""📊 SEO-vergelijking TaskCheck
+
+{a['date']} → {b['date']}
+
+Impressies: {a['impressions']:,} → {b['impressions']:,} ({ch['impressions']:+,})
+Klikken: {a['clicks']:,} → {b['clicks']:,} ({ch['clicks']:+,})
+CTR: {a['ctr']}% → {b['ctr']}% ({ch['ctr']:+.2f}%)
+Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
+
+ℹ️ GSC-data loopt ~3 dagen achter; recente dagen kunnen 0 tonen."""
+            await update.message.reply_text(text)
+        except Exception as exc:
+            logger.exception("Datumvergelijking mislukt")
+            await update.message.reply_text(f"⚠️ Kon datums niet vergelijken: {exc}")
+
     async def cmd_kansen(self, update, context) -> None:
         try:
             period = self._period_from_context(context)
@@ -197,7 +227,14 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
 
         await update.message.reply_text(f"✍️ Pagina schrijven voor: {keyword}...")
         try:
-            existing = self.registry.find_match(keyword)
+            existing = self.registry.find_seo_match(keyword)
+            blog_match = self.registry.find_blog_match(keyword) if not existing else None
+            if blog_match and not existing:
+                await update.message.reply_text(
+                    f"ℹ️ Er is wel een blog met vergelijkbare slug: {blog_match.url}\n"
+                    f"Ik maak een aparte SEO-landingspagina (niet de blog)."
+                )
+
             if existing:
                 if existing.source in ("pending", "generated"):
                     await update.message.reply_text(
@@ -259,6 +296,21 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
 
         await update.message.reply_text(f"🔧 Pagina optimaliseren: {slug}...")
         try:
+            if not self.registry.is_seo_slug(slug):
+                blog = self.registry.find_blog_match(slug, slug)
+                if blog:
+                    await update.message.reply_text(
+                        f"ℹ️ `{slug}` is een blog, geen SEO-pagina.\n"
+                        f"Blog: {blog.url}\n\n"
+                        f"Gebruik /blog om een nieuw artikel te maken, of /nieuw voor een SEO-landingspagina."
+                    )
+                    return
+                await update.message.reply_text(
+                    f"⚠️ Geen SEO-pagina gevonden: `{slug}`\n"
+                    f"Controleer de slug in resources/views/seo/"
+                )
+                return
+
             if self.memory.has_pending_for_slug(slug):
                 await update.message.reply_text(
                     f"⏸️ Er wacht al een optimalisatie voor `{slug}`.\n"
@@ -307,6 +359,49 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         except Exception as exc:
             logger.exception("Blog maken mislukt")
             await update.message.reply_text(f"⚠️ Blog maken mislukt: {exc}")
+
+    async def cmd_blogs_batch(self, update, context, topics: list[str] | None = None) -> None:
+        history = self.memory.get_chat_history(limit=12)
+        topics = topics or extract_blog_topics_from_history(history)
+        if not topics:
+            await update.message.reply_text(
+                "Ik zie geen blog-onderwerpen in ons gesprek.\n"
+                "Stuur eerst ideeën, of: /blog NVWA controles zomer 2026"
+            )
+            return
+
+        await update.message.reply_text(
+            f"📰 {len(topics)} blogconcept(en) maken uit ons gesprek..."
+        )
+        created: list[str] = []
+        errors: list[str] = []
+        for topic in topics:
+            try:
+                result = self.blog_writer.create_blog(topic, source="Batch via Telegram")
+                action_id = self.memory.add_pending_action({
+                    "type": "create_blog",
+                    "keyword": topic,
+                    "slug": result["slug"],
+                    "path": result["pending_path"],
+                    "reason": "Batch bloguit gesprek",
+                })
+                self.bot.notifier.notify_new_blog({
+                    "topic": topic,
+                    "reason": "Batch blog uit gesprek",
+                    "path": result["pending_path"],
+                    "action_id": action_id,
+                })
+                created.append(f"• {topic}\n  → {result['slug']}")
+            except Exception as exc:
+                logger.exception("Batch blog mislukt: %s", topic)
+                errors.append(f"• {topic}: {exc}")
+
+        lines = [f"✅ {len(created)} blogconcept(en) klaar:\n", *created]
+        if errors:
+            lines.append("\n⚠️ Mislukt:")
+            lines.extend(errors)
+        lines.append('\nStuur "ja toepassen" per concept, of /pending voor het overzicht.')
+        await update.message.reply_text("\n".join(lines))
 
     async def cmd_approve(self, update, context) -> None:
         await self._proceed(update, applying=True)
@@ -552,6 +647,20 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         if regex_intent == "report":
             await self.cmd_report(update, context)
             return
+        if regex_intent == "compare_dates":
+            dates = extract_compare_dates(message)
+            if dates:
+                await self.cmd_compare_dates(update, context, dates[0], dates[1])
+            else:
+                await update.message.reply_text(
+                    "Geef twee datums, bijv:\n"
+                    "28-06-2026 & 29-06-2026\n"
+                    "of: vergelijk 28 juni en 29 juni"
+                )
+            return
+        if regex_intent == "create_blogs_batch":
+            await self.cmd_blogs_batch(update, context)
+            return
         if regex_intent == "next":
             await self._proceed(update, applying=False)
             return
@@ -559,12 +668,32 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
             await self._reply_and_remember(update, message, await self._push_to_main())
             return
         if regex_intent == "create_blog":
-            topic = extract_create_blog_topic(message) or message
+            topic = extract_create_blog_topic(message)
+            if not topic:
+                history = self.memory.get_chat_history(limit=12)
+                topics = extract_blog_topics_from_history(history)
+                if topics:
+                    if len(topics) > 1:
+                        await self.cmd_blogs_batch(update, context, topics)
+                    else:
+                        fake_ctx = type("Ctx", (), {"args": topics[0].split()})()
+                        await self.cmd_blog(update, fake_ctx)
+                    return
+                topic = message
             fake_ctx = type("Ctx", (), {"args": topic.split()})()
             await self.cmd_blog(update, fake_ctx)
             return
         if regex_intent == "create_page":
-            keyword = extract_create_page_keyword(message) or message
+            keyword = extract_create_page_keyword(message)
+            if not keyword:
+                history = self.memory.get_chat_history(limit=12)
+                keyword = extract_page_keyword_from_history(history)
+            if not keyword:
+                await update.message.reply_text(
+                    "Voor welk zoekwoord wil je een SEO-pagina?\n"
+                    "Bijv: maak een pagina voor HACCP lijsten binnen 30 seconden"
+                )
+                return
             fake_ctx = type("Ctx", (), {"args": keyword.split()})()
             await self.cmd_nieuw(update, fake_ctx)
             return
@@ -641,6 +770,22 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
             await self.cmd_report(update, fake_ctx)
             return None
 
+        if intent == "compare_dates":
+            dates = extract_compare_dates(
+                (params.get("period") or "") + " " + (update.message.text if update.message else "")
+            )
+            if not dates:
+                dates = extract_compare_dates(update.message.text if update.message else "")
+            if dates:
+                await self.cmd_compare_dates(update, context, dates[0], dates[1])
+            else:
+                return "Geef twee datums, bijv: 28-06-2026 & 29-06-2026"
+            return None
+
+        if intent == "create_blogs_batch":
+            await self.cmd_blogs_batch(update, context)
+            return None
+
         if intent == "kansen":
             await self.cmd_kansen(update, fake_ctx)
             return None
@@ -677,7 +822,14 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         if intent == "create_blog":
             topic = (params.get("topic") or params.get("keyword") or "").strip()
             if not topic:
-                return 'Over welk onderwerp wil je een blog? Bijvoorbeeld: "maak een blog over NVWA inspecties".'
+                history = self.memory.get_chat_history(limit=12)
+                topics = extract_blog_topics_from_history(history)
+                if len(topics) > 1:
+                    await self.cmd_blogs_batch(update, context, topics)
+                    return None
+                topic = topics[0] if topics else ""
+            if not topic:
+                return 'Over welk onderwerp? Of stuur "maak de blogs" na blog-ideeën.'
             fake_ctx.args = topic.split()
             await self.cmd_blog(update, fake_ctx)
             return None
@@ -685,7 +837,10 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         if intent == "create_page":
             keyword = (params.get("keyword") or params.get("topic") or "").strip()
             if not keyword:
-                return 'Voor welk zoekwoord wil je een pagina? Bijvoorbeeld: "schrijf een pagina voor HACCP checklist".'
+                history = self.memory.get_chat_history(limit=12)
+                keyword = extract_page_keyword_from_history(history) or ""
+            if not keyword:
+                return 'Voor welk zoekwoord? Bijv: "schrijf een pagina voor HACCP checklist".'
             fake_ctx.args = keyword.split()
             await self.cmd_nieuw(update, fake_ctx)
             return None

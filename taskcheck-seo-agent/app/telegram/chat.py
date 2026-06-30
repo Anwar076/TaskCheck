@@ -15,10 +15,12 @@ CHAT_ACTIONS = {
     "chat",
     "status",
     "report",
+    "compare_dates",
     "kansen",
     "stijgers",
     "dalers",
     "create_blog",
+    "create_blogs_batch",
     "create_page",
     "improve_page",
     "approve",
@@ -57,18 +59,26 @@ Nieuw bericht van Anwar:
 Kies ÉÉN intent en optionele parameters. Voorbeelden:
 - "hoe gaat seo" / "status deze week" → status, period=week
 - "stuur rapport" / "dagelijks overzicht" → report
-- "grootste kansen" / "wat moet ik doen" → kansen of next
-- "maak blog over NVWA" / "schrijf artikel over ..." → create_blog, topic=...
-- "nieuwe pagina voor haccp app" → create_page, keyword=...
+- "vergelijk 28 juni en 29 juni" / "seo checken 28-06 vs 29-06" → compare_dates
+- "grootste kansen" / "wat moet ik doen" → kansen (NIET next bij rapport/vergelijk!)
+- "maak de blogs" / "schrijf ze maar" (na blog-ideeën) → create_blogs_batch
+- "maak blog over NVWA" → create_blog, topic=NVWA inspecties
+- "nieuwe pagina voor haccp app" / "yes omzetten naar seo pagina" → create_page
 - "verbeter horeca-check-app" → improve_page, slug=...
 - "ja doe maar" / "goedkeuren" (met open concept) → approve
 - "push naar live" / "deploy" → push
 - "wat wacht er" → pending
 - gewone vraag over SEO/data → chat
 
+BELANGRIJK:
+- Bij "maak de blogs" na een lijst met onderwerpen: create_blogs_batch (niet chat).
+- Bij "yes omzetten naar seo pagina" na een outline: create_page (niet alleen tekst teruggeven).
+- Bij datumvergelijkingen: compare_dates (niet next of report tenzij expliciet rapport gevraagd).
+- next alleen bij expliciet "volgende kans" — niet bij SEO-vragen of rapporten.
+
 Geef ALLEEN geldige JSON:
 {{
-  "intent": "chat|status|report|kansen|stijgers|dalers|create_blog|create_page|improve_page|approve|cancel|hold|pending|push|next|help",
+  "intent": "chat|status|report|compare_dates|kansen|stijgers|dalers|create_blog|create_blogs_batch|create_page|improve_page|approve|cancel|hold|pending|push|next|help",
   "params": {{
     "topic": "",
     "keyword": "",
