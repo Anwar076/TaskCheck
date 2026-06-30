@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle = 'Checklist app schoonmaak voor schoonmaakbedrijven';
-        $seoDescription = 'Checklist app schoonmaak voor meer controle, minder fouten en duidelijk bewijs per taak. Start 14 dagen gratis met TaskCheck.';
+        $seoTitle       = 'Checklist app schoonmaak – digitaal bewijs & realtime controle | TaskCheck';
+        $seoDescription = 'Digitale schoonmaak checklist app voor horeca, hotels en schoonmaakbedrijven. Met foto- en videobewijs, realtime voortgang en rapportages. Probeer 14 dagen gratis TaskCheck!';
         $seoUrl = route('seo.checklist-app-schoonmaak');
         $seoImage = asset('images/seo-checklist-schoonmaak-hero.png');
     @endphp
@@ -423,7 +423,12 @@
                     ['Takenlijst personeel', route('seo.takenlijst-personeel')],
                     ['Beste checklist app 2026', route('seo.beste-checklist-app-2026')],
                     ['Checklist app voor bedrijven', route('seo.checklist-app-voor-bedrijven')],
-                    ['Blog: checklist schoonmaak', route('blog.beste-checklist-app-voor-schoonmaakbedrijven')],
+                    ['Blog: checklist schoonmaak', route('blog.beste-checklist-app-voor-schoonmaakbedrijven')],                    ['Schoonmaak checklist voorbeelden', route('seo.schoonmaak-checklist-voorbeeld')],
+                    ['Digitale HACCP registratie', route('seo.digitale-haccp-registratie')],
+                    ['Checklist app met foto-bewijs', route('seo.checklist-app-met-foto-bewijs')],
+                    ['Schoonmaakrooster horeca', route('seo.schoonmaakrooster-horeca')],
+                    ['Restaurant checklist app', route('seo.restaurant-checklist-app')],
+                    ['Wat is een checklist app?', route('seo.wat-is-een-checklist-app')],
                 ] as $link)
                 <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
                     {{ $link[0] }}
@@ -434,6 +439,7 @@
         </section>
 
     </div>
+<section class="relative py-14 bg-slate-50 border-t border-b border-slate-200"><div class="max-w-4xl mx-auto px-4"><h2 class="text-2xl font-bold mb-4">Waarom kiezen horeca en schoonmaakteams voor digitale checklists?</h2><ul class="list-disc pl-6 text-slate-700 space-y-2"><li><strong>Direct bewijs:</strong> Lever foto- of videobewijs bij elke taak, handig voor audits en opdrachtgever-verantwoording.</li><li><strong>Realtime overzicht:</strong> Leiding en opdrachtgever zien direct per locatie wat er is gedaan.</li><li><strong>NVWA & HACCP ready:</strong> Voldoet aan alle eisen voor voedselveiligheid en schoonmaak in horeca.</li><li><strong>Geen losse lijsten meer:</strong> Alles mobiel, geen Excel of papieren formulieren.</li><li><strong>Snelle implementatie:</strong> Start direct met eigen checklists of templates.</li></ul><p class="mt-6">Meer weten? <a href="/register" class="text-blue-700 underline font-semibold">Start 14 dagen gratis</a> of <a href="/pricing" class="text-blue-700 underline font-semibold">bekijk de prijzen</a>.</p></div></section>
 </main>
 
 @include('components.footer')
