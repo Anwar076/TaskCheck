@@ -17,7 +17,8 @@ from app.seo.analyzer import SEOAnalyzer
 from app.seo.optimizer import PageOptimizer
 from app.seo.page_registry import get_page_registry
 from app.gsc.periods import resolve_gsc_period
-from app.telegram.intents import detect_intent
+from app.telegram.chat import ChatRouter
+from app.telegram.intents import detect_intent, extract_create_blog_topic, extract_create_page_keyword
 from app.utils.config import get_config
 from app.utils.files import slugify
 from app.utils.logger import setup_logger
@@ -42,34 +43,39 @@ class CommandHandler:
         self.reporter = DailyReporter()
         self.gsc = GSCClient()
         self.registry = get_page_registry()
+        self.chat_router = ChatRouter()
 
     async def cmd_start(self, update, context) -> None:
+        name = self.config.owner_name or "daar"
         await update.message.reply_text(
-            "👋 Hoi! Ik ben de TaskCheck SEO Agent.\n\n"
-            "Ik analyseer Search Console, ontdek kansen, schrijf SEO-pagina's "
-            "en stuur je dagelijks een rapport.\n\n"
-            "24/7 modus: start met `python run.py daemon` (bot + kans-alerts).\n"
-            "Je kunt me ook gewoon vragen stellen in chat.\n\n"
-            "Commando's:\n"
-            "/status [periode] — SEO status (bijv. week, 90, 3m)\n"
-            "/report [periode] — Rapport (week / maand / 3m)\n"
-            "/kansen [periode] — Grootste SEO-kansen\n"
-            "/stijgers [periode] — Zoekwoorden die stijgen\n"
-            "/dalers [periode] — Zoekwoorden die dalen\n"
-            "/nieuw [zoekwoord] — Nieuwe SEO-pagina maken\n"
-            "/verbeter [slug] — Pagina optimaliseren\n"
-            "/blog [onderwerp] — Nieuw blogconcept maken\n"
-            "/volgende — Volgende SEO-actie (ander zoekwoord)\n"
-            "/approve — Laatste actie goedkeuren (of typ \"ja toepassen\")\n"
-            "/cancel — Laatste actie annuleren\n"
-            "/hold — Actie parkeren\n"
-            "/pending — Openstaande acties\n"
-            "/push — Merge naar main, push + GSC sitemap/inspectie\n"
-            "/help — Deze help"
+            f"👋 Hoi {name}! Ik ben je TaskCheck SEO-assistent.\n\n"
+            "Je kunt gewoon met me praten — stel vragen, vraag advies, of geef opdrachten in normale taal.\n\n"
+            "Voorbeelden:\n"
+            "• Hoe gaat SEO deze week?\n"
+            "• Wat zijn onze grootste kansen?\n"
+            "• Maak een blog over NVWA inspecties\n"
+            "• Schrijf een pagina voor HACCP checklist\n"
+            "• Ja, pas het toe / push naar live\n\n"
+            "Ik onthoud het gesprek en werk met live Search Console-data.\n"
+            "Typ /help voor alle commando's."
         )
 
     async def cmd_help(self, update, context) -> None:
-        await self.cmd_start(update, context)
+        await update.message.reply_text(
+            "💬 Chatbot-modus: praat gewoon met me in normale taal.\n\n"
+            "Commando's (optioneel):\n"
+            "/status [week|maand|3m] — SEO-overzicht\n"
+            "/report — Dagelijks rapport\n"
+            "/kansen /stijgers /dalers — Data uit Search Console\n"
+            "/nieuw [zoekwoord] — SEO-pagina concept\n"
+            "/blog [onderwerp] — Blog concept\n"
+            "/verbeter [slug] — Pagina optimaliseren\n"
+            "/approve — Concept goedkeuren (of: ja toepassen)\n"
+            "/push — Naar GitHub main + live deploy\n"
+            "/pending — Wat wacht op goedkeuring\n"
+            "/volgende — Andere SEO-kans\n"
+            "/cancel /hold — Concept afwijzen of parkeren"
+        )
 
     def _period_from_context(self, context):
         from app.gsc.periods import resolve_gsc_period
@@ -207,6 +213,12 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
                     f"Match: {existing.reason}\n\n"
                     f"Ik ga `/verbeter {existing.slug}` uitvoeren i.p.v. een duplicaat."
                 )
+                if self.memory.has_pending_for_slug(existing.slug):
+                    await update.message.reply_text(
+                        f"⏸️ Er wacht al een optimalisatie voor `{existing.slug}`.\n"
+                        "Stuur 'ja toepassen' of /cancel voordat ik opnieuw begin."
+                    )
+                    return
                 context.args = [existing.slug]
                 await self.cmd_verbeter(update, context)
                 return
@@ -247,6 +259,12 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
 
         await update.message.reply_text(f"🔧 Pagina optimaliseren: {slug}...")
         try:
+            if self.memory.has_pending_for_slug(slug):
+                await update.message.reply_text(
+                    f"⏸️ Er wacht al een optimalisatie voor `{slug}`.\n"
+                    "Stuur 'ja toepassen' of /cancel."
+                )
+                return
             result = self.optimizer.optimize_page(slug)
             action_id = self.memory.add_pending_action({
                 "type": "optimize_page",
@@ -505,71 +523,196 @@ Te verbeteren: {len(analysis.get('improve_opportunities', []))}"""
         await self._reply(update, result)
 
     async def handle_message(self, update, context) -> None:
-        """Behandel vrije tekst — eerst acties, daarna AI-chat."""
-        message = update.message.text.strip()
-        intent = detect_intent(message)
+        """Chatbot: natuurlijke taal + acties + gespreksgeheugen."""
+        from telegram.constants import ChatAction
 
-        if intent == "approve":
+        message = update.message.text.strip()
+        if not message:
+            return
+
+        chat_id = update.effective_chat.id
+        regex_intent = detect_intent(message)
+
+        # Snelle route voor expliciete workflow-acties
+        if regex_intent == "approve":
             await self._proceed(update, applying=True)
             return
-
-        if intent == "cancel":
-            result = await self._execute_cancel()
-            await update.message.reply_text(result)
+        if regex_intent == "cancel":
+            await self._reply_and_remember(update, message, await self._execute_cancel())
             return
-
-        if intent == "hold":
-            result = await self._execute_hold()
-            await update.message.reply_text(result)
+        if regex_intent == "hold":
+            await self._reply_and_remember(update, message, await self._execute_hold())
             return
-
-        if intent == "pending":
+        if regex_intent == "pending":
             await self.cmd_pending(update, context)
             return
-
-        if intent == "status":
+        if regex_intent == "status":
             await self.cmd_status(update, context)
             return
-
-        if intent == "report":
+        if regex_intent == "report":
             await self.cmd_report(update, context)
             return
-
-        if intent == "next":
+        if regex_intent == "next":
             await self._proceed(update, applying=False)
             return
-
-        if intent == "push_main":
-            result = await self._push_to_main()
-            await update.message.reply_text(result)
+        if regex_intent == "push_main":
+            await self._reply_and_remember(update, message, await self._push_to_main())
+            return
+        if regex_intent == "create_blog":
+            topic = extract_create_blog_topic(message) or message
+            fake_ctx = type("Ctx", (), {"args": topic.split()})()
+            await self.cmd_blog(update, fake_ctx)
+            return
+        if regex_intent == "create_page":
+            keyword = extract_create_page_keyword(message) or message
+            fake_ctx = type("Ctx", (), {"args": keyword.split()})()
+            await self.cmd_nieuw(update, fake_ctx)
             return
 
-        pending = self.memory.get_latest_pending(await self._live_slugs())
-        await update.message.reply_text("🤔 Even nadenken...")
+        await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+        self.memory.append_chat("user", message)
 
         try:
-            analysis = self.analyzer.find_opportunities()
-            last_report = self.memory.get_last_report()
-            context_data = {
-                "last_report": last_report,
-                "summary": analysis.get("summary", {}),
-                "top_opportunities": analysis.get("new_page_opportunities", [])[:3],
-                "rising": analysis.get("trends", {}).get("rising", [])[:3],
-                "falling": analysis.get("trends", {}).get("falling", [])[:3],
-                "pending_action": pending,
-            }
-            response = self.brain.chat_response(message, context_data)
+            chat_context = await self._build_chat_context()
+            history = self.memory.get_chat_history(limit=14)
+            route = self.chat_router.route(message, chat_context, history)
+            intent = route.get("intent", "chat")
+            params = route.get("params") or {}
 
-            if pending and any(w in message.lower() for w in ("toepas", "goedkeur", "public", "live", "akkoord", "ja")):
-                response += (
-                    "\n\n💡 Tip: stuur \"ja toepassen\" of klik ✅ Toepassen "
-                    f"om '{pending.get('slug') or pending.get('keyword')}' live te zetten."
-                )
+            if intent != "chat":
+                action_reply = await self._execute_chat_intent(update, context, intent, params)
+                if action_reply is not None:
+                    if action_reply:
+                        await self._reply_and_remember(update, message, action_reply, skip_user=True)
+                    return
 
-            await update.message.reply_text(response[:4096])
+            reply = self.chat_router.reply(message, chat_context, history)
+            pending = chat_context.get("pending_action")
+            if pending and any(w in message.lower() for w in ("toepas", "goedkeur", "live", "public")):
+                label = pending.get("slug") or pending.get("keyword") or "concept"
+                reply += f"\n\n💡 Open concept: {label} — zeg \"ja toepassen\" om door te gaan."
+
+            await self._reply_and_remember(update, message, reply[:4096], skip_user=True)
         except Exception as exc:
             logger.exception("Chat fout")
             await update.message.reply_text(f"⚠️ {exc}")
+
+    async def _build_chat_context(self) -> dict:
+        live = await self._live_slugs()
+        pending = self.memory.get_latest_pending(live)
+        try:
+            analysis = self.analyzer.find_opportunities(exclude_handled=False)
+            summary = analysis.get("summary", {})
+        except Exception:
+            analysis = {}
+            summary = {}
+        return {
+            "owner": self.config.owner_name,
+            "pending_action": pending,
+            "open_pending_count": len(self.memory.get_all_open_pending(live)),
+            "summary": summary,
+            "top_opportunities": analysis.get("new_page_opportunities", [])[:3],
+            "improve_opportunities": analysis.get("improve_opportunities", [])[:3],
+            "rising": analysis.get("trends", {}).get("rising", [])[:3],
+            "falling": analysis.get("trends", {}).get("falling", [])[:3],
+            "recent_published": self.memory.load().get("published_pages", [])[-3:],
+        }
+
+    async def _execute_chat_intent(
+        self,
+        update,
+        context,
+        intent: str,
+        params: dict,
+    ) -> str | None:
+        """Voer AI-actie uit. None = al afgehandeld via commando; str = tekstantwoord."""
+        period_token = (params.get("period") or "").strip()
+        fake_ctx = type("Ctx", (), {"args": period_token.split() if period_token else []})()
+
+        if intent == "help":
+            await self.cmd_help(update, context)
+            return None
+
+        if intent == "status":
+            await self.cmd_status(update, fake_ctx)
+            return None
+
+        if intent == "report":
+            await self.cmd_report(update, fake_ctx)
+            return None
+
+        if intent == "kansen":
+            await self.cmd_kansen(update, fake_ctx)
+            return None
+
+        if intent == "stijgers":
+            await self.cmd_stijgers(update, fake_ctx)
+            return None
+
+        if intent == "dalers":
+            await self.cmd_dalers(update, fake_ctx)
+            return None
+
+        if intent == "approve":
+            await self._proceed(update, applying=True)
+            return None
+
+        if intent == "cancel":
+            return await self._execute_cancel()
+
+        if intent == "hold":
+            return await self._execute_hold()
+
+        if intent == "pending":
+            await self.cmd_pending(update, context)
+            return None
+
+        if intent == "push":
+            return await self._push_to_main()
+
+        if intent == "next":
+            await self._proceed(update, applying=False)
+            return None
+
+        if intent == "create_blog":
+            topic = (params.get("topic") or params.get("keyword") or "").strip()
+            if not topic:
+                return 'Over welk onderwerp wil je een blog? Bijvoorbeeld: "maak een blog over NVWA inspecties".'
+            fake_ctx.args = topic.split()
+            await self.cmd_blog(update, fake_ctx)
+            return None
+
+        if intent == "create_page":
+            keyword = (params.get("keyword") or params.get("topic") or "").strip()
+            if not keyword:
+                return 'Voor welk zoekwoord wil je een pagina? Bijvoorbeeld: "schrijf een pagina voor HACCP checklist".'
+            fake_ctx.args = keyword.split()
+            await self.cmd_nieuw(update, fake_ctx)
+            return None
+
+        if intent == "improve_page":
+            slug = (params.get("slug") or params.get("keyword") or "").strip()
+            if not slug:
+                return "Welke pagina wil je verbeteren? Noem de slug, bijv. horeca-check-app."
+            fake_ctx.args = [slugify(slug)]
+            await self.cmd_verbeter(update, fake_ctx)
+            return None
+
+        return None
+
+    async def _reply_and_remember(
+        self,
+        update,
+        user_message: str,
+        reply: str,
+        *,
+        skip_user: bool = False,
+    ) -> None:
+        if not skip_user:
+            self.memory.append_chat("user", user_message)
+        if reply:
+            self.memory.append_chat("assistant", reply)
+            await self._reply(update, reply)
 
     def _best_riser(self, analysis: dict) -> str:
         rising = analysis.get("trends", {}).get("rising", [])

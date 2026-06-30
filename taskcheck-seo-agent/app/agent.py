@@ -72,6 +72,18 @@ class SEOAgent:
 
     def execute_best_action(self) -> dict[str, Any]:
         """Analyseer en voer de beste SEO-actie uit (met goedkeuring)."""
+        open_pending = self.memory.get_active_pending()
+        if open_pending:
+            latest = open_pending[-1]
+            label = latest.get("keyword") or latest.get("slug") or latest.get("type", "")
+            return {
+                "action": "skipped",
+                "reason": (
+                    f"Er wacht al een concept voor '{label}'. "
+                    "Stuur 'ja toepassen', /cancel of /hold voordat ik iets nieuws maak."
+                ),
+            }
+
         handled = list(self.memory.get_completed_keywords()) + list(self.memory.get_completed_slugs())
         analysis = self.analyzer.find_opportunities(exclude_handled=True)
         decision = self.brain.analyze_opportunities(analysis, handled=handled)
@@ -152,15 +164,34 @@ class SEOAgent:
 
         if not slug or not (self.config.seo_views_dir / f"{slug}.blade.php").exists():
             opps = analysis.get("improve_opportunities", [])
-            if opps:
-                page_url = opps[0].get("page", "")
-                slug = slugify(page_url.split("/")[-1])
+            found_slug = ""
+            for opp in opps:
+                page_url = opp.get("page", "")
+                candidate = opp.get("slug") or slugify(page_url.split("/")[-1])
+                if candidate and (self.config.seo_views_dir / f"{candidate}.blade.php").exists():
+                    found_slug = candidate
+                    break
+            if found_slug:
+                slug = found_slug
             else:
                 return {"action": "skipped", "reason": "Geen pagina gevonden om te verbeteren"}
 
+        if self.memory.has_pending_for_slug(slug):
+            return {
+                "action": "skipped",
+                "reason": (
+                    f"Er wacht al een optimalisatie voor {slug}. "
+                    "Gebruik 'ja toepassen' of /cancel."
+                ),
+            }
+
         logger.info("Pagina optimaliseren: %s", slug)
         gsc_data = next(
-            (o for o in analysis.get("improve_opportunities", []) if slug in o.get("page", "")),
+            (
+                o
+                for o in analysis.get("improve_opportunities", [])
+                if o.get("slug") == slug or slug in o.get("page", "")
+            ),
             {},
         )
         result = self.optimizer.optimize_page(slug, gsc_data)
@@ -168,6 +199,7 @@ class SEOAgent:
         action_id = self.memory.add_pending_action({
             "type": "optimize_page",
             "slug": slug,
+            "keyword": decision.get("keyword", ""),
             "path": result["pending_path"],
             "reason": decision.get("reason", ""),
         })
@@ -236,6 +268,16 @@ class SEOAgent:
                 "reason": (
                     f"Concept bestaat al als '{slug}' ({existing.reason}). "
                     "Gebruik /approve om te publiceren."
+                ),
+                "existing_slug": slug,
+            }
+
+        if self.memory.has_pending_for_slug(slug):
+            return {
+                "action": "skipped",
+                "reason": (
+                    f"Er wacht al een optimalisatie voor {existing.url}. "
+                    "Stuur 'ja toepassen' of /cancel — geen duplicaat concept."
                 ),
                 "existing_slug": slug,
             }

@@ -62,9 +62,24 @@ def detect_intent(message: str) -> str | None:
     ]
 
     push_patterns = [
-        r"\b(push)\b.*\b(main|master)\b",
-        r"\b(naar main|naar master)\b",
+        r"\b(push)\b.*\b(main|master|live|productie)\b",
+        r"\b(naar main|naar master|naar live)\b",
         r"\b(merge naar main|merge naar master)\b",
+        r"\bdeploy\b",
+    ]
+
+    create_blog_patterns = [
+        r"(?:maak|schrijf|cre[eë]er).{0,25}(?:blog|artikel).{0,15}(?:over|about)\s+(.+)",
+        r"(?:blog|artikel)\s+(?:over|about)\s+(.+)",
+    ]
+
+    create_page_patterns = [
+        r"(?:maak|schrijf|cre[eë]er).{0,25}(?:pagina|seo.?pagina|landingspagina).{0,15}(?:voor|over)\s+(.+)",
+        r"nieuwe?\s+(?:seo\s+)?pagina\s+(?:voor|over)\s+(.+)",
+    ]
+
+    kansen_patterns = [
+        r"\b(grootste kansen|seo kansen|wat moet ik doen|wat raad je)\b",
     ]
 
     next_patterns = [
@@ -101,8 +116,44 @@ def detect_intent(message: str) -> str | None:
         if re.search(pattern, text):
             return "push_main"
 
+    for pattern in create_blog_patterns:
+        if re.search(pattern, text):
+            return "create_blog"
+
+    for pattern in create_page_patterns:
+        if re.search(pattern, text):
+            return "create_page"
+
+    for pattern in kansen_patterns:
+        if re.search(pattern, text):
+            return "next"
+
     for pattern in next_patterns:
         if re.search(pattern, text):
             return "next"
 
+    return None
+
+
+def extract_create_blog_topic(message: str) -> str | None:
+    text = message.strip()
+    for pattern in (
+        r"(?:maak|schrijf|cre[eë]er).{0,25}(?:blog|artikel).{0,15}(?:over|about)\s+(.+)",
+        r"(?:blog|artikel)\s+(?:over|about)\s+(.+)",
+    ):
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return None
+
+
+def extract_create_page_keyword(message: str) -> str | None:
+    text = message.strip()
+    for pattern in (
+        r"(?:maak|schrijf|cre[eë]er).{0,25}(?:pagina|seo.?pagina|landingspagina).{0,15}(?:voor|over)\s+(.+)",
+        r"nieuwe?\s+(?:seo\s+)?pagina\s+(?:voor|over)\s+(.+)",
+    ):
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
     return None

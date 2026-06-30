@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import urlparse
 
 from app.gsc.client import GSCClient
 from app.memory.store import MemoryStore
@@ -82,13 +83,17 @@ class SEOAnalyzer:
                 continue
 
             slug = slugify(query)
-
-            if self._is_excluded(query, slug, exclude_keywords, exclude_slugs):
-                if q["impressions"] >= 5:
-                    skipped_handled.append({"keyword": query, "slug": slug, "reason": "recent afgehandeld"})
-                continue
-
             existing = self.registry.find_match(query, slug)
+            check_slug = existing.slug if existing else slug
+
+            if self._is_excluded(query, check_slug, exclude_keywords, exclude_slugs):
+                if q["impressions"] >= 5:
+                    skipped_handled.append({
+                        "keyword": query,
+                        "slug": check_slug,
+                        "reason": "recent afgehandeld",
+                    })
+                continue
 
             if existing:
                 if q["impressions"] >= 10:
@@ -149,10 +154,19 @@ class SEOAnalyzer:
                 })
 
         for p in pages:
+            page_url = p.get("page", "")
+            path = urlparse(page_url).path if page_url else ""
+            page_slug = slugify(path.split("/")[-1]) if path else ""
+            if not page_slug or path.startswith("/blog/"):
+                continue
+            if not (self.config.seo_views_dir / f"{page_slug}.blade.php").exists():
+                continue
+
             if p["impressions"] >= 20 and p["ctr"] < 2:
                 low_ctr_pages.append({
                     "type": "low_ctr_page",
                     "page": p["page"],
+                    "slug": page_slug,
                     "impressions": p["impressions"],
                     "clicks": p["clicks"],
                     "ctr": p["ctr"],
@@ -165,6 +179,7 @@ class SEOAnalyzer:
                 improve_opportunities.append({
                     "type": "improve_page",
                     "page": p["page"],
+                    "slug": page_slug,
                     "impressions": p["impressions"],
                     "clicks": p["clicks"],
                     "ctr": p["ctr"],

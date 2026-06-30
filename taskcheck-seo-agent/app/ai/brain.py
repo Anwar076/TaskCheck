@@ -22,7 +22,7 @@ class AIBrain:
         self.model = config.openai_model
         self.company_context = load_company_context(config.company_context_path)
 
-    def _ask(self, prompt: str, system: str | None = None) -> str:
+    def _ask(self, prompt: str, system: str | None = None, temperature: float = 0.7) -> str:
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
@@ -31,7 +31,34 @@ class AIBrain:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            temperature=0.7,
+            temperature=temperature,
+        )
+        return response.choices[0].message.content or ""
+
+    def _ask_json(self, prompt: str, system: str | None = None, temperature: float = 0.3) -> str:
+        return self._ask(prompt, system=system, temperature=temperature)
+
+    def _ask_with_history(
+        self,
+        message: str,
+        system: str,
+        history: list[dict[str, str]] | None = None,
+        extra_context: str | None = None,
+        temperature: float = 0.7,
+    ) -> str:
+        messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+        for item in (history or [])[-14:]:
+            role = item.get("role", "user")
+            if role in ("user", "assistant"):
+                messages.append({"role": role, "content": item.get("content", "")[:2000]})
+        user_content = message
+        if extra_context:
+            user_content = f"{extra_context}\n\nBericht:\n{message}"
+        messages.append({"role": "user", "content": user_content})
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=temperature,
         )
         return response.choices[0].message.content or ""
 
@@ -308,24 +335,36 @@ Minimaal 4 secties.
         result = self._ask(prompt, system="Je bent een SEO redacteur. Antwoord alleen in JSON.")
         return extract_json_from_response(result)
 
-    def chat_response(self, message: str, context: dict[str, Any]) -> str:
-        """Beantwoord een vraag via Telegram chat."""
-        prompt = f"""
-{self.company_context}
+    def chat_response(
+        self,
+        message: str,
+        context: dict[str, Any],
+        history: list[dict[str, str]] | None = None,
+    ) -> str:
+        """Beantwoord een vraag via Telegram chat — met gespreksgeheugen."""
+        owner = get_config().owner_name or "Anwar"
+        system = f"""{self.company_context}
 
-Je bent de TaskCheck SEO Agent — een proactieve Senior SEO Specialist.
-Spreek Anwar aan als collega. Wees concreet en onderbouw advies met data.
+Je bent de TaskCheck SEO Agent — een proactieve Senior SEO specialist én vriendelijke chatbot.
+Je praat met {owner} als collega: warm, direct, in het Nederlands (B1).
 
-Huidige context:
-{json.dumps(context, ensure_ascii=False, indent=2)}
+Je kunt:
+- SEO-data uitleggen (Search Console, rankings, CTR, kansen)
+- Advies geven over pagina's, blogs en optimalisatie
+- Uitleggen hoe goedkeuren/push werkt (concept → ja toepassen → push)
 
-Vraag van Anwar:
-{message}
+Wees conversationeel. Geen lange commandolijsten tenzij gevraagd.
+Gebruik emoji spaarzaam. Geef concrete vervolgstappen als dat helpt.
+Als er een open concept is (pending_action), verwijs daar kort naar."""
 
-Geef een helder, professioneel antwoord in het Nederlands.
-Gebruik emoji spaarzaam. Geef concrete acties waar relevant.
-"""
-        return self._ask(prompt, system="Je bent een vriendelijke maar professionele SEO collega.")
+        extra = f"Huidige data-context:\n{json.dumps(context, ensure_ascii=False, indent=2)}"
+        return self._ask_with_history(
+            message,
+            system=system,
+            history=history,
+            extra_context=extra,
+            temperature=0.75,
+        )
 
     def format_daily_advice(self, analysis: dict[str, Any]) -> str:
         """Genereer kort dagelijks advies."""

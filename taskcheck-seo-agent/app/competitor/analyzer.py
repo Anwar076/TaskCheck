@@ -26,7 +26,8 @@ OWN_DOMAINS = ("taskcheck.nl", "localhost")
 class CompetitorAnalyzer:
     def __init__(self) -> None:
         self.config = get_config()
-        self.competitors = load_lines(self.config.competitors_path)
+        raw = load_lines(self.config.competitors_path)
+        self.competitors = list(dict.fromkeys(raw))
 
     def analyze_url(self, url: str, timeout: int = 12) -> dict[str, Any] | None:
         """Analyseer een concurrentenpagina. Retourneert None bij fout."""
@@ -77,20 +78,26 @@ class CompetitorAnalyzer:
             "images": images,
         }
 
-    def analyze_keyword(self, keyword: str, max_results: int = 3) -> list[dict[str, Any]]:
+    def analyze_keyword(self, keyword: str, max_results: int | None = None) -> list[dict[str, Any]]:
         """Analyseer concurrenten voor een zoekwoord."""
+        configured_limit = self.config.competitor_max_results
+        limit = max_results if max_results is not None else configured_limit
+        if limit <= 0:
+            limit = len(self.competitors) if self.competitors else 10
+
         urls: list[str] = []
 
-        for competitor in self.competitors[:max_results]:
+        for competitor in self.competitors:
             domain = competitor.strip().replace("https://", "").replace("http://", "").rstrip("/")
             if domain:
                 urls.append(f"https://{domain}")
+        urls = list(dict.fromkeys(urls))
 
         if not urls:
-            urls = self._find_serp_urls(keyword, max_results=max_results)
+            urls = self._find_serp_urls(keyword, max_results=limit)
 
         results: list[dict[str, Any]] = []
-        for url in urls[:max_results]:
+        for url in urls[:limit]:
             analysis = self.analyze_url(url)
             if analysis:
                 analysis["keyword"] = keyword

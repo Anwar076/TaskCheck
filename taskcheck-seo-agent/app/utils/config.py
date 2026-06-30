@@ -86,6 +86,7 @@ class Config:
     )
     gsc_default_days: int = field(default_factory=lambda: int(os.getenv("GSC_DEFAULT_DAYS", "28")))
     gsc_trend_days: int = field(default_factory=lambda: int(os.getenv("GSC_TREND_DAYS", "14")))
+    competitor_max_results: int = field(default_factory=lambda: int(os.getenv("COMPETITOR_MAX_RESULTS", "0")))
 
     project_root: Path = field(default_factory=lambda: PROJECT_ROOT)
     data_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data")

@@ -17,6 +17,7 @@ class MemoryStore:
         self.pending_path = config.data_dir / "pending_actions.json"
         self.report_path = config.data_dir / "last_report.json"
         self.history_path = config.data_dir / "action_history.json"
+        self.chat_history_path = config.data_dir / "chat_history.json"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -62,6 +63,10 @@ class MemoryStore:
 
     def get_pending_actions(self) -> list[dict[str, Any]]:
         return read_json(self.pending_path, [])
+
+    def get_active_pending(self) -> list[dict[str, Any]]:
+        """Concepten die nog wachten op goedkeuring (niet geparkeerd)."""
+        return [a for a in self.get_pending_actions() if a.get("status") == "pending"]
 
     def save_pending_actions(self, actions: list[dict[str, Any]]) -> None:
         write_json(self.pending_path, actions)
@@ -146,6 +151,10 @@ class MemoryStore:
         changed = False
         for action in actions:
             if action.get("status") not in ("pending", "on_hold"):
+                continue
+            # Alleen create-acties raken "stale" als de pagina al live staat.
+            # Optimize-acties horen juist op live pagina's en mogen niet auto-superseded worden.
+            if action.get("type") not in ("create_page", "create_blog"):
                 continue
             slug = action.get("slug")
             if not slug:
@@ -240,3 +249,20 @@ class MemoryStore:
 
     def peek_gsc_queue(self) -> list[dict[str, Any]]:
         return list(self.load().get("gsc_url_queue", []))
+
+    def get_chat_history(self, limit: int = 16) -> list[dict[str, str]]:
+        history = read_json(self.chat_history_path, [])
+        trimmed = history[-limit:] if limit else history
+        return [{"role": h.get("role", "user"), "content": h.get("content", "")} for h in trimmed]
+
+    def append_chat(self, role: str, content: str) -> None:
+        if not content.strip():
+            return
+        history = read_json(self.chat_history_path, [])
+        history.append({"role": role, "content": content.strip(), "at": self._now()})
+        if len(history) > 40:
+            history = history[-40:]
+        write_json(self.chat_history_path, history)
+
+    def clear_chat_history(self) -> None:
+        write_json(self.chat_history_path, [])
