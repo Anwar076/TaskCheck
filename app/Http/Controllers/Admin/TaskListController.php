@@ -261,8 +261,12 @@ class TaskListController extends Controller
 
     public function show(Request $request, TaskList $list)
     {
-        // Explicitly load assignments with user relationships for debugging
-        $list->load(['assignments.user', 'tasks', 'submissions', 'location']);
+        $list->load([
+            'assignments.user',
+            'tasks' => fn ($query) => $query->orderBy('order_index'),
+            'submissions',
+            'location',
+        ]);
         
         // Get all users for the assignment modal (zelfde bedrijf; bij null company_id alle gebruikers)
         $companyId = auth()->user()->company_id;
@@ -285,58 +289,7 @@ class TaskListController extends Controller
             abort(403, 'Unauthorized access to task list.');
         }
         
-        // Debug logging
-        \Log::info('TaskListController@show - Loading list with assignments', [
-            'list_id' => $list->id,
-            'list_title' => $list->title,
-            'assignments_count' => $list->assignments->count(),
-            'users_count' => $users->count(),
-            'assignments_details' => $list->assignments->map(function($assignment) {
-                return [
-                    'id' => $assignment->id,
-                    'user_id' => $assignment->user_id,
-                    'user_name' => $assignment->user ? $assignment->user->name : null,
-                    'department' => $assignment->department,
-                    'is_active' => $assignment->is_active,
-                    'assigned_date' => $assignment->assigned_date
-                ];
-            })->toArray()
-        ]);
-
-        $calendarService = app(ListCalendarService::class);
-        $viewParam = $request->query('view', 'week');
-        $calendarView = in_array($viewParam, ['week', 'day', 'month'], true) ? $viewParam : 'week';
-        $selectedDay = $request->query('day', strtolower(now()->format('l')));
-        if (! array_key_exists($selectedDay, ListCalendarService::WEEKDAY_LABELS)) {
-            $selectedDay = strtolower(now()->format('l'));
-        }
-
-        if ($calendarView === 'month') {
-            $monthStart = Carbon::parse($request->query('month', now()->format('Y-m-01')))->startOfMonth();
-            $calendar = $calendarService->buildMonth($list, $monthStart);
-            $weekStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
-        } else {
-            $weekStart = Carbon::parse($request->query('week', now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d')))
-                ->startOfWeek(Carbon::MONDAY);
-            $calendar = $calendarService->buildWeek(
-                $list,
-                $weekStart,
-                $calendarView === 'day' ? [$selectedDay] : null
-            );
-            $validDayKeys = collect($calendar['days'])->pluck('key')->all();
-            if (! in_array($selectedDay, $validDayKeys, true)) {
-                $selectedDay = strtolower(now()->format('l'));
-            }
-        }
-
-        $miniMonth = $calendarService->buildMonth(
-            $list,
-            $calendarView === 'month'
-                ? Carbon::parse($calendar['month_start'])
-                : Carbon::parse($request->query('month', $weekStart->copy()->startOfMonth()->format('Y-m-01')))->startOfMonth()
-        );
-        
-        return view('admin.lists.show', compact('list', 'users', 'departments', 'calendar', 'calendarView', 'selectedDay', 'miniMonth', 'weekStart'));
+        return view('admin.lists.show', compact('list', 'users', 'departments'));
     }
 
     public function calendar(Request $request)
