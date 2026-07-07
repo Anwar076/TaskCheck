@@ -5,7 +5,6 @@ namespace App\Services\Platform;
 use App\Mail\TaskCheckNotificationMail;
 use App\Models\Platform\PlatformAlertLog;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class PlatformAlertService
 {
@@ -88,28 +87,18 @@ class PlatformAlertService
     {
         $dashboardUrl = route('super-admin.dashboard', ['tab' => 'monitoring']);
 
-        $body = implode("\n", [
-            'Er is een drempelwaarde overschreden op het TaskCheck-platform.',
-            '',
-            'Melding: '.$alert['label'],
-            'Huidige waarde: '.number_format($alert['value'], 0, ',', '.'),
-            'Drempel: '.number_format($alert['threshold'], 0, ',', '.'),
-            '',
-            'Overzicht op dit moment:',
-            '- Actieve gebruikers ('.$metrics['session_window_minutes'].' min): '.number_format($metrics['active_users'], 0, ',', '.'),
-            '- Actieve sessies: '.number_format($metrics['active_sessions'], 0, ',', '.'),
-            '- Inzendingen bezig: '.number_format($metrics['submissions_in_progress'], 0, ',', '.'),
-            '- Wachtrij jobs: '.number_format($metrics['pending_jobs'], 0, ',', '.'),
-            '- Mislukte jobs: '.number_format($metrics['failed_jobs'], 0, ',', '.'),
-            '',
-            'Controleer of de server voldoende capaciteit heeft (CPU, geheugen, database, queue workers).',
-        ]);
+        $body = array_merge(
+            $this->buildAlertIntro($alert, $metrics),
+            $this->buildMetricsOverview($metrics),
+            [''],
+            [$this->buildAlertAdvice($alert['key'])],
+        );
 
         $mail = new TaskCheckNotificationMail(
             subjectLine: '[TaskCheck] Platform alert: '.$alert['label'],
             greetingName: 'beheerder',
             title: 'Platformdrempel overschreden',
-            bodyText: $body,
+            bodyText: implode("\n", $body),
             ctaLabel: 'Open monitoring',
             ctaUrl: $dashboardUrl,
             metaText: 'Automatische melding · '.now()->timezone(config('app.timezone'))->format('d-m-Y H:i')
@@ -170,5 +159,65 @@ class PlatformAlertService
         }
 
         return $recipients;
+    }
+
+    /**
+     * @param  array{key: string, label: string, value: int, threshold: int, exceeded: bool}  $alert
+     * @param  array<string, mixed>  $metrics
+     * @return list<string>
+     */
+    protected function buildAlertIntro(array $alert, array $metrics): array
+    {
+        $lines = [
+            'Er is een drempelwaarde overschreden op het TaskCheck-platform.',
+            '',
+            'Melding: '.$alert['label'],
+            'Huidige waarde: '.number_format($alert['value'], 0, ',', '.'),
+            'Drempel: '.number_format($alert['threshold'], 0, ',', '.'),
+        ];
+
+        if ($alert['key'] === 'submissions_in_progress') {
+            $window = (int) ($metrics['submissions_activity_window_minutes'] ?? 60);
+            $total = (int) ($metrics['submissions_in_progress_total'] ?? 0);
+            $minUsers = max(0, (int) config('platform_alerts.submissions_min_active_users', 5));
+
+            $lines[] = 'Meetperiode: laatste '.$window.' minuten (recent bijgewerkt)';
+            $lines[] = 'Totaal openstaand (alle tijd): '.number_format($total, 0, ',', '.');
+            $lines[] = 'Vereist min. actieve gebruikers: '.$minUsers.' (nu: '.number_format($metrics['active_users'], 0, ',', '.').')';
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param  array<string, mixed>  $metrics
+     * @return list<string>
+     */
+    protected function buildMetricsOverview(array $metrics): array
+    {
+        $submissionWindow = (int) ($metrics['submissions_activity_window_minutes'] ?? 60);
+        $submissionTotal = (int) ($metrics['submissions_in_progress_total'] ?? $metrics['submissions_in_progress']);
+
+        return [
+            '',
+            'Overzicht op dit moment:',
+            '- Actieve gebruikers ('.$metrics['session_window_minutes'].' min): '.number_format($metrics['active_users'], 0, ',', '.'),
+            '- Actieve sessies: '.number_format($metrics['active_sessions'], 0, ',', '.'),
+            '- Actieve inzendingen ('.$submissionWindow.' min): '.number_format($metrics['submissions_in_progress'], 0, ',', '.'),
+            '- Openstaande inzendingen (totaal): '.number_format($submissionTotal, 0, ',', '.'),
+            '- Wachtrij jobs: '.number_format($metrics['pending_jobs'], 0, ',', '.'),
+            '- Mislukte jobs: '.number_format($metrics['failed_jobs'], 0, ',', '.'),
+        ];
+    }
+
+    protected function buildAlertAdvice(string $alertKey): string
+    {
+        return match ($alertKey) {
+            'submissions_in_progress' => 'Veel gelijktijdige checklist-activiteit. Controleer databasebelasting en of queue workers draaien als taken traag zijn.',
+            'pending_jobs' => 'De job-wachtrij loopt op. Start of herstart queue workers en controleer of de queue-driver (Redis/database) bereikbaar is.',
+            'failed_jobs' => 'Jobs falen herhaaldelijk. Bekijk failed_jobs in de monitoring of voer `php artisan queue:failed` uit.',
+            'active_users', 'active_sessions' => 'Veel gelijktijdige gebruikers. Controleer servercapaciteit (CPU, geheugen) en database-verbindingen.',
+            default => 'Controleer of de server voldoende capaciteit heeft (CPU, geheugen, database, queue workers).',
+        };
     }
 }
