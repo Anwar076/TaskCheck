@@ -290,131 +290,99 @@
         </div>
 
         {{-- Teamprestaties (vandaag, live) --}}
-        <div id="quickstart-admin-performance" class="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl shadow-[0_1px_2px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.04)] border border-slate-100/80 overflow-hidden">
-            <div class="px-5 sm:px-6 py-5 sm:py-6 border-b border-slate-100">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div id="quickstart-admin-performance" class="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Live</p>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold ring-1 ring-emerald-100">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-bold text-slate-900">Teamprestaties</h2>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Vandaag
                             </span>
                         </div>
-                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Teamprestaties</h2>
-                        <p class="text-slate-500 text-sm mt-1">Voltooiing van toegewezen takenlijsten per medewerker</p>
+                        <p class="text-slate-500 text-sm mt-0.5">Klik op een medewerker voor het volledige overzicht</p>
                     </div>
-                    <div class="flex items-center gap-3 text-sm text-slate-500">
-                        <span>Bijgewerkt: <strong id="team-performance-updated" class="text-slate-800 font-semibold tabular-nums">{{ now()->format('H:i') }}</strong></span>
-                        <button type="button" id="refresh-team-performance" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold bg-slate-50 text-slate-700 border border-slate-200 hover:bg-white hover:border-blue-200 hover:text-blue-700 transition-all">
+                    <div class="flex items-center gap-2 text-sm text-slate-500">
+                        <span class="tabular-nums" id="team-performance-updated">{{ now()->format('H:i') }}</span>
+                        <button type="button" id="refresh-team-performance" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition-colors" title="Ververs">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                            Ververs
                         </button>
                     </div>
                 </div>
 
-                <div id="team-performance-summary" class="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    @php $summary = $teamPerformance['summary']; @endphp
-                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3">
-                        <p class="text-xs font-medium text-slate-500">Lijsten vandaag</p>
-                        <p class="mt-1 text-2xl font-bold text-slate-900 tabular-nums" data-summary="finished">{{ $summary['finished_lists'] }}<span class="text-base font-semibold text-slate-400">/{{ $summary['total_lists'] }}</span></p>
-                    </div>
-                    <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
-                        <p class="text-xs font-medium text-emerald-700">Team voortgang</p>
-                        <p class="mt-1 text-2xl font-bold text-emerald-700 tabular-nums" data-summary="rate">{{ $summary['completion_rate'] }}%</p>
-                    </div>
-                    <div class="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-                        <p class="text-xs font-medium text-blue-700">Nu bezig</p>
-                        <p class="mt-1 text-2xl font-bold text-blue-700 tabular-nums" data-summary="active">{{ $summary['active_now'] }}</p>
-                    </div>
-                    <div class="rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
-                        <p class="text-xs font-medium text-amber-700">Te beoordelen</p>
-                        <p class="mt-1 text-2xl font-bold text-amber-700 tabular-nums" data-summary="pending">{{ $summary['pending_review'] }}</p>
-                    </div>
+                @php $summary = $teamPerformance['summary']; @endphp
+                <div id="team-performance-summary" class="mt-4 flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 text-sm text-slate-700 border border-slate-100">
+                        <span class="font-semibold tabular-nums" data-summary="finished">{{ $summary['finished_lists'] }}</span>
+                        <span class="text-slate-400">/</span>
+                        <span class="tabular-nums" data-summary-total>{{ $summary['total_lists'] }}</span>
+                        <span class="text-slate-500">lijsten</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-sm text-emerald-800 border border-emerald-100">
+                        <span class="font-semibold tabular-nums" data-summary="rate">{{ $summary['completion_rate'] }}%</span>
+                        <span class="text-emerald-700">team</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-sm text-blue-800 border border-blue-100">
+                        <span class="font-semibold tabular-nums" data-summary="active">{{ $summary['active_now'] }}</span>
+                        <span class="text-blue-700">nu bezig</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-sm text-amber-800 border border-amber-100">
+                        <span class="font-semibold tabular-nums" data-summary="pending">{{ $summary['pending_review'] }}</span>
+                        <span class="text-amber-700">te beoordelen</span>
+                    </span>
                 </div>
             </div>
 
-            <div class="p-4 sm:p-6">
-                <div id="team-performance-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    @forelse($teamPerformance['employees'] as $employee)
-                        @php
-                            $rate = $employee['completion_rate'];
-                            $avatarBg = $rate >= 80 ? 'from-emerald-500 to-emerald-600' : ($rate >= 50 ? 'from-blue-500 to-blue-600' : ($rate > 0 ? 'from-amber-500 to-amber-600' : 'from-slate-400 to-slate-500'));
-                            $barBg = $rate >= 80 ? 'from-emerald-500 to-emerald-400' : ($rate >= 50 ? 'from-blue-600 to-blue-500' : ($rate > 0 ? 'from-amber-500 to-amber-400' : 'from-slate-400 to-slate-300'));
-                        @endphp
-                        <a href="{{ $employee['profile_url'] }}" class="group block rounded-2xl border border-slate-100 bg-slate-50/50 p-5 hover:bg-white hover:border-blue-100 hover:shadow-[0_4px_20px_rgba(37,99,235,.08)] transition-all duration-300">
-                            <div class="flex items-start justify-between gap-3 mb-4">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="relative w-12 h-12 bg-gradient-to-br {{ $avatarBg }} rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                                        <span class="text-white font-bold text-lg">{{ $employee['initials'] }}</span>
-                                        @if($employee['is_active_now'])
-                                            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 ring-2 ring-white"></span>
-                                        @endif
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="font-semibold text-slate-900 truncate group-hover:text-blue-700 transition-colors">{{ $employee['name'] }}</p>
-                                        <p class="text-xs text-slate-500 truncate">{{ $employee['department'] ?? 'Geen afdeling' }}</p>
-                                    </div>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    <p class="text-2xl font-bold text-slate-900 tabular-nums">{{ $rate }}%</p>
-                                    <p class="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Voortgang</p>
-                                </div>
+            <div class="divide-y divide-slate-100" id="team-performance-grid">
+                @forelse($teamPerformance['employees'] as $employee)
+                    @php
+                        $rate = $employee['completion_rate'];
+                        $barColor = $rate >= 80 ? 'bg-emerald-500' : ($rate >= 50 ? 'bg-blue-500' : ($rate > 0 ? 'bg-amber-500' : 'bg-slate-300'));
+                    @endphp
+                    <a href="{{ $employee['profile_url'] }}" class="group flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3.5 hover:bg-slate-50 transition-colors">
+                        <div class="relative shrink-0">
+                            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">{{ $employee['initials'] }}</span>
                             </div>
-
-                            @if($employee['is_active_now'] && $employee['current_list'])
-                                <div class="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
-                                    <div class="flex items-center justify-between gap-2 text-xs">
-                                        <span class="font-semibold text-blue-800 truncate">Bezig: {{ $employee['current_list'] }}</span>
-                                        <span class="text-blue-600 font-bold tabular-nums">{{ $employee['progress'] ?? 0 }}%</span>
-                                    </div>
-                                    <div class="mt-2 w-full bg-blue-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-full bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" style="width: {{ min($employee['progress'] ?? 0, 100) }}%"></div>
-                                    </div>
-                                </div>
+                            @if($employee['is_active_now'])
+                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-white"></span>
                             @endif
-
-                            <div class="grid grid-cols-3 gap-2 mb-4">
-                                <div class="text-center rounded-lg bg-white border border-slate-100 px-2 py-2">
-                                    <div class="text-lg font-bold text-emerald-600 tabular-nums">{{ $employee['finished_lists'] }}</div>
-                                    <div class="text-[11px] text-slate-500">Klaar</div>
-                                </div>
-                                <div class="text-center rounded-lg bg-white border border-slate-100 px-2 py-2">
-                                    <div class="text-lg font-bold text-blue-600 tabular-nums">{{ $employee['in_progress_lists'] }}</div>
-                                    <div class="text-[11px] text-slate-500">Bezig</div>
-                                </div>
-                                <div class="text-center rounded-lg bg-white border border-slate-100 px-2 py-2">
-                                    <div class="text-lg font-bold text-slate-700 tabular-nums">{{ $employee['open_lists'] }}</div>
-                                    <div class="text-[11px] text-slate-500">Open</div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between gap-3">
-                                <p class="text-sm font-medium text-slate-700 tabular-nums">
-                                    <span class="text-emerald-600">{{ $employee['finished_lists'] }}</span>
-                                    <span class="text-slate-400">/</span>
-                                    <span>{{ $employee['total_lists'] }}</span>
-                                    <span class="text-slate-500 font-normal"> lijsten</span>
-                                </p>
-                                @if($employee['pending_review'] > 0)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">{{ $employee['pending_review'] }} te beoordelen</span>
-                                @endif
-                            </div>
-
-                            <div class="mt-3 w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
-                                <div class="h-full bg-gradient-to-r {{ $barBg }} rounded-full transition-all duration-500" style="width: {{ min($rate, 100) }}%"></div>
-                            </div>
-                        </a>
-                    @empty
-                        <div id="team-performance-empty" class="col-span-full text-center py-12 px-4">
-                            <div class="w-16 h-16 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-slate-100">
-                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <p class="text-slate-800 font-semibold">Geen lijsten voor vandaag</p>
-                            <p class="text-slate-500 text-sm mt-1 max-w-md mx-auto">Wijs takenlijsten toe aan medewerkers om hier live voortgang te zien.</p>
                         </div>
-                    @endforelse
-                </div>
+
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-3 mb-1.5">
+                                <p class="font-medium text-slate-900 truncate group-hover:text-blue-700 transition-colors">{{ $employee['name'] }}</p>
+                                <span class="text-sm font-semibold text-slate-700 tabular-nums shrink-0">{{ $rate }}%</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full {{ $barColor }} rounded-full transition-all duration-500" style="width: {{ min($rate, 100) }}%"></div>
+                                </div>
+                                <span class="text-xs text-slate-500 tabular-nums shrink-0">
+                                    {{ $employee['finished_lists'] }}/{{ $employee['total_lists'] }}
+                                </span>
+                            </div>
+                            @if($employee['is_active_now'] && $employee['current_list'])
+                                <p class="mt-1 text-xs text-blue-600 truncate">Bezig: {{ $employee['current_list'] }}</p>
+                            @elseif($employee['pending_review'] > 0)
+                                <p class="mt-1 text-xs text-amber-600">{{ $employee['pending_review'] }} te beoordelen</p>
+                            @endif
+                        </div>
+
+                        <svg class="w-4 h-4 text-slate-300 group-hover:text-blue-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                        </svg>
+                    </a>
+                @empty
+                    <div id="team-performance-empty" class="text-center py-12 px-4">
+                        <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <p class="text-slate-800 font-medium">Geen lijsten voor vandaag</p>
+                        <p class="text-slate-500 text-sm mt-1">Wijs takenlijsten toe om voortgang te zien</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -524,66 +492,58 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshTeamPerformanceBtn = document.getElementById('refresh-team-performance');
     let teamPerformanceInterval;
 
-    function teamRateStyles(rate) {
-        if (rate >= 80) return { avatar: 'from-emerald-500 to-emerald-600', bar: 'from-emerald-500 to-emerald-400' };
-        if (rate >= 50) return { avatar: 'from-blue-500 to-blue-600', bar: 'from-blue-600 to-blue-500' };
-        if (rate > 0) return { avatar: 'from-amber-500 to-amber-600', bar: 'from-amber-500 to-amber-400' };
-        return { avatar: 'from-slate-400 to-slate-500', bar: 'from-slate-400 to-slate-300' };
+    function teamBarColor(rate) {
+        if (rate >= 80) return 'bg-emerald-500';
+        if (rate >= 50) return 'bg-blue-500';
+        if (rate > 0) return 'bg-amber-500';
+        return 'bg-slate-300';
     }
 
     function renderTeamPerformanceCard(employee) {
-        const styles = teamRateStyles(employee.completion_rate);
-        const activeBlock = employee.is_active_now && employee.current_list
-            ? `<div class="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
-                <div class="flex items-center justify-between gap-2 text-xs">
-                    <span class="font-semibold text-blue-800 truncate">${employee.is_team_active ? 'Team bezig' : 'Bezig'}: ${employee.current_list}</span>
-                    <span class="text-blue-600 font-bold tabular-nums">${employee.progress ?? 0}%</span>
-                </div>
-                <div class="mt-2 w-full bg-blue-100 rounded-full h-1.5 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" style="width:${Math.min(employee.progress ?? 0, 100)}%"></div>
-                </div>
-            </div>` : '';
-        const pendingBadge = employee.pending_review > 0
-            ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">${employee.pending_review} te beoordelen</span>`
+        const rate = employee.completion_rate;
+        const barColor = teamBarColor(rate);
+        const activeDot = employee.is_active_now
+            ? '<span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-white"></span>'
             : '';
+        let statusLine = '';
+        if (employee.is_active_now && employee.current_list) {
+            const label = employee.is_team_active ? 'Team bezig' : 'Bezig';
+            statusLine = `<p class="mt-1 text-xs text-blue-600 truncate">${label}: ${employee.current_list}</p>`;
+        } else if (employee.pending_review > 0) {
+            statusLine = `<p class="mt-1 text-xs text-amber-600">${employee.pending_review} te beoordelen</p>`;
+        }
 
-        return `<a href="${employee.profile_url}" class="group block rounded-2xl border border-slate-100 bg-slate-50/50 p-5 hover:bg-white hover:border-blue-100 hover:shadow-[0_4px_20px_rgba(37,99,235,.08)] transition-all duration-300">
-            <div class="flex items-start justify-between gap-3 mb-4">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="relative w-12 h-12 bg-gradient-to-br ${styles.avatar} rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                        <span class="text-white font-bold text-lg">${employee.initials}</span>
-                        ${employee.is_active_now ? '<span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 ring-2 ring-white"></span>' : ''}
-                    </div>
-                    <div class="min-w-0">
-                        <p class="font-semibold text-slate-900 truncate group-hover:text-blue-700 transition-colors">${employee.name}</p>
-                        <p class="text-xs text-slate-500 truncate">${employee.department || 'Geen afdeling'}</p>
-                    </div>
+        return `<a href="${employee.profile_url}" class="group flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3.5 hover:bg-slate-50 transition-colors">
+            <div class="relative shrink-0">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">${employee.initials}</span>
                 </div>
-                <div class="text-right shrink-0">
-                    <p class="text-2xl font-bold text-slate-900 tabular-nums">${employee.completion_rate}%</p>
-                    <p class="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Voortgang</p>
+                ${activeDot}
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-3 mb-1.5">
+                    <p class="font-medium text-slate-900 truncate group-hover:text-blue-700 transition-colors">${employee.name}</p>
+                    <span class="text-sm font-semibold text-slate-700 tabular-nums shrink-0">${rate}%</span>
                 </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width:${Math.min(rate, 100)}%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500 tabular-nums shrink-0">${employee.finished_lists}/${employee.total_lists}</span>
+                </div>
+                ${statusLine}
             </div>
-            ${activeBlock}
-            <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="text-center rounded-lg bg-white border border-slate-100 px-2 py-2"><div class="text-lg font-bold text-emerald-600 tabular-nums">${employee.finished_lists}</div><div class="text-[11px] text-slate-500">Klaar</div></div>
-                <div class="text-center rounded-lg bg-white border border-slate-100 px-2 py-2"><div class="text-lg font-bold text-blue-600 tabular-nums">${employee.in_progress_lists}</div><div class="text-[11px] text-slate-500">Bezig</div></div>
-                <div class="text-center rounded-lg bg-white border border-slate-100 px-2 py-2"><div class="text-lg font-bold text-slate-700 tabular-nums">${employee.open_lists}</div><div class="text-[11px] text-slate-500">Open</div></div>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-medium text-slate-700 tabular-nums"><span class="text-emerald-600">${employee.finished_lists}</span><span class="text-slate-400">/</span><span>${employee.total_lists}</span><span class="text-slate-500 font-normal"> lijsten</span></p>
-                ${pendingBadge}
-            </div>
-            <div class="mt-3 w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
-                <div class="h-full bg-gradient-to-r ${styles.bar} rounded-full transition-all duration-500" style="width:${Math.min(employee.completion_rate, 100)}%"></div>
-            </div>
+            <svg class="w-4 h-4 text-slate-300 group-hover:text-blue-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+            </svg>
         </a>`;
     }
 
     function renderTeamPerformance(data) {
         const summary = data.summary || {};
         const finishedEl = document.querySelector('[data-summary="finished"]');
-        if (finishedEl) finishedEl.innerHTML = `${summary.finished_lists || 0}<span class="text-base font-semibold text-slate-400">/${summary.total_lists || 0}</span>`;
+        if (finishedEl) finishedEl.textContent = String(summary.finished_lists || 0);
+        document.querySelector('[data-summary-total]')?.replaceChildren(document.createTextNode(String(summary.total_lists || 0)));
         document.querySelector('[data-summary="rate"]')?.replaceChildren(document.createTextNode(`${summary.completion_rate || 0}%`));
         document.querySelector('[data-summary="active"]')?.replaceChildren(document.createTextNode(String(summary.active_now || 0)));
         document.querySelector('[data-summary="pending"]')?.replaceChildren(document.createTextNode(String(summary.pending_review || 0)));
@@ -591,12 +551,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!teamPerformanceGrid) return;
 
         if (!data.employees || data.employees.length === 0) {
-            teamPerformanceGrid.innerHTML = `<div id="team-performance-empty" class="col-span-full text-center py-12 px-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-slate-100">
-                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            teamPerformanceGrid.innerHTML = `<div id="team-performance-empty" class="text-center py-12 px-4">
+                <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
-                <p class="text-slate-800 font-semibold">Geen lijsten voor vandaag</p>
-                <p class="text-slate-500 text-sm mt-1 max-w-md mx-auto">Wijs takenlijsten toe aan medewerkers om hier live voortgang te zien.</p>
+                <p class="text-slate-800 font-medium">Geen lijsten voor vandaag</p>
+                <p class="text-slate-500 text-sm mt-1">Wijs takenlijsten toe om voortgang te zien</p>
             </div>`;
             return;
         }
