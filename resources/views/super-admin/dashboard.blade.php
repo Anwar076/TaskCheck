@@ -685,7 +685,7 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
                 <h3 class="text-lg font-semibold text-slate-900">Platformbelasting (live)</h3>
-                <p class="text-xs text-slate-500">Actief = sessie in de laatste {{ $platformHealth['metrics']['session_window_minutes'] }} minuten. E-mail bij overschrijding drempel (max. 1× per {{ config('platform_alerts.cooldown_minutes') }} min per type).</p>
+                <p class="text-xs text-slate-500">Actief = sessie in de laatste {{ $platformHealth['metrics']['session_window_minutes'] }} minuten. Inzendingen = bijgewerkt in de laatste {{ $platformHealth['metrics']['submissions_activity_window_minutes'] }} min (min. {{ config('platform_alerts.submissions_min_active_users') }} gebruikers voor alert). E-mail bij overschrijding drempel (max. 1× per {{ config('platform_alerts.cooldown_minutes') }} min per type).</p>
             </div>
             <p class="text-xs text-slate-400">Laatste check: {{ \Carbon\Carbon::parse($platformHealth['metrics']['checked_at'])->timezone(config('app.timezone'))->format('d-m-Y H:i:s') }}</p>
         </div>
@@ -701,6 +701,9 @@
                 </div>
             @endforeach
         </div>
+        <p class="text-xs text-slate-500 mt-3">
+            Openstaande inzendingen (totaal, niet voor alerts): {{ number_format($platformHealth['metrics']['submissions_in_progress_total'] ?? 0, 0, ',', '.') }}
+        </p>
         @if($recentPlatformAlerts->isNotEmpty())
             <div class="mt-4 border-t border-slate-100 pt-4">
                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Recent verstuurde alert-mails</p>
