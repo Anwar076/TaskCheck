@@ -134,14 +134,7 @@
             </div>
         </div>
 
-        @include('admin.lists.partials.task-calendar', [
-            'list' => $list,
-            'calendar' => $calendar,
-            'calendarView' => $calendarView,
-            'selectedDay' => $selectedDay,
-            'miniMonth' => $miniMonth,
-            'weekStart' => $weekStart,
-        ])
+        @include('admin.lists.partials.tasks-overview', ['list' => $list])
 
         @include('admin.tasks.partials.task-create-modal', ['list' => $list])
 
