@@ -139,6 +139,18 @@
                     <h2 class="text-lg font-bold text-slate-900">Extra opties</h2>
                 </div>
                 <div class="p-4 sm:p-6 space-y-4">
+                    <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 cursor-pointer">
+                        <span>
+                            <span class="block text-sm font-medium text-slate-800">Moet deze takenlijst gecontroleerd worden?</span>
+                            <span class="block mt-0.5 text-sm text-slate-500">Na invullen verschijnt de inzending in Werkcontroles.</span>
+                        </span>
+                        <span class="relative inline-flex flex-shrink-0">
+                            <input type="hidden" name="requires_review" value="0">
+                            <input type="checkbox" name="requires_review" value="1" {{ old('requires_review', $list->requires_review) ? 'checked' : '' }} class="peer sr-only">
+                            <span class="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2"></span>
+                            <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
+                        </span>
+                    </label>
                     <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" name="requires_signature" value="1" {{ old('requires_signature', $list->requires_signature) ? 'checked' : '' }}
                                    class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
@@ -188,4 +200,3 @@
 </div>
 
 @endsection
-

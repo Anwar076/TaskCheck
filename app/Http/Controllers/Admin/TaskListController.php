@@ -83,6 +83,7 @@ class TaskListController extends Controller
             'due_date' => 'nullable|date',
             'parent_list_id' => 'nullable|exists:task_lists,id',
             'requires_signature' => 'boolean',
+            'requires_review' => 'boolean',
             'is_template' => 'boolean',
             'is_active' => 'boolean',
             'schedule_config' => 'nullable|array',
@@ -129,6 +130,7 @@ class TaskListController extends Controller
         // Set creator and company
         $validatedData['created_by'] = auth()->id();
         $validatedData['company_id'] = auth()->user()->company_id;
+        $validatedData['requires_review'] = $request->boolean('requires_review');
 
         $scheduleConfig = $validatedData['schedule_config'] ?? [];
 
@@ -648,6 +650,7 @@ class TaskListController extends Controller
             'due_date' => 'nullable|date',
             'parent_list_id' => 'nullable|exists:task_lists,id',
             'requires_signature' => 'boolean',
+            'requires_review' => 'boolean',
             'is_template' => 'boolean',
             'is_active' => 'boolean',
             'schedule_config' => 'nullable|array',
@@ -725,6 +728,7 @@ class TaskListController extends Controller
         unset($validatedData['selected_days']);
         unset($validatedData['default_time_slot_enabled'], $validatedData['default_time_slot_start'], $validatedData['default_time_slot_end']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
+        $validatedData['requires_review'] = $request->boolean('requires_review');
 
         // Update the task list
         $list->update($validatedData);
@@ -1926,6 +1930,10 @@ PROMPT,
             ->orderBy('name')
             ->get();
 
+        $reportLists = TaskList::where('company_id', $companyId)
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
         $employees = \App\Models\Organisation\User::where('company_id', $companyId)
             ->where('role', 'employee')
             ->where('is_active', true)
@@ -1942,7 +1950,7 @@ PROMPT,
             ->where('company_id', $companyId)
             ->where('is_active', true)
             ->when($selectedLocationId, fn ($query) => $query->where('location_id', $selectedLocationId))
-            ->having('period_submissions_count', '>', 0)
+            ->whereHas('submissions', fn ($query) => $query->whereBetween('created_at', [$start, $end]))
             ->orderByDesc('period_submissions_count')
             ->orderBy('title')
             ->take(12)
@@ -1965,6 +1973,7 @@ PROMPT,
             'selectedLocationId',
             'summary',
             'chartData',
+            'reportLists',
         ));
     }
 
@@ -1978,7 +1987,7 @@ PROMPT,
         }
 
         if ($feature === 'weekly_overview' && $plan === 'starter') {
-            abort(403, 'Weekoverzicht is beschikbaar vanaf Professional.');
+            abort(403, 'Rapportages zijn beschikbaar vanaf Professional.');
         }
     }
 

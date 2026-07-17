@@ -238,7 +238,7 @@ class AdminOnboardingService
     {
         return [
             $this->helpCenterSlide(
-                'Weekoverzicht',
+                'Rapportages',
                 'Analyseer prestaties over een gekozen periode. Filter op locatie en datums om trends, teamresultaten en meest gebruikte lijsten te bekijken.',
                 'Gebruik de snelknoppen Deze week of Vorige week om snel te wisselen.'
             ),

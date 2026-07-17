@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Weekoverzicht')
+@section('page-title', 'Rapportages')
 
 @section('content')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,7 +24,7 @@
                         </div>
                         <div>
                             <p class="text-blue-200/80 text-xs sm:text-sm font-medium uppercase tracking-[0.14em] mb-1.5">Analytics</p>
-                            <h1 class="text-2xl sm:text-3xl lg:text-[2rem] font-bold text-white tracking-tight">Weekoverzicht</h1>
+                            <h1 class="text-2xl sm:text-3xl lg:text-[2rem] font-bold text-white tracking-tight">Rapportages</h1>
                             <p class="text-blue-100/85 text-sm sm:text-base mt-2">
                                 {{ \Carbon\Carbon::parse($startDate)->locale('nl')->translatedFormat('d M Y') }}
                                 t/m
@@ -77,6 +77,37 @@
                         @endif
                     </div>
                 </div>
+            </div>
+
+            {{-- Exports per takenlijst --}}
+            <div class="px-4 sm:px-6 lg:px-8 py-5 border-t border-white/10 bg-white">
+                <div class="flex flex-col lg:flex-row lg:items-end gap-4">
+                    <div class="flex-1">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Rapport maken</p>
+                        <h2 class="text-lg font-bold text-slate-900 mt-1">Uitvoering van een specifieke takenlijst</h2>
+                        <p class="text-sm text-slate-500 mt-1">Exporteer ruwe taakdata naar Excel of maak een leesbaar PDF-rapport over de gekozen periode.</p>
+                    </div>
+                    <form id="list-report-form" class="grid grid-cols-1 sm:grid-cols-[minmax(220px,1fr)_auto_auto] gap-2 w-full lg:w-auto">
+                        <div>
+                            <label for="report-list-id" class="sr-only">Takenlijst</label>
+                            <select id="report-list-id" name="list_id" required class="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                                <option value="">Kies een takenlijst…</option>
+                                @foreach($reportLists as $reportList)
+                                    <option value="{{ $reportList->id }}">{{ $reportList->title }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="start_date" value="{{ \Carbon\Carbon::parse($startDate)->format('Y-m-d') }}">
+                            <input type="hidden" name="end_date" value="{{ \Carbon\Carbon::parse($endDate)->format('Y-m-d') }}">
+                        </div>
+                        <button type="button" data-export-url="{{ route('admin.reports.export.excel') }}" class="report-export inline-flex h-11 items-center justify-center gap-2 px-4 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700">
+                            Excel ruwe data
+                        </button>
+                        <button type="button" data-export-url="{{ route('admin.reports.export.pdf') }}" class="report-export inline-flex h-11 items-center justify-center gap-2 px-4 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
+                            PDF-rapport
+                        </button>
+                    </form>
+                </div>
+                <p id="report-list-error" class="hidden mt-2 text-sm text-red-600 text-right">Kies eerst een takenlijst.</p>
             </div>
 
             {{-- Filters --}}
@@ -299,6 +330,22 @@
         @endif
     </div>
 </div>
+<script>
+document.querySelectorAll('.report-export').forEach(button => {
+    button.addEventListener('click', () => {
+        const form = document.getElementById('list-report-form');
+        const list = document.getElementById('report-list-id');
+        const error = document.getElementById('report-list-error');
+        if (!list.value) {
+            error.classList.remove('hidden');
+            list.focus();
+            return;
+        }
+        error.classList.add('hidden');
+        window.location.href = button.dataset.exportUrl + '?' + new URLSearchParams(new FormData(form)).toString();
+    });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

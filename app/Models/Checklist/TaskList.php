@@ -32,6 +32,7 @@ class TaskList extends Model
         'tags',
         'category',
         'requires_signature',
+        'requires_review',
         'is_template',
         'is_active',
         'template_id',
@@ -46,6 +47,7 @@ class TaskList extends Model
             'tags' => 'json',
             'due_date' => 'datetime',
             'requires_signature' => 'boolean',
+            'requires_review' => 'boolean',
             'is_template' => 'boolean',
             'is_active' => 'boolean',
         ];

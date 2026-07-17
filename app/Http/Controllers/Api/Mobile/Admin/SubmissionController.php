@@ -16,7 +16,14 @@ class SubmissionController extends MobileController
         $query = Submission::query()
             ->with(['user', 'taskList.location', 'submissionTasks'])
             ->where('company_id', $companyId)
-            ->orderByDesc('created_at');
+            ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true))
+            ->orderByRaw("CASE
+                WHEN status = 'completed' THEN 1
+                WHEN status = 'in_progress' THEN 2
+                WHEN status IN ('reviewed', 'rejected') THEN 3
+                ELSE 4
+            END")
+            ->orderBy('created_at');
 
         if ($request->filled('tab')) {
             $tab = $request->get('tab');
@@ -29,7 +36,8 @@ class SubmissionController extends MobileController
             }
         }
 
-        $base = Submission::where('company_id', $companyId);
+        $base = Submission::where('company_id', $companyId)
+            ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true));
         $meta = [
             'to_review_count' => (clone $base)->where('status', 'completed')->count(),
             'done_count' => (clone $base)->whereIn('status', ['reviewed', 'rejected'])->count(),

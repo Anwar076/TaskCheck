@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
+use App\Http\Controllers\Admin\ReportExportController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
 use App\Services\Ai\SubmissionReviewService;
@@ -340,6 +341,8 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     
     // Weekly overview and daily sub-lists
     Route::get('/weekly-overview', [TaskListController::class, 'weeklyOverview'])->name('weekly-overview');
+    Route::get('/reports/export/excel', [ReportExportController::class, 'excel'])->name('reports.export.excel');
+    Route::get('/reports/export/pdf', [ReportExportController::class, 'pdf'])->name('reports.export.pdf');
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/lists/{list}/create-daily-sublists', [TaskListController::class, 'createDailySubLists'])->name('lists.create-daily-sublists');
@@ -446,4 +449,3 @@ Route::get('/blog/haccp-temperatuur-lijsten', function () {
 Route::get('/blog/logboek-horeca', function () {
     return view('blog.logboek-horeca');
 })->name('blog.logboek-horeca');
-

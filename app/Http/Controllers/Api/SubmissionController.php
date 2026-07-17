@@ -21,7 +21,14 @@ class SubmissionController extends Controller
 
             $query = Submission::with(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy'])
                 ->where('company_id', $companyId)
-                ->orderBy('created_at', 'desc');
+                ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true))
+                ->orderByRaw("CASE
+                    WHEN status = 'completed' THEN 1
+                    WHEN status = 'in_progress' THEN 2
+                    WHEN status IN ('reviewed', 'rejected') THEN 3
+                    ELSE 4
+                END")
+                ->orderBy('created_at');
 
             // Search functionality
             if ($request->filled('search')) {
@@ -67,7 +74,9 @@ class SubmissionController extends Controller
             $submissions = $query->paginate($perPage);
 
             // Tab counts and stats
-            $baseQuery = Submission::query()->where('company_id', $companyId);
+            $baseQuery = Submission::query()
+                ->where('company_id', $companyId)
+                ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true));
             $meta = [
                 'to_review_count' => (clone $baseQuery)->where('status', 'completed')->count(),
                 'done_count' => (clone $baseQuery)->whereIn('status', ['reviewed', 'rejected'])->count(),
@@ -80,7 +89,9 @@ class SubmissionController extends Controller
             // Add calculated fields
             $submissions->getCollection()->transform(function ($submission) {
                 $totalTasks = $submission->submissionTasks->count();
-                $completedTasks = $submission->submissionTasks->where('status', 'completed')->count();
+                $completedTasks = $submission->submissionTasks
+                    ->whereIn('status', ['completed', 'approved'])
+                    ->count();
                 $hasMetricDeviation = $submission->submissionTasks->contains(function ($submissionTask) {
                     $rules = is_array($submissionTask->task->validation_rules)
                         ? $submissionTask->task->validation_rules
@@ -89,9 +100,9 @@ class SubmissionController extends Controller
                     return MetricValidationHelper::isDeviation($rules, $submissionTask->proof_text);
                 });
                 
-                $submission->progress_percentage = $totalTasks > 0 
-                    ? round(($completedTasks / $totalTasks) * 100) 
-                    : 0;
+                $submission->progress_percentage = $submission->status === 'reviewed'
+                    ? 100
+                    : ($totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0);
                     
                 $submission->total_tasks = $totalTasks;
                 $submission->completed_tasks = $completedTasks;
