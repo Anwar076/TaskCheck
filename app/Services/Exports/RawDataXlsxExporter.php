@@ -17,7 +17,7 @@ class RawDataXlsxExporter
             'Checklistwaarden', 'Bestanden', 'Beoordelaar', 'Opmerking manager', 'Afwijzingsreden',
             'Herstel gevraagd', 'Herstelreden', 'Taak uitgevoerd', 'Taak beoordeeld',
             'Handtekening medewerker', 'Handtekening manager', 'Taakhandtekening',
-            'Normenkader', 'Beleidsreferentie', 'Controlereferentie', 'Corrigerende actie', 'Actiehouder',
+            'Normenkader', 'Beleidsreferentie', 'Controlereferentie', 'Acceptatiecriterium', 'Corrigerende actie', 'Actiehouder',
             'Actiedeadline', 'Actie afgerond', 'Verificatienotitie', 'Geverifieerd door', 'Geverifieerd op',
         ];
 
@@ -41,7 +41,7 @@ class RawDataXlsxExporter
                     $submission->employee_signature ? 'Aanwezig' : 'Niet aanwezig',
                     $submission->manager_signature ? 'Aanwezig' : 'Niet aanwezig',
                     $task->digital_signature ? 'Aanwezig' : 'Niet aanwezig',
-                    $list->compliance_framework, $list->policy_reference, $task->task?->control_reference,
+                    $list->compliance_framework, $list->policy_reference, $task->task?->control_reference, $task->task?->acceptance_criteria,
                     $task->corrective_action, $task->correctiveActionOwner?->name,
                     $task->corrective_action_due_at?->format('Y-m-d H:i:s'),
                     $task->corrective_action_completed_at?->format('Y-m-d H:i:s'),
@@ -90,7 +90,7 @@ class RawDataXlsxExporter
             $xmlRows .= '<row r="'.$number.'"'.($number === 1 ? ' ht="24" customHeight="1"' : '').'>'.$cells.'</row>';
         }
 
-        $widths = [12,28,22,18,20,20,10,34,22,18,34,30,34,28,22,30,30,16,30,20,20,22,22,20,28,28,28,34,22,20,20,34,22,20];
+        $widths = [12,28,22,18,20,20,10,34,22,18,34,30,34,28,22,30,30,16,30,20,20,22,22,20,28,28,28,34,34,22,20,20,34,22,20];
         $columns = '';
         foreach ($widths as $index => $width) {
             $column = $index + 1;

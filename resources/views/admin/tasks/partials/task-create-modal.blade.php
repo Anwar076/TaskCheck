@@ -71,9 +71,15 @@
                         </div>
 
                         <div>
-                            <label for="task-create-norm-reference" class="mb-1 block text-xs font-medium text-slate-600">Controle- of normreferentie</label>
+                            <label for="task-create-norm-reference" class="mb-1 block text-xs font-medium text-slate-600">Controle- of normreferentie <span class="font-normal text-slate-400">(optioneel)</span></label>
                             <input type="text" id="task-create-norm-reference" maxlength="255" placeholder="Bijv. Werkprotocol §4.3 of ISO-clausule 8.5" class="block w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                             <p class="mt-1 text-[11px] text-slate-400">Maakt in rapportages herleidbaar waarop dit controlepunt is gebaseerd.</p>
+                        </div>
+
+                        <div>
+                            <label for="task-create-acceptance-criteria" class="mb-1 block text-xs font-medium text-slate-600">Acceptatiecriterium / gewenst resultaat <span class="font-normal text-slate-400">(optioneel)</span></label>
+                            <textarea id="task-create-acceptance-criteria" rows="2" maxlength="2000" placeholder="Bijv. koelcel maximaal 7 °C, werkblad zichtbaar schoon of nooduitgang volledig vrij" class="block w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"></textarea>
+                            <p class="mt-1 text-[11px] text-slate-400">Beschrijf wanneer dit controlepunt akkoord is. Dit wordt letterlijk in het rapport getoond.</p>
                         </div>
 
                         <div>

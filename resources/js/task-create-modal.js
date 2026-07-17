@@ -16,6 +16,7 @@ export function initTaskCreateModal() {
     const descriptionInput = document.getElementById('task-create-description');
     const instructionsInput = document.getElementById('task-create-instructions');
     const normReferenceInput = document.getElementById('task-create-norm-reference');
+    const acceptanceCriteriaInput = document.getElementById('task-create-acceptance-criteria');
     const expandToggle = document.getElementById('task-create-expand-toggle');
     const expanded = document.getElementById('task-create-expanded');
     const expandIcon = document.getElementById('task-create-expand-icon');
@@ -106,6 +107,9 @@ export function initTaskCreateModal() {
         if (normReferenceInput) {
             normReferenceInput.value = task.control_reference || '';
         }
+        if (acceptanceCriteriaInput) {
+            acceptanceCriteriaInput.value = task.acceptance_criteria || '';
+        }
         if (metricType) {
             metricType.value = task.metric_type || '';
         }
@@ -134,6 +138,7 @@ export function initTaskCreateModal() {
             task.description
             || task.instructions
             || task.control_reference
+            || task.acceptance_criteria
             || (task.checklist_items && task.checklist_items.length > 0)
             || task.requires_signature
             || task.metric_type
@@ -291,6 +296,7 @@ export function initTaskCreateModal() {
             description: descriptionInput?.value?.trim() || null,
             instructions: instructionsInput?.value?.trim() || null,
             control_reference: normReferenceInput?.value?.trim() || null,
+            acceptance_criteria: acceptanceCriteriaInput?.value?.trim() || null,
             required_proof_type: proofSelect?.value || 'none',
             is_required: requiredCheckbox?.checked ?? true,
             requires_signature: signatureCheckbox?.checked ?? false,

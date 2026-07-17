@@ -46,6 +46,7 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'control_reference' => 'nullable|string|max:255',
+            'acceptance_criteria' => 'nullable|string|max:2000',
             'instructions' => 'nullable|string',
             'required_proof_type' => 'required|in:none,photo,video,text,file,any',
             'is_required' => 'boolean',
@@ -294,6 +295,7 @@ class TaskController extends Controller
                 'metric_max' => array_key_exists('max', $rules) ? $rules['max'] : null,
                 'metric_comparison' => $rules['comparison'] ?? 'lte',
                 'control_reference' => $task->control_reference,
+                'acceptance_criteria' => $task->acceptance_criteria,
                 'update_url' => route('admin.tasks.update', $task),
             ],
         ]);
@@ -312,6 +314,7 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'control_reference' => 'nullable|string|max:255',
+            'acceptance_criteria' => 'nullable|string|max:2000',
             'instructions' => 'nullable|string',
             'required_proof_type' => 'required|in:none,photo,video,text,file,any',
             'is_required' => 'boolean',

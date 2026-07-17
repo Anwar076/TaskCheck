@@ -16,6 +16,7 @@ class Task extends Model
         'title',
         'description',
         'control_reference',
+        'acceptance_criteria',
         'instructions',
         'required_proof_type',
         'is_required',

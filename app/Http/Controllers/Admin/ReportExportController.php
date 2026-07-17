@@ -49,7 +49,7 @@ class ReportExportController extends Controller
                 'completed' => $executions->whereIn('status', ['completed', 'approved'])->count(),
                 'exceptions' => $executions->filter(fn ($row) => in_array($row->status, ['pending', 'rejected', 'redo_requested'], true))->count(),
                 'latest_result' => $executions->sortByDesc('completed_at')->first()?->proof_text,
-                'acceptance' => $this->acceptanceLabel($rules),
+                'acceptance' => $task->acceptance_criteria ?: $this->acceptanceLabel($rules),
             ];
         });
         $summary = [
@@ -129,8 +129,13 @@ class ReportExportController extends Controller
 
     private function expectedDates(TaskList $list, Carbon $start, Carbon $end)
     {
+        $effectiveEnd = $end->copy()->min(now()->endOfDay());
+        if ($start->gt($effectiveEnd)) {
+            return collect();
+        }
+
         if ($list->schedule_type === 'once') {
-            if ($list->due_date && ! $list->due_date->between($start, $end, true)) {
+            if ($list->due_date && ! $list->due_date->between($start, $effectiveEnd, true)) {
                 return collect();
             }
 
@@ -139,14 +144,14 @@ class ReportExportController extends Controller
 
         if ($list->schedule_type === 'monthly') {
             $dates = collect();
-            for ($month = $start->copy()->startOfMonth(); $month->lte($end); $month->addMonth()) {
+            for ($month = $start->copy()->startOfMonth(); $month->lte($effectiveEnd); $month->addMonth()) {
                 $dates->push($month->copy());
             }
             return $dates;
         }
 
         $dates = collect();
-        for ($day = $start->copy()->startOfDay(); $day->lte($end); $day->addDay()) {
+        for ($day = $start->copy()->startOfDay(); $day->lte($effectiveEnd); $day->addDay()) {
             if ($list->schedule_type === 'daily' || $list->isAvailableOnDay(strtolower($day->format('l')))) {
                 $dates->push($day->copy());
             }
