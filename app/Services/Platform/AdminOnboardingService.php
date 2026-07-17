@@ -458,8 +458,8 @@ class AdminOnboardingService
         return [
             $this->helpCenterSlide(
                 'Takenlijst',
-                'Beheer je checklist: taken, planning in de agenda, en toewijzing aan medewerkers. Alleen toegewezen medewerkers zien de lijst in hun app.',
-                'Tip: open Week- of Dagweergave op de lijstpagina om tijdslots in te plannen.'
+                'Beheer je checklist: taken, volgorde en toewijzing aan medewerkers. Alleen toegewezen medewerkers zien de lijst in hun app.',
+                'Tip: sleep taken om de volgorde aan te passen. Plan lijsten in de agenda via Takenlijsten → Agenda.'
             ),
         ];
     }
@@ -810,29 +810,19 @@ class AdminOnboardingService
 
         return [
             $this->formTourSlide([
-                'target' => '[data-onboarding-target="list-calendar-toolbar"]',
-                'title' => 'Agenda van je lijst',
-                'body' => 'Je lijst heeft een ingebouwde agenda. Geplande dagen en tijden zie je hier; in dagweergave staan taken van die dag eronder.',
+                'target' => '[data-onboarding-target="list-tasks"]',
+                'title' => 'Taken op je lijst',
+                'body' => 'Hier staan alle stappen van je checklist. Sleep taken om de volgorde aan te passen. Taken uit een template staan er al in.',
                 'placement' => 'bottom',
                 'allowScroll' => false,
                 'highlightFullTarget' => false,
                 'highlightPad' => 8,
-                'cta' => 'Gebruik de kalender bovenaan om de planning te bekijken.',
-            ]),
-            $this->formTourSlide([
-                'target' => '[data-onboarding-target="calendar-view-switch"]',
-                'title' => 'Week, dag of maand',
-                'body' => 'Week toont alle dagen van de week. Dag toont een uurrooster met tijdsloten. Maand geeft een langere planning.',
-                'placement' => 'bottom',
-                'allowScroll' => false,
-                'highlightFullTarget' => false,
-                'highlightPad' => 8,
-                'cta' => 'Wissel van weergave via Week, Dag of Maand.',
+                'cta' => 'Bekijk de taken in het gemarkeerde blok.',
             ]),
             $this->formTourSlide([
                 'target' => '[data-onboarding-target="list-add-task"]',
                 'title' => 'Taak toevoegen',
-                'body' => 'Klik op Taak om een nieuwe stap toe te voegen via het pop-up venster. Je hoeft de pagina niet te verlaten.',
+                'body' => 'Klik op Taak toevoegen om een nieuwe stap toe te voegen via het pop-up venster. Je hoeft de pagina niet te verlaten.',
                 'placement' => 'left',
                 'allowScroll' => false,
                 'highlightFullTarget' => false,

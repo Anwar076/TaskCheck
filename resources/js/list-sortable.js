@@ -39,7 +39,7 @@ export function initListSortable() {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    const badges = container.querySelectorAll('.task-item .bg-blue-600 span');
+                    const badges = container.querySelectorAll('.task-item .task-order-badge');
                     badges.forEach((b, i) => { if (b) b.textContent = (i + 1).toString(); });
                 }
             })

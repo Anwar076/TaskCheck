@@ -26,10 +26,24 @@ class PlatformHealthService
             ->distinct()
             ->count('user_id');
 
+        $submissionsActivityWindow = max(1, (int) config('platform_alerts.submissions_activity_window_minutes', 60));
+        $submissionsActivityCutoff = now()->subMinutes($submissionsActivityWindow);
+
+        $submissionsInProgressTotal = Submission::query()
+            ->where('status', 'in_progress')
+            ->count();
+
+        $submissionsInProgressActive = Submission::query()
+            ->where('status', 'in_progress')
+            ->where('updated_at', '>=', $submissionsActivityCutoff)
+            ->count();
+
         $metrics = [
             'active_users' => $activeUsers,
             'active_sessions' => $activeSessions,
-            'submissions_in_progress' => Submission::query()->where('status', 'in_progress')->count(),
+            'submissions_in_progress' => $submissionsInProgressActive,
+            'submissions_in_progress_total' => $submissionsInProgressTotal,
+            'submissions_activity_window_minutes' => $submissionsActivityWindow,
             'pending_jobs' => Schema::hasTable('jobs') ? (int) DB::table('jobs')->count() : 0,
             'failed_jobs' => Schema::hasTable('failed_jobs') ? (int) DB::table('failed_jobs')->count() : 0,
             'total_users' => User::query()->where('is_active', true)->count(),
@@ -41,15 +55,23 @@ class PlatformHealthService
         $thresholds = config('platform_alerts.thresholds', []);
         $labels = config('platform_alerts.labels', []);
 
+        $submissionsMinActiveUsers = max(0, (int) config('platform_alerts.submissions_min_active_users', 5));
+
         $alerts = [];
         foreach ($thresholds as $key => $threshold) {
             $value = (int) ($metrics[$key] ?? 0);
+            $exceeded = $threshold > 0 && $value >= $threshold;
+
+            if ($key === 'submissions_in_progress' && $exceeded) {
+                $exceeded = $metrics['active_users'] >= $submissionsMinActiveUsers;
+            }
+
             $alerts[$key] = [
                 'key' => $key,
                 'label' => $labels[$key] ?? $key,
                 'value' => $value,
                 'threshold' => (int) $threshold,
-                'exceeded' => $threshold > 0 && $value >= $threshold,
+                'exceeded' => $exceeded,
             ];
         }
 
