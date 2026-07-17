@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\User;
+use App\Services\Exports\RawDataXlsxExporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use ZipArchive;
 
 class ReportExportTest extends TestCase
 {
@@ -28,8 +30,7 @@ class ReportExportTest extends TestCase
             ->assertSee($list->title);
 
         $excel = $this->actingAs($admin)->get(route('admin.reports.export.excel', $query));
-        $excel->assertOk()->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
-        $this->assertStringContainsString('Ruwe data', $excel->streamedContent());
+        $excel->assertOk()->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
         $pdf = $this->actingAs($admin)->get(route('admin.reports.export.pdf', $query));
         $pdf->assertOk()->assertHeader('content-type', 'application/pdf');
@@ -45,6 +46,21 @@ class ReportExportTest extends TestCase
             'start_date' => now()->subWeek()->toDateString(),
             'end_date' => now()->toDateString(),
         ]))->assertNotFound();
+    }
+
+    public function test_excel_export_is_a_valid_xlsx_package(): void
+    {
+        [, $list] = $this->adminAndList('Excel test');
+        $path = app(RawDataXlsxExporter::class)->create($list, collect());
+        $zip = new ZipArchive();
+
+        $this->assertTrue($zip->open($path) === true);
+        $this->assertNotFalse($zip->locateName('xl/workbook.xml'));
+        $this->assertNotFalse($zip->locateName('xl/worksheets/sheet1.xml'));
+        $this->assertStringContainsString('Inzending ID', $zip->getFromName('xl/worksheets/sheet1.xml'));
+
+        $zip->close();
+        unlink($path);
     }
 
     private function adminAndList(string $name): array

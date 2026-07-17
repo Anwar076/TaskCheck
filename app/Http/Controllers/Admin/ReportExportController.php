@@ -5,24 +5,23 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Checklist\TaskList;
 use App\Models\Submissions\Submission;
+use App\Services\Exports\RawDataXlsxExporter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportExportController extends Controller
 {
-    public function excel(Request $request): StreamedResponse
+    public function excel(Request $request, RawDataXlsxExporter $exporter)
     {
         [$list, $start, $end] = $this->selection($request);
         $submissions = $this->submissions($list, $start, $end);
-        $filename = 'ruwe-data-'.str($list->title)->slug().'-'.$start->format('Ymd').'-'.$end->format('Ymd').'.xls';
+        $filename = 'ruwe-data-'.str($list->title)->slug().'-'.$start->format('Ymd').'-'.$end->format('Ymd').'.xlsx';
+        $path = $exporter->create($list, $submissions);
 
-        return response()->streamDownload(function () use ($submissions, $list, $start, $end) {
-            echo view('admin.reports.excel-xml', compact('submissions', 'list', 'start', 'end'))->render();
-        }, $filename, [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
-        ]);
+        return response()->download($path, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function pdf(Request $request)

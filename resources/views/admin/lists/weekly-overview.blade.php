@@ -80,17 +80,20 @@
             </div>
 
             {{-- Exports per takenlijst --}}
-            <div class="px-4 sm:px-6 lg:px-8 py-5 border-t border-white/10 bg-white">
-                <div class="flex flex-col lg:flex-row lg:items-end gap-4">
-                    <div class="flex-1">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Rapport maken</p>
-                        <h2 class="text-lg font-bold text-slate-900 mt-1">Uitvoering van een specifieke takenlijst</h2>
-                        <p class="text-sm text-slate-500 mt-1">Exporteer ruwe taakdata naar Excel of maak een leesbaar PDF-rapport over de gekozen periode.</p>
+            <div class="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 border-t border-slate-100 bg-white">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5A3.375 3.375 0 0010.125 2.25H8.25m.75 12l3 3m0 0l3-3m-3 3V9.75M6.75 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9H6.75z"/></svg>
                     </div>
-                    <form id="list-report-form" class="grid grid-cols-1 sm:grid-cols-[minmax(220px,1fr)_auto_auto] gap-2 w-full lg:w-auto">
-                        <div>
+                    <div class="min-w-0">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900">Rapport voor een takenlijst</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Kies een lijst en download de geselecteerde periode als auditrapport of ruwe data.</p>
+                    </div>
+                </div>
+                <form id="list-report-form" class="flex flex-col md:flex-row gap-2.5 w-full">
+                        <div class="flex-1 min-w-0">
                             <label for="report-list-id" class="sr-only">Takenlijst</label>
-                            <select id="report-list-id" name="list_id" required class="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                            <select id="report-list-id" name="list_id" required class="block w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                                 <option value="">Kies een takenlijst…</option>
                                 @foreach($reportLists as $reportList)
                                     <option value="{{ $reportList->id }}">{{ $reportList->title }}</option>
@@ -99,15 +102,16 @@
                             <input type="hidden" name="start_date" value="{{ \Carbon\Carbon::parse($startDate)->format('Y-m-d') }}">
                             <input type="hidden" name="end_date" value="{{ \Carbon\Carbon::parse($endDate)->format('Y-m-d') }}">
                         </div>
-                        <button type="button" data-export-url="{{ route('admin.reports.export.excel') }}" class="report-export inline-flex h-11 items-center justify-center gap-2 px-4 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700">
-                            Excel ruwe data
-                        </button>
-                        <button type="button" data-export-url="{{ route('admin.reports.export.pdf') }}" class="report-export inline-flex h-11 items-center justify-center gap-2 px-4 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
+                        <button type="button" data-export-url="{{ route('admin.reports.export.pdf') }}" class="report-export inline-flex h-11 shrink-0 items-center justify-center gap-2 px-4 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5v-9m0 9l-3-3m3 3l3-3M6.75 19.5h10.5"/></svg>
                             PDF-rapport
                         </button>
-                    </form>
-                </div>
-                <p id="report-list-error" class="hidden mt-2 text-sm text-red-600 text-right">Kies eerst een takenlijst.</p>
+                        <button type="button" data-export-url="{{ route('admin.reports.export.excel') }}" class="report-export inline-flex h-11 shrink-0 items-center justify-center gap-2 px-4 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m1-12.75v4.5m3-6.75v6.75m3-3v3"/></svg>
+                            Ruwe data (.xlsx)
+                        </button>
+                </form>
+                <p id="report-list-error" class="hidden mt-2 text-sm text-red-600">Kies eerst een takenlijst.</p>
             </div>
 
             {{-- Filters --}}
