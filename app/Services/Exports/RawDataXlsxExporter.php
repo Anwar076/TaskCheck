@@ -17,7 +17,7 @@ class RawDataXlsxExporter
             'Checklistwaarden', 'Bestanden', 'Beoordelaar', 'Opmerking manager', 'Afwijzingsreden',
             'Herstel gevraagd', 'Herstelreden', 'Taak uitgevoerd', 'Taak beoordeeld',
             'Handtekening medewerker', 'Handtekening manager', 'Taakhandtekening',
-            'Hygiënecode', 'HACCP-plan', 'Normreferentie', 'Corrigerende actie', 'Actiehouder',
+            'Normenkader', 'Beleidsreferentie', 'Controlereferentie', 'Corrigerende actie', 'Actiehouder',
             'Actiedeadline', 'Actie afgerond', 'Verificatienotitie', 'Geverifieerd door', 'Geverifieerd op',
         ];
 
@@ -41,7 +41,7 @@ class RawDataXlsxExporter
                     $submission->employee_signature ? 'Aanwezig' : 'Niet aanwezig',
                     $submission->manager_signature ? 'Aanwezig' : 'Niet aanwezig',
                     $task->digital_signature ? 'Aanwezig' : 'Niet aanwezig',
-                    $list->hygiene_code, $list->haccp_plan_reference, $task->task?->norm_reference,
+                    $list->compliance_framework, $list->policy_reference, $task->task?->control_reference,
                     $task->corrective_action, $task->correctiveActionOwner?->name,
                     $task->corrective_action_due_at?->format('Y-m-d H:i:s'),
                     $task->corrective_action_completed_at?->format('Y-m-d H:i:s'),

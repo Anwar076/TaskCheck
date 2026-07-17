@@ -71,8 +71,8 @@
                         </div>
 
                         <div>
-                            <label for="task-create-norm-reference" class="mb-1 block text-xs font-medium text-slate-600">Norm- of codereferentie</label>
-                            <input type="text" id="task-create-norm-reference" maxlength="255" placeholder="Bijv. Hygiënecode §4.3 — koelbewaring" class="block w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                            <label for="task-create-norm-reference" class="mb-1 block text-xs font-medium text-slate-600">Controle- of normreferentie</label>
+                            <input type="text" id="task-create-norm-reference" maxlength="255" placeholder="Bijv. Werkprotocol §4.3 of ISO-clausule 8.5" class="block w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                             <p class="mt-1 text-[11px] text-slate-400">Maakt in rapportages herleidbaar waarop dit controlepunt is gebaseerd.</p>
                         </div>
 

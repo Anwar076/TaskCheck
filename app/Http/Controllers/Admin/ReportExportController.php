@@ -38,6 +38,20 @@ class ReportExportController extends Controller
         $closedDeviations = $deviations->filter(fn ($task) => $task->verified_at !== null);
         $finished = $fullyCompleted->count();
         $expected = $this->expectedExecutions($list, $start, $end);
+        $scheduleRows = $this->scheduleRows($list, $submissions, $start, $end);
+        $controlPointSummary = $list->tasks->map(function ($task) use ($taskRows) {
+            $executions = $taskRows->where('task_id', $task->id);
+            $rules = is_array($task->validation_rules) ? $task->validation_rules : [];
+
+            return [
+                'task' => $task,
+                'executions' => $executions->count(),
+                'completed' => $executions->whereIn('status', ['completed', 'approved'])->count(),
+                'exceptions' => $executions->filter(fn ($row) => in_array($row->status, ['pending', 'rejected', 'redo_requested'], true))->count(),
+                'latest_result' => $executions->sortByDesc('completed_at')->first()?->proof_text,
+                'acceptance' => $this->acceptanceLabel($rules),
+            ];
+        });
         $summary = [
             'total' => $submissions->count(),
             'finished' => $finished,
@@ -55,7 +69,7 @@ class ReportExportController extends Controller
         ];
         $company = auth()->user()->company;
         $reportNumber = sprintf(
-            'TC-HACCP-%04d-%04d-%s-%s',
+            'TC-CTRL-%04d-%04d-%s-%s',
             $company->id,
             $list->id,
             $start->format('Ymd'),
@@ -71,7 +85,8 @@ class ReportExportController extends Controller
 
         return Pdf::loadView('admin.reports.list-pdf', compact(
             'company', 'list', 'start', 'end', 'submissions', 'summary', 'trend',
-            'deviations', 'openDeviations', 'closedDeviations', 'reviewers', 'reportNumber'
+            'deviations', 'openDeviations', 'closedDeviations', 'reviewers', 'reportNumber',
+            'scheduleRows', 'controlPointSummary'
         ))
             ->setPaper('a4', 'portrait')
             ->download('rapport-'.str($list->title)->slug().'-'.$start->format('Ymd').'-'.$end->format('Ymd').'.pdf');
@@ -90,7 +105,7 @@ class ReportExportController extends Controller
         ]);
         $companyId = auth()->user()->company_id;
         $list = TaskList::where('company_id', $companyId)
-            ->with('location')
+            ->with(['location', 'tasks'])
             ->findOrFail($validated['list_id']);
 
         return [$list, Carbon::parse($validated['start_date'])->startOfDay(), Carbon::parse($validated['end_date'])->endOfDay()];
@@ -109,21 +124,67 @@ class ReportExportController extends Controller
 
     private function expectedExecutions(TaskList $list, Carbon $start, Carbon $end): int
     {
+        return $this->expectedDates($list, $start, $end)->count();
+    }
+
+    private function expectedDates(TaskList $list, Carbon $start, Carbon $end)
+    {
         if ($list->schedule_type === 'once') {
-            return $list->due_date && ! $list->due_date->between($start, $end, true) ? 0 : 1;
+            if ($list->due_date && ! $list->due_date->between($start, $end, true)) {
+                return collect();
+            }
+
+            return collect([($list->due_date ?? $start)->copy()->startOfDay()]);
         }
 
         if ($list->schedule_type === 'monthly') {
-            return (int) $start->copy()->startOfMonth()->diffInMonths($end->copy()->startOfMonth()) + 1;
+            $dates = collect();
+            for ($month = $start->copy()->startOfMonth(); $month->lte($end); $month->addMonth()) {
+                $dates->push($month->copy());
+            }
+            return $dates;
         }
 
-        $count = 0;
+        $dates = collect();
         for ($day = $start->copy()->startOfDay(); $day->lte($end); $day->addDay()) {
             if ($list->schedule_type === 'daily' || $list->isAvailableOnDay(strtolower($day->format('l')))) {
-                $count++;
+                $dates->push($day->copy());
             }
         }
 
-        return $count;
+        return $dates;
+    }
+
+    private function scheduleRows(TaskList $list, $submissions, Carbon $start, Carbon $end)
+    {
+        return $this->expectedDates($list, $start, $end)->map(function (Carbon $date) use ($submissions) {
+            $daySubmissions = $submissions->filter(fn ($submission) => $submission->created_at->isSameDay($date));
+            $complete = $daySubmissions->contains(fn ($submission) => $submission->submissionTasks->isNotEmpty()
+                && $submission->submissionTasks->every(fn ($task) => in_array($task->status, ['completed', 'approved'], true)));
+
+            return [
+                'date' => $date,
+                'submissions' => $daySubmissions,
+                'status' => $daySubmissions->isEmpty() ? 'missing' : ($complete ? 'complete' : 'incomplete'),
+            ];
+        });
+    }
+
+    private function acceptanceLabel(array $rules): string
+    {
+        if (empty($rules['metric'])) {
+            return 'Volgens instructie / controleantwoord';
+        }
+
+        $unit = $rules['unit'] ?? '';
+        $parts = [];
+        if (array_key_exists('min', $rules)) {
+            $parts[] = 'min. '.$rules['min'].' '.$unit;
+        }
+        if (array_key_exists('max', $rules)) {
+            $parts[] = 'max. '.$rules['max'].' '.$unit;
+        }
+
+        return $parts !== [] ? implode(' en ', $parts) : ucfirst((string) $rules['metric']).' registreren';
     }
 }

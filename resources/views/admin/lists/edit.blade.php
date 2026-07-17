@@ -85,12 +85,12 @@
                 <div class="p-4 sm:p-6 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <x-form-label for="hygiene_code">Toepasselijke hygiënecode</x-form-label>
-                            <input type="text" name="hygiene_code" id="hygiene_code" value="{{ old('hygiene_code', $list->hygiene_code) }}" placeholder="Bijv. Hygiënecode voor de Horeca 2024" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <x-form-label for="compliance_framework">Normenkader of kwaliteitsstandaard</x-form-label>
+                            <input type="text" name="compliance_framework" id="compliance_framework" value="{{ old('compliance_framework', $list->compliance_framework) }}" placeholder="Bijv. Hygiënecode, VCA, ISO 9001 of eigen standaard" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
-                            <x-form-label for="haccp_plan_reference">HACCP-plan / documentreferentie</x-form-label>
-                            <input type="text" name="haccp_plan_reference" id="haccp_plan_reference" value="{{ old('haccp_plan_reference', $list->haccp_plan_reference) }}" placeholder="Bijv. HACCP-plan v3.2, hoofdstuk 6" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <x-form-label for="policy_reference">Beleids- of documentreferentie</x-form-label>
+                            <input type="text" name="policy_reference" id="policy_reference" value="{{ old('policy_reference', $list->policy_reference) }}" placeholder="Bijv. Kwaliteitshandboek v3.2, hoofdstuk 6" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
                             <x-form-label for="category" help="Groepeer lijsten, bijv. Schoonmaak, HACCP of Veiligheid.">Categorie</x-form-label>
@@ -147,16 +147,16 @@
                     <h2 class="text-lg font-bold text-slate-900">Extra opties</h2>
                 </div>
                 <div class="p-4 sm:p-6 space-y-4">
-                    <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 cursor-pointer">
+                    <label for="requires_review_edit" class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 cursor-pointer">
                         <span>
                             <span class="block text-sm font-medium text-slate-800">Moet deze takenlijst gecontroleerd worden?</span>
                             <span class="block mt-0.5 text-sm text-slate-500">Na invullen verschijnt de inzending in Werkcontroles.</span>
                         </span>
-                        <span class="relative inline-flex flex-shrink-0">
-                            <input type="hidden" name="requires_review" value="0">
-                            <input type="checkbox" name="requires_review" value="1" {{ old('requires_review', $list->requires_review) ? 'checked' : '' }} class="peer sr-only">
+                        <input type="hidden" name="requires_review" value="0">
+                        <span class="relative inline-flex h-6 w-11 flex-shrink-0">
+                            <input id="requires_review_edit" type="checkbox" name="requires_review" value="1" {{ old('requires_review', $list->requires_review) ? 'checked' : '' }} class="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0">
                             <span class="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2"></span>
-                            <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
+                            <span class="pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
                         </span>
                     </label>
                     <label class="flex items-start gap-3 cursor-pointer">

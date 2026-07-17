@@ -104,7 +104,7 @@ export function initTaskCreateModal() {
             instructionsInput.value = task.instructions || '';
         }
         if (normReferenceInput) {
-            normReferenceInput.value = task.norm_reference || '';
+            normReferenceInput.value = task.control_reference || '';
         }
         if (metricType) {
             metricType.value = task.metric_type || '';
@@ -133,7 +133,7 @@ export function initTaskCreateModal() {
         const hasExpandedContent = Boolean(
             task.description
             || task.instructions
-            || task.norm_reference
+            || task.control_reference
             || (task.checklist_items && task.checklist_items.length > 0)
             || task.requires_signature
             || task.metric_type
@@ -290,7 +290,7 @@ export function initTaskCreateModal() {
             title,
             description: descriptionInput?.value?.trim() || null,
             instructions: instructionsInput?.value?.trim() || null,
-            norm_reference: normReferenceInput?.value?.trim() || null,
+            control_reference: normReferenceInput?.value?.trim() || null,
             required_proof_type: proofSelect?.value || 'none',
             is_required: requiredCheckbox?.checked ?? true,
             requires_signature: signatureCheckbox?.checked ?? false,

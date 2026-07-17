@@ -15,7 +15,7 @@ class Task extends Model
         'list_id',
         'title',
         'description',
-        'norm_reference',
+        'control_reference',
         'instructions',
         'required_proof_type',
         'is_required',

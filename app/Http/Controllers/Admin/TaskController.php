@@ -45,7 +45,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'norm_reference' => 'nullable|string|max:255',
+            'control_reference' => 'nullable|string|max:255',
             'instructions' => 'nullable|string',
             'required_proof_type' => 'required|in:none,photo,video,text,file,any',
             'is_required' => 'boolean',
@@ -293,7 +293,7 @@ class TaskController extends Controller
                 'metric_min' => array_key_exists('min', $rules) ? $rules['min'] : null,
                 'metric_max' => array_key_exists('max', $rules) ? $rules['max'] : null,
                 'metric_comparison' => $rules['comparison'] ?? 'lte',
-                'norm_reference' => $task->norm_reference,
+                'control_reference' => $task->control_reference,
                 'update_url' => route('admin.tasks.update', $task),
             ],
         ]);
@@ -311,7 +311,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'norm_reference' => 'nullable|string|max:255',
+            'control_reference' => 'nullable|string|max:255',
             'instructions' => 'nullable|string',
             'required_proof_type' => 'required|in:none,photo,video,text,file,any',
             'is_required' => 'boolean',
