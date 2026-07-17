@@ -166,6 +166,14 @@
                 <div class="p-4 sm:p-6 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
+                            <x-form-label for="hygiene_code">Toepasselijke hygiënecode</x-form-label>
+                            <input type="text" name="hygiene_code" id="hygiene_code" value="{{ old('hygiene_code') }}" placeholder="Bijv. Hygiënecode voor de Horeca 2024" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <x-form-label for="haccp_plan_reference">HACCP-plan / documentreferentie</x-form-label>
+                            <input type="text" name="haccp_plan_reference" id="haccp_plan_reference" value="{{ old('haccp_plan_reference') }}" placeholder="Bijv. HACCP-plan v3.2, hoofdstuk 6" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
                             <x-form-label for="priority" help="Hoe belangrijk taken uit deze lijst zijn voor je team.">Prioriteit <span class="text-red-500">*</span></x-form-label>
                             <select name="priority" id="priority" required
                                     class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">

@@ -23,6 +23,13 @@ class SubmissionTask extends Model
         'status',
         'manager_comment',
         'rejection_reason',
+        'corrective_action',
+        'corrective_action_owner_id',
+        'corrective_action_due_at',
+        'corrective_action_completed_at',
+        'verification_note',
+        'verified_by',
+        'verified_at',
         'redo_requested',
         'redo_reason',
         'completed_at',
@@ -40,6 +47,9 @@ class SubmissionTask extends Model
             'completed_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'rejected_at' => 'datetime',
+            'corrective_action_due_at' => 'datetime',
+            'corrective_action_completed_at' => 'datetime',
+            'verified_at' => 'datetime',
             'signature_date' => 'datetime',
             'redo_requested' => 'boolean',
         ];
@@ -64,6 +74,16 @@ class SubmissionTask extends Model
     public function completedBy()
     {
         return $this->belongsTo(User::class, 'completed_by_user_id');
+    }
+
+    public function correctiveActionOwner()
+    {
+        return $this->belongsTo(User::class, 'corrective_action_owner_id');
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     // Scopes

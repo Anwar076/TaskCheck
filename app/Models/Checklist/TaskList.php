@@ -31,6 +31,8 @@ class TaskList extends Model
         'due_date',
         'tags',
         'category',
+        'hygiene_code',
+        'haccp_plan_reference',
         'requires_signature',
         'requires_review',
         'is_template',

@@ -29,10 +29,15 @@ class ReportExportController extends Controller
         [$list, $start, $end] = $this->selection($request);
         $submissions = $this->submissions($list, $start, $end);
         $taskRows = $submissions->flatMap->submissionTasks;
-        $deviations = $taskRows->filter(fn ($task) => in_array($task->status, ['rejected', 'redo_requested'], true)
+        $deviations = $taskRows->filter(fn ($task) => in_array($task->status, ['pending', 'rejected', 'redo_requested'], true)
             || filled($task->rejection_reason)
             || filled($task->redo_reason));
-        $finished = $submissions->whereIn('status', ['completed', 'reviewed'])->count();
+        $fullyCompleted = $submissions->filter(fn ($submission) => $submission->submissionTasks->isNotEmpty()
+            && $submission->submissionTasks->every(fn ($task) => in_array($task->status, ['completed', 'approved'], true)));
+        $openDeviations = $deviations->filter(fn ($task) => $task->verified_at === null);
+        $closedDeviations = $deviations->filter(fn ($task) => $task->verified_at !== null);
+        $finished = $fullyCompleted->count();
+        $expected = $this->expectedExecutions($list, $start, $end);
         $summary = [
             'total' => $submissions->count(),
             'finished' => $finished,
@@ -42,6 +47,11 @@ class ReportExportController extends Controller
             'tasks_completed' => $taskRows->whereIn('status', ['completed', 'approved'])->count(),
             'tasks_total' => $taskRows->count(),
             'deviations' => $deviations->count(),
+            'open_deviations' => $openDeviations->count(),
+            'closed_deviations' => $closedDeviations->count(),
+            'incomplete' => $submissions->count() - $fullyCompleted->count(),
+            'expected' => $expected,
+            'coverage_rate' => $expected > 0 ? round(min(100, ($finished / $expected) * 100), 1) : null,
         ];
         $company = auth()->user()->company;
         $reportNumber = sprintf(
@@ -61,7 +71,7 @@ class ReportExportController extends Controller
 
         return Pdf::loadView('admin.reports.list-pdf', compact(
             'company', 'list', 'start', 'end', 'submissions', 'summary', 'trend',
-            'deviations', 'reviewers', 'reportNumber'
+            'deviations', 'openDeviations', 'closedDeviations', 'reviewers', 'reportNumber'
         ))
             ->setPaper('a4', 'portrait')
             ->download('rapport-'.str($list->title)->slug().'-'.$start->format('Ymd').'-'.$end->format('Ymd').'.pdf');
@@ -92,8 +102,28 @@ class ReportExportController extends Controller
             ->where('company_id', $list->company_id)
             ->where('list_id', $list->id)
             ->whereBetween('created_at', [$start, $end])
-            ->with(['user', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.reviewer'])
+            ->with(['user', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.reviewer', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier'])
             ->oldest('created_at')
             ->get();
+    }
+
+    private function expectedExecutions(TaskList $list, Carbon $start, Carbon $end): int
+    {
+        if ($list->schedule_type === 'once') {
+            return $list->due_date && ! $list->due_date->between($start, $end, true) ? 0 : 1;
+        }
+
+        if ($list->schedule_type === 'monthly') {
+            return (int) $start->copy()->startOfMonth()->diffInMonths($end->copy()->startOfMonth()) + 1;
+        }
+
+        $count = 0;
+        for ($day = $start->copy()->startOfDay(); $day->lte($end); $day->addDay()) {
+            if ($list->schedule_type === 'daily' || $list->isAvailableOnDay(strtolower($day->format('l')))) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }

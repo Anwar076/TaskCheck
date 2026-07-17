@@ -614,6 +614,14 @@
                                                 <label class="block text-sm font-medium text-slate-700 mb-2">Opmerking goedkeuring (optioneel)</label>
                                                 <textarea name="manager_comment" placeholder="Voeg feedback of opmerkingen toe..." rows="3" class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"></textarea>
                                             </div>
+                                            @if($submissionTask->corrective_action)
+                                                <div class="mb-4 rounded-xl border border-blue-100 bg-blue-50 p-3">
+                                                    <p class="text-xs font-semibold text-blue-900">Corrigerende actie verifiëren</p>
+                                                    <p class="mt-1 text-xs text-blue-800">{{ $submissionTask->corrective_action }}</p>
+                                                    <label class="mt-3 flex items-start gap-2 text-xs text-slate-700"><input type="checkbox" name="confirm_corrective_action_closed" value="1" class="mt-0.5 rounded border-slate-300 text-blue-600"> Actie uitgevoerd en aantoonbaar effectief</label>
+                                                    <textarea name="verification_note" rows="2" placeholder="Hoe is de werking geverifieerd?" class="mt-2 w-full text-sm border-slate-200 rounded-xl"></textarea>
+                                                </div>
+                                            @endif
                                             <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors" id="approve-btn-{{ $submissionTask->id }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 Taak goedkeuren
@@ -624,6 +632,14 @@
                                             <div class="mb-4">
                                                 <label class="block text-sm font-medium text-slate-700 mb-2">Afwijzingsreden (verplicht)</label>
                                                 <textarea name="rejection_reason" placeholder="Leg uit waarom deze taak wordt afgewezen..." rows="3" required class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"></textarea>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-slate-700 mb-2">Corrigerende actie <span class="text-red-500">*</span></label>
+                                                <textarea name="corrective_action" placeholder="Welke concrete actie moet worden uitgevoerd?" rows="2" required class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500"></textarea>
+                                            </div>
+                                            <div class="grid grid-cols-1 gap-3 mb-4">
+                                                <div><label class="block text-sm font-medium text-slate-700 mb-1">Actiehouder</label><select name="corrective_action_owner_id" required class="w-full text-sm border-slate-200 rounded-xl"><option value="">Kies verantwoordelijke…</option>@foreach($correctiveActionOwners as $owner)<option value="{{ $owner->id }}">{{ $owner->name }}</option>@endforeach</select></div>
+                                                <div><label class="block text-sm font-medium text-slate-700 mb-1">Deadline</label><input type="date" name="corrective_action_due_at" min="{{ now()->toDateString() }}" required class="w-full text-sm border-slate-200 rounded-xl"></div>
                                             </div>
                                             <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors" id="reject-btn-{{ $submissionTask->id }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>

@@ -78,6 +78,8 @@ class TaskListController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
+            'hygiene_code' => 'nullable|string|max:255',
+            'haccp_plan_reference' => 'nullable|string|max:255',
             'priority' => 'required|in:low,medium,high,urgent',
             'schedule_type' => 'required|in:once,daily,weekly,monthly',
             'due_date' => 'nullable|date',
@@ -598,6 +600,8 @@ class TaskListController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
+            'hygiene_code' => 'nullable|string|max:255',
+            'haccp_plan_reference' => 'nullable|string|max:255',
             'priority' => 'required|in:low,medium,high,urgent',
             'schedule_type' => 'required|in:once,daily,weekly,monthly',
             'due_date' => 'nullable|date',
@@ -1660,9 +1664,11 @@ PROMPT,
 
     public function showSubmission(\App\Models\Submissions\Submission $submission)
     {
-        $submission->load(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy']);
+        $submission->load(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier']);
+        $correctiveActionOwners = \App\Models\Organisation\User::where('company_id', auth()->user()->company_id)
+            ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
         
-        return view('admin.submissions.show', compact('submission'));
+        return view('admin.submissions.show', compact('submission', 'correctiveActionOwners'));
     }
 
     public function aiReviewSubmission(Request $request, \App\Models\Submissions\Submission $submission, \App\Services\Ai\SubmissionReviewService $ai)
@@ -1722,6 +1728,9 @@ PROMPT,
     {
         $validatedData = $request->validate([
             'rejection_reason' => 'required|string',
+            'corrective_action' => 'required|string|max:2000',
+            'corrective_action_owner_id' => ['required', Rule::exists('users', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))],
+            'corrective_action_due_at' => 'required|date|after_or_equal:today',
         ]);
 
         $notification = DB::transaction(function () use ($submissionTask, $validatedData) {
@@ -1729,6 +1738,13 @@ PROMPT,
             $submissionTask->update([
                 'status' => 'pending',
                 'rejection_reason' => $validatedData['rejection_reason'],
+                'corrective_action' => $validatedData['corrective_action'],
+                'corrective_action_owner_id' => $validatedData['corrective_action_owner_id'],
+                'corrective_action_due_at' => $validatedData['corrective_action_due_at'],
+                'corrective_action_completed_at' => null,
+                'verification_note' => null,
+                'verified_by' => null,
+                'verified_at' => null,
                 'rejected_at' => now(),
                 'reviewed_by' => auth()->id(),
                 'reviewed_at' => now(),
@@ -1810,11 +1826,26 @@ PROMPT,
 
     public function approveTask(Request $request, \App\Models\Submissions\SubmissionTask $submissionTask)
     {
-        $validatedData = $request->validate([
+        $rules = [
             'manager_comment' => 'nullable|string',
-        ]);
+            'verification_note' => 'nullable|string|max:2000',
+            'confirm_corrective_action_closed' => 'boolean',
+        ];
+        if ($submissionTask->corrective_action) {
+            $rules['verification_note'] = 'required|string|max:2000';
+            $rules['confirm_corrective_action_closed'] = 'required|accepted';
+        }
+        $validatedData = $request->validate($rules);
 
         $submissionTask->approve(auth()->id(), $validatedData['manager_comment'] ?? null);
+        if ($submissionTask->corrective_action) {
+            $submissionTask->update([
+                'corrective_action_completed_at' => now(),
+                'verification_note' => $validatedData['verification_note'],
+                'verified_by' => auth()->id(),
+                'verified_at' => now(),
+            ]);
+        }
 
         // Als alle taken zijn goedgekeurd, zet de inzending op 'reviewed'
         $this->updateSubmissionStatusIfAllTasksReviewed($submissionTask->submission);
