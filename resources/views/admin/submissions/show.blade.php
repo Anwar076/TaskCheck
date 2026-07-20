@@ -698,6 +698,34 @@
     </div>
 </div>
 
+@php
+    $submissionAuditEvents = $submission->submissionTasks->flatMap->auditEvents->sortByDesc('created_at');
+    $auditEventLabels = ['created'=>'Aangemaakt','submitted'=>'Ingevoerd','resubmitted'=>'Bijgewerkt en opnieuw ingediend','rejected'=>'Afgekeurd','approved'=>'Goedgekeurd','verified'=>'Actie geverifieerd','updated'=>'Gegevens bijgewerkt','legacy_snapshot'=>'Beginstand audittrail'];
+@endphp
+<div class="mt-6 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="px-5 sm:px-6 py-5 border-b border-slate-100">
+        <h2 class="text-lg font-bold text-slate-900">Geschiedenis en audittrail</h2>
+        <p class="mt-1 text-sm text-slate-500">Chronologische registratie van invoer, wijzigingen, afkeuringen en goedkeuringen.</p>
+    </div>
+    <div class="p-5 sm:p-6">
+        @forelse($submissionAuditEvents as $event)
+            <div class="relative pl-7 pb-5 last:pb-0 border-l-2 border-slate-200 last:border-transparent">
+                <span class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-50"></span>
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+                    <div><p class="text-sm font-semibold text-slate-900">{{ $auditEventLabels[$event->event_type] ?? $event->event_type }}</p><p class="text-sm text-slate-600">{{ $event->submissionTask?->task?->title ?? 'Controlepunt' }} · {{ $event->from_status ?: '—' }} → {{ $event->to_status ?: '—' }}</p></div>
+                    <p class="text-xs text-slate-500 whitespace-nowrap">{{ $event->created_at->format('d-m-Y H:i:s') }}</p>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">Door {{ $event->actor?->name ?? 'Systeem' }}</p>
+                @if(data_get($event->snapshot, 'rejection_reason') || data_get($event->snapshot, 'verification_note') || data_get($event->snapshot, 'proof_text'))
+                    <p class="mt-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2">{{ data_get($event->snapshot, 'rejection_reason') ?: (data_get($event->snapshot, 'verification_note') ?: data_get($event->snapshot, 'proof_text')) }}</p>
+                @endif
+            </div>
+        @empty
+            <p class="text-sm text-slate-500">Nog geen gebeurtenissen geregistreerd.</p>
+        @endforelse
+    </div>
+</div>
+
 <div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onclick="if(event.target===this)closeImageModal()">
     <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
         <div class="flex items-center justify-end px-4 py-3 border-b border-slate-200">

@@ -29,6 +29,7 @@ class ReportExportController extends Controller
         [$list, $start, $end] = $this->selection($request);
         $submissions = $this->submissions($list, $start, $end);
         $taskRows = $submissions->flatMap->submissionTasks;
+        $auditEvents = $taskRows->flatMap->auditEvents->sortBy('created_at')->values();
         $deviations = $taskRows->filter(fn ($task) => in_array($task->status, ['pending', 'rejected', 'redo_requested'], true)
             || filled($task->rejection_reason)
             || filled($task->redo_reason));
@@ -86,7 +87,7 @@ class ReportExportController extends Controller
         return Pdf::loadView('admin.reports.list-pdf', compact(
             'company', 'list', 'start', 'end', 'submissions', 'summary', 'trend',
             'deviations', 'openDeviations', 'closedDeviations', 'reviewers', 'reportNumber',
-            'scheduleRows', 'controlPointSummary'
+            'scheduleRows', 'controlPointSummary', 'auditEvents'
         ))
             ->setPaper('a4', 'portrait')
             ->download('rapport-'.str($list->title)->slug().'-'.$start->format('Ymd').'-'.$end->format('Ymd').'.pdf');
@@ -117,7 +118,7 @@ class ReportExportController extends Controller
             ->where('company_id', $list->company_id)
             ->where('list_id', $list->id)
             ->whereBetween('created_at', [$start, $end])
-            ->with(['user', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.reviewer', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier'])
+            ->with(['user', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.reviewer', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier', 'submissionTasks.auditEvents.actor', 'submissionTasks.auditEvents.submissionTask.task'])
             ->oldest('created_at')
             ->get();
     }

@@ -1664,7 +1664,7 @@ PROMPT,
 
     public function showSubmission(\App\Models\Submissions\Submission $submission)
     {
-        $submission->load(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier']);
+        $submission->load(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier', 'submissionTasks.auditEvents.actor']);
         $correctiveActionOwners = \App\Models\Organisation\User::where('company_id', auth()->user()->company_id)
             ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
         

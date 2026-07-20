@@ -55,6 +55,76 @@ class SubmissionTask extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::created(function (SubmissionTask $task) {
+            $task->recordAuditEvent('created', null, $task->status);
+        });
+
+        static::updated(function (SubmissionTask $task) {
+            $tracked = [
+                'status', 'proof_text', 'employee_comment', 'proof_files',
+                'manager_comment', 'completed_at', 'completed_by_user_id',
+                'rejection_reason', 'corrective_action', 'corrective_action_owner_id',
+                'corrective_action_due_at', 'corrective_action_completed_at',
+                'reviewed_at', 'reviewed_by', 'verified_at', 'verified_by',
+                'verification_note',
+            ];
+            if (! collect($tracked)->contains(fn ($field) => $task->wasChanged($field))) {
+                return;
+            }
+
+            $from = $task->getOriginal('status');
+            $to = $task->status;
+            $event = match (true) {
+                $task->wasChanged('verified_at') && $task->verified_at !== null => 'verified',
+                $task->wasChanged('status') && $to === 'approved' => 'approved',
+                $task->wasChanged('status') && in_array($to, ['rejected', 'redo_requested'], true) => 'rejected',
+                $task->wasChanged('status') && $to === 'pending' && filled($task->rejection_reason) => 'rejected',
+                $task->wasChanged('status') && $to === 'completed' && filled($task->rejection_reason) => 'resubmitted',
+                $task->wasChanged('status') && $to === 'completed' => 'submitted',
+                default => 'updated',
+            };
+
+            $task->recordAuditEvent($event, $from, $to);
+        });
+    }
+
+    public function auditEvents()
+    {
+        return $this->hasMany(SubmissionTaskAuditEvent::class)->oldest('created_at');
+    }
+
+    private function recordAuditEvent(string $event, ?string $from, ?string $to): void
+    {
+        $submission = $this->submission()->first();
+        SubmissionTaskAuditEvent::create([
+            'submission_task_id' => $this->id,
+            'submission_id' => $this->submission_id,
+            'company_id' => $submission?->company_id,
+            'actor_id' => auth()->id() ?: ($this->reviewed_by ?: $this->completed_by_user_id),
+            'event_type' => $event,
+            'from_status' => $from,
+            'to_status' => $to,
+            'snapshot' => [
+                'proof_text' => $this->proof_text,
+                'employee_comment' => $this->employee_comment,
+                'proof_files' => $this->proof_files,
+                'manager_comment' => $this->manager_comment,
+                'completed_at' => $this->completed_at?->toIso8601String(),
+                'completed_by_user_id' => $this->completed_by_user_id,
+                'rejection_reason' => $this->rejection_reason,
+                'corrective_action' => $this->corrective_action,
+                'corrective_action_owner_id' => $this->corrective_action_owner_id,
+                'corrective_action_due_at' => $this->corrective_action_due_at?->toIso8601String(),
+                'corrective_action_completed_at' => $this->corrective_action_completed_at?->toIso8601String(),
+                'verification_note' => $this->verification_note,
+                'verified_by' => $this->verified_by,
+                'verified_at' => $this->verified_at?->toIso8601String(),
+            ],
+        ]);
+    }
+
     // Relationships
     public function submission()
     {
