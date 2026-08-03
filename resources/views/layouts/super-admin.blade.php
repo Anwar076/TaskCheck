@@ -34,46 +34,46 @@
                 <nav class="flex-1 px-4 space-y-1">
                     <a href="{{ route('super-admin.dashboard') }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && !request()->has('tab') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <svg class="h-5 w-5 shrink-0 opacity-90" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                        <x-super-admin-icon name="dashboard" class="shrink-0" />
                         Dashboard
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'communications']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && request()->has('tab') && $superAdminDashboardTab === 'communications' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <span class="h-2 w-2 rounded-full bg-blue-300/80"></span>
+                        <x-super-admin-icon name="communication" class="shrink-0" />
                         Communicatie
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'companies']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.companies.*') || (request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'companies') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <span class="h-2 w-2 rounded-full bg-blue-300/80"></span>
+                        <x-super-admin-icon name="companies" class="shrink-0" />
                         Bedrijven
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'usage' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <span class="h-2 w-2 rounded-full bg-emerald-300/80"></span>
+                        <x-super-admin-icon name="usage" class="shrink-0" />
                         Gebruik
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'monitoring' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <span class="h-2 w-2 rounded-full bg-blue-300/80"></span>
+                        <x-super-admin-icon name="monitoring" class="shrink-0" />
                         Monitoring
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.templates.*') || (request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'templates') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <span class="h-2 w-2 rounded-full bg-blue-300/80"></span>
+                        <x-super-admin-icon name="templates" class="shrink-0" />
                         Templates
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'invoices']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'invoices' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <span class="h-2 w-2 rounded-full bg-blue-300/80"></span>
+                        <x-super-admin-icon name="invoices" class="shrink-0" />
                         Facturen
                     </a>
                     <a href="{{ route('profile.edit') }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors {{ request()->routeIs('profile.*') ? 'bg-blue-100 text-blue-700' : '' }}">
-                        <svg class="h-5 w-5 shrink-0 opacity-90" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                        <x-super-admin-icon name="profile" class="shrink-0" />
                         Profiel
                     </a>
                 </nav>
-                <div class="mt-auto border-t border-slate-200 p-4">
+                <div class="hidden">
                     <div class="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
                         <div class="flex items-center gap-3">
                             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-semibold text-white">
@@ -116,9 +116,22 @@
                             <h2 class="text-base font-semibold text-slate-900">TaskCheck</h2>
                         </div>
                     </div>
-                    <div class="flex shrink-0 items-center gap-2">
-                        @include('partials.google-translate', ['variant' => 'topbar'])
-                        <a href="{{ route('welcome') }}" class="hidden text-sm font-medium text-blue-700 hover:text-blue-900 sm:inline">Website</a>
+                    <div class="fixed right-3 top-3 z-40 flex shrink-0 items-center gap-2 sm:static sm:z-auto">
+                        <div class="hidden sm:block">@include('partials.google-translate', ['variant' => 'topbar'])</div>
+                        <a href="{{ route('welcome') }}" class="hidden items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50 hover:text-blue-900 lg:inline-flex"><x-super-admin-icon name="website" class="h-4 w-4" />Website</a>
+                        <div class="relative hidden sm:block" data-sa-profile-root>
+                            <button type="button" data-sa-profile-toggle aria-expanded="false" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-bold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
+                                <span class="hidden max-w-36 truncate text-left sm:block"><span class="block truncate text-sm font-semibold leading-4">{{ Auth::user()->name }}</span><span class="block text-[11px] text-slate-500">Superadmin</span></span>
+                                <x-super-admin-icon name="chevron" class="h-4 w-4 text-slate-400" />
+                            </button>
+                            <div data-sa-profile-dropdown class="absolute right-0 z-50 mt-2 hidden w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                                <div class="border-b border-slate-100 px-4 py-3 sm:hidden"><p class="truncate text-sm font-semibold text-slate-900">{{ Auth::user()->name }}</p><p class="truncate text-xs text-slate-500">{{ Auth::user()->email }}</p></div>
+                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"><x-super-admin-icon name="profile" class="h-4 w-4 text-slate-500" />Profiel beheren</a>
+                                <a href="{{ route('welcome') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 lg:hidden"><x-super-admin-icon name="website" class="h-4 w-4 text-slate-500" />Website openen</a>
+                                <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100">@csrf<button type="submit" class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50"><x-super-admin-icon name="logout" class="h-4 w-4" />Uitloggen</button></form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -137,6 +150,11 @@
         </div>
     </div>
 
+    <div class="fixed right-3 top-3 z-50 sm:hidden" data-sa-mobile-profile-root>
+        <button type="button" data-sa-mobile-profile-toggle aria-expanded="false" aria-label="Profielmenu openen" class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-xs font-bold text-white shadow-sm ring-2 ring-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</button>
+        <div data-sa-mobile-profile-dropdown class="absolute right-0 mt-2 hidden w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"><div class="border-b border-slate-100 px-4 py-3"><p class="truncate text-sm font-semibold text-slate-900">{{ Auth::user()->name }}</p><p class="text-xs text-slate-500">Superadmin</p></div><a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"><x-super-admin-icon name="profile" class="h-4 w-4" />Profiel beheren</a><form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100">@csrf<button class="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600"><x-super-admin-icon name="logout" class="h-4 w-4" />Uitloggen</button></form></div>
+    </div>
+
     <div class="fixed inset-0 z-50 hidden md:hidden" id="sa-mobile-overlay" aria-hidden="true">
         <div class="absolute inset-0 bg-slate-900/60" id="sa-mobile-backdrop"></div>
         <div class="absolute inset-y-0 left-0 flex w-[min(20rem,90vw)] flex-col bg-white text-slate-900 shadow-2xl">
@@ -145,19 +163,19 @@
                 <button type="button" class="rounded-lg p-2 hover:bg-slate-100" id="sa-mobile-close" aria-label="Sluiten">✕</button>
             </div>
             <nav class="flex-1 space-y-1 p-4">
-                <a href="{{ route('super-admin.dashboard') }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Dashboard</a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'communications']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Communicatie</a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'companies']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Bedrijven</a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Gebruik</a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Monitoring</a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Templates</a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'invoices']) }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Facturen</a>
-                <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100">Profiel</a>
+                @foreach([
+                    ['dashboard', 'Dashboard', route('super-admin.dashboard')],
+                    ['communication', 'Communicatie', route('super-admin.dashboard', ['tab' => 'communications'])],
+                    ['companies', 'Bedrijven', route('super-admin.dashboard', ['tab' => 'companies'])],
+                    ['usage', 'Gebruik', route('super-admin.dashboard', ['tab' => 'usage'])],
+                    ['monitoring', 'Monitoring', route('super-admin.dashboard', ['tab' => 'monitoring'])],
+                    ['templates', 'Templates', route('super-admin.dashboard', ['tab' => 'templates'])],
+                    ['invoices', 'Facturen', route('super-admin.dashboard', ['tab' => 'invoices'])],
+                    ['profile', 'Profiel', route('profile.edit')],
+                ] as [$icon, $label, $url])
+                    <a href="{{ $url }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"><x-super-admin-icon :name="$icon" class="h-5 w-5 text-slate-500" />{{ $label }}</a>
+                @endforeach
             </nav>
-            <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-200 p-4">
-                @csrf
-                <button type="submit" class="w-full rounded-lg border border-slate-200 py-2 text-sm font-medium hover:bg-slate-50">Uitloggen</button>
-            </form>
         </div>
     </div>
 
@@ -167,11 +185,41 @@
             var overlay = document.getElementById('sa-mobile-overlay');
             var closeBtn = document.getElementById('sa-mobile-close');
             var backdrop = document.getElementById('sa-mobile-backdrop');
+            var profileRoot = document.querySelector('[data-sa-profile-root]');
+            var profileToggle = document.querySelector('[data-sa-profile-toggle]');
+            var profileDropdown = document.querySelector('[data-sa-profile-dropdown]');
+            var mobileProfileRoot = document.querySelector('[data-sa-mobile-profile-root]');
+            var mobileProfileToggle = document.querySelector('[data-sa-mobile-profile-toggle]');
+            var mobileProfileDropdown = document.querySelector('[data-sa-mobile-profile-dropdown]');
             function open() { if (overlay) { overlay.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); } }
             function close() { if (overlay) { overlay.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); } }
             if (openBtn) openBtn.addEventListener('click', open);
             if (closeBtn) closeBtn.addEventListener('click', close);
             if (backdrop) backdrop.addEventListener('click', close);
+            if (profileToggle && profileDropdown) {
+                profileToggle.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    var willOpen = profileDropdown.classList.contains('hidden');
+                    profileDropdown.classList.toggle('hidden', !willOpen);
+                    profileToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                });
+                document.addEventListener('click', function (event) {
+                    if (profileRoot && !profileRoot.contains(event.target)) {
+                        profileDropdown.classList.add('hidden');
+                        profileToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        profileDropdown.classList.add('hidden');
+                        profileToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+            if (mobileProfileToggle && mobileProfileDropdown) {
+                mobileProfileToggle.addEventListener('click', function (event) { event.stopPropagation(); mobileProfileDropdown.classList.toggle('hidden'); });
+                document.addEventListener('click', function (event) { if (mobileProfileRoot && !mobileProfileRoot.contains(event.target)) mobileProfileDropdown.classList.add('hidden'); });
+            }
         })();
     </script>
     @stack('scripts')

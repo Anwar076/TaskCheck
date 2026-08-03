@@ -46,9 +46,9 @@
                             </span>
                         </div>
                         <p class="mt-1 text-sm text-blue-100">Bedrijfsprofiel, gebruik, abonnement en recente activiteit.</p>
-                        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-blue-100">
-                            <span>Aangemaakt {{ $company->created_at?->format('d-m-Y') }}</span>
-                            <span>Laatste activiteit {{ $lastActivityAt ? \Carbon\Carbon::parse($lastActivityAt)->diffForHumans() : 'nog niet' }}</span>
+                        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-blue-100">
+                            <span>Aangemaakt {{ $company->created_at?->format('d-m-Y') }}</span><span class="text-blue-300">•</span>
+                            <span>Laatste activiteit: {{ $lastActivityAt ? \Carbon\Carbon::parse($lastActivityAt)->diffForHumans() : 'nog niet' }}</span>
                         </div>
                     </div>
                 </div>
@@ -66,8 +66,8 @@
     </section>
 
     <nav class="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" aria-label="Klantonderdelen">
-        @foreach(['overview' => 'Overzicht', 'users' => 'Gebruikers', 'lists' => 'Takenlijsten', 'billing' => 'Abonnement & facturen', 'activity' => 'Activiteit', 'settings' => 'Bedrijfsgegevens'] as $key => $label)
-            <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => $key]) }}" class="whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold {{ $companySection === $key ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}">{{ $label }}</a>
+        @foreach(['overview' => ['dashboard','Overzicht'], 'users' => ['profile','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']] as $key => [$icon, $label])
+            <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => $key]) }}" class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold {{ $companySection === $key ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}"><x-super-admin-icon :name="$icon" class="h-4 w-4" />{{ $label }}</a>
         @endforeach
     </nav>
 
@@ -88,8 +88,8 @@
         @endforeach
     </section>
 
-    <div class="{{ $companySection === 'overview' ? 'grid' : 'hidden' }} grid-cols-1 gap-6 xl:grid-cols-3">
-        <div class="space-y-6 xl:col-span-2">
+    <div class="{{ $companySection === 'overview' ? 'grid' : 'hidden' }} grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div class="min-w-0 space-y-6">
             <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                     <div>
@@ -106,7 +106,7 @@
                                 <p class="truncate text-sm font-semibold text-slate-900">{{ $user->name }}</p>
                                 <p class="truncate text-xs text-slate-500">{{ $user->email }}{{ $user->location ? ' · '.$user->location->name : '' }}</p>
                             </div>
-                            <span class="rounded-full px-2 py-1 text-[11px] font-semibold {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">{{ $user->is_active ? ucfirst($user->role) : 'Inactief' }}</span>
+                            <span class="rounded-full px-2 py-1 text-[11px] font-semibold {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">{{ $user->is_active ? ($user->role === 'employee' ? 'Medewerker' : 'Beheerder') : 'Inactief' }}</span>
                         </div>
                     @empty
                         <p class="px-5 py-8 text-center text-sm text-slate-500">Nog geen gebruikers.</p>
@@ -121,7 +121,7 @@
                         <p class="text-xs text-slate-500">Laatste lijsten inclusief omvang en gebruik.</p>
                     </div>
                     <a href="{{ route('super-admin.companies.lists.ai-import', $company) }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
-                        <span aria-hidden="true">✦</span> Importeren met AI
+                        <x-super-admin-icon name="templates" class="h-4 w-4" /> Importeren met AI
                     </a>
                 </div>
                 <div class="divide-y divide-slate-100">
@@ -172,8 +172,12 @@
             </section>
         </div>
 
-        <aside class="space-y-6">
-            @include('super-admin.companies._subscription-form')
+        <aside class="space-y-6 xl:sticky xl:top-24">
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start justify-between gap-3"><div><h2 class="font-semibold text-slate-900">Klantstatus</h2><p class="mt-0.5 text-xs text-slate-500">Abonnement en platformtoegang.</p></div><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 {{ $statusStyles }}">{{ $statusLabel }}</span></div>
+                <dl class="mt-4 space-y-3 text-sm"><div class="flex justify-between gap-4"><dt class="text-slate-500">Plan</dt><dd class="font-semibold text-slate-900">{{ $plan['name'] ?? 'Geen plan' }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Facturatie</dt><dd class="text-right font-medium text-slate-800">{{ $company->billing_required ? 'Maandelijks' : 'Gratis toegang' }}</dd></div><div class="flex justify-between gap-4"><dt class="text-slate-500">Toegang</dt><dd class="font-medium {{ $company->is_active ? 'text-emerald-700' : 'text-red-700' }}">{{ $company->is_active ? 'Actief' : 'Geblokkeerd' }}</dd></div></dl>
+                <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']) }}" class="mt-4 flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"><x-super-admin-icon name="invoices" class="h-4 w-4" />Abonnement beheren</a>
+            </section>
             {{--
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div class="flex items-center justify-between gap-3">
