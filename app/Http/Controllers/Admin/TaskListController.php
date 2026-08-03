@@ -881,7 +881,8 @@ PROMPT;
 
         $validated = $request->validate([
             'prompt' => 'nullable|string|max:4000',
-            'source_file' => 'nullable|file|max:12288|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp',
+            'source_files' => 'nullable|array|max:5',
+            'source_files.*' => 'file|max:12288|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp',
         ]);
 
         $apiKey = Config::get('services.openai.key');
@@ -895,11 +896,11 @@ PROMPT;
         }
 
         $prompt = trim((string) ($validated['prompt'] ?? ''));
-        $file = $request->file('source_file');
-        if ($prompt === '' && !$file) {
+        $files = array_values(array_filter((array) $request->file('source_files', [])));
+        if ($prompt === '' && empty($files)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Geef een beschrijving of upload een bestand.',
+                'message' => 'Geef een beschrijving of upload maximaal 5 bestanden.',
             ], 422);
         }
 
@@ -907,9 +908,9 @@ PROMPT;
         $messages[] = [
             'role' => 'system',
             'content' => <<<'PROMPT'
-Je bent een Nederlandse assistent die documenten omzet naar bruikbare takenlijsten.
+Je bent een nauwkeurige Nederlandse assistent die operationele documenten omzet naar digitale takenlijsten.
 
-Lees de aangeleverde tekst en/of afbeelding en maak 1 of meerdere praktische lijsten.
+Maak voor ieder aangeleverd document precies één lijst, in dezelfde volgorde als de documenten. Splits een document nooit op in meerdere lijsten en voeg verschillende documenten nooit samen. Als er geen document is, maak precies één lijst van de gebruikersbeschrijving.
 Output ALLEEN JSON in exact dit formaat:
 {
   "lists": [
@@ -934,18 +935,18 @@ Output ALLEEN JSON in exact dit formaat:
 }
 
 Regels:
-- Max 10 lijsten.
+- Het aantal lijsten moet exact gelijk zijn aan het aantal aangeleverde documenten.
+- Neem als title exact de opgegeven gewenste lijstnaam over.
 - Max 40 taken per lijst.
-- Kort en praktisch Nederlands.
-- Als info ontbreekt: kies veilige defaults (priority medium, schedule_type once).
-- Kies per taak logisch bewijs type:
-  - photo voor zichtbaar resultaat (bv schoonmaak, controle op uiterlijk),
-  - text voor korte toelichting/waarden,
-  - file voor document-bewijs,
-  - none als geen bewijs nodig is.
-- Zet is_required op true voor kritieke taken.
-- Zet requires_signature op true voor taken met expliciete bevestiging/akkoord.
-- Gebruik checklist_items wanneer subcontroles logisch zijn (2-8 items).
+- Gebruik iedere herkenbare taakregel of ieder vinkje precies één keer als afzonderlijke taak. Sla niets over en voeg geen nieuwe werkzaamheden toe.
+- Houd de taaknaam kort. Plaats uitleg, aantallen, tijden, temperaturen, dagverdelingen en voorwaarden volledig in description.
+- Behoud belangrijke termen en corrigeer alleen onmiskenbare HTML-codes of evidente woordafbrekingen. Ga niet raden als de bron onduidelijk is.
+- Gebruik schedule_type daily voor operationele dag-, openings-, sluitings-, schoonmaak-, voorbereidings- en bijvullijsten, tenzij de bron of gebruiker expliciet iets anders zegt.
+- Gebruik priority medium als de bron geen prioriteit noemt.
+- Gebruik standaard required_proof_type none. Kies alleen photo als de bron of gebruiker expliciet om een foto/zichtbaar bewijs vraagt, text als werkelijk een waarde of toelichting geregistreerd moet worden, en file als een document moet worden aangeleverd.
+- Zet is_required op true voor reguliere en kritieke taken. Voorwaardelijke taken blijven taken; vermeld de voorwaarde duidelijk in description.
+- Zet requires_signature alleen op true wanneer de bron expliciet om een handtekening, paraaf of akkoord vraagt.
+- Gebruik checklist_items alleen voor echte subhandelingen of meerdere controlepunten (2-8 items), niet om de taakomschrijving te herhalen.
 PROMPT,
         ];
 
@@ -962,9 +963,18 @@ PROMPT,
             ];
         }
 
-        if ($file) {
+        $documentTitles = [];
+        foreach ($files as $index => $file) {
             $ext = strtolower($file->getClientOriginalExtension());
             $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp']);
+            $title = Str::limit(trim((string) pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)), 255, '');
+            $title = $title !== '' ? $title : 'Geïmporteerde lijst '.($index + 1);
+            $documentTitles[] = $title;
+
+            $content[] = [
+                'type' => 'text',
+                'text' => "DOCUMENT ".($index + 1)." — gewenste lijstnaam: {$title}",
+            ];
 
             if ($isImage) {
                 $bytes = file_get_contents($file->getRealPath());
@@ -977,19 +987,19 @@ PROMPT,
                 ];
                 $content[] = [
                     'type' => 'text',
-                    'text' => 'Gebruik de afbeelding om checklistpunten/taken te herkennen en zet die om naar digitale lijsten.',
+                    'text' => 'Lees uitsluitend de direct voorafgaande afbeelding als document '.($index + 1).'.',
                 ];
             } else {
                 $extractedText = $this->extractImportSourceText($file);
                 if (trim($extractedText) === '') {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Kon onvoldoende tekst uit dit bestand halen. Probeer een duidelijkere PDF/DOCX/XLSX of voeg extra context toe.',
+                        'message' => 'Kon onvoldoende tekst halen uit '.$file->getClientOriginalName().'. Probeer een duidelijker bestand of voeg extra context toe.',
                     ], 422);
                 }
                 $content[] = [
                     'type' => 'text',
-                    'text' => "Geextraheerde documenttekst (ingekort):\n" . mb_substr($extractedText, 0, 12000),
+                    'text' => "Tekst van document ".($index + 1).":\n" . mb_substr($extractedText, 0, 12000),
                 ];
             }
         }
@@ -1005,7 +1015,7 @@ PROMPT,
 
         try {
             $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
-                ->timeout(45)
+                ->timeout(120)
                 ->post('https://api.openai.com/v1/chat/completions', [
                     'model' => $model,
                     'response_format' => ['type' => 'json_object'],
@@ -1037,10 +1047,23 @@ PROMPT,
                 ], 500);
             }
 
+            if (!empty($documentTitles) && count($decoded['lists']) !== count($documentTitles)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI maakte niet voor ieder bestand precies één lijst. Probeer het opnieuw of upload minder bestanden tegelijk.',
+                ], 500);
+            }
+
+            $lists = $this->normalizeAiImportLists($decoded['lists']);
+            foreach ($documentTitles as $index => $title) {
+                $lists[$index]['title'] = $title;
+                $lists[$index]['schedule_type'] = 'daily';
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'lists' => $this->normalizeAiImportLists($decoded['lists']),
+                    'lists' => $lists,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -1087,8 +1110,10 @@ PROMPT,
                 continue;
             }
 
-            $priority = in_array($item['priority'] ?? 'medium', $allowedPriority) ? $item['priority'] : 'medium';
-            $scheduleType = in_array($item['schedule_type'] ?? 'once', $allowedSchedule) ? $item['schedule_type'] : 'once';
+            $requestedPriority = (string) ($item['priority'] ?? 'medium');
+            $requestedSchedule = (string) ($item['schedule_type'] ?? 'once');
+            $priority = in_array($requestedPriority, $allowedPriority, true) ? $requestedPriority : 'medium';
+            $scheduleType = in_array($requestedSchedule, $allowedSchedule, true) ? $requestedSchedule : 'once';
 
             $list = TaskList::create([
                 'title' => $title,
@@ -1118,13 +1143,14 @@ PROMPT,
                     continue;
                 }
 
+                $proofType = (string) ($taskItem['required_proof_type'] ?? 'none');
                 \App\Models\Checklist\Task::create([
                     'list_id' => $list->id,
                     'title' => $taskTitle,
                     'description' => trim((string) ($taskItem['description'] ?? '')) ?: null,
                     'instructions' => null,
                     'checklist_items' => $this->normalizeChecklistItems($taskItem['checklist_items'] ?? null),
-                    'required_proof_type' => in_array(($taskItem['required_proof_type'] ?? 'none'), $allowedProofTypes) ? $taskItem['required_proof_type'] : 'none',
+                    'required_proof_type' => in_array($proofType, $allowedProofTypes, true) ? $proofType : 'none',
                     'is_required' => (bool) ($taskItem['is_required'] ?? false),
                     'attachments' => [],
                     'validation_rules' => [],
@@ -1182,7 +1208,7 @@ PROMPT,
             }
 
             $tasks = [];
-            foreach (($list['tasks'] ?? []) as $task) {
+            foreach (array_slice((array) ($list['tasks'] ?? []), 0, 40) as $task) {
                 if (!is_array($task)) {
                     continue;
                 }
@@ -1190,22 +1216,25 @@ PROMPT,
                 if ($title === '') {
                     continue;
                 }
+                $proofType = (string) ($task['required_proof_type'] ?? 'none');
                 $tasks[] = [
                     'title' => $title,
                     'description' => trim((string) ($task['description'] ?? '')),
-                    'required_proof_type' => in_array(($task['required_proof_type'] ?? 'none'), $allowedProofTypes) ? $task['required_proof_type'] : 'none',
+                    'required_proof_type' => in_array($proofType, $allowedProofTypes, true) ? $proofType : 'none',
                     'is_required' => (bool) ($task['is_required'] ?? false),
                     'requires_signature' => (bool) ($task['requires_signature'] ?? false),
                     'checklist_items' => $this->normalizeChecklistItems($task['checklist_items'] ?? null) ?? [],
                 ];
             }
 
+            $priority = (string) ($list['priority'] ?? 'medium');
+            $scheduleType = (string) ($list['schedule_type'] ?? 'once');
             $normalized[] = [
                 'title' => trim((string) ($list['title'] ?? '')) ?: 'Nieuwe AI lijst',
                 'description' => trim((string) ($list['description'] ?? '')),
                 'category' => trim((string) ($list['category'] ?? '')),
-                'priority' => in_array(($list['priority'] ?? 'medium'), $allowedPriority) ? $list['priority'] : 'medium',
-                'schedule_type' => in_array(($list['schedule_type'] ?? 'once'), $allowedSchedule) ? $list['schedule_type'] : 'once',
+                'priority' => in_array($priority, $allowedPriority, true) ? $priority : 'medium',
+                'schedule_type' => in_array($scheduleType, $allowedSchedule, true) ? $scheduleType : 'once',
                 'tasks' => $tasks,
             ];
         }
@@ -1257,8 +1286,10 @@ PROMPT,
             return '';
         }
 
-        $text = strip_tags(str_replace('</w:p>', "\n", $xml));
-        $text = preg_replace('/\s+/', ' ', (string) $text);
+        $xml = str_replace(['</w:tc>', '</w:tr>', '</w:p>'], ["\t", "\n", "\n"], $xml);
+        $text = html_entity_decode(strip_tags($xml), ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $text = preg_replace('/[ \t]+/', ' ', (string) $text);
+        $text = preg_replace('/\s*\n\s*/', "\n", (string) $text);
         return trim((string) $text);
     }
 

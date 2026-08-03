@@ -15,17 +15,18 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="bg-gradient-to-r from-indigo-600 to-blue-700 px-6 py-6 text-white">
                 <h1 class="text-2xl font-bold">AI Lijst Importer (MVP)</h1>
-                <p class="text-indigo-100 text-sm mt-1">Upload PDF, DOCX, XLSX of een foto en laat AI hier automatisch lijsten + taken van maken.</p>
+                <p class="text-indigo-100 text-sm mt-1">Upload maximaal 5 documenten tegelijk. AI maakt van ieder document precies één lijst met bijbehorende taken.</p>
             </div>
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-semibold text-slate-800 mb-1.5">Extra uitleg voor de AI (optioneel)</label>
-                    <textarea id="ai-import-prompt" rows="4" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Bijv. Dit is voor dagelijks restaurant schoonmaakwerk, gebruik duidelijke korte taken."></textarea>
+                    <textarea id="ai-import-prompt" rows="4" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Bijv. Deze lijsten zijn voor dagelijks restaurantwerk. Maak alleen fotobewijs verplicht bij de eindcontrole."></textarea>
+                    <p class="text-xs text-slate-500 mt-1">AI houdt de bestandsnaam aan als lijstnaam, maakt één lijst per bestand en neemt iedere herkenbare taak één keer over.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-800 mb-1.5">Bestand uploaden</label>
-                    <input type="file" id="ai-import-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp" class="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    <p class="text-xs text-slate-500 mt-1">Ondersteund in MVP: PDF, DOCX, XLSX, JPG/PNG/WEBP. Oud DOC/XLS kan beperkt werken.</p>
+                    <label class="block text-sm font-semibold text-slate-800 mb-1.5">Bestanden uploaden</label>
+                    <input type="file" id="ai-import-file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp" class="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-xs text-slate-500 mt-1">Maximaal 5 bestanden van elk 12 MB. Ondersteund: PDF, DOCX, XLSX, JPG/PNG/WEBP. Oud DOC/XLS kan beperkt werken.</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button type="button" id="ai-import-generate-btn" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition">
@@ -61,19 +62,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const storeForm = document.getElementById('ai-import-store-form');
     const payloadInput = document.getElementById('ai-import-payload');
     const preview = document.getElementById('ai-import-preview');
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
+    })[char]);
 
     generateBtn.addEventListener('click', async function () {
         const prompt = (promptInput.value || '').trim();
-        const file = fileInput.files.length > 0 ? fileInput.files[0] : null;
+        const files = Array.from(fileInput.files || []);
 
-        if (!prompt && !file) {
-            alert('Vul context in of upload een bestand.');
+        if (!prompt && files.length === 0) {
+            alert('Vul context in of upload maximaal 5 bestanden.');
+            return;
+        }
+        if (files.length > 5) {
+            alert('Selecteer maximaal 5 bestanden per import.');
             return;
         }
 
         const fd = new FormData();
         if (prompt) fd.append('prompt', prompt);
-        if (file) fd.append('source_file', file);
+        files.forEach(file => fd.append('source_files[]', file));
 
         generateBtn.disabled = true;
         const originalText = generateBtn.textContent;
@@ -101,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const lists = result.data.lists;
             if (lists.length === 0) {
-                alert('Geen lijsten gevonden in dit bestand.');
+                alert('Geen lijsten gevonden in de bestanden.');
                 return;
             }
 
@@ -130,15 +138,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     }[proof] || 'bg-slate-100 text-slate-700';
 
                     const checklistHtml = checklist.length
-                        ? `<ul class="mt-1 text-xs text-slate-600 list-disc pl-4">${checklist.slice(0, 5).map(item => `<li>${item}</li>`).join('')}</ul>`
+                        ? `<ul class="mt-1 text-xs text-slate-600 list-disc pl-4">${checklist.slice(0, 5).map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
                         : `<p class="mt-1 text-xs text-slate-400">Geen checklist-items</p>`;
 
                     return `
                         <div class="mt-2 p-2.5 border border-slate-200 rounded-lg bg-white">
-                            <p class="text-sm font-medium text-slate-800">${taskIndex + 1}. ${tTitle}</p>
-                            ${tDesc ? `<p class="text-xs text-slate-600 mt-1">${tDesc}</p>` : ''}
+                            <p class="text-sm font-medium text-slate-800">${taskIndex + 1}. ${escapeHtml(tTitle)}</p>
+                            ${tDesc ? `<p class="text-xs text-slate-600 mt-1">${escapeHtml(tDesc)}</p>` : ''}
                             <div class="mt-2 flex flex-wrap gap-1.5">
-                                <span class="px-2 py-0.5 rounded-full text-[11px] ${proofBadgeClass}">Bewijs: ${proof}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[11px] ${proofBadgeClass}">Bewijs: ${escapeHtml(proof)}</span>
                                 <span class="px-2 py-0.5 rounded-full text-[11px] ${isRequired ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">${isRequired ? 'Verplicht' : 'Optioneel'}</span>
                                 <span class="px-2 py-0.5 rounded-full text-[11px] ${needsSignature ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}">${needsSignature ? 'Handtekening vereist' : 'Geen handtekening'}</span>
                             </div>
@@ -154,8 +162,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="flex items-start gap-3">
                         <input type="checkbox" name="selected_indices[]" value="${idx}" class="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600" checked>
                         <div class="min-w-0">
-                            <p class="font-semibold text-slate-900">${title}</p>
-                            ${description ? `<p class="text-sm text-slate-600 mt-1">${description}</p>` : ''}
+                            <p class="font-semibold text-slate-900">${escapeHtml(title)}</p>
+                            ${description ? `<p class="text-sm text-slate-600 mt-1">${escapeHtml(description)}</p>` : ''}
                             <p class="text-xs text-slate-500 mt-2">${tasks.length} taak/taken</p>
                             <div class="mt-3">
                                 ${taskItemsHtml || '<p class="text-xs text-slate-500">Geen taken ontvangen.</p>'}

@@ -8,6 +8,8 @@ use App\Models\Checklist\Task;
 use App\Models\Checklist\ListAssignment;
 use App\Models\Submissions\Submission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class TaskListTest extends TestCase
@@ -38,6 +40,64 @@ class TaskListTest extends TestCase
             'title' => 'Test Cleaning List',
             'created_by' => $admin->id,
         ]);
+    }
+
+    public function test_ai_import_accepts_multiple_files_and_preserves_file_names(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        $admin->company->update([
+            'subscription_plan' => 'professional',
+            'onboarding_completed_at' => now(),
+        ]);
+
+        Http::fake([
+            'api.openai.com/*' => Http::response([
+                'choices' => [[
+                    'message' => [
+                        'content' => json_encode(['lists' => [
+                            [
+                                'title' => 'Door AI gewijzigde titel',
+                                'description' => 'Eerste lijst',
+                                'category' => 'Test',
+                                'priority' => 'medium',
+                                'schedule_type' => 'once',
+                                'tasks' => [['title' => 'Openen', 'description' => 'De zaak openen']],
+                            ],
+                            [
+                                'title' => 'Andere AI-titel',
+                                'description' => 'Tweede lijst',
+                                'category' => 'Test',
+                                'priority' => 'medium',
+                                'schedule_type' => 'weekly',
+                                'tasks' => [['title' => 'Sluiten', 'description' => 'De zaak sluiten']],
+                            ],
+                        ]]),
+                    ],
+                ]],
+                'usage' => ['prompt_tokens' => 10, 'completion_tokens' => 10, 'total_tokens' => 20],
+            ], 200),
+        ]);
+
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+        $response = $this->actingAs($admin)->postJson(route('admin.lists.ai-import.generate'), [
+            'source_files' => [
+                UploadedFile::fake()->createWithContent('Openingslijst 2026.png', $png),
+                UploadedFile::fake()->createWithContent('Avondschoonmaak 2026.png', $png),
+            ],
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.lists.0.title', 'Openingslijst 2026')
+            ->assertJsonPath('data.lists.0.schedule_type', 'daily')
+            ->assertJsonPath('data.lists.1.title', 'Avondschoonmaak 2026')
+            ->assertJsonPath('data.lists.1.schedule_type', 'daily');
+
+        Http::assertSent(function ($request) {
+            $content = json_encode($request['messages'][1]['content']);
+
+            return str_contains($content, 'Openingslijst 2026')
+                && str_contains($content, 'Avondschoonmaak 2026');
+        });
     }
 
     public function test_employee_can_view_assigned_lists(): void
