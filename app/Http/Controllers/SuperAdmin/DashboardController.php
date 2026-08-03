@@ -229,6 +229,7 @@ class DashboardController extends Controller
         $companyUsers = (clone $users)->with('location:id,name')->orderBy('name')->get();
         $companyLists = (clone $lists)->withCount(['tasks', 'submissions'])->latest()->get();
         $companyInvoices = Invoice::query()->where('company_id', $company->id)->latest('paid_at')->get();
+        $companyLocations = (clone $locations)->orderBy('name')->get();
         $aiUsageByFeature = Schema::hasTable('ai_usage_logs')
             ? AiUsageLog::query()
                 ->where('company_id', $company->id)
@@ -249,6 +250,7 @@ class DashboardController extends Controller
             'companyUsers',
             'companyLists',
             'companyInvoices',
+            'companyLocations',
             'aiUsageByFeature',
             'aiTokens',
             'lastActivityAt',
@@ -377,12 +379,15 @@ class DashboardController extends Controller
             ->with('success', "Bedrijfsgegevens van {$company->name} zijn bijgewerkt.");
     }
 
-    public function storeCompanyAdmin(Request $request, Company $company): RedirectResponse
+    public function storeCompanyUser(Request $request, Company $company): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:12'],
+            'role' => ['required', Rule::in(['admin', 'employee'])],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'location_id' => ['nullable', Rule::exists('locations', 'id')->where(fn ($query) => $query->where('company_id', $company->id))],
         ]);
 
         User::create([
@@ -390,13 +395,42 @@ class DashboardController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => 'admin',
+            'role' => $validated['role'],
+            'phone' => $validated['phone'] ?? null,
+            'location_id' => $validated['location_id'] ?? null,
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
 
         return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
-            ->with('success', "Beheerder {$validated['name']} is toegevoegd aan {$company->name}.");
+            ->with('success', "Gebruiker {$validated['name']} is toegevoegd aan {$company->name}.");
+    }
+
+    public function updateCompanyUser(Request $request, Company $company, User $user): RedirectResponse
+    {
+        abort_unless((int) $user->company_id === (int) $company->id, 404);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'role' => ['required', Rule::in(['admin', 'employee'])],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'location_id' => ['nullable', Rule::exists('locations', 'id')->where(fn ($query) => $query->where('company_id', $company->id))],
+            'password' => ['nullable', 'string', 'min:12'],
+        ]);
+
+        if ($user->is(Auth::user()) && $validated['role'] !== 'admin') {
+            return back()->with('error', 'Je kunt je eigen superadminaccount niet naar medewerker wijzigen.');
+        }
+
+        $payload = collect($validated)->except('password')->all();
+        if (!empty($validated['password'])) {
+            $payload['password'] = Hash::make($validated['password']);
+        }
+        $user->update($payload);
+
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
+            ->with('success', "Gebruiker {$user->name} is bijgewerkt.");
     }
 
     public function sendCompanyUserPasswordReset(Company $company, User $user): RedirectResponse

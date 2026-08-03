@@ -270,32 +270,7 @@
     </div>
 
     @if($companySection === 'users')
-        <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
-                <div class="border-b border-slate-100 px-5 py-4"><h2 class="font-semibold text-slate-900">Alle gebruikers</h2><p class="text-xs text-slate-500">Beheer toegang en stuur een veilige wachtwoordreset.</p></div>
-                <div class="divide-y divide-slate-100">
-                    @forelse($companyUsers as $user)
-                        <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
-                            <div class="flex min-w-0 flex-1 items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xs font-bold text-blue-700">{{ strtoupper(mb_substr($user->name, 0, 2)) }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold text-slate-900">{{ $user->name }}</p><p class="truncate text-xs text-slate-500">{{ $user->email }} · {{ $user->role === 'employee' ? 'Medewerker' : 'Beheerder' }}</p></div></div>
-                            <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">{{ $user->is_active ? 'Actief' : 'Geblokkeerd' }}</span>
-                            <div class="flex gap-2">
-                                <form method="POST" action="{{ route('super-admin.companies.users.password-reset', [$company, $user]) }}" onsubmit="return confirm('Wachtwoordlink versturen naar {{ addslashes($user->email) }}?')">@csrf<button class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Resetlink</button></form>
-                                @if(!$user->is(auth()->user()))<form method="POST" action="{{ route('super-admin.companies.users.toggle', [$company, $user]) }}" onsubmit="return confirm('Account van {{ addslashes($user->name) }} {{ $user->is_active ? 'blokkeren' : 'activeren' }}?')">@csrf @method('PUT')<button class="rounded-lg px-3 py-1.5 text-xs font-semibold {{ $user->is_active ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">{{ $user->is_active ? 'Blokkeren' : 'Activeren' }}</button></form>@else<span class="px-2 text-xs text-slate-400">Dit ben jij</span>@endif
-                            </div>
-                        </div>
-                    @empty
-                        <div class="px-6 py-12 text-center"><p class="font-semibold text-slate-800">Nog geen gebruikers</p><p class="mt-1 text-sm text-slate-500">Voeg hier de eerste beheerder toe.</p></div>
-                    @endforelse
-                </div>
-            </div>
-            <form method="POST" action="{{ route('super-admin.companies.admins.store', $company) }}" class="h-fit space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">@csrf
-                <div><h2 class="font-semibold text-slate-900">Beheerder toevoegen</h2><p class="text-xs text-slate-500">Maak een extra adminaccount voor deze klant.</p></div>
-                <div><label class="mb-1 block text-sm font-medium text-slate-700">Naam</label><input name="name" required class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500"></div>
-                <div><label class="mb-1 block text-sm font-medium text-slate-700">E-mailadres</label><input name="email" type="email" required class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500"></div>
-                <div><label class="mb-1 block text-sm font-medium text-slate-700">Tijdelijk wachtwoord</label><input name="password" minlength="12" required class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500"><p class="mt-1 text-xs text-slate-500">Minimaal 12 tekens.</p></div>
-                <button class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Beheerder toevoegen</button>
-            </form>
-        </section>
+        @include('super-admin.companies._users')
     @endif
 
     @if($companySection === 'lists')
@@ -330,6 +305,28 @@
     @endif
 </div>
 @push('scripts')
-<script>document.querySelectorAll('[data-confirm-submit]').forEach((button) => button.addEventListener('click', (event) => { if (!confirm(button.dataset.confirmSubmit)) event.preventDefault(); }));</script>
+<script>
+document.querySelectorAll('[data-confirm-submit]').forEach((button) => button.addEventListener('click', (event) => { if (!confirm(button.dataset.confirmSubmit)) event.preventDefault(); }));
+document.querySelectorAll('[data-open-dialog]').forEach((button) => button.addEventListener('click', () => document.getElementById(button.dataset.openDialog)?.showModal()));
+document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
+document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); }));
+const userSearch = document.getElementById('company-user-search');
+userSearch?.addEventListener('input', () => {
+    const query = userSearch.value.toLocaleLowerCase('nl').trim();
+    let visible = 0;
+    document.querySelectorAll('[data-user-row]').forEach((row) => {
+        const matches = row.dataset.userSearch.includes(query);
+        row.style.display = matches ? '' : 'none';
+        if (matches) visible++;
+    });
+    document.getElementById('company-user-empty-search')?.classList.toggle('hidden', visible !== 0);
+});
+document.getElementById('generate-company-user-password')?.addEventListener('click', () => {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+    const values = new Uint32Array(18);
+    crypto.getRandomValues(values);
+    document.getElementById('new-company-user-password').value = Array.from(values, value => alphabet[value % alphabet.length]).join('');
+});
+</script>
 @endpush
 @endsection

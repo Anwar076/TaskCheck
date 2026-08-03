@@ -85,6 +85,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const renderFiles = (status = 'Klaar voor verwerking') => {
         filesPreview.innerHTML = Array.from(fileInput.files || []).map((file, index) => `<div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700">${index + 1}</span><div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-slate-800">${escapeHtml(file.name)}</p><p class="text-xs text-slate-500">${(file.size / 1024 / 1024).toFixed(1)} MB · <span data-file-status>${status}</span></p></div></div>`).join('');
     };
+    const setFileStatus = (index, status, state = 'normal') => {
+        const element = filesPreview.querySelectorAll('[data-file-status]')[index];
+        if (!element) return;
+        element.textContent = status;
+        element.className = state === 'error' ? 'font-semibold text-red-600' : (state === 'success' ? 'font-semibold text-emerald-600' : 'text-slate-500');
+    };
     fileInput.addEventListener('change', () => renderFiles());
     const renderPreview = () => {
         const seen = new Set();
@@ -139,51 +145,67 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const fd = new FormData();
-        if (prompt) fd.append('prompt', prompt);
-        files.forEach(file => fd.append('source_files[]', file));
-
         generateBtn.disabled = true;
-        renderFiles('AI verwerkt document…');
+        renderFiles('Wacht op verwerking…');
         const originalText = generateBtn.textContent;
-        generateBtn.textContent = 'AI is bezig...';
+        generateBtn.textContent = files.length > 1 ? `0 van ${files.length} verwerkt…` : 'AI is bezig…';
 
         try {
-            const response = await fetch('{{ $company ? route('super-admin.companies.lists.ai-import.generate', $company) : route('admin.lists.ai-import.generate') }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: fd
-            });
+            const endpoint = '{{ $company ? route('super-admin.companies.lists.ai-import.generate', $company) : route('admin.lists.ai-import.generate') }}';
+            const jobs = files.length ? files.map((file, index) => ({ file, index })) : [{ file: null, index: 0 }];
+            const results = new Array(jobs.length);
+            let nextJob = 0;
+            let completed = 0;
 
-            const result = await response.json().catch(() => null);
-            if (!response.ok) {
-                alert((result && result.message) ? result.message : 'AI import voorstel mislukt.');
+            const processJobs = async () => {
+                while (nextJob < jobs.length) {
+                    const jobIndex = nextJob++;
+                    const job = jobs[jobIndex];
+                    if (job.file) setFileStatus(job.index, 'AI verwerkt dit document…');
+                    const fd = new FormData();
+                    if (prompt) fd.append('prompt', prompt);
+                    if (job.file) fd.append('source_files[]', job.file);
+
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            body: fd
+                        });
+                        const result = await response.json().catch(() => null);
+                        if (!response.ok || !result?.success || !Array.isArray(result?.data?.lists) || result.data.lists.length === 0) {
+                            throw new Error(result?.message || 'Geen bruikbaar AI-antwoord ontvangen.');
+                        }
+                        results[jobIndex] = { ok: true, lists: result.data.lists };
+                        if (job.file) setFileStatus(job.index, 'Voorstel gereed', 'success');
+                    } catch (error) {
+                        console.error('ai-import file failed', job.file?.name, error);
+                        results[jobIndex] = { ok: false, message: error.message, file: job.file?.name || 'Beschrijving' };
+                        if (job.file) setFileStatus(job.index, 'Mislukt — probeer opnieuw', 'error');
+                    } finally {
+                        completed++;
+                        generateBtn.textContent = `${completed} van ${jobs.length} verwerkt…`;
+                    }
+                }
+            };
+
+            await Promise.all(Array.from({ length: Math.min(3, jobs.length) }, () => processJobs()));
+            generatedLists = results.filter(result => result?.ok).flatMap(result => result.lists);
+            const failures = results.filter(result => result && !result.ok);
+            if (generatedLists.length === 0) {
+                alert(failures[0]?.message || 'Geen lijsten gevonden in de bestanden.');
                 return;
             }
-            if (!result || !result.success || !result.data || !Array.isArray(result.data.lists)) {
-                alert('AI gaf geen bruikbaar antwoord terug.');
-                return;
-            }
-
-            const lists = result.data.lists;
-            if (lists.length === 0) {
-                alert('Geen lijsten gevonden in de bestanden.');
-                return;
-            }
-
-            generatedLists = lists;
             renderPreview();
-            renderFiles('Voorstel gereed');
-
             storeForm.classList.remove('hidden');
             storeForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (failures.length) {
+                alert(`${generatedLists.length} ${generatedLists.length === 1 ? 'lijst is' : 'lijsten zijn'} wel verwerkt. Niet gelukt: ${failures.map(item => item.file).join(', ')}. Je kunt de geslaagde lijsten opslaan of de import opnieuw proberen.`);
+            }
         } catch (e) {
             console.error('ai-import-generate exception', e);
-            alert('Er ging iets mis bij het genereren van het voorstel.');
-            renderFiles('Verwerking mislukt');
+            alert('Er ging iets mis bij het verwerken van de documenten. Probeer het opnieuw.');
         } finally {
             generateBtn.disabled = false;
             generateBtn.textContent = originalText;

@@ -116,12 +116,66 @@ class SuperAdminCompanyDetailTest extends TestCase
             'name' => 'Gewijzigde Klant', 'email' => 'contact@klant.test', 'website' => 'https://klant.test', 'company_type' => 'horeca',
         ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'settings']));
 
-        $this->actingAs($admin)->post(route('super-admin.companies.admins.store', $company), [
-            'name' => 'Extra Beheerder', 'email' => 'extra-admin@klant.test', 'password' => 'VeiligWachtwoord!123',
+        $this->actingAs($admin)->post(route('super-admin.companies.users.store', $company), [
+            'name' => 'Extra Beheerder', 'email' => 'extra-admin@klant.test', 'password' => 'VeiligWachtwoord!123', 'role' => 'admin',
         ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'users']));
 
         $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Gewijzigde Klant']);
         $this->assertDatabaseHas('users', ['company_id' => $company->id, 'email' => 'extra-admin@klant.test', 'role' => 'admin']);
+    }
+
+    public function test_super_admin_can_add_and_edit_an_employee_for_selected_company(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+
+        $this->actingAs($admin)->post(route('super-admin.companies.users.store', $company), [
+            'name' => 'Nieuwe Medewerker',
+            'email' => 'medewerker@klant.test',
+            'password' => 'VeiligWachtwoord!123',
+            'role' => 'employee',
+            'phone' => '0612345678',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'users']));
+
+        $employee = User::where('email', 'medewerker@klant.test')->firstOrFail();
+        $this->assertSame('employee', $employee->role);
+
+        $this->actingAs($admin)->put(route('super-admin.companies.users.update', [$company, $employee]), [
+            'name' => 'Aangepaste Medewerker',
+            'email' => 'aangepast@klant.test',
+            'role' => 'admin',
+            'phone' => '0687654321',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'users']));
+
+        $this->assertDatabaseHas('users', [
+            'id' => $employee->id,
+            'name' => 'Aangepaste Medewerker',
+            'email' => 'aangepast@klant.test',
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'users']))
+            ->assertOk()
+            ->assertSee('Gebruiker toevoegen')
+            ->assertSee('Aangepaste Medewerker')
+            ->assertSee('Bewerken');
+    }
+
+    public function test_super_admin_cannot_edit_a_user_through_another_company(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+        $otherCompany = Company::create(['name' => 'Andere klant', 'is_active' => true]);
+        $user = User::where('company_id', $company->id)->firstOrFail();
+
+        $this->actingAs($admin)->put(route('super-admin.companies.users.update', [$otherCompany, $user]), [
+            'name' => 'Mag niet wijzigen',
+            'email' => $user->email,
+            'role' => 'employee',
+        ])->assertNotFound();
     }
 
     public function test_platform_notification_records_broadcast_history(): void

@@ -383,7 +383,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/companies/{company}/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
     Route::post('/companies/{company}/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');
     Route::put('/companies/{company}/profile', [SuperAdminDashboardController::class, 'updateCompanyProfile'])->name('companies.profile.update');
-    Route::post('/companies/{company}/admins', [SuperAdminDashboardController::class, 'storeCompanyAdmin'])->name('companies.admins.store');
+    Route::post('/companies/{company}/users', [SuperAdminDashboardController::class, 'storeCompanyUser'])->name('companies.users.store');
+    Route::put('/companies/{company}/users/{user}', [SuperAdminDashboardController::class, 'updateCompanyUser'])->name('companies.users.update');
     Route::post('/companies/{company}/users/{user}/password-reset', [SuperAdminDashboardController::class, 'sendCompanyUserPasswordReset'])->name('companies.users.password-reset');
     Route::put('/companies/{company}/users/{user}/toggle', [SuperAdminDashboardController::class, 'toggleCompanyUser'])->name('companies.users.toggle');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');

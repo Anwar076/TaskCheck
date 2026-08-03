@@ -42,7 +42,7 @@ class TaskListTest extends TestCase
         ]);
     }
 
-    public function test_ai_import_accepts_multiple_files_and_preserves_file_names(): void
+    public function test_ai_import_generates_one_bounded_request_and_preserves_file_name(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
         $admin->company->update([
@@ -54,24 +54,14 @@ class TaskListTest extends TestCase
             'api.openai.com/*' => Http::response([
                 'choices' => [[
                     'message' => [
-                        'content' => json_encode(['lists' => [
-                            [
-                                'title' => 'Door AI gewijzigde titel',
-                                'description' => 'Eerste lijst',
-                                'category' => 'Test',
-                                'priority' => 'medium',
-                                'schedule_type' => 'once',
-                                'tasks' => [['title' => 'Openen', 'description' => 'De zaak openen']],
-                            ],
-                            [
-                                'title' => 'Andere AI-titel',
-                                'description' => 'Tweede lijst',
-                                'category' => 'Test',
-                                'priority' => 'medium',
-                                'schedule_type' => 'weekly',
-                                'tasks' => [['title' => 'Sluiten', 'description' => 'De zaak sluiten']],
-                            ],
-                        ]]),
+                        'content' => json_encode(['lists' => [[
+                            'title' => 'Door AI gewijzigde titel',
+                            'description' => 'Eerste lijst',
+                            'category' => 'Test',
+                            'priority' => 'medium',
+                            'schedule_type' => 'once',
+                            'tasks' => [['title' => 'Openen', 'description' => 'De zaak openen']],
+                        ]]]),
                     ],
                 ]],
                 'usage' => ['prompt_tokens' => 10, 'completion_tokens' => 10, 'total_tokens' => 20],
@@ -82,22 +72,33 @@ class TaskListTest extends TestCase
         $response = $this->actingAs($admin)->postJson(route('admin.lists.ai-import.generate'), [
             'source_files' => [
                 UploadedFile::fake()->createWithContent('Openingslijst 2026.png', $png),
-                UploadedFile::fake()->createWithContent('Avondschoonmaak 2026.png', $png),
             ],
         ]);
 
         $response->assertOk()
             ->assertJsonPath('data.lists.0.title', 'Openingslijst 2026')
-            ->assertJsonPath('data.lists.0.schedule_type', 'daily')
-            ->assertJsonPath('data.lists.1.title', 'Avondschoonmaak 2026')
-            ->assertJsonPath('data.lists.1.schedule_type', 'daily');
+            ->assertJsonPath('data.lists.0.schedule_type', 'daily');
 
         Http::assertSent(function ($request) {
             $content = json_encode($request['messages'][1]['content']);
 
             return str_contains($content, 'Openingslijst 2026')
-                && str_contains($content, 'Avondschoonmaak 2026');
+                && $request['max_tokens'] === 8000;
         });
+    }
+
+    public function test_ai_import_endpoint_rejects_multiple_files_in_one_ai_request(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        $admin->company->update(['subscription_plan' => 'professional', 'onboarding_completed_at' => now()]);
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+
+        $this->actingAs($admin)->postJson(route('admin.lists.ai-import.generate'), [
+            'source_files' => [
+                UploadedFile::fake()->createWithContent('Een.png', $png),
+                UploadedFile::fake()->createWithContent('Twee.png', $png),
+            ],
+        ])->assertUnprocessable()->assertJsonValidationErrors('source_files');
     }
 
     public function test_employee_can_view_assigned_lists(): void

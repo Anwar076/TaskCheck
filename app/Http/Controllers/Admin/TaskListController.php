@@ -886,7 +886,9 @@ PROMPT;
 
         $validated = $request->validate([
             'prompt' => 'nullable|string|max:4000',
-            'source_files' => 'nullable|array|max:5',
+            // The UI keeps multi-upload UX but sends each document separately.
+            // This bounds latency and prevents a single oversized AI generation.
+            'source_files' => 'nullable|array|max:1',
             'source_files.*' => 'file|max:12288|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp',
         ]);
 
@@ -1019,11 +1021,17 @@ PROMPT,
         ];
 
         try {
+            // Stay below the common 60-second nginx/FastCGI limit. The browser
+            // submits one document per request so one slow file cannot block all imports.
+            $timeout = max(15, min(50, (int) Config::get('services.openai.ai_import_timeout', 45)));
+            $maxTokens = max(1000, min(12000, (int) Config::get('services.openai.ai_import_max_tokens', 8000)));
             $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
-                ->timeout(120)
+                ->connectTimeout(10)
+                ->timeout($timeout)
                 ->post('https://api.openai.com/v1/chat/completions', [
                     'model' => $model,
                     'response_format' => ['type' => 'json_object'],
+                    'max_tokens' => $maxTokens,
                     'messages' => $messages,
                 ]);
 
@@ -1074,12 +1082,18 @@ PROMPT,
         } catch (\Throwable $e) {
             \Log::error('AI import generate failed', [
                 'error' => $e->getMessage(),
+                'exception' => $e::class,
+                'company_id' => $company?->id ?? auth()->user()?->company_id,
+                'file_count' => count($files),
+                'model' => $model,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'AI-import is mislukt: ' . $e->getMessage(),
-            ], 500);
+                'message' => $e instanceof \Illuminate\Http\Client\ConnectionException
+                    ? 'OpenAI reageerde niet op tijd. Probeer dit document opnieuw; andere documenten kunnen gewoon doorgaan.'
+                    : 'AI-import is mislukt. Probeer dit document opnieuw.',
+            ], $e instanceof \Illuminate\Http\Client\ConnectionException ? 504 : 500);
         }
     }
 
