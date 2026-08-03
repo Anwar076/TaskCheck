@@ -376,7 +376,16 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/marketing-links', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'store'])->name('marketing-links.store');
     Route::delete('/marketing-links/{marketingLink}', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'destroy'])->name('marketing-links.destroy');
     Route::post('/platform-alerts/test', [SuperAdminDashboardController::class, 'sendPlatformAlertTest'])->name('platform-alerts.test');
+    Route::get('/companies/create', [SuperAdminDashboardController::class, 'createCompany'])->name('companies.create');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
+    Route::get('/companies/{company}', [SuperAdminDashboardController::class, 'showCompany'])->name('companies.show');
+    Route::get('/companies/{company}/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('companies.lists.ai-import');
+    Route::post('/companies/{company}/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
+    Route::post('/companies/{company}/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');
+    Route::put('/companies/{company}/profile', [SuperAdminDashboardController::class, 'updateCompanyProfile'])->name('companies.profile.update');
+    Route::post('/companies/{company}/admins', [SuperAdminDashboardController::class, 'storeCompanyAdmin'])->name('companies.admins.store');
+    Route::post('/companies/{company}/users/{user}/password-reset', [SuperAdminDashboardController::class, 'sendCompanyUserPasswordReset'])->name('companies.users.password-reset');
+    Route::put('/companies/{company}/users/{user}/toggle', [SuperAdminDashboardController::class, 'toggleCompanyUser'])->name('companies.users.toggle');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
     Route::get('/errors/feed', [SuperAdminDashboardController::class, 'errorsFeed'])->name('errors.feed');
     Route::post('/incidents', [SuperAdminDashboardController::class, 'createIncidentTicket'])->name('incidents.store');

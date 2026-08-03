@@ -1,0 +1,172 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\Company;
+use App\Models\Organisation\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class SuperAdminCompanyDetailTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed();
+    }
+
+    public function test_super_admin_can_open_company_detail_page(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+
+        $response = $this->actingAs($admin)->get(route('super-admin.companies.show', $company));
+
+        $response->assertOk()
+            ->assertViewIs('super-admin.companies.show')
+            ->assertSee($company->name)
+            ->assertSee('Abonnement beheren')
+            ->assertSee('Recente gebruikers');
+    }
+
+    public function test_super_admin_can_open_company_creation_page(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.create'))
+            ->assertOk()
+            ->assertViewIs('super-admin.companies.create')
+            ->assertSee('Bedrijf en beheerder aanmaken');
+    }
+
+    public function test_super_admin_can_create_company_and_first_admin(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $response = $this->actingAs($admin)->post(route('super-admin.companies.store'), [
+            'company_name' => 'Nieuwe Klant BV',
+            'admin_name' => 'Nieuwe Beheerder',
+            'admin_email' => 'nieuwe-beheerder@example.com',
+            'admin_password' => 'Tijdelijk!123',
+            'subscription_plan' => 'starter',
+            'billing_required' => '1',
+            'company_phone' => '020 123 45 67',
+        ]);
+
+        $company = Company::withoutGlobalScopes()->where('name', 'Nieuwe Klant BV')->firstOrFail();
+
+        $response->assertRedirect(route('super-admin.companies.show', $company));
+        $this->assertDatabaseHas('users', [
+            'company_id' => $company->id,
+            'email' => 'nieuwe-beheerder@example.com',
+            'role' => 'admin',
+        ]);
+    }
+
+    public function test_super_admin_ai_import_is_attached_to_selected_company(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $targetCompany = Company::create([
+            'name' => 'Import Klant',
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'billing_required' => true,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.lists.ai-import', $targetCompany))
+            ->assertOk()
+            ->assertSee('Wordt gekoppeld aan Import Klant');
+
+        $payload = json_encode(['lists' => [[
+            'title' => 'Openingslijst',
+            'priority' => 'medium',
+            'schedule_type' => 'daily',
+            'tasks' => [['title' => 'Deuren openen', 'is_required' => true]],
+        ]]], JSON_THROW_ON_ERROR);
+
+        $response = $this->actingAs($admin)->post(
+            route('super-admin.companies.lists.ai-import.store', $targetCompany),
+            ['import_payload' => $payload, 'selected_indices' => [0]],
+        );
+
+        $response->assertRedirect(route('super-admin.companies.show', $targetCompany));
+        $this->assertDatabaseHas('lists', [
+            'company_id' => $targetCompany->id,
+            'title' => 'Openingslijst',
+        ]);
+    }
+
+    public function test_super_admin_can_update_company_profile_and_add_admin(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+
+        $this->actingAs($admin)->put(route('super-admin.companies.profile.update', $company), [
+            'name' => 'Gewijzigde Klant', 'email' => 'contact@klant.test', 'website' => 'https://klant.test', 'company_type' => 'horeca',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'settings']));
+
+        $this->actingAs($admin)->post(route('super-admin.companies.admins.store', $company), [
+            'name' => 'Extra Beheerder', 'email' => 'extra-admin@klant.test', 'password' => 'VeiligWachtwoord!123',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'users']));
+
+        $this->assertDatabaseHas('companies', ['id' => $company->id, 'name' => 'Gewijzigde Klant']);
+        $this->assertDatabaseHas('users', ['company_id' => $company->id, 'email' => 'extra-admin@klant.test', 'role' => 'admin']);
+    }
+
+    public function test_platform_notification_records_broadcast_history(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)->post(route('super-admin.communications.broadcast-notification'), [
+            'title' => 'Onderhoud voltooid', 'message' => 'TaskCheck is weer volledig beschikbaar.', 'audience' => 'admins', 'severity' => 'success',
+        ])->assertRedirect(route('super-admin.dashboard', ['tab' => 'communications']));
+
+        $this->assertDatabaseHas('platform_broadcasts', [
+            'channel' => 'in_app', 'title' => 'Onderhoud voltooid', 'audience' => 'admins', 'status' => 'sent',
+        ]);
+    }
+
+    public function test_company_detail_only_counts_lists_from_selected_company(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $selectedCompany = Company::firstOrFail();
+        $otherCompany = Company::create([
+            'name' => 'Andere organisatie',
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'billing_required' => true,
+            'is_active' => true,
+        ]);
+
+        TaskList::withoutGlobalScopes()->create([
+            'title' => 'Lijst van ander bedrijf',
+            'company_id' => $otherCompany->id,
+            'created_by' => $admin->id,
+            'schedule_type' => 'daily',
+            'priority' => 'medium',
+            'is_active' => true,
+            'is_template' => false,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('super-admin.companies.show', $selectedCompany));
+
+        $response->assertOk();
+        $this->assertSame(
+            TaskList::withoutGlobalScopes()->where('company_id', $selectedCompany->id)->count(),
+            $response->viewData('metrics')['lists']
+        );
+    }
+}

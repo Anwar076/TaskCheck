@@ -174,7 +174,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-        <button class="rounded-lg bg-violet-700 text-white px-4 py-2 text-sm font-semibold hover:bg-violet-800">{{ $submitLabel }}</button>
+        <button class="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700">{{ $submitLabel }}</button>
         <a href="{{ route('super-admin.templates.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Annuleren</a>
     </div>
 </form>

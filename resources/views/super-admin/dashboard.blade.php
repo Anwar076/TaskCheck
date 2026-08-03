@@ -4,11 +4,12 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="rounded-2xl bg-gradient-to-r from-violet-900 via-slate-900 to-slate-800 p-5 text-white shadow-lg sm:p-6">
+    @if(!request()->has('tab'))
+    <div class="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 p-5 text-white shadow-sm sm:p-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <h1 class="text-2xl font-bold">Platformoverzicht</h1>
-                <p class="mt-1 text-violet-100/90">Alle bedrijven, gebruikers, lijsten en inzendingen op 1 plek.</p>
+                <p class="mt-1 text-blue-100/90">Alle bedrijven, gebruikers, lijsten en inzendingen op 1 plek.</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
@@ -17,64 +18,114 @@
                 <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}" class="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20">
                     Monitoring
                 </a>
-                <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}" class="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-500">
+                <a href="{{ route('super-admin.dashboard', ['tab' => 'templates']) }}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500">
                     Templates beheren
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-9">
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
             <p class="text-xs text-slate-500">Bedrijven</p>
             <p class="text-2xl font-bold text-slate-900">{{ $totals['companies'] }}</p>
+            <p class="mt-1 text-xs text-slate-400">klantomgevingen</p>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
             <p class="text-xs text-slate-500">Gebruikers</p>
             <p class="text-2xl font-bold text-slate-900">{{ $totals['users'] }}</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs text-slate-500">Admins</p>
-            <p class="text-2xl font-bold text-slate-900">{{ $totals['admins'] }}</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs text-slate-500">Medewerkers</p>
-            <p class="text-2xl font-bold text-slate-900">{{ $totals['employees'] }}</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs text-slate-500">Actieve locaties</p>
-            <p class="text-2xl font-bold text-slate-900">{{ $totals['locations'] }}</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs text-slate-500">Opslag totaal (GB)</p>
-            <p class="text-2xl font-bold text-slate-900">{{ number_format($totals['storage_gb'], 2, ',', '.') }}</p>
+            <p class="mt-1 text-xs text-slate-400">{{ $totals['admins'] }} admins · {{ $totals['employees'] }} medewerkers</p>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
             <p class="text-xs text-slate-500">Takenlijsten</p>
             <p class="text-2xl font-bold text-slate-900">{{ number_format($totals['task_lists'], 0, ',', '.') }}</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs text-slate-500">Taken (items)</p>
-            <p class="text-2xl font-bold text-slate-900">{{ number_format($totals['tasks'], 0, ',', '.') }}</p>
+            <p class="mt-1 text-xs text-slate-400">{{ number_format($totals['tasks'], 0, ',', '.') }} taken</p>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
             <p class="text-xs text-slate-500">Inzendingen</p>
             <p class="text-2xl font-bold text-slate-900">{{ number_format($totals['submissions'], 0, ',', '.') }}</p>
+            <p class="mt-1 text-xs text-slate-400">{{ $totals['locations'] }} locaties · {{ number_format($totals['storage_gb'], 2, ',', '.') }} GB</p>
         </div>
     </div>
+    @endif
+
+    <section data-tab-panel="overview" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'overview' ? 'hidden' : '' }}">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <a href="{{ route('super-admin.dashboard', ['tab' => 'companies']) }}" class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15m-14.25 0v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                    </div>
+                    <span class="text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-600">→</span>
+                </div>
+                <h2 class="mt-4 font-semibold text-slate-900">Bedrijven beheren</h2>
+                <p class="mt-1 text-sm text-slate-500">Bekijk abonnementen, gebruik en bedrijfsdetails van {{ $totals['companies'] }} organisaties.</p>
+            </a>
+            <a href="{{ route('super-admin.dashboard', ['tab' => 'monitoring']) }}" class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l3-3 4.5 4.5 6-7.5 3 3.75M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z"/></svg>
+                    </div>
+                    <span class="text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-600">→</span>
+                </div>
+                <h2 class="mt-4 font-semibold text-slate-900">Platformgezondheid</h2>
+                <p class="mt-1 text-sm text-slate-500">{{ count($recentErrors) }} recente fouten en {{ $tickets->where('status', 'open')->count() }} openstaande incidenttickets.</p>
+            </a>
+            <a href="{{ route('super-admin.templates.index') }}" class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625A1.125 1.125 0 004.5 3.375v17.25c0 .621.504 1.125 1.125 1.125h12.75a1.125 1.125 0 001.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                    </div>
+                    <span class="text-slate-400 transition group-hover:translate-x-1 group-hover:text-blue-600">→</span>
+                </div>
+                <h2 class="mt-4 font-semibold text-slate-900">Globale templates</h2>
+                <p class="mt-1 text-sm text-slate-500">Bouw, importeer en publiceer centrale checklists voor alle branches.</p>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="font-semibold text-slate-900">Abonnementenverdeling</h2>
+                <div class="mt-4 space-y-3">
+                    @forelse($plans as $planName => $count)
+                        @php $share = $totals['companies'] > 0 ? max(4, round(($count / $totals['companies']) * 100)) : 0; @endphp
+                        <div>
+                            <div class="flex items-center justify-between text-sm"><span class="text-slate-600">{{ ucfirst(str_replace('_', ' ', $planName)) }}</span><strong class="text-slate-900">{{ $count }}</strong></div>
+                            <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-blue-500" style="width: {{ $share }}%"></div></div>
+                        </div>
+                    @empty
+                        <p class="text-sm text-slate-500">Nog geen bedrijven.</p>
+                    @endforelse
+                </div>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="font-semibold text-slate-900">Snel naar</h2>
+                <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    @foreach([
+                        ['Platformbericht versturen', route('super-admin.dashboard', ['tab' => 'communications'])],
+                        ['Gebruiksanalyse bekijken', route('super-admin.dashboard', ['tab' => 'usage'])],
+                        ['Facturen exporteren', route('super-admin.dashboard', ['tab' => 'invoices'])],
+                        ['AI-template importeren', route('super-admin.templates.ai-import')],
+                    ] as [$label, $url])
+                        <a href="{{ $url }}" class="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-3 text-sm font-medium text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><span>{{ $label }}</span><span>→</span></a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section data-tab-panel="communications" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'communications' ? 'hidden' : '' }}">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Communicatie</h2>
-            <p class="text-sm text-slate-500">Stuur updates en maak nieuwe bedrijven met admin account.</p>
+            <p class="text-sm text-slate-500">Bereik klanten per e-mail of rechtstreeks in TaskCheck.</p>
         </div>
     </div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-3">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:order-1">
             <div class="flex items-center justify-between gap-3 mb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 7.5v9A2.25 2.25 0 0119.5 18.75h-15A2.25 2.25 0 012.25 16.5v-9m19.5 0A2.25 2.25 0 0019.5 5.25h-15A2.25 2.25 0 002.25 7.5m19.5 0l-8.69 5.214a2.25 2.25 0 01-2.12 0L2.25 7.5"/>
                         </svg>
@@ -85,13 +136,13 @@
                     </div>
                 </div>
             </div>
-            <form method="POST" action="{{ route('super-admin.communications.broadcast-mail') }}" class="space-y-3">
+            <form method="POST" action="{{ route('super-admin.communications.broadcast-mail') }}" class="space-y-3" id="broadcast-mail-form">
                 @csrf
                 <label class="block text-sm font-medium text-slate-700">Onderwerp</label>
                 <input
                     name="subject"
                     value="{{ old('subject') }}"
-                    class="w-full rounded-xl border-slate-300 text-sm focus:border-violet-400 focus:ring-violet-400"
+                    class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-400 focus:ring-blue-400"
                     placeholder="Onderwerp"
                     required
                 >
@@ -99,27 +150,32 @@
                 <textarea
                     name="message"
                     rows="5"
-                    class="w-full rounded-xl border-slate-300 text-sm focus:border-violet-400 focus:ring-violet-400"
+                    class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-400 focus:ring-blue-400"
                     placeholder="Bericht naar alle bedrijven..."
                     required
                 >{{ old('message') }}</textarea>
+                <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-800"><strong id="mail-recipient-count">{{ $communicationCounts['active_companies'] }}</strong> bedrijfscontacten ontvangen dit bericht.</div>
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
                     <label class="inline-flex items-center gap-2 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
                         <input type="checkbox" name="include_inactive" value="1" @checked(old('include_inactive'))>
                         Ook inactieve bedrijven mailen
                     </label>
-                    <button class="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-700 text-white px-5 py-2.5 text-sm font-semibold hover:bg-violet-800 shadow-sm">
+                    <div class="flex flex-wrap gap-2">
+                    <button type="button" data-preview-form="broadcast-mail-form" data-preview-kind="E-mail" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Voorbeeld</button>
+                    <button name="send_mode" value="test" class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100">Test naar mij</button>
+                    <button name="send_mode" value="send" data-confirm-send="Weet je zeker dat je deze e-mail naar alle geselecteerde bedrijfscontacten wilt versturen?" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-blue-700 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.875L6 12Zm0 0h7.5"/>
                         </svg>
                         Verstuur bulkmail
                     </button>
+                    </div>
                 </div>
             </form>
             <p class="text-xs text-slate-500 mt-2">Per bedrijf wordt de bedrijfsmail gebruikt, of anders de eerste actieve admin e-mail.</p>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-3" id="mail-tracklinks">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-2 lg:order-3" id="mail-tracklinks">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
@@ -170,7 +226,7 @@
                 <p class="text-sm text-slate-500 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">Nog geen tracklinks. Maak er een aan en plak de URL in je mail naar taskcheck.nl.</p>
             @else
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
-                    <table class="min-w-full text-sm">
+                    <table class="min-w-[820px] w-full text-sm">
                         <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                             <tr>
                                 <th class="px-4 py-3">Campagne</th>
@@ -194,10 +250,10 @@
                                     <td class="px-4 py-3 align-top max-w-md">
                                         <p class="text-sm mb-2">
                                             Lezer ziet:
-                                            <a href="{{ $link->tracking_url }}" class="font-semibold text-violet-700 underline" target="_blank" rel="noopener">{{ $link->mail_link_text }}</a>
+                                            <a href="{{ $link->tracking_url }}" class="font-semibold text-blue-700 underline" target="_blank" rel="noopener">{{ $link->mail_link_text }}</a>
                                         </p>
                                         <div class="flex flex-wrap gap-2 mb-2">
-                                            <button type="button" class="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-100" data-copy-text="{{ $link->mail_link_html }}">Kopieer HTML</button>
+                                            <button type="button" class="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-100" data-copy-text="{{ $link->mail_link_html }}">Kopieer HTML</button>
                                             <button type="button" class="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50" data-copy-target="track-url-{{ $link->id }}">Kopieer track-URL</button>
                                         </div>
                                         <code class="text-xs break-all text-slate-500 block" id="track-url-{{ $link->id }}" title="Alleen nodig als je zelf een hyperlink maakt">{{ $link->tracking_url }}</code>
@@ -225,52 +281,11 @@
             <p class="text-xs text-slate-500 mt-3">
                 In Gmail/Outlook: tekst selecteren → link invoegen → plak de <strong>track-URL</strong> als adres en zet de weergavetekst op <strong>taskcheck.nl</strong>.
                 Of gebruik <strong>Kopieer HTML</strong> in een HTML-mail. De bezoeker ziet alleen taskcheck.nl; klikken worden wel geteld.
-                <code class="text-violet-700">APP_URL</code> moet op je live domein staan (bijv. https://taskcheck.nl).
+                <code class="text-blue-700">APP_URL</code> moet op je live domein staan (bijv. https://taskcheck.nl).
             </p>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-3">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3M9 12a3 3 0 100-6 3 3 0 000 6Zm7.5 8.25a7.5 7.5 0 10-15 0h15Z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-900">Nieuw bedrijf + admin account</h2>
-                    <p class="text-sm text-slate-500">Maak snel een organisatie aan met direct toegankelijke admin login.</p>
-                </div>
-            </div>
-            <form method="POST" action="{{ route('super-admin.companies.store') }}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                @csrf
-                <input name="company_name" value="{{ old('company_name') }}" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Bedrijfsnaam" required>
-                <input name="admin_name" value="{{ old('admin_name') }}" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Admin naam" required>
-                <input name="admin_email" value="{{ old('admin_email') }}" type="email" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Admin e-mail" required>
-                <input name="admin_password" type="text" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Tijdelijk wachtwoord (min 8)" required>
-                <select name="subscription_plan" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" required>
-                    @foreach(\App\Models\Organisation\Company::PLANS as $planKey => $plan)
-                        <option value="{{ $planKey }}" @selected(old('subscription_plan') === $planKey)>{{ ucfirst($planKey) }}</option>
-                    @endforeach
-                </select>
-                <label class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm bg-slate-50">
-                    <input type="checkbox" name="billing_required" value="1" @checked(old('billing_required', true))>
-                    Bedrijf moet maandelijks betalen
-                </label>
-                <input name="access_end_date" type="date" value="{{ old('access_end_date') }}" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400">
-                <button class="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-700 text-white px-4 py-2 text-sm font-semibold hover:bg-violet-800 shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                    </svg>
-                    Aanmaken
-                </button>
-                <input name="company_phone" value="{{ old('company_phone') }}" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Telefoon (optioneel)">
-                <input name="company_address" value="{{ old('company_address') }}" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Adres (optioneel)">
-                <input name="company_website" value="{{ old('company_website') }}" class="rounded-xl border-slate-300 text-sm focus:border-emerald-400 focus:ring-emerald-400" placeholder="Website (optioneel)">
-            </form>
-            <p class="text-xs text-slate-500 mt-2">Bij niet-betalen is einddatum verplicht. Bij betalen loopt het door (maandelijks factureren via je normale billing-flow).</p>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:order-2">
             <div class="flex items-center justify-between gap-3 mb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
@@ -279,12 +294,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold text-slate-900">Meldingenconsole</h2>
-                        <p class="text-sm text-slate-500">Stuur in-app platformmeldingen over updates, storingen en fixes.</p>
+                        <h2 class="text-lg font-semibold text-slate-900">In-app melding</h2>
+                        <p class="text-sm text-slate-500">Toon een bericht in TaskCheck, gericht aan de juiste gebruikers.</p>
                     </div>
                 </div>
             </div>
-            <form method="POST" action="{{ route('super-admin.communications.broadcast-notification') }}" class="space-y-3">
+            <form method="POST" action="{{ route('super-admin.communications.broadcast-notification') }}" class="space-y-3" id="broadcast-notification-form">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="md:col-span-2">
@@ -335,8 +350,10 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end">
-                    <button class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 text-white px-5 py-2.5 text-sm font-semibold hover:bg-blue-800 shadow-sm">
+                <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-800"><strong id="notification-recipient-count">{{ $communicationCounts['active_users'] }}</strong> gebruikers ontvangen deze melding.</div>
+                <div class="flex flex-wrap justify-end gap-2">
+                    <button type="button" data-preview-form="broadcast-notification-form" data-preview-kind="In-app melding" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Voorbeeld</button>
+                    <button data-confirm-send="Weet je zeker dat je deze melding naar de geselecteerde doelgroep wilt versturen?" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-blue-700 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.875L6 12Zm0 0h7.5"/>
                         </svg>
@@ -382,15 +399,27 @@
                 </div>
             </div>
         </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm lg:col-span-2 lg:order-4">
+            <div class="mb-4"><h2 class="text-lg font-semibold text-slate-900">Verzendgeschiedenis</h2><p class="text-sm text-slate-500">Wat is verstuurd, door wie en naar hoeveel ontvangers.</p></div>
+            <div class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+                @forelse($broadcastHistory as $broadcast)
+                    <div class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center"><span class="inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold {{ $broadcast->channel === 'email' ? 'bg-blue-50 text-blue-700' : 'bg-indigo-50 text-indigo-700' }}">{{ $broadcast->channel === 'email' ? 'E-mail' : 'In-app' }}</span><div class="min-w-0 flex-1"><p class="truncate text-sm font-semibold text-slate-900">{{ $broadcast->subject ?: $broadcast->title }}</p><p class="text-xs text-slate-500">{{ $broadcast->sent_at?->timezone('Europe/Amsterdam')->format('d-m-Y H:i') }} · {{ $broadcast->sender?->name ?: 'Superadmin' }}</p></div><div class="text-xs text-slate-600"><strong>{{ $broadcast->recipients_count }}</strong> ontvangen @if($broadcast->failed_count)· <span class="text-red-600">{{ $broadcast->failed_count }} mislukt</span>@endif</div></div>
+                @empty
+                    <div class="px-6 py-10 text-center"><p class="font-semibold text-slate-800">Nog geen verzendhistorie</p><p class="mt-1 text-sm text-slate-500">Nieuwe e-mails en meldingen worden hier automatisch vastgelegd.</p></div>
+                @endforelse
+            </div>
+        </div>
     </div>
     </section>
 
     <section data-tab-panel="companies" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'companies' ? 'hidden' : '' }}">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Bedrijven</h2>
             <p class="text-sm text-slate-500">Abonnementen, status en gebruik per organisatie beheren.</p>
         </div>
+        <a href="{{ route('super-admin.companies.create') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"><span class="text-lg leading-none">+</span> Nieuw bedrijf</a>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -411,14 +440,34 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm lg:col-span-2">
-            <div class="flex items-center justify-between mb-3">
+    <div class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
                 <h2 class="text-lg font-semibold text-slate-900">Bedrijven overzicht</h2>
-                <span class="text-xs text-slate-500">Laatste updates eerst</span>
+                <input type="search" data-table-search="companies" class="w-full rounded-xl border-slate-300 text-sm sm:w-72" placeholder="Zoek bedrijf, plan of status…">
             </div>
-            <div class="overflow-x-auto rounded-xl border border-slate-100">
-                <table class="min-w-full text-sm">
+            <div class="space-y-3 md:hidden">
+                @forelse($companies as $company)
+                    <article class="rounded-xl border border-slate-200 bg-white p-4" data-search-row="companies" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.$company->subscription_status) }}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h3 class="truncate font-semibold text-slate-900">{{ $company->name }}</h3>
+                                <p class="mt-0.5 text-xs text-slate-500">{{ ucfirst($company->subscription_plan ?? 'geen plan') }} · {{ $company->total_users }} gebruikers · {{ (int) $company->active_locations }} locaties</p>
+                            </div>
+                            <span class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $company->subscription_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $company->subscription_status ?? '—' }}</span>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                            <div class="rounded-lg bg-slate-50 p-2.5"><span class="block text-slate-500">Facturatie</span><strong class="mt-0.5 block text-slate-800">{{ $company->billing_mode_label }}</strong></div>
+                            <div class="rounded-lg bg-slate-50 p-2.5"><span class="block text-slate-500">Opslag</span><strong class="mt-0.5 block text-slate-800">{{ number_format((float) $company->storage_used_gb, 2, ',', '.') }} GB</strong></div>
+                        </div>
+                        <a href="{{ route('super-admin.companies.show', $company) }}" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Bedrijf bekijken <span>→</span></a>
+                    </article>
+                @empty
+                    <p class="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">Geen bedrijven gevonden.</p>
+                @endforelse
+            </div>
+            <div class="hidden overflow-x-auto rounded-xl border border-slate-100 md:block">
+                <table class="min-w-[1040px] w-full text-sm">
                     <thead>
                         <tr class="text-left text-slate-500 border-b bg-slate-50">
                             <th class="py-3 px-3 pr-4">Bedrijf</th>
@@ -435,7 +484,7 @@
                     </thead>
                     <tbody>
                         @forelse($companies as $company)
-                            <tr class="border-b border-slate-100 hover:bg-slate-50/60 transition-colors">
+                            <tr class="border-b border-slate-100 hover:bg-slate-50/60 transition-colors" data-search-row="companies" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.$company->subscription_status) }}">
                                 <td class="py-3 px-3 pr-4 font-medium text-slate-900">{{ $company->name }}</td>
                                 <td class="py-3 pr-4">{{ ucfirst($company->subscription_plan ?? 'geen') }}</td>
                                 <td class="py-3 pr-4">
@@ -456,27 +505,10 @@
                                 </td>
                                 <td class="py-3 pr-4">{{ (int) $company->active_locations }}</td>
                                 <td class="py-3 px-3">
-                                    <details>
-                                        <summary class="cursor-pointer inline-flex items-center rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100">Beheer</summary>
-                                        <form method="POST" action="{{ route('super-admin.companies.subscription.update', $company) }}" class="mt-2 space-y-2 min-w-[240px] rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                                            @csrf
-                                            @method('PUT')
-                                            <select name="subscription_plan" class="w-full rounded-lg border-slate-300 text-xs">
-                                                @foreach(\App\Models\Organisation\Company::PLANS as $planKey => $plan)
-                                                    <option value="{{ $planKey }}" @selected($company->subscription_plan === $planKey)>{{ ucfirst($planKey) }}</option>
-                                                @endforeach
-                                            </select>
-                                            <select name="subscription_status" class="w-full rounded-lg border-slate-300 text-xs">
-                                                @foreach(['trial','active','cancelled','expired'] as $status)
-                                                    <option value="{{ $status }}" @selected($company->subscription_status === $status)>{{ $status }}</option>
-                                                @endforeach
-                                            </select>
-                                            <label class="inline-flex items-center gap-2 text-xs"><input type="checkbox" name="billing_required" value="1" @checked($company->billing_required)> betalen</label>
-                                            <input type="date" name="subscription_ends_at" value="{{ optional($company->subscription_ends_at)->format('Y-m-d') }}" class="w-full rounded-lg border-slate-300 text-xs">
-                                            <label class="inline-flex items-center gap-2 text-xs"><input type="checkbox" name="is_active" value="1" @checked($company->is_active)> actief</label>
-                                            <button class="w-full rounded-lg bg-slate-800 text-white text-xs py-2 font-semibold hover:bg-slate-900">Opslaan</button>
-                                        </form>
-                                    </details>
+                                    <a href="{{ route('super-admin.companies.show', $company) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100">
+                                        Bekijken
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/></svg>
+                                    </a>
                                 </td>
                             </tr>
                         @empty
@@ -489,7 +521,7 @@
             </div>
         </div>
 
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
                 <h2 class="text-base font-semibold text-slate-900 mb-2">Abonnementen verdeling</h2>
                 <div class="space-y-1 text-sm">
@@ -541,7 +573,7 @@
             'slate' => 'bg-slate-100 text-slate-700 ring-slate-200',
             'amber' => 'bg-amber-100 text-amber-800 ring-amber-200',
             'orange' => 'bg-orange-100 text-orange-800 ring-orange-200',
-            'violet' => 'bg-violet-100 text-violet-800 ring-violet-200',
+            'violet' => 'bg-blue-100 text-blue-800 ring-blue-200',
             'blue' => 'bg-blue-100 text-blue-800 ring-blue-200',
             'emerald' => 'bg-emerald-100 text-emerald-800 ring-emerald-200',
         ];
@@ -552,9 +584,9 @@
             <p class="text-xs font-medium text-emerald-700">Actief / zwaar</p>
             <p class="mt-1 text-2xl font-bold text-emerald-900">{{ ($usageSummary['active'] ?? 0) }}</p>
         </div>
-        <div class="rounded-2xl border border-violet-200 bg-violet-50/80 p-4 shadow-sm">
-            <p class="text-xs font-medium text-violet-700">Weinig actief</p>
-            <p class="mt-1 text-2xl font-bold text-violet-900">{{ $usageSummary['low'] ?? 0 }}</p>
+        <div class="rounded-2xl border border-blue-200 bg-blue-50/80 p-4 shadow-sm">
+            <p class="text-xs font-medium text-blue-700">Weinig actief</p>
+            <p class="mt-1 text-2xl font-bold text-blue-900">{{ $usageSummary['low'] ?? 0 }}</p>
         </div>
         <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
             <p class="text-xs font-medium text-amber-800">Nog geen gebruik</p>
@@ -577,14 +609,15 @@
     <div class="flex flex-wrap gap-2">
         @foreach($engagementFilters as $key => $label)
             <a href="{{ route('super-admin.dashboard', ['tab' => 'usage', 'usage_filter' => $key]) }}"
-               class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition {{ ($usageFilter ?? 'all') === $key ? 'bg-violet-700 text-white ring-violet-700' : 'bg-white text-slate-600 ring-slate-200 hover:ring-violet-300 hover:text-violet-800' }}">
+               class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition {{ ($usageFilter ?? 'all') === $key ? 'bg-blue-600 text-white ring-blue-700' : 'bg-white text-slate-600 ring-slate-200 hover:ring-blue-300 hover:text-blue-800' }}">
                 {{ $label }}
             </a>
         @endforeach
     </div>
+    <input type="search" data-table-search="usage" class="w-full rounded-xl border-slate-300 text-sm sm:max-w-sm" placeholder="Zoek klant in gebruiksoverzicht…">
 
     <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table class="min-w-full text-sm">
+        <table class="min-w-[1120px] w-full text-sm">
             <thead>
                 <tr class="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
                     <th class="py-3 px-3 pr-4 font-medium">Bedrijf</th>
@@ -603,7 +636,7 @@
             <tbody>
                 @forelse($usageCompanies as $company)
                     @php $u = $company->usage ?? []; @endphp
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors">
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/70 transition-colors" data-search-row="usage" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.($u['engagement_label'] ?? '')) }}">
                         <td class="py-3 px-3 pr-4">
                             <p class="font-semibold text-slate-900">{{ $company->name }}</p>
                             <p class="text-xs text-slate-500">{{ $company->total_users }} gebruikers · sinds {{ $company->created_at?->format('d-m-Y') }}</p>
@@ -675,7 +708,7 @@
         </div>
         <form method="POST" action="{{ route('super-admin.platform-alerts.test') }}">
             @csrf
-            <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-800 hover:bg-violet-100">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-100">
                 Test alert-mail nu
             </button>
         </form>
@@ -732,23 +765,25 @@
         @endphp
         <p class="text-xs text-slate-500 mt-4">
             Ontvangers: {{ $platformAlertRecipientsLabel }}.
-            Productie: zet cron op <code class="text-violet-700">* * * * * php artisan schedule:run</code>.
+            Productie: zet cron op <code class="text-blue-700">* * * * * php artisan schedule:run</code>.
         </p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="bg-white border border-slate-200 rounded-xl p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-lg font-semibold text-slate-900">Recente errors</h2>
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div><h2 class="text-lg font-semibold text-slate-900">Gegroepeerde fouten</h2><p class="text-xs text-slate-500">Identieke fouten zijn samengevoegd; details staan in het ticket.</p></div>
                 <span class="text-xs text-slate-500">Realtime update elke 8s</span>
             </div>
+            <div class="mb-3 flex gap-2"><input id="sa-error-search" type="search" class="min-w-0 flex-1 rounded-xl border-slate-300 text-sm" placeholder="Zoek in fouten…"><select id="sa-error-level" class="rounded-xl border-slate-300 text-sm"><option value="">Alle niveaus</option><option value="ERROR">Error</option><option value="CRITICAL">Kritiek</option></select></div>
             <div id="sa-errors-list" class="space-y-2 max-h-96 overflow-auto">
                 @forelse($recentErrors as $error)
-                    <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+                    <div class="sa-error-card rounded-xl border border-red-200 bg-red-50 p-3" data-error-level="{{ $error['level'] }}" data-error-text="{{ strtolower($error['message']) }}">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs text-red-700 font-semibold">{{ $error['level'] }} · {{ $error['timestamp'] ?? 'onbekend' }}</p>
-                                <p class="text-sm text-slate-900 mt-1 break-all">{{ $error['message'] }}</p>
+                                <p class="text-xs text-red-700 font-semibold">{{ $error['level'] }} · {{ $error['count'] ?? 1 }}× · laatst {{ $error['last_seen'] ?? 'onbekend' }}</p>
+                                <p class="text-sm text-slate-900 mt-1 break-words line-clamp-3">{{ $error['message'] }}</p>
+                                <p class="mt-1 text-[11px] text-slate-500">Eerste keer: {{ $error['first_seen'] ?? 'onbekend' }} @if($error['company_id'] ?? null)· Klant #{{ $error['company_id'] }}@endif</p>
                             </div>
                             <button
                                 class="shrink-0 rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 sa-ticket-btn"
@@ -850,9 +885,9 @@
         </div>
     </div>
     <div class="bg-white border border-slate-200 rounded-xl p-4">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg font-semibold text-slate-900">Facturen (alle bedrijven)</h2>
-            <div class="flex items-center gap-2">
+        <div class="flex flex-col gap-3 mb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div><h2 class="text-lg font-semibold text-slate-900">Facturen (alle bedrijven)</h2><input type="search" data-table-search="invoices" class="mt-2 w-full rounded-xl border-slate-300 text-sm sm:w-72" placeholder="Zoek factuur of bedrijf…"></div>
+                            <div class="flex flex-wrap items-center gap-2">
                 <span class="text-xs text-slate-500">Laatste 100 facturen</span>
                 <a href="{{ route('super-admin.invoices.export.csv') }}"
                    class="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
@@ -862,7 +897,7 @@
         </div>
         @if(($invoices ?? collect())->count() > 0)
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
+                <table class="min-w-[760px] w-full text-sm">
                     <thead>
                         <tr class="text-left text-slate-500 border-b">
                             <th class="py-2 pr-4">Factuurnr</th>
@@ -875,7 +910,7 @@
                     </thead>
                     <tbody>
                         @foreach($invoices as $invoice)
-                            <tr class="border-b border-slate-100">
+                            <tr class="border-b border-slate-100" data-search-row="invoices" data-search-text="{{ strtolower($invoice->invoice_number.' '.($invoice->company?->name ?? '').' '.$invoice->description) }}">
                                 <td class="py-2 pr-4 font-medium text-slate-900">{{ $invoice->invoice_number }}</td>
                                 <td class="py-2 pr-4">{{ $invoice->company?->name ?? '-' }}</td>
                                 <td class="py-2 pr-4">{{ optional($invoice->paid_at)->timezone('Europe/Amsterdam')->format('d-m-Y H:i') }}</td>
@@ -893,7 +928,13 @@
                 </table>
             </div>
         @else
-            <p class="text-sm text-slate-500">Nog geen facturen gevonden.</p>
+            <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-400 shadow-sm ring-1 ring-slate-200">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21H4.5V4.757A48.108 48.108 0 0112 4.125c2.57 0 5.086.21 7.5.632zM9 17.25h6M9 10.5h.008v.008H9V10.5zm6 3.75h.008v.008H15v-.008z"/></svg>
+                </div>
+                <p class="mt-3 text-sm font-semibold text-slate-800">Nog geen facturen</p>
+                <p class="mt-1 max-w-md text-xs text-slate-500">Betaalde abonnementen verschijnen hier automatisch en kunnen daarna als CSV of PDF worden geëxporteerd.</p>
+            </div>
         @endif
     </div>
     </section>
@@ -912,7 +953,7 @@
                     <h2 class="text-lg font-semibold text-slate-900">Global templates beheer</h2>
                     <p class="text-sm text-slate-500">Beheer centrale templates en publiceer updates naar bedrijven.</p>
                 </div>
-                <a href="{{ route('super-admin.templates.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-800">
+                <a href="{{ route('super-admin.templates.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                     Open templates
                 </a>
             </div>
@@ -959,13 +1000,18 @@
                 <div>
                     <div class="flex items-center justify-between">
                         <h4 class="text-sm font-semibold text-slate-900">AI analyse</h4>
-                        <button type="button" id="sa-ticket-ai-btn" class="rounded bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800">AI analyseer</button>
+                        <button type="button" id="sa-ticket-ai-btn" class="rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">AI analyseer</button>
                     </div>
-                    <div id="sa-ticket-ai-result" class="mt-2 rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm text-slate-900 whitespace-pre-wrap break-all"></div>
+                    <div id="sa-ticket-ai-result" class="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-slate-900 whitespace-pre-wrap break-all"></div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<div id="sa-message-preview" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="sa-preview-title">
+    <button type="button" class="absolute inset-0 bg-slate-900/60" data-preview-close aria-label="Sluiten"></button>
+    <div class="absolute inset-0 flex items-center justify-center p-4"><div class="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"><div class="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><p id="sa-preview-kind" class="text-xs font-semibold text-blue-600"></p><h3 id="sa-preview-title" class="text-lg font-semibold text-slate-900"></h3></div><button type="button" data-preview-close class="rounded-lg p-2 text-slate-500 hover:bg-slate-100">✕</button></div><div class="p-5"><div id="sa-preview-message" class="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700"></div><p class="mt-3 text-xs text-slate-500">Dit is een inhoudsvoorbeeld. De uiteindelijke e-mail gebruikt de TaskCheck-huisstijl.</p></div></div></div>
 </div>
 
 @push('scripts')
@@ -977,15 +1023,15 @@
         transition: all .2s ease;
     }
     .sa-tab-btn:hover {
-        color: #5b21b6;
-        background-color: #f5f3ff;
-        border-color: #c4b5fd;
+        color: #1d4ed8;
+        background-color: #eff6ff;
+        border-color: #93c5fd;
     }
     .sa-tab-btn.active {
         color: #ffffff;
-        background-color: #6d28d9;
-        border-color: #6d28d9;
-        box-shadow: 0 8px 16px rgba(109, 40, 217, 0.2);
+        background-color: #2563eb;
+        border-color: #2563eb;
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.18);
     }
     .sa-incident-tab-btn {
         color: #475569;
@@ -999,13 +1045,65 @@
 </style>
 <script>
 (() => {
+    const communicationCounts = @json($communicationCounts ?? []);
+    const previewModal = document.getElementById('sa-message-preview');
+    document.querySelectorAll('[data-preview-close]').forEach((button) => button.addEventListener('click', () => previewModal?.classList.add('hidden')));
+    document.querySelectorAll('[data-preview-form]').forEach((button) => button.addEventListener('click', () => {
+        const form = document.getElementById(button.dataset.previewForm);
+        if (!form || !previewModal) return;
+        document.getElementById('sa-preview-kind').textContent = button.dataset.previewKind || 'Voorbeeld';
+        document.getElementById('sa-preview-title').textContent = form.querySelector('[name="subject"], [name="title"]')?.value || 'Nog geen titel ingevuld';
+        document.getElementById('sa-preview-message').textContent = form.querySelector('[name="message"]')?.value || 'Nog geen bericht ingevuld.';
+        previewModal.classList.remove('hidden');
+    }));
+    document.querySelectorAll('[data-confirm-send]').forEach((button) => button.addEventListener('click', (event) => {
+        if (!window.confirm(button.dataset.confirmSend)) event.preventDefault();
+    }));
+
+    const mailForm = document.getElementById('broadcast-mail-form');
+    const notificationForm = document.getElementById('broadcast-notification-form');
+    const bindDraft = (form, key) => {
+        if (!form) return;
+        const fields = [...form.querySelectorAll('input[name], textarea[name], select[name]')].filter((field) => !['_token', 'send_mode'].includes(field.name));
+        try {
+            const draft = JSON.parse(localStorage.getItem(key) || '{}');
+            fields.forEach((field) => { if (draft[field.name] === undefined) return; field.type === 'checkbox' ? field.checked = !!draft[field.name] : field.value = draft[field.name]; });
+        } catch (_) {}
+        const save = () => { const draft = {}; fields.forEach((field) => draft[field.name] = field.type === 'checkbox' ? field.checked : field.value); localStorage.setItem(key, JSON.stringify(draft)); };
+        fields.forEach((field) => field.addEventListener('input', save));
+        fields.forEach((field) => field.addEventListener('change', save));
+    };
+    bindDraft(mailForm, 'taskcheck-superadmin-mail-draft');
+    bindDraft(notificationForm, 'taskcheck-superadmin-notification-draft');
+
+    const updateMailCount = () => {
+        const includeInactive = mailForm?.querySelector('[name="include_inactive"]')?.checked;
+        const count = includeInactive ? communicationCounts.all_companies : communicationCounts.active_companies;
+        const element = document.getElementById('mail-recipient-count'); if (element) element.textContent = count ?? 0;
+    };
+    const updateNotificationCount = () => {
+        const audience = notificationForm?.querySelector('[name="audience"]')?.value || 'all';
+        const inactive = notificationForm?.querySelector('[name="include_inactive"]')?.checked;
+        const key = audience === 'admins' ? (inactive ? 'all_admins' : 'active_admins') : audience === 'employees' ? (inactive ? 'all_employees' : 'active_employees') : (inactive ? 'all_users' : 'active_users');
+        const element = document.getElementById('notification-recipient-count'); if (element) element.textContent = communicationCounts[key] ?? 0;
+    };
+    mailForm?.querySelector('[name="include_inactive"]')?.addEventListener('change', updateMailCount);
+    notificationForm?.querySelector('[name="audience"]')?.addEventListener('change', updateNotificationCount);
+    notificationForm?.querySelector('[name="include_inactive"]')?.addEventListener('change', updateNotificationCount);
+    updateMailCount(); updateNotificationCount();
+
+    document.querySelectorAll('[data-table-search]').forEach((input) => input.addEventListener('input', () => {
+        const group = input.dataset.tableSearch;
+        const term = input.value.trim().toLowerCase();
+        document.querySelectorAll(`[data-search-row="${group}"]`).forEach((row) => row.classList.toggle('hidden', term && !row.dataset.searchText.includes(term)));
+    }));
     const tabPanels = Array.from(document.querySelectorAll('.sa-tab-panel'));
     const tabFromQuery = new URLSearchParams(window.location.search).get('tab');
-    const allowedTabs = new Set(['communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates']);
+    const allowedTabs = new Set(['overview', 'communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates']);
     const serverTab = @json($activeDashboardTab);
     const initialTab = (tabFromQuery && allowedTabs.has(tabFromQuery))
         ? tabFromQuery
-        : (allowedTabs.has(serverTab) ? serverTab : 'communications');
+        : (allowedTabs.has(serverTab) ? serverTab : 'overview');
 
     const activateTab = (name) => {
         tabPanels.forEach((panel) => {
@@ -1226,11 +1324,12 @@
             return;
         }
         listEl.innerHTML = errors.map((error) => `
-            <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+            <div class="sa-error-card rounded-xl border border-red-200 bg-red-50 p-3" data-error-level="${safeText(error.level || 'ERROR')}" data-error-text="${safeText((error.message || '').toLowerCase())}">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-xs text-red-700 font-semibold">${error.level} · ${error.timestamp ?? 'onbekend'}</p>
-                        <p class="text-sm text-slate-900 mt-1 break-all">${(error.message || '').replace(/</g, '&lt;')}</p>
+                        <p class="text-xs text-red-700 font-semibold">${safeText(error.level)} · ${error.count || 1}× · laatst ${safeText(error.last_seen || 'onbekend')}</p>
+                        <p class="text-sm text-slate-900 mt-1 break-words line-clamp-3">${safeText(error.message || '')}</p>
+                        <p class="mt-1 text-[11px] text-slate-500">Eerste keer: ${safeText(error.first_seen || 'onbekend')}</p>
                     </div>
                     <button
                         class="shrink-0 rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 sa-ticket-btn"
@@ -1250,6 +1349,16 @@
         `).join('');
         bindTicketButtons();
     };
+
+    const filterErrors = () => {
+        const term = (document.getElementById('sa-error-search')?.value || '').toLowerCase();
+        const level = document.getElementById('sa-error-level')?.value || '';
+        document.querySelectorAll('.sa-error-card').forEach((card) => {
+            card.classList.toggle('hidden', !!((term && !card.dataset.errorText.includes(term)) || (level && card.dataset.errorLevel !== level)));
+        });
+    };
+    document.getElementById('sa-error-search')?.addEventListener('input', filterErrors);
+    document.getElementById('sa-error-level')?.addEventListener('change', filterErrors);
 
     const refresh = async () => {
         try {
@@ -1325,4 +1434,3 @@
 </script>
 @endpush
 @endsection
-

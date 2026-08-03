@@ -7,6 +7,7 @@ use App\Mail\TaskCheckNotificationMail;
 use App\Models\Organisation\Company;
 use App\Models\Marketing\MarketingLinkCampaign;
 use App\Models\Platform\PlatformAlertLog;
+use App\Models\Platform\PlatformBroadcast;
 use App\Services\Platform\CompanyUsageService;
 use App\Services\Platform\PlatformAlertService;
 use App\Services\Platform\PlatformHealthService;
@@ -16,6 +17,8 @@ use App\Models\Communication\Notification;
 use App\Models\Submissions\Submission;
 use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskList;
+use App\Models\Ai\AiUsageLog;
+use App\Models\Organisation\Location;
 use Carbon\Carbon;
 use App\Models\Organisation\User;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +31,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
@@ -59,11 +63,14 @@ class DashboardController extends Controller
             'employees' => (int) $companies->sum('employee_users'),
             'locations' => (int) $companies->sum('active_locations'),
             'storage_gb' => round((float) $companies->sum('storage_used_gb'), 2),
-            'task_lists' => TaskList::query()->where(function ($q) {
+            'task_lists' => TaskList::withoutGlobalScopes()->where(function ($q) {
                 $q->where('is_template', false)->orWhereNull('is_template');
             })->count(),
-            'tasks' => Task::query()->count(),
-            'submissions' => Submission::query()->count(),
+            'tasks' => Task::query()
+                ->join('lists', 'lists.id', '=', 'tasks.list_id')
+                ->where(fn ($query) => $query->where('lists.is_template', false)->orWhereNull('lists.is_template'))
+                ->count('tasks.id'),
+            'submissions' => Submission::withoutGlobalScopes()->count(),
         ];
 
         $plans = $companies
@@ -107,6 +114,19 @@ class DashboardController extends Controller
             ->sortByDesc('sent_at')
             ->take(10)
             ->values();
+        $broadcastHistory = Schema::hasTable('platform_broadcasts')
+            ? PlatformBroadcast::query()->with('sender:id,name')->latest('sent_at')->limit(15)->get()
+            : collect();
+        $communicationCounts = [
+            'active_companies' => Company::query()->where('is_active', true)->count(),
+            'all_companies' => Company::query()->count(),
+            'active_users' => User::query()->where('is_active', true)->count(),
+            'all_users' => User::query()->count(),
+            'active_admins' => User::query()->where('is_active', true)->whereIn('role', ['admin', 'super_admin'])->count(),
+            'active_employees' => User::query()->where('is_active', true)->where('role', 'employee')->count(),
+            'all_admins' => User::query()->whereIn('role', ['admin', 'super_admin'])->count(),
+            'all_employees' => User::query()->where('role', 'employee')->count(),
+        ];
 
         $marketingLinks = MarketingLinkCampaign::query()
             ->with('creator:id,name')
@@ -120,10 +140,10 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $allowedTabs = ['communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates'];
-        $activeDashboardTab = request()->query('tab', 'communications');
+        $allowedTabs = ['overview', 'communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates'];
+        $activeDashboardTab = request()->query('tab', 'overview');
         if (!in_array($activeDashboardTab, $allowedTabs, true)) {
-            $activeDashboardTab = 'communications';
+            $activeDashboardTab = 'overview';
         }
 
         $usageFilter = request()->query('usage_filter', 'all');
@@ -140,6 +160,8 @@ class DashboardController extends Controller
             'tickets',
             'invoices',
             'recentAnnouncements',
+            'broadcastHistory',
+            'communicationCounts',
             'marketingLinks',
             'activeDashboardTab',
             'platformHealth',
@@ -162,6 +184,80 @@ class DashboardController extends Controller
         return redirect()
             ->route('super-admin.dashboard', ['tab' => 'monitoring'])
             ->with('success', 'Testmelding verstuurd naar: '.implode(', ', $recipients));
+    }
+
+    public function showCompany(Company $company)
+    {
+        $users = User::query()->where('company_id', $company->id);
+        $locations = Location::withoutGlobalScope('company')->where('company_id', $company->id);
+        $lists = TaskList::withoutGlobalScope('company')->where('company_id', $company->id);
+        $submissions = Submission::withoutGlobalScope('company')->where('company_id', $company->id);
+
+        $metrics = [
+            'users' => (clone $users)->count(),
+            'active_users' => (clone $users)->where('is_active', true)->count(),
+            'admins' => (clone $users)->where('role', 'admin')->count(),
+            'employees' => (clone $users)->where('role', 'employee')->count(),
+            'locations' => (clone $locations)->where('is_active', true)->count(),
+            'lists' => (clone $lists)->where(fn ($query) => $query->where('is_template', false)->orWhereNull('is_template'))->count(),
+            'active_lists' => (clone $lists)->where('is_active', true)->where(fn ($query) => $query->where('is_template', false)->orWhereNull('is_template'))->count(),
+            'tasks' => Task::query()->whereIn('list_id', (clone $lists)->select('id'))->count(),
+            'submissions' => (clone $submissions)->count(),
+            'completed_submissions' => (clone $submissions)->whereIn('status', ['completed', 'reviewed'])->count(),
+            'submissions_30d' => (clone $submissions)->where('created_at', '>=', now()->subDays(30))->count(),
+            'storage_gb' => $company->getStorageUsedGb(),
+        ];
+        $metrics['completion_rate'] = $metrics['submissions'] > 0
+            ? (int) round(($metrics['completed_submissions'] / $metrics['submissions']) * 100)
+            : 0;
+
+        $recentUsers = (clone $users)
+            ->with('location:id,name')
+            ->latest()
+            ->limit(8)
+            ->get();
+        $recentLists = (clone $lists)
+            ->withCount(['tasks', 'submissions'])
+            ->latest()
+            ->limit(8)
+            ->get();
+        $recentInvoices = Invoice::query()
+            ->where('company_id', $company->id)
+            ->latest('paid_at')
+            ->limit(8)
+            ->get();
+        $companyUsers = (clone $users)->with('location:id,name')->orderBy('name')->get();
+        $companyLists = (clone $lists)->withCount(['tasks', 'submissions'])->latest()->get();
+        $companyInvoices = Invoice::query()->where('company_id', $company->id)->latest('paid_at')->get();
+        $aiUsageByFeature = Schema::hasTable('ai_usage_logs')
+            ? AiUsageLog::query()
+                ->where('company_id', $company->id)
+                ->select('feature', DB::raw('SUM(total_tokens) as tokens'))
+                ->groupBy('feature')
+                ->orderByDesc('tokens')
+                ->get()
+            : collect();
+        $aiTokens = (int) $aiUsageByFeature->sum('tokens');
+        $lastActivityAt = (clone $submissions)->max('updated_at');
+
+        return view('super-admin.companies.show', compact(
+            'company',
+            'metrics',
+            'recentUsers',
+            'recentLists',
+            'recentInvoices',
+            'companyUsers',
+            'companyLists',
+            'companyInvoices',
+            'aiUsageByFeature',
+            'aiTokens',
+            'lastActivityAt',
+        ));
+    }
+
+    public function createCompany()
+    {
+        return view('super-admin.companies.create');
     }
 
     public function storeCompany(Request $request): RedirectResponse
@@ -192,7 +288,7 @@ class DashboardController extends Controller
             ? null
             : Carbon::parse($validated['access_end_date'])->endOfDay();
 
-        DB::transaction(function () use ($validated, $plan, $planConfig, $billingRequired, $subscriptionEndsAt) {
+        $company = DB::transaction(function () use ($validated, $plan, $planConfig, $billingRequired, $subscriptionEndsAt) {
             $company = Company::create([
                 'name' => $validated['company_name'],
                 'phone' => $validated['company_phone'] ?? null,
@@ -218,9 +314,11 @@ class DashboardController extends Controller
                 'email_verified_at' => now(),
                 'company_id' => $company->id,
             ]);
+
+            return $company;
         });
 
-        return redirect()->route('super-admin.dashboard')
+        return redirect()->route('super-admin.companies.show', $company)
             ->with('success', 'Bedrijf en admin account zijn aangemaakt.');
     }
 
@@ -258,8 +356,71 @@ class DashboardController extends Controller
             'max_storage_gb' => $planConfig['max_storage_gb'] ?? $company->max_storage_gb,
         ]);
 
-        return redirect()->route('super-admin.dashboard')
+        return redirect()->route('super-admin.companies.show', $company)
             ->with('success', "Abonnement van {$company->name} is bijgewerkt.");
+    }
+
+    public function updateCompanyProfile(Request $request, Company $company): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'company_type' => ['nullable', Rule::in(['horeca', 'cleaning', 'other'])],
+        ]);
+
+        $company->update($validated);
+
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'settings'])
+            ->with('success', "Bedrijfsgegevens van {$company->name} zijn bijgewerkt.");
+    }
+
+    public function storeCompanyAdmin(Request $request, Company $company): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:12'],
+        ]);
+
+        User::create([
+            'company_id' => $company->id,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
+            ->with('success', "Beheerder {$validated['name']} is toegevoegd aan {$company->name}.");
+    }
+
+    public function sendCompanyUserPasswordReset(Company $company, User $user): RedirectResponse
+    {
+        abort_unless((int) $user->company_id === (int) $company->id, 404);
+
+        $status = Password::sendResetLink(['email' => $user->email]);
+        $message = $status === Password::RESET_LINK_SENT
+            ? "Wachtwoordlink verstuurd naar {$user->email}."
+            : 'De wachtwoordlink kon niet worden verstuurd. Controleer de mailinstellingen.';
+
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
+            ->with($status === Password::RESET_LINK_SENT ? 'success' : 'error', $message);
+    }
+
+    public function toggleCompanyUser(Company $company, User $user): RedirectResponse
+    {
+        abort_unless((int) $user->company_id === (int) $company->id, 404);
+        abort_if($user->is(Auth::user()), 422, 'Je kunt je eigen account hier niet blokkeren.');
+
+        $user->update(['is_active' => !$user->is_active]);
+
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
+            ->with('success', "Account van {$user->name} is ".($user->is_active ? 'geactiveerd.' : 'geblokkeerd.'));
     }
 
     public function sendBroadcastMail(Request $request): RedirectResponse
@@ -268,9 +429,26 @@ class DashboardController extends Controller
             'subject' => ['required', 'string', 'max:200'],
             'message' => ['required', 'string', 'max:20000'],
             'include_inactive' => ['nullable', 'boolean'],
+            'send_mode' => ['nullable', Rule::in(['send', 'test'])],
         ]);
 
         $includeInactive = (bool) ($validated['include_inactive'] ?? false);
+
+        if (($validated['send_mode'] ?? 'send') === 'test') {
+            Mail::to($request->user()->email)->send(new TaskCheckNotificationMail(
+                subjectLine: '[TEST] '.(string) $validated['subject'],
+                greetingName: $request->user()->name,
+                title: (string) $validated['subject'],
+                bodyText: (string) $validated['message'],
+                ctaLabel: 'Open TaskCheck',
+                ctaUrl: config('app.url'),
+                metaText: 'Dit is een testweergave; klanten hebben dit bericht niet ontvangen.',
+                showMarketing: true
+            ));
+
+            return redirect()->route('super-admin.dashboard', ['tab' => 'communications'])
+                ->with('success', "Testmail verstuurd naar {$request->user()->email}. Er zijn geen klanten gemaild.");
+        }
 
         $companies = Company::query()
             ->with(['users' => fn ($q) => $q->where('role', 'admin')->where('is_active', true)->orderBy('id')])
@@ -306,7 +484,16 @@ class DashboardController extends Controller
             }
         }
 
-        return redirect()->route('super-admin.dashboard')->with(
+        if (Schema::hasTable('platform_broadcasts')) {
+            PlatformBroadcast::create([
+                'sent_by' => Auth::id(), 'channel' => 'email', 'subject' => $validated['subject'],
+                'message' => $validated['message'], 'audience' => $includeInactive ? 'all_companies' : 'active_companies',
+                'recipients_count' => $sent, 'failed_count' => $failed, 'status' => $failed ? 'partially_sent' : 'sent',
+                'sent_at' => now(),
+            ]);
+        }
+
+        return redirect()->route('super-admin.dashboard', ['tab' => 'communications'])->with(
             'success',
             "Bulkmail verzonden. Succes: {$sent}, mislukt: {$failed}."
         );
@@ -355,6 +542,15 @@ class DashboardController extends Controller
                 ],
             ]);
             $sent++;
+        }
+
+        if (Schema::hasTable('platform_broadcasts')) {
+            PlatformBroadcast::create([
+                'sent_by' => Auth::id(), 'channel' => 'in_app', 'title' => $validated['title'],
+                'message' => $validated['message'], 'audience' => $audience,
+                'recipients_count' => $sent, 'failed_count' => 0, 'status' => 'sent',
+                'meta' => ['severity' => $validated['severity'], 'include_inactive' => $includeInactive], 'sent_at' => now(),
+            ]);
         }
 
         return redirect()->route('super-admin.dashboard', ['tab' => 'communications'])->with(
@@ -802,7 +998,7 @@ PROMPT;
 
         return collect($lines)
             ->filter(fn ($line) => str_contains($line, '.ERROR:') || str_contains($line, 'local.ERROR:'))
-            ->take(-$limit)
+            ->take(-max($limit * 5, 100))
             ->reverse()
             ->values()
             ->map(function (string $line) use ($displayTimezone) {
@@ -847,12 +1043,16 @@ PROMPT;
 
                 $deviceType = $this->detectDeviceType($userAgent);
 
+                $safeMessage = str_replace(base_path(), '[app]', mb_substr($message, 0, 1200));
+                $safeRaw = str_replace(base_path(), '[app]', $line);
+                $signature = preg_replace(['/\{.*$/s', '/\b\d+\b/', '/\s+/'], ['', '#', ' '], $safeMessage);
+
                 return [
-                    'fingerprint' => sha1($line),
+                    'fingerprint' => sha1((string) $signature),
                     'timestamp' => $timestamp,
                     'level' => $level,
-                    'message' => mb_substr($message, 0, 1200),
-                    'raw' => $line,
+                    'message' => $safeMessage,
+                    'raw' => $safeRaw,
                     'company_id' => $companyId,
                     'request_url' => $requestUrl,
                     'http_method' => $httpMethod,
@@ -860,7 +1060,17 @@ PROMPT;
                     'device_type' => $deviceType,
                 ];
             })
+            ->groupBy('fingerprint')
+            ->map(function ($items) {
+                $latest = $items->first();
+                $oldest = $items->last();
+                $latest['count'] = $items->count();
+                $latest['first_seen'] = $oldest['timestamp'] ?? null;
+                $latest['last_seen'] = $latest['timestamp'] ?? null;
+                return $latest;
+            })
+            ->take($limit)
+            ->values()
             ->all();
     }
 }
-

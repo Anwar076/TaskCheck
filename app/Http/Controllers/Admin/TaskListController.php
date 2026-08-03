@@ -9,6 +9,7 @@ use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use App\Models\Communication\Notification;
 use App\Models\Organisation\Location;
+use App\Models\Organisation\Company;
 use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskTemplate;
 use App\Services\Admin\ListCalendarService;
@@ -868,16 +869,20 @@ PROMPT;
         }
     }
 
-    public function aiImportPage()
+    public function aiImportPage(?Company $company = null)
     {
-        $this->ensurePlanFeatureAvailable('ai');
+        if (!$company) {
+            $this->ensurePlanFeatureAvailable('ai');
+        }
 
-        return view('admin.lists.ai-import');
+        return view('admin.lists.ai-import', compact('company'));
     }
 
-    public function aiImportGenerate(Request $request)
+    public function aiImportGenerate(Request $request, ?Company $company = null)
     {
-        $this->ensurePlanFeatureAvailable('ai');
+        if (!$company) {
+            $this->ensurePlanFeatureAvailable('ai');
+        }
 
         $validated = $request->validate([
             'prompt' => 'nullable|string|max:4000',
@@ -1032,7 +1037,7 @@ PROMPT,
             AiUsageLogger::logChatCompletion(
                 $response,
                 AiUsageLogger::FEATURE_LIST_AI_IMPORT,
-                auth()->user()->company_id,
+                $company?->id ?? auth()->user()->company_id,
                 auth()->id(),
                 $model
             );
@@ -1078,9 +1083,11 @@ PROMPT,
         }
     }
 
-    public function aiImportStore(Request $request)
+    public function aiImportStore(Request $request, ?Company $company = null)
     {
-        $this->ensurePlanFeatureAvailable('ai');
+        if (!$company) {
+            $this->ensurePlanFeatureAvailable('ai');
+        }
 
         $validated = $request->validate([
             'import_payload' => 'required|string',
@@ -1128,7 +1135,7 @@ PROMPT,
                 'is_active' => true,
                 'schedule_config' => null,
                 'created_by' => auth()->id(),
-                'company_id' => auth()->user()->company_id,
+                'company_id' => $company?->id ?? auth()->user()->company_id,
             ]);
             $createdLists++;
 
@@ -1167,7 +1174,11 @@ PROMPT,
             }
         }
 
-        return redirect()->route('admin.lists.index')
+        $redirect = $company
+            ? redirect()->route('super-admin.companies.show', $company)
+            : redirect()->route('admin.lists.index');
+
+        return $redirect
             ->with('success', "AI-import voltooid: {$createdLists} lijst(en) en {$createdTasks} taak/taken aangemaakt.");
     }
 

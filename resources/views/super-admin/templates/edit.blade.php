@@ -7,7 +7,7 @@
     <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8">
         <div class="mb-6 sm:mb-8">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-                <div class="bg-gradient-to-br from-violet-600 via-violet-700 to-slate-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-slate-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="flex items-center gap-4 min-w-0">
                             <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center flex-shrink-0">
@@ -17,7 +17,7 @@
                             </div>
                             <div class="min-w-0">
                                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">{{ $template->name }}</h1>
-                                <p class="text-violet-100/90 text-sm sm:text-base mt-0.5">Bewerk global template en taken</p>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Bewerk global template en taken</p>
                             </div>
                         </div>
                         <a href="{{ route('super-admin.templates.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
@@ -42,11 +42,11 @@
                     <div>
                         <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Templatenaam <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" required value="{{ old('name', $template->name) }}"
-                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('name') border-red-500 @enderror">
+                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-500 @enderror">
                     </div>
                     <div>
                         <label for="target_company_type" class="block text-sm font-medium text-slate-700 mb-1.5">Doelgroep</label>
-                        <select id="target_company_type" name="target_company_type" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                        <select id="target_company_type" name="target_company_type" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Alle bedrijven</option>
                             <option value="cleaning" @selected(old('target_company_type', $template->target_company_type) === 'cleaning')>Schoonmaak</option>
                             <option value="horeca" @selected(old('target_company_type', $template->target_company_type) === 'horeca')>Horeca</option>
@@ -56,27 +56,27 @@
                     <div>
                         <label for="description" class="block text-sm font-medium text-slate-700 mb-1.5">Beschrijving</label>
                         <textarea id="description" name="description" rows="3"
-                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent @error('description') border-red-500 @enderror">{{ old('description', $template->description) }}</textarea>
+                            class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-500 @enderror">{{ old('description', $template->description) }}</textarea>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                             <label for="category" class="block text-sm font-medium text-slate-700 mb-1.5">Categorie</label>
                             <input type="text" id="category" name="category" value="{{ old('category', $template->category) }}"
-                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
                             <label for="icon" class="block text-sm font-medium text-slate-700 mb-1.5">Icoon</label>
                             <input type="text" id="icon" name="icon" value="{{ old('icon', $template->icon) }}"
-                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
                             <label for="frequency_label" class="block text-sm font-medium text-slate-700 mb-1.5">Frequentie label</label>
                             <input type="text" id="frequency_label" name="frequency_label" value="{{ old('frequency_label', $template->frequency_label) }}"
-                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
                             <label for="frequency_type" class="block text-sm font-medium text-slate-700 mb-1.5">Frequentie type</label>
-                            <select id="frequency_type" name="frequency_type" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                            <select id="frequency_type" name="frequency_type" class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 @php $frequencyType = old('frequency_type', $template->frequency_type ?? 'none'); @endphp
                                 @foreach(['daily' => 'Dagelijks', 'weekly' => 'Wekelijks', 'monthly' => 'Maandelijks', 'quarterly' => 'Per kwartaal', 'per_batch' => 'Per batch', 'per_production' => 'Per productie', 'none' => 'Geen'] as $value => $label)
                                     <option value="{{ $value }}" @selected($frequencyType === $value)>{{ $label }}</option>
@@ -86,12 +86,12 @@
                         <div>
                             <label for="starter_pack_group" class="block text-sm font-medium text-slate-700 mb-1.5">Starter pack groep</label>
                             <input type="text" id="starter_pack_group" name="starter_pack_group" value="{{ old('starter_pack_group', $template->starter_pack_group) }}"
-                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
                             <label for="khn_reference" class="block text-sm font-medium text-slate-700 mb-1.5">KHN referentie</label>
                             <input type="text" id="khn_reference" name="khn_reference" value="{{ old('khn_reference', $template->khn_reference) }}"
-                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                                class="block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                     </div>
                     <div>
@@ -109,7 +109,7 @@
                         <h2 class="text-lg font-bold text-slate-900">Template-taken</h2>
                         <p class="text-slate-600 text-sm mt-0.5">Pas taken, bewijs en checklist-items aan</p>
                     </div>
-                    <button type="button" onclick="addTask()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white text-sm font-medium rounded-xl hover:bg-violet-700 transition-colors">
+                    <button type="button" onclick="addTask()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                         Taak toevoegen
                     </button>
@@ -123,7 +123,7 @@
                 <a href="{{ route('super-admin.templates.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-slate-700 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
                     Annuleren
                 </a>
-                <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-violet-700 text-white rounded-xl text-sm font-semibold hover:bg-violet-800 transition-colors">
+                <button type="submit" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
                     Wijzigingen opslaan
                 </button>
             </div>
@@ -133,7 +133,7 @@
 
 <script>
 let taskIndex = 0;
-const inputClass = 'block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent';
+const inputClass = 'block w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
 
 function esc(s) {
@@ -216,7 +216,7 @@ function addTask(existing = null) {
             <div>
                 <label class="${labelClass}">Checklist-items</label>
                 <div class="checklist-container space-y-2">${checklistHtml}</div>
-                <button type="button" onclick="addChecklistItem(this)" class="mt-2 text-sm text-violet-700 hover:text-violet-900 font-medium">+ Checklist-item toevoegen</button>
+                <button type="button" onclick="addChecklistItem(this)" class="mt-2 text-sm text-blue-700 hover:text-blue-900 font-medium">+ Checklist-item toevoegen</button>
             </div>
         </div>
     `;
@@ -254,4 +254,3 @@ function removeChecklistItem(btn) {
 }
 </script>
 @endsection
-

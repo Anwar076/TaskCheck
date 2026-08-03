@@ -26,7 +26,7 @@
             <label class="block text-sm font-medium text-slate-700 mb-2">Bestand uploaden <span class="text-slate-400 font-normal">(afbeelding, PDF of DOCX — max 12 MB)</span></label>
             <label
                 class="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-8 cursor-pointer transition"
-                :class="fileName ? 'border-violet-400 bg-violet-50' : 'border-slate-200 bg-slate-50 hover:border-violet-300 hover:bg-violet-50/50'"
+                :class="fileName ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/50'"
                 @dragover.prevent
                 @drop.prevent="handleDrop($event)"
             >
@@ -40,7 +40,7 @@
                     </div>
                 </template>
                 <template x-if="fileName">
-                    <div class="flex items-center gap-2 text-violet-700">
+                    <div class="flex items-center gap-2 text-blue-700">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
@@ -67,7 +67,7 @@
                         @click="companyType = opt.value"
                         class="flex items-center justify-center rounded-xl border-2 px-3 py-3 text-sm font-medium transition"
                         :class="companyType === opt.value
-                            ? (opt.color === 'orange' ? 'border-orange-400 bg-orange-50 text-orange-700' : opt.color === 'teal' ? 'border-teal-400 bg-teal-50 text-teal-700' : 'border-violet-400 bg-violet-50 text-violet-700')
+                            ? (opt.color === 'orange' ? 'border-orange-400 bg-orange-50 text-orange-700' : opt.color === 'teal' ? 'border-teal-400 bg-teal-50 text-teal-700' : 'border-blue-400 bg-blue-50 text-blue-700')
                             : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'"
                     >
                         <span x-text="opt.label"></span>
@@ -82,7 +82,7 @@
             <textarea
                 x-model="prompt"
                 rows="3"
-                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Bijv. 'Dit is een sluitings checklist voor een restaurant' of specifieke instructies voor de AI..."
             ></textarea>
         </div>
@@ -97,7 +97,7 @@
                 @click="generate()"
                 :disabled="loading || (!fileName && prompt.trim() === '')"
                 class="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition"
-                :class="loading || (!fileName && prompt.trim() === '') ? 'bg-slate-400 cursor-not-allowed' : 'bg-violet-700 hover:bg-violet-800'"
+                :class="loading || (!fileName && prompt.trim() === '') ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
             >
                 <template x-if="loading">
                     <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
@@ -122,17 +122,17 @@
                         <span x-text="results.length"></span> sjabloon(en) gegenereerd
                     </h2>
                     <div class="flex items-center gap-3">
-                        <button type="button" @click="toggleAll(true)" class="text-xs text-violet-700 hover:underline">Alles selecteren</button>
+                        <button type="button" @click="toggleAll(true)" class="text-xs text-blue-700 hover:underline">Alles selecteren</button>
                         <button type="button" @click="toggleAll(false)" class="text-xs text-slate-500 hover:underline">Deselecteer</button>
                     </div>
                 </div>
 
                 <template x-for="(tpl, idx) in results" :key="idx">
                     <div class="bg-white rounded-xl border shadow-sm overflow-hidden"
-                         :class="selected.includes(idx) ? 'border-violet-400 ring-1 ring-violet-300' : 'border-slate-200'">
+                         :class="selected.includes(idx) ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200'">
                         <div class="flex items-start gap-3 p-4 cursor-pointer" @click="toggleSelect(idx)">
                             <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition"
-                                 :class="selected.includes(idx) ? 'border-violet-600 bg-violet-600' : 'border-slate-300 bg-white'">
+                                 :class="selected.includes(idx) ? 'border-blue-600 bg-blue-600' : 'border-slate-300 bg-white'">
                                 <svg x-show="selected.includes(idx)" class="h-3 w-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
                                 </svg>
