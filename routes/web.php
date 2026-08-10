@@ -335,6 +335,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/submissions/{submission}', [TaskListController::class, 'showSubmission'])->name('submissions.show');
     Route::post('/submissions/{submission}/review', [TaskListController::class, 'reviewSubmission'])->name('submissions.review');
     Route::post('/submissions/{submission}/ai-review', [TaskListController::class, 'aiReviewSubmission'])->name('submissions.ai-review');
+    Route::post('/submissions/{submission}/approve-all', [TaskListController::class, 'approveAllTasks'])->name('submissions.approve-all');
     Route::post('/submission-tasks/{submissionTask}/approve', [TaskListController::class, 'approveTask'])->name('submission-tasks.approve');
     Route::post('/submission-tasks/{submissionTask}/reject', [TaskListController::class, 'rejectTask'])->name('submission-tasks.reject');
     Route::post('/submission-tasks/{submissionTask}/redo', [TaskListController::class, 'requestRedo'])->name('submission-tasks.redo');

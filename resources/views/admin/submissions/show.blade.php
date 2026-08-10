@@ -306,19 +306,36 @@
 
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-4 sm:px-6 lg:px-8 py-5 bg-slate-50 border-b border-slate-200">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                @php
+                    $bulkApprovableCount = $submission->submissionTasks
+                        ->where('status', 'completed')
+                        ->whereNull('corrective_action')
+                        ->count();
+                @endphp
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Taken beoordelen</h3>
+                            <p class="text-sm text-slate-500">{{ $submission->submissionTasks->count() }} taken in totaal</p>
+                            @if(!empty($taskReviewsById))
+                                <p class="text-xs text-slate-400 mt-1">
+                                    AI heeft feedback gegeven per taak (zie badges en opmerkingen).
+                                </p>
+                            @endif
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Taken beoordelen</h3>
-                        <p class="text-sm text-slate-500">{{ $submission->submissionTasks->count() }} taken in totaal</p>
-                        @if(!empty($taskReviewsById))
-                            <p class="text-xs text-slate-400 mt-1">
-                                AI heeft feedback gegeven per taak (zie badges en opmerkingen).
-                            </p>
-                        @endif
-                    </div>
+                    @if($submission->taskList->requires_review && $bulkApprovableCount > 0)
+                        <form method="POST" action="{{ route('admin.submissions.approve-all', $submission) }}" onsubmit="return confirm('Weet je zeker dat je alle {{ $bulkApprovableCount }} afgeronde taken wilt goedkeuren?');">
+                            @csrf
+                            <button type="submit" class="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                Keur alles goed ({{ $bulkApprovableCount }})
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
             

@@ -205,6 +205,95 @@ class TaskListTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_approve_all_completed_tasks_at_once(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        $employee = User::where('role', 'employee')->firstOrFail();
+        $list = TaskList::where('company_id', $admin->company_id)->firstOrFail();
+        $list->update(['requires_review' => true]);
+
+        $tasks = $list->tasks()->take(2)->get();
+        if ($tasks->count() < 2) {
+            $tasks->push($list->tasks()->create([
+                'title' => 'Tweede bulktaak',
+                'description' => 'Testtaak voor bulkgoedkeuring',
+                'is_required' => true,
+                'order' => 999,
+            ]));
+        }
+
+        $submission = Submission::create([
+            'company_id' => $admin->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => now(),
+            'completed_at' => now(),
+            'status' => 'completed',
+        ]);
+
+        foreach ($tasks->take(2) as $task) {
+            $submission->submissionTasks()->create([
+                'task_id' => $task->id,
+                'status' => 'completed',
+                'completed_at' => now(),
+            ]);
+        }
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.submissions.approve-all', $submission));
+
+        $response->assertRedirect();
+        $this->assertSame(2, $submission->submissionTasks()->where('status', 'approved')->count());
+        $this->assertSame('reviewed', $submission->fresh()->status);
+        $this->assertSame(2, $submission->submissionTasks()->where('reviewed_by', $admin->id)->count());
+    }
+
+    public function test_bulk_approval_leaves_corrective_actions_for_manual_verification(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        $employee = User::where('role', 'employee')->firstOrFail();
+        $list = TaskList::where('company_id', $admin->company_id)->firstOrFail();
+        $list->update(['requires_review' => true]);
+        $tasks = $list->tasks()->take(2)->get();
+
+        if ($tasks->count() < 2) {
+            $tasks->push($list->tasks()->create([
+                'title' => 'Taak met corrigerende actie',
+                'is_required' => true,
+                'order' => 999,
+            ]));
+        }
+
+        $submission = Submission::create([
+            'company_id' => $admin->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => now(),
+            'completed_at' => now(),
+            'status' => 'completed',
+        ]);
+
+        $submission->submissionTasks()->create([
+            'task_id' => $tasks[0]->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+        $manualTask = $submission->submissionTasks()->create([
+            'task_id' => $tasks[1]->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+            'corrective_action' => 'Controleer eerst aantoonbaar of de oplossing werkt.',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.submissions.approve-all', $submission))
+            ->assertRedirect();
+
+        $this->assertSame('approved', $submission->submissionTasks()->where('task_id', $tasks[0]->id)->value('status'));
+        $this->assertSame('completed', $manualTask->fresh()->status);
+        $this->assertSame('completed', $submission->fresh()->status);
+    }
+
     public function test_personal_assignment_is_visible_even_when_schedule_blocks_other_users(): void
     {
         $employees = User::where('role', 'employee')->take(2)->get();

@@ -1918,6 +1918,44 @@ PROMPT,
             ->with('success', 'Taak succesvol goedgekeurd.');
     }
 
+    public function approveAllTasks(Request $request, \App\Models\Submissions\Submission $submission)
+    {
+        $submission->loadMissing('taskList');
+
+        if (! $submission->taskList?->requires_review) {
+            return redirect()->back()
+                ->with('error', 'Deze takenlijst hoeft niet gecontroleerd te worden.');
+        }
+
+        $approvedCount = DB::transaction(function () use ($submission) {
+            $tasks = $submission->submissionTasks()
+                ->where('status', 'completed')
+                // Corrigerende acties vragen om een expliciete verificatie en kunnen
+                // daarom niet veilig via de bulkactie worden afgesloten.
+                ->whereNull('corrective_action')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($tasks as $task) {
+                $task->approve(auth()->id());
+            }
+
+            $this->updateSubmissionStatusIfAllTasksReviewed($submission);
+
+            return $tasks->count();
+        });
+
+        if ($approvedCount === 0) {
+            return redirect()->back()
+                ->with('error', 'Er zijn geen taken die in één keer goedgekeurd kunnen worden.');
+        }
+
+        return redirect()->back()
+            ->with('success', $approvedCount === 1
+                ? '1 taak succesvol goedgekeurd.'
+                : "{$approvedCount} taken succesvol goedgekeurd.");
+    }
+
     /**
      * Update submission status when all tasks have been reviewed (approved or rejected).
      * If all approved -> reviewed. If any rejected -> rejected.
