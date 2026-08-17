@@ -78,6 +78,12 @@ class DashboardController extends Controller
             ->map(fn ($items) => $items->count())
             ->sortDesc();
 
+        $users = User::query()
+            ->with(['company:id,name', 'location:id,name'])
+            ->whereNotNull('company_id')
+            ->orderByDesc('created_at')
+            ->get();
+
         $aiUsage = $this->getAiUsageSummary();
         $recentErrors = $this->getParsedErrors(30);
         $tickets = IncidentTicket::query()
@@ -140,7 +146,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $allowedTabs = ['overview', 'communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates'];
+        $allowedTabs = ['overview', 'communications', 'companies', 'users', 'usage', 'monitoring', 'invoices', 'templates'];
         $activeDashboardTab = request()->query('tab', 'overview');
         if (!in_array($activeDashboardTab, $allowedTabs, true)) {
             $activeDashboardTab = 'overview';
@@ -153,6 +159,7 @@ class DashboardController extends Controller
 
         return view('super-admin.dashboard', compact(
             'companies',
+            'users',
             'totals',
             'plans',
             'aiUsage',

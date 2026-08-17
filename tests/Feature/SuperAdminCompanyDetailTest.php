@@ -33,6 +33,20 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('Recente gebruikers');
     }
 
+    public function test_super_admin_can_open_global_users_overview(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.dashboard', ['tab' => 'users']))
+            ->assertOk()
+            ->assertViewIs('super-admin.dashboard')
+            ->assertViewHas('activeDashboardTab', 'users')
+            ->assertSee('Gebruikersoverzicht')
+            ->assertSee($admin->email);
+    }
+
     public function test_super_admin_can_open_company_creation_page(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();

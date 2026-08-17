@@ -31,11 +31,11 @@
             <p class="text-2xl font-bold text-slate-900">{{ $totals['companies'] }}</p>
             <p class="mt-1 text-xs text-slate-400">klantomgevingen</p>
         </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <a href="{{ route('super-admin.dashboard', ['tab' => 'users']) }}" class="block bg-white border border-slate-200 rounded-xl p-4 shadow-sm transition hover:border-blue-200 hover:shadow-md">
             <p class="text-xs text-slate-500">Gebruikers</p>
             <p class="text-2xl font-bold text-slate-900">{{ $totals['users'] }}</p>
             <p class="mt-1 text-xs text-slate-400">{{ $totals['admins'] }} admins · {{ $totals['employees'] }} medewerkers</p>
-        </div>
+        </a>
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
             <p class="text-xs text-slate-500">Takenlijsten</p>
             <p class="text-2xl font-bold text-slate-900">{{ number_format($totals['task_lists'], 0, ',', '.') }}</p>
@@ -111,6 +111,60 @@
                     @endforeach
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section data-tab-panel="users" class="sa-tab-panel space-y-4 {{ $activeDashboardTab !== 'users' ? 'hidden' : '' }}">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Gebruikers</h2>
+            <p class="text-sm text-slate-500">Alle beheerders en medewerkers van alle bedrijven.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            @foreach([
+                ['Totaal', $totals['users']],
+                ['Beheerders', $totals['admins']],
+                ['Medewerkers', $totals['employees']],
+                ['Actief', $users->where('is_active', true)->count()],
+            ] as [$label, $value])
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500">{{ $label }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ $value }}</p>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h3 class="text-lg font-semibold text-slate-900">Gebruikersoverzicht</h3>
+                <input type="search" data-table-search="users" class="w-full rounded-xl border-slate-300 text-sm sm:w-80" placeholder="Zoek naam, e-mail, bedrijf of rol…">
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-100">
+                <table class="min-w-[900px] w-full text-sm">
+                    <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                        <tr><th class="px-4 py-3">Gebruiker</th><th class="px-4 py-3">Bedrijf</th><th class="px-4 py-3">Rol</th><th class="px-4 py-3">Locatie</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actie</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($users as $user)
+                            <tr class="hover:bg-slate-50/60" data-search-row="users" data-search-text="{{ strtolower($user->name.' '.$user->email.' '.($user->company?->name ?? '').' '.$user->role.' '.($user->location?->name ?? '')) }}">
+                                <td class="px-4 py-3"><p class="font-semibold text-slate-900">{{ $user->name }}</p><p class="text-xs text-slate-500">{{ $user->email }}</p></td>
+                                <td class="px-4 py-3 text-slate-700">{{ $user->company?->name ?? '—' }}</td>
+                                <td class="px-4 py-3">{{ $user->role === 'employee' ? 'Medewerker' : 'Beheerder' }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ $user->location?->name ?? '—' }}</td>
+                                <td class="px-4 py-3"><span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">{{ $user->is_active ? 'Actief' : 'Inactief' }}</span></td>
+                                <td class="px-4 py-3 text-right">
+                                    @if($user->company)
+                                        <a href="{{ route('super-admin.companies.show', ['company' => $user->company, 'section' => 'users']) }}" class="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100">Beheren</a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Geen gebruikers gevonden.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-3 hidden text-sm text-slate-500" data-table-empty="users">Geen gebruikers gevonden voor deze zoekopdracht.</p>
         </div>
     </section>
 
@@ -1095,11 +1149,17 @@
     document.querySelectorAll('[data-table-search]').forEach((input) => input.addEventListener('input', () => {
         const group = input.dataset.tableSearch;
         const term = input.value.trim().toLowerCase();
-        document.querySelectorAll(`[data-search-row="${group}"]`).forEach((row) => row.classList.toggle('hidden', term && !row.dataset.searchText.includes(term)));
+        let visibleRows = 0;
+        document.querySelectorAll(`[data-search-row="${group}"]`).forEach((row) => {
+            const hidden = Boolean(term && !row.dataset.searchText.includes(term));
+            row.classList.toggle('hidden', hidden);
+            if (!hidden) visibleRows++;
+        });
+        document.querySelector(`[data-table-empty="${group}"]`)?.classList.toggle('hidden', visibleRows > 0);
     }));
     const tabPanels = Array.from(document.querySelectorAll('.sa-tab-panel'));
     const tabFromQuery = new URLSearchParams(window.location.search).get('tab');
-    const allowedTabs = new Set(['overview', 'communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates']);
+    const allowedTabs = new Set(['overview', 'communications', 'companies', 'users', 'usage', 'monitoring', 'invoices', 'templates']);
     const serverTab = @json($activeDashboardTab);
     const initialTab = (tabFromQuery && allowedTabs.has(tabFromQuery))
         ? tabFromQuery

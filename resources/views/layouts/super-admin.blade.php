@@ -14,7 +14,7 @@
 <body class="font-sans antialiased bg-slate-50 text-slate-900">
     @php
         $superAdminDashboardTab = request()->string('tab')->toString();
-        $allowedSuperAdminTabs = ['overview', 'communications', 'companies', 'usage', 'monitoring', 'invoices', 'templates'];
+        $allowedSuperAdminTabs = ['overview', 'communications', 'companies', 'users', 'usage', 'monitoring', 'invoices', 'templates'];
         if (!in_array($superAdminDashboardTab, $allowedSuperAdminTabs, true)) {
             $superAdminDashboardTab = 'overview';
         }
@@ -46,6 +46,11 @@
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.companies.*') || (request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'companies') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                         <x-super-admin-icon name="companies" class="shrink-0" />
                         Bedrijven
+                    </a>
+                    <a href="{{ route('super-admin.dashboard', ['tab' => 'users']) }}"
+                       class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'users' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <x-super-admin-icon name="profile" class="shrink-0" />
+                        Gebruikers
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'usage' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
@@ -96,9 +101,9 @@
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6">
-                <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 sm:px-6 lg:px-8">
-                    <div class="flex items-center gap-2 min-w-0">
+            <header class="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white py-3 shadow-sm">
+                <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+                    <div class="flex min-w-0 flex-1 items-center gap-2">
                         <button type="button" class="md:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100" id="sa-mobile-open" aria-label="Menu">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                         </button>
@@ -116,13 +121,13 @@
                             <h2 class="text-base font-semibold text-slate-900">TaskCheck</h2>
                         </div>
                     </div>
-                    <div class="fixed right-3 top-3 z-40 flex shrink-0 items-center gap-2 sm:static sm:z-auto">
+                    <div class="flex min-w-0 shrink-0 items-center gap-2">
                         <div class="hidden sm:block">@include('partials.google-translate', ['variant' => 'topbar'])</div>
                         <a href="{{ route('welcome') }}" class="hidden items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50 hover:text-blue-900 lg:inline-flex"><x-super-admin-icon name="website" class="h-4 w-4" />Website</a>
                         <div class="relative hidden sm:block" data-sa-profile-root>
-                            <button type="button" data-sa-profile-toggle aria-expanded="false" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+                            <button type="button" data-sa-profile-toggle aria-expanded="false" class="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
                                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-bold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
-                                <span class="hidden max-w-36 truncate text-left sm:block"><span class="block truncate text-sm font-semibold leading-4">{{ Auth::user()->name }}</span><span class="block text-[11px] text-slate-500">Superadmin</span></span>
+                                <span class="hidden max-w-36 truncate text-left lg:block"><span class="block truncate text-sm font-semibold leading-4">{{ Auth::user()->name }}</span><span class="block text-[11px] text-slate-500">Superadmin</span></span>
                                 <x-super-admin-icon name="chevron" class="h-4 w-4 text-slate-400" />
                             </button>
                             <div data-sa-profile-dropdown class="absolute right-0 z-50 mt-2 hidden w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
@@ -167,6 +172,7 @@
                     ['dashboard', 'Dashboard', route('super-admin.dashboard')],
                     ['communication', 'Communicatie', route('super-admin.dashboard', ['tab' => 'communications'])],
                     ['companies', 'Bedrijven', route('super-admin.dashboard', ['tab' => 'companies'])],
+                    ['profile', 'Gebruikers', route('super-admin.dashboard', ['tab' => 'users'])],
                     ['usage', 'Gebruik', route('super-admin.dashboard', ['tab' => 'usage'])],
                     ['monitoring', 'Monitoring', route('super-admin.dashboard', ['tab' => 'monitoring'])],
                     ['templates', 'Templates', route('super-admin.dashboard', ['tab' => 'templates'])],
