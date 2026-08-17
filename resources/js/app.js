@@ -2,20 +2,22 @@ import './bootstrap';
 
 import { initCalendarSlotPicker } from './calendar-slot-picker.js';
 import { initTaskCreateModal } from './task-create-modal.js';
+import { initListOrder } from './list-order.js';
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
 Alpine.start();
 
-// Task list drag-and-drop (only on lists show page)
-document.addEventListener('DOMContentLoaded', () => {
+// Page-specific controls. Run immediately as well when this bundle is loaded
+// after DOMContentLoaded (for example from browser or service-worker cache).
+const initPageControls = () => {
     if (document.querySelector('[data-sortable-reorder-url]')) {
         import('./list-sortable.js').then(({ initListSortable }) => initListSortable());
     }
 
     if (document.querySelector('[data-list-order-url]')) {
-        import('./list-order.js').then(({ initListOrder }) => initListOrder());
+        initListOrder();
     }
 
     if (document.querySelector('[data-calendar-slot-grid]')) {
@@ -30,7 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tourRoot) {
         import('./onboarding-tour.js').then(({ initOnboardingTour }) => initOnboardingTour(tourRoot));
     }
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPageControls, { once: true });
+} else {
+    initPageControls();
+}
 
 // PWA update manager: always auto-updates to latest version.
 (() => {

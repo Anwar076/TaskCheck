@@ -351,21 +351,21 @@ class DashboardController extends Controller
         if (!$billingRequired && !$endDate && $validated['subscription_status'] === 'active') {
             return redirect()->back()->withErrors([
                 'subscription_ends_at' => 'Bij gratis toegang is een einddatum verplicht voor actieve status.',
-            ]);
+            ])->withInput();
         }
 
         $company->update([
             'subscription_plan' => $plan,
             'subscription_status' => $validated['subscription_status'],
             'billing_required' => $billingRequired,
-            'subscription_ends_at' => $billingRequired ? null : $endDate,
+            'subscription_ends_at' => $endDate,
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'max_users' => $planConfig['max_users'] ?? $company->max_users,
             'max_locations' => $planConfig['max_locations'] ?? $company->max_locations,
             'max_storage_gb' => $planConfig['max_storage_gb'] ?? $company->max_storage_gb,
         ]);
 
-        return redirect()->route('super-admin.companies.show', $company)
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'billing'])
             ->with('success', "Abonnement van {$company->name} is bijgewerkt.");
     }
 

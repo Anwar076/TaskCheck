@@ -9,6 +9,8 @@ export function initListOrder() {
     const saveButton = document.getElementById('save-list-order');
 
     if (!root || !modal || !items || !openButton || !saveButton) return;
+    if (root.dataset.listOrderInitialized === 'true') return;
+    root.dataset.listOrderInitialized = 'true';
 
     const setOpen = (open) => {
         modal.classList.toggle('hidden', !open);

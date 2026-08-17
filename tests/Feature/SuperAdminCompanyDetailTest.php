@@ -59,6 +59,23 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('Bedrijf en beheerder aanmaken');
     }
 
+    public function test_subscription_end_date_is_saved_when_monthly_billing_is_enabled(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+
+        $this->actingAs($admin)->put(route('super-admin.companies.subscription.update', $company), [
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'subscription_ends_at' => '2027-12-31',
+            'billing_required' => '1',
+            'is_active' => '1',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']));
+
+        $this->assertSame('2027-12-31', $company->fresh()->subscription_ends_at?->format('Y-m-d'));
+    }
+
     public function test_super_admin_can_create_company_and_first_admin(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
