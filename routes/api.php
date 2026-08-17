@@ -26,6 +26,16 @@ use App\Http\Controllers\Api\Mobile\TaskController as MobileTaskController;
 use App\Http\Controllers\Api\Mobile\TaskListController as MobileTaskListController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Scim\UserController as ScimUserController;
+
+Route::prefix('scim/v2/{endpointKey}')->middleware(['scim.auth', 'throttle:120,1'])->group(function () {
+    Route::get('/Users', [ScimUserController::class, 'index']);
+    Route::post('/Users', [ScimUserController::class, 'store']);
+    Route::get('/Users/{user}', [ScimUserController::class, 'show']);
+    Route::put('/Users/{user}', [ScimUserController::class, 'replace']);
+    Route::patch('/Users/{user}', [ScimUserController::class, 'patch']);
+    Route::delete('/Users/{user}', [ScimUserController::class, 'destroy']);
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

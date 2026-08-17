@@ -51,6 +51,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+        if ($user?->is_active === false) {
+            Auth::logout();
+            throw ValidationException::withMessages(['email' => 'Dit account is gedeactiveerd.']);
+        }
+        if ($user?->company?->entra_enabled && $user->company->entra_sso_required) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Voor deze organisatie is aanmelden met Microsoft verplicht.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -47,7 +47,11 @@ class TaskListController extends Controller
             $query->where('location_id', (int) $request->get('location_id'));
         }
 
-        $lists = $query->latest()->paginate(12);
+        $lists = $query
+            ->orderByRaw('display_order IS NULL')
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->paginate(12);
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json($lists);
@@ -55,6 +59,39 @@ class TaskListController extends Controller
 
         return view('admin.lists.index-api', [
             'initialLists' => $lists,
+            'orderableLists' => TaskList::query()
+                ->orderByRaw('display_order IS NULL')
+                ->orderBy('display_order')
+                ->orderBy('id')
+                ->get(['id', 'title', 'is_active']),
+        ]);
+    }
+
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'list_ids' => ['required', 'array', 'min:1'],
+            'list_ids.*' => ['required', 'integer', 'distinct'],
+        ]);
+
+        $companyListIds = TaskList::query()->pluck('id')->map(fn ($id) => (int) $id);
+        $submittedIds = collect($validated['list_ids'])->map(fn ($id) => (int) $id);
+
+        if ($submittedIds->sort()->values()->all() !== $companyListIds->sort()->values()->all()) {
+            throw ValidationException::withMessages([
+                'list_ids' => 'De lijstvolgorde is verouderd. Vernieuw de pagina en probeer het opnieuw.',
+            ]);
+        }
+
+        DB::transaction(function () use ($submittedIds) {
+            foreach ($submittedIds as $index => $listId) {
+                TaskList::query()->whereKey($listId)->update(['display_order' => $index + 1]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'De volgorde voor medewerkers is opgeslagen.',
         ]);
     }
 

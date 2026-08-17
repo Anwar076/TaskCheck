@@ -109,6 +109,20 @@
             </div>
     </form>
 
+    <div class="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <span class="h-px flex-1 bg-slate-200"></span><span>of</span><span class="h-px flex-1 bg-slate-200"></span>
+    </div>
+    <form method="POST" action="{{ route('entra.redirect') }}" class="space-y-3">
+        @csrf
+        <label for="entra_email" class="block text-sm font-semibold text-slate-800">Zakelijk e-mailadres voor Microsoft SSO</label>
+        <input id="entra_email" name="email" type="email" required autocomplete="username"
+               value="{{ old('email') }}" placeholder="naam@bedrijf.nl"
+               class="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-100">
+        <button type="submit" class="flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50">
+            Aanmelden met Microsoft
+        </button>
+    </form>
+
     <p class="mt-6 text-center text-sm text-slate-500">
         Nog geen account?
         <a href="{{ route('register') }}" class="font-semibold text-blue-600 transition hover:text-blue-700">

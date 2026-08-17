@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         import('./list-sortable.js').then(({ initListSortable }) => initListSortable());
     }
 
+    if (document.querySelector('[data-list-order-url]')) {
+        import('./list-order.js').then(({ initListOrder }) => initListOrder());
+    }
+
     if (document.querySelector('[data-calendar-slot-grid]')) {
         initCalendarSlotPicker();
     }

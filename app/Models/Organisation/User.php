@@ -42,6 +42,10 @@ class User extends Authenticatable
         'is_active',
         'company_id',
         'location_id',
+        'entra_object_id',
+        'entra_tenant_id',
+        'scim_external_id',
+        'last_sso_at',
     ];
 
     /**
@@ -66,6 +70,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'preferences' => 'json',
             'is_active' => 'boolean',
+            'last_sso_at' => 'datetime',
         ];
     }
 

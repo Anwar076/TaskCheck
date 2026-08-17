@@ -75,7 +75,13 @@ class ScheduleService
             }
         }
 
-        return $availableLists->unique('id');
+        return $availableLists
+            ->unique('id')
+            ->sortBy(fn ($list) => [
+                $list->display_order ?? PHP_INT_MAX,
+                $list->id,
+            ])
+            ->values();
     }
 
     /**

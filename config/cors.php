@@ -11,7 +11,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => $origins !== [] ? $origins : ['*'],
+    'allowed_origins' => $origins,
 
     'allowed_origins_patterns' => [],
 

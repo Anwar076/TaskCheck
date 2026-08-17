@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnforceIdentityPolicy::class);
         $middleware->validateCsrfTokens(except: [
             'subscription/mollie/webhook',
         ]);
@@ -26,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'company_profile_complete' => \App\Http\Middleware\EnsureCompanyInvoiceDetailsComplete::class,
             'onboarding_complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
             'mobile.admin' => \App\Http\Middleware\EnsureMobileAdmin::class,
+            'scim.auth' => \App\Http\Middleware\AuthenticateScim::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -40,6 +40,7 @@ class TaskList extends Model
         'template_id',
         'company_id',
         'location_id',
+        'display_order',
     ];
 
     protected function casts(): array

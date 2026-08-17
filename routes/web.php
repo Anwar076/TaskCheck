@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\StarterPackController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
+use App\Http\Controllers\Admin\IdentitySettingsController;
 use App\Http\Controllers\Admin\OnboardingController;
 use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
 use App\Http\Controllers\Admin\ReportExportController;
@@ -308,6 +309,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::post('/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
     Route::post('/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('lists.ai-import.store');
     Route::get('/lists/calendar', [TaskListController::class, 'calendar'])->name('lists.calendar');
+    Route::post('/lists/reorder', [TaskListController::class, 'reorder'])->name('lists.reorder');
     Route::put('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'updateScheduleTimeSlot'])->name('lists.schedule-slot.update');
     Route::delete('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'destroyScheduleTimeSlot'])->name('lists.schedule-slot.destroy');
     Route::post('/lists/{list}/schedule-day', [TaskListController::class, 'scheduleDay'])->name('lists.schedule-day');
@@ -346,6 +348,9 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/reports/export/pdf', [ReportExportController::class, 'pdf'])->name('reports.export.pdf');
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
+    Route::get('/settings/identity', [IdentitySettingsController::class, 'edit'])->name('settings.identity.edit');
+    Route::put('/settings/identity', [IdentitySettingsController::class, 'update'])->name('settings.identity.update');
+    Route::post('/settings/identity/scim-token', [IdentitySettingsController::class, 'rotateScimToken'])->name('settings.identity.scim-token');
     Route::post('/lists/{list}/create-daily-sublists', [TaskListController::class, 'createDailySubLists'])->name('lists.create-daily-sublists');
     Route::post('/lists/{list}/create-day-list', [TaskListController::class, 'createDayList'])->name('lists.create-day-list');
     Route::post('/lists/{list}/sync-template', [TaskListController::class, 'syncTemplate'])->name('lists.sync-template');

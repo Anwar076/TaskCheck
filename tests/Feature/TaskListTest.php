@@ -111,6 +111,51 @@ class TaskListTest extends TestCase
         $response->assertViewIs('employee.dashboard');
     }
 
+    public function test_admin_can_set_the_employee_list_order(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        $admin->company->update(['onboarding_completed_at' => now()]);
+
+        $lists = TaskList::query()->orderBy('id')->get();
+        $reversedIds = $lists->pluck('id')->reverse()->values()->all();
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.lists.reorder'), ['list_ids' => $reversedIds])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertSame(
+            $reversedIds,
+            TaskList::query()->orderBy('display_order')->pluck('id')->all()
+        );
+    }
+
+    public function test_employee_scheduled_lists_follow_the_configured_order(): void
+    {
+        $employee = User::where('role', 'employee')->firstOrFail();
+        $lists = TaskList::query()->where('is_active', true)->take(2)->get();
+        $this->assertCount(2, $lists);
+
+        foreach ($lists as $list) {
+            ListAssignment::updateOrCreate([
+                'list_id' => $list->id,
+                'user_id' => $employee->id,
+            ], [
+                'assigned_date' => today(),
+                'is_active' => true,
+            ]);
+        }
+
+        $lists[0]->update(['display_order' => 2]);
+        $lists[1]->update(['display_order' => 1]);
+
+        $scheduledIds = app(\App\Services\ScheduleService::class)
+            ->getScheduledTasksForUser($employee, today())
+            ->pluck('id');
+
+        $this->assertTrue($scheduledIds->search($lists[1]->id) < $scheduledIds->search($lists[0]->id));
+    }
+
     public function test_employee_can_start_submission(): void
     {
         $employee = User::where('role', 'employee')->first();

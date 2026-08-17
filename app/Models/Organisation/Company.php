@@ -48,6 +48,15 @@ class Company extends Model
         'onboarding_list_id',
         'onboarding_completed_at',
         'trial_expired_email_sent_at',
+        'entra_enabled',
+        'entra_sso_required',
+        'entra_mfa_required',
+        'entra_tenant_id',
+        'entra_client_id',
+        'entra_client_secret',
+        'entra_admin_group_ids',
+        'entra_employee_group_ids',
+        'scim_endpoint_key',
     ];
 
     public const ONBOARDING_STEP_WELCOME = 'welcome';
@@ -75,6 +84,12 @@ class Company extends Model
         'reporting_enabled' => 'boolean',
         'reporting_last_sent_at' => 'datetime',
         'trial_expired_email_sent_at' => 'datetime',
+        'entra_enabled' => 'boolean',
+        'entra_sso_required' => 'boolean',
+        'entra_mfa_required' => 'boolean',
+        'entra_client_secret' => 'encrypted',
+        'entra_admin_group_ids' => 'array',
+        'entra_employee_group_ids' => 'array',
     ];
 
     public const WEEKDAYS = [

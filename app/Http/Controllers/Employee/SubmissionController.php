@@ -69,6 +69,10 @@ class SubmissionController extends Controller
                 return !$submission || in_array($submission->status, ['in_progress', 'rejected', 'redo_requested']);
             })->values();
         }
+
+        $assignedLists = $assignedLists
+            ->sortBy(fn ($list) => [$list->display_order ?? PHP_INT_MAX, $list->id])
+            ->values();
         
         return view('employee.lists.index', compact('assignedLists', 'categories'));
     }

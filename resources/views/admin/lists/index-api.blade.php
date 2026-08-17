@@ -15,7 +15,7 @@
 @php
     $locationOptions = \App\Models\Organisation\Location::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 @endphp
-<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
+<div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden" data-list-order-url="{{ route('admin.lists.reorder') }}">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
 
         {{-- Hero sectie --}}
@@ -34,12 +34,20 @@
                                 <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Organiseer en beheer je takenlijsten efficiënt</p>
                             </div>
                         </div>
-                        <a href="{{ route('admin.lists.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors shadow-sm">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                            </svg>
-                            Nieuwe lijst maken
-                        </a>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button type="button" id="open-list-order" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/30 text-white text-sm font-semibold rounded-xl hover:bg-blue-500/45 transition-colors border border-white/25">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"/>
+                                </svg>
+                                Volgorde aanpassen
+                            </button>
+                            <a href="{{ route('admin.lists.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors shadow-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                                Nieuwe lijst maken
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,6 +132,44 @@
 
         {{-- Paginatie --}}
         <div id="pagination-container" class="mt-6 sm:mt-8" style="display: none;"></div>
+    </div>
+</div>
+
+<div id="list-order-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="list-order-title">
+    <button type="button" data-close-list-order class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm" aria-label="Sluiten"></button>
+    <div class="relative flex min-h-full items-center justify-center p-4">
+        <div class="relative w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div class="border-b border-slate-200 px-5 py-4 sm:px-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 id="list-order-title" class="text-lg font-semibold text-slate-900">Volgorde voor medewerkers</h2>
+                        <p class="mt-1 text-sm text-slate-500">Sleep de werklijsten naar de gewenste volgorde.</p>
+                    </div>
+                    <button type="button" data-close-list-order class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Sluiten">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="list-order-items" class="max-h-[60vh] space-y-2 overflow-y-auto bg-slate-50 p-4 sm:p-5">
+                @forelse($orderableLists as $orderableList)
+                    <div data-list-id="{{ $orderableList->id }}" class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+                        <button type="button" data-list-drag-handle class="cursor-grab touch-none rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:cursor-grabbing" aria-label="{{ $orderableList->title }} verslepen">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="8" cy="7" r="1.5"/><circle cx="16" cy="7" r="1.5"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="8" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg>
+                        </button>
+                        <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">{{ $orderableList->title }}</span>
+                        @unless($orderableList->is_active)
+                            <span class="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-500">Inactief</span>
+                        @endunless
+                    </div>
+                @empty
+                    <p class="py-8 text-center text-sm text-slate-500">Er zijn nog geen werklijsten.</p>
+                @endforelse
+            </div>
+            <div class="flex justify-end gap-3 border-t border-slate-200 px-5 py-4 sm:px-6">
+                <button type="button" data-close-list-order class="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100">Annuleren</button>
+                <button type="button" id="save-list-order" @disabled($orderableLists->isEmpty()) class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">Volgorde opslaan</button>
+            </div>
+        </div>
     </div>
 </div>
 
