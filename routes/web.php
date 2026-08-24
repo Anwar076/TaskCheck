@@ -224,6 +224,10 @@ Route::get('/welke-software-voor-schoonmaakbedrijven-werkt-goed-op-mobiel', func
     return view('seo.welke-software-voor-schoonmaakbedrijven-werkt-goed-op-mobiel');
 })->name('seo.welke-software-voor-schoonmaakbedrijven-werkt-goed-op-mobiel');
 
+Route::get('/dataregistratie-vriezer', function () {
+    return view('seo.dataregistratie-vriezer');
+})->name('seo.dataregistratie-vriezer');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
