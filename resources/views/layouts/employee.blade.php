@@ -65,7 +65,8 @@
                     </div>
 
                     <!-- Clean User Menu -->
-                    <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="hidden lg:flex lg:items-center lg:space-x-4">
                         @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
                             <div class="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
                                 <form method="POST" action="{{ route('dashboard.switch') }}">
@@ -87,6 +88,7 @@
                             </div>
                         @endif
                         @include('partials.google-translate', ['variant' => 'topbar'])
+                        </div>
                         @php
                             $unreadNotifications = auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->take(5)->get();
                             $unreadCount = auth()->user()->unreadNotifications()->count();
@@ -96,6 +98,7 @@
                         <div class="relative" x-data="{ open: false }" data-employee-notification-root>
                             <button
                                 type="button"
+                                id="employee-notification-bell"
                                 @click="open = !open"
                                 class="relative p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
                                 title="Notificaties"
@@ -196,7 +199,7 @@
                             </div>
                         </div>
                         
-                        <div class="relative" x-data="{ open: false }">
+                        <div class="relative hidden lg:block" x-data="{ open: false }">
                             <button
                                 type="button"
                                 @click="open = !open"
@@ -236,7 +239,6 @@
                                 </form>
                             </div>
                         </div>
-                    </div>
 
                     <!-- Mobile menu button -->
                     <div class="lg:hidden flex items-center">
@@ -246,6 +248,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -385,6 +388,7 @@
         const notificationMarkReadUrlTemplate = @json(route('employee.notifications.mark-read', ['notification' => '__ID__'], false));
         const notificationMarkAllReadUrl = @json(route('employee.notifications.mark-all-read', [], false));
         const csrfTokenValue = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const realtimePageLoadedAt = Date.now();
 
         function employeeNotificationEmptyStateHtml() {
             return `
@@ -563,7 +567,21 @@
             }
         }
 
+        function isHistoricalRealtimeNotification(notification) {
+            if (!notification?.created_at) {
+                return false;
+            }
+            const createdAt = Date.parse(notification.created_at);
+            if (!Number.isFinite(createdAt)) {
+                return false;
+            }
+            return createdAt < realtimePageLoadedAt - 2000;
+        }
+
         async function showRealtimeNotification(notification) {
+            if (isHistoricalRealtimeNotification(notification)) {
+                return;
+            }
             if (wasNotificationRecentlyShown(notification.id)) {
                 return;
             }
@@ -656,6 +674,9 @@
 
         function showInAppRealtimeToast(notification) {
             if (!notification?.id) return;
+            if (isHistoricalRealtimeNotification(notification)) {
+                return;
+            }
 
             let container = document.querySelector('[data-realtime-toast-container]');
             if (!container) {
@@ -669,6 +690,8 @@
             if (existing) {
                 return;
             }
+
+            container.querySelectorAll('[data-realtime-toast]').forEach((el) => el.remove());
 
             const toast = document.createElement('div');
             toast.setAttribute('data-realtime-toast', '1');
@@ -757,19 +780,17 @@
                     updateUnreadBadges(payload.unread_count || 0);
 
                     const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
-                    const unreadNotifications = Array.isArray(payload.unread_notifications) ? payload.unread_notifications : [];
+                    // Eerste poll na login: cursor zetten, geen catch-up van oude
+                    // ongelezen meldingen. Die staan in het bel-icoon.
                     if (!hasExistingCursor && typeof payload.latest_user_notification_id === 'number') {
-                        for (const unreadNotification of unreadNotifications) {
-                            showInAppRealtimeToast(unreadNotification);
-                        }
                         lastNotificationId = payload.latest_user_notification_id;
                         localStorage.setItem(realtimeStorageKey, String(lastNotificationId));
                         hasExistingCursor = true;
                         return;
                     }
 
-                    for (const notification of notifications) {
-                        await showRealtimeNotification(notification);
+                    if (notifications.length > 0) {
+                        await showRealtimeNotification(notifications[notifications.length - 1]);
                     }
 
                     if (typeof payload.after_id === 'number' && payload.after_id > lastNotificationId) {
