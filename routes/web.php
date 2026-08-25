@@ -232,6 +232,10 @@ Route::get('/haccp-lijst-keuken', function () {
     return view('seo.haccp-lijst-keuken');
 })->name('seo.haccp-lijst-keuken');
 
+Route::get('/hygiëne-lijsten-horeca', function () {
+    return view('seo.hygiëne-lijsten-horeca');
+})->name('seo.hygiëne-lijsten-horeca');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
