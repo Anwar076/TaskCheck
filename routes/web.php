@@ -228,6 +228,10 @@ Route::get('/dataregistratie-vriezer', function () {
     return view('seo.dataregistratie-vriezer');
 })->name('seo.dataregistratie-vriezer');
 
+Route::get('/haccp-lijst-keuken', function () {
+    return view('seo.haccp-lijst-keuken');
+})->name('seo.haccp-lijst-keuken');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
