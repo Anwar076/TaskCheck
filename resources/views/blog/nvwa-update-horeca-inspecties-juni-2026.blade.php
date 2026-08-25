@@ -5,7 +5,7 @@
         $seoTitle = "NVWA update: strengere horeca-inspecties juni 2026 | TaskCheck";
         $seoDescription = "De NVWA scherpt in juni 2026 de inspecties aan voor horeca en voedselveiligheid. Lees praktische tips voor jouw restaurant of lunchroom.";
         $seoUrl = route('blog.nvwa-update-horeca-inspecties-juni-2026');
-        $seoImage = asset('images/taskcheck-horeca-blog-hero.webp');
+        $seoImage = asset('images/blog-nvwa-update-horeca-inspecties-juni-2026.jpg');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -18,6 +18,10 @@
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ $seoUrl }}">
     <meta property="og:image" content="{{ $seoImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
     <script type="application/ld+json">
     {
       "@@context":"https://schema.org",
@@ -26,6 +30,7 @@
       "datePublished":"2026-06-29T08:00:00+02:00",
       "author":{"@@type":"Organization","name":"TaskCheck"},
       "publisher":{"@@type":"Organization","name":"TaskCheck"},
+      "image": "{{ $seoImage }}",
       "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
     }
     </script>
@@ -54,7 +59,8 @@
 
 <main class="max-w-3xl mx-auto px-6 py-10">
     <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
-        <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="Inspecteur controleert keuken van een restaurant op hygiëne" class="w-full object-cover" loading="eager">
+        <img src="{{ $seoImage }}" alt="NVWA Horeca inspectiekaart: kaart van Nederland met beoordelingen voor voedselveiligheid, hygiëne en plaagdierbeheersing" class="w-full object-cover object-top" width="1024" height="537" loading="eager">
+        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">De NVWA Horeca inspectiekaart toont openbare beoordelingen van horecazaken op voedselveiligheid, hygiëne en plaagdierbeheersing.</figcaption>
     </figure>
 
         <section class="mt-10">

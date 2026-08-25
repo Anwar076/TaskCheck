@@ -5,7 +5,7 @@
         $seoTitle = 'Waarom Restaurants Steeds Vaker Werken Met Digitale Checklists | TaskCheck';
         $seoDescription = 'Steeds meer restaurants vervangen papieren checklists door digitale oplossingen. Ontdek waarom horecaondernemers kiezen voor digitale werkcontrole.';
         $seoUrl = route('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
-        $seoImage = asset('images/taskcheck-horeca-blog-hero.webp');
+        $seoImage = asset('images/blog-waarom-restaurants-steeds-vaker-werken-met-digitale-checklists.jpg');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -17,8 +17,22 @@
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ $seoUrl }}">
     <meta property="og:image" content="{{ $seoImage }}">
-    <meta property="article:published_time" content="2026-06-01">
-    <meta property="article:section" content="Horeca">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
+    <script type="application/ld+json">
+    {
+      "@@context":"https://schema.org",
+      "@@type":"Article",
+      "headline": "Waarom restaurants steeds vaker werken met digitale checklists",
+      "datePublished":"2026-06-01",
+      "author":{"@@type":"Organization","name":"TaskCheck"},
+      "publisher":{"@@type":"Organization","name":"TaskCheck"},
+      "image": "{{ $seoImage }}",
+      "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
+    }
+    </script>
 </head>
 <body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
 @include('components.header')
@@ -44,11 +58,14 @@
 
 <div class="max-w-3xl mx-auto px-6 py-10">
 
-    <figure class="mb-10">
-        <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-             alt="Restaurantmedewerker werkt met digitale checklist op smartphone in de keuken"
-             class="w-full rounded-2xl shadow-md object-cover"
+    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
+        <img src="{{ $seoImage }}"
+             alt="Kok aan de mise-en-place in een restaurantkeuken, waar digitale checklists opening, HACCP en voorbereiding vastleggen"
+             class="w-full object-cover object-center"
+             width="1024"
+             height="682"
              loading="eager">
+        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Digitale checklists houden mise-en-place, HACCP en openingsrondes gelijk — ook als de dienst druk is.</figcaption>
     </figure>
 
     <article class="prose-article">
@@ -212,7 +229,7 @@
         <div class="grid sm:grid-cols-2 gap-5">
             <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}"
                class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+                <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
                 <div>
                     <span class="text-xs font-semibold text-orange-600">Horeca</span>
                     <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Waarom horeca stopt met papieren checklists</p>
@@ -220,7 +237,7 @@
             </a>
             <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
                class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+                <img src="{{ asset('images/blog-horeca-personeel-controleren-checklist-app.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
                 <div>
                     <span class="text-xs font-semibold text-blue-600">Horeca</span>
                     <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Horeca personeel controleren met een checklist app</p>

@@ -6,7 +6,7 @@
         $seoDescription = 'Wat controleert de NVWA bij horeca in 2026? Lees over HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles organiseert.';
         $seoKeywords = 'NVWA controle horeca, NVWA controle restaurant, NVWA inspectie horeca, NVWA controle checklist, HACCP controle horeca, voedselveiligheid horeca, NVWA temperatuur horeca, NVWA hygiëne horeca, NVWA controle voorbereiden';
         $seoUrl = route('blog.nvwa-controle-horeca-2026');
-        $seoImage = asset('images/blog-nvwa-controle-horeca-2026.jpg');
+        $seoImage = asset('images/blog-nvwa-controle-horeca-2026.jpg').'?v=2';
         $publishedAt = '2026-08-25T10:00:00+02:00';
         $faqItems = [
             ['Wat controleert de NVWA bij een restaurant?', 'De NVWA houdt toezicht op voedselveiligheid. Daarbij kunnen onder andere hygiënisch werken, temperatuur en houdbaarheid, voedselveiligheidsprocedures, allergenen en plaagdierbeheersing relevant zijn.'],
@@ -91,8 +91,8 @@
 
 <div class="max-w-3xl mx-auto px-6 py-10">
     <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
-        <img src="{{ $seoImage }}" alt="Kok met tablet in de keuken: NVWA-controle horeca 2026 op HACCP, temperatuur, hygiëne, allergenen en plaagdierbeheersing" class="w-full object-cover object-center" width="1536" height="1024" loading="eager">
-        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Goede voorbereiding, duidelijke procedures en volledige registraties helpen je klaar te zijn voor een NVWA-inspectie.</figcaption>
+        <img src="{{ $seoImage }}" alt="NVWA-inspectie in de horeca: een inspecteur controleert voedselcontainers in de koelcel terwijl een medewerker toekijkt" class="w-full object-cover object-center" width="1024" height="576" loading="eager">
+        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Zo ziet een horeca-inspectie eruit: de NVWA controleert onder meer opslag, houdbaarheid en hygiëne.</figcaption>
     </figure>
 
     <article class="prose-article">
