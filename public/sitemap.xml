@@ -203,6 +203,12 @@
   </url>
   <!-- Blog -->
   <url>
+    <loc>https://taskcheck.nl/blog/nvwa-controle-horeca-2026</loc>
+    <lastmod>2026-08-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://taskcheck.nl/blog/horeca-personeel-controleren-checklist-app</loc>
     <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>

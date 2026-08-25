@@ -272,6 +272,31 @@
         <div class="grid gap-6 sm:gap-8 md:grid-cols-2">
 
             <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.nvwa-controle-horeca-2026') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/blog-nvwa-controle-horeca-2026.jpg') }}"
+                         alt="NVWA-controle horeca in 2026: waar wordt op gecontroleerd?"
+                         loading="lazy"
+                         decoding="async"
+                         width="800"
+                         height="450">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/60">Nieuws</span>
+                        <span class="text-xs text-slate-400">25 aug 2026 · 9 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.nvwa-controle-horeca-2026') }}">NVWA-controle horeca in 2026: waar wordt op gecontroleerd?</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Wat controleert de NVWA bij horeca in 2026? HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles organiseert.</p>
+                    <a href="{{ route('blog.nvwa-controle-horeca-2026') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </article>
+
+            <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.nvwa-update-horeca-inspecties-juni-2026') }}" class="blog-card__media block">
                     <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
                          alt="NVWA update horeca-inspecties juni 2026"

@@ -108,6 +108,9 @@ Route::get('/blog/nvwa-spoedsluitingen-plaagdieren-2026', function () {
 Route::get('/blog/waarom-restaurants-steeds-vaker-werken-met-digitale-checklists', function () {
     return view('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
 })->name('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
+Route::get('/blog/nvwa-controle-horeca-2026', function () {
+    return view('blog.nvwa-controle-horeca-2026');
+})->name('blog.nvwa-controle-horeca-2026');
 
 Route::get('/haccp-app', function () {
     return view('seo.haccp-app');
