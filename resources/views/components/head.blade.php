@@ -43,6 +43,20 @@
 <!-- Contentsquare / Hotjar analytics -->
 <script src="https://t.contentsquare.net/uxa/560a99166a851.js" async></script>
 
+@if(filled(config('services.crisp.website_id')))
+<script>
+    window.$crisp = [];
+    window.CRISP_WEBSITE_ID = @json(config('services.crisp.website_id'));
+    (function () {
+        var d = document;
+        var s = d.createElement('script');
+        s.src = 'https://client.crisp.chat/l.js';
+        s.async = 1;
+        d.getElementsByTagName('head')[0].appendChild(s);
+    })();
+</script>
+@endif
+
 <style> 
     body { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
 

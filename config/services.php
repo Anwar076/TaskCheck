@@ -69,4 +69,8 @@ return [
         'score_threshold' => (float) env('RECAPTCHA_SCORE_THRESHOLD', 0.5),
     ],
 
+    'crisp' => [
+        'website_id' => env('CRISP_WEBSITE_ID'),
+    ],
+
 ];

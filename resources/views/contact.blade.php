@@ -387,6 +387,7 @@
         }
         .grecaptcha-badge {
             z-index: 40;
+            bottom: 100px !important;
         }
 
         .sparkle-pill {
