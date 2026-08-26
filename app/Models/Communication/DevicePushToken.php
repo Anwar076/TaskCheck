@@ -11,6 +11,8 @@ class DevicePushToken extends Model
     protected $fillable = [
         'user_id',
         'expo_push_token',
+        'native_push_token',
+        'push_provider',
         'platform',
         'device_name',
     ];

@@ -1,4 +1,5 @@
 import './bootstrap';
+import './capacitor-native.js';
 
 import { initCalendarSlotPicker } from './calendar-slot-picker.js';
 import { initTaskCreateModal } from './task-create-modal.js';

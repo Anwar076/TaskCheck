@@ -59,6 +59,16 @@ return [
         'enabled' => env('EXPO_PUSH_ENABLED', true),
     ],
 
+    'apns' => [
+        'enabled' => env('APNS_ENABLED', false),
+        'team_id' => env('APNS_TEAM_ID'),
+        'key_id' => env('APNS_KEY_ID'),
+        'bundle_id' => env('APNS_BUNDLE_ID', 'nl.taskcheck.app'),
+        'private_key' => env('APNS_PRIVATE_KEY'),
+        'private_key_path' => env('APNS_PRIVATE_KEY_PATH'),
+        'production' => env('APNS_PRODUCTION', true),
+    ],
+
     'marketing_link' => [
         'default_destination' => env('MARKETING_LINK_DEFAULT_URL', 'https://taskcheck.nl'),
     ],

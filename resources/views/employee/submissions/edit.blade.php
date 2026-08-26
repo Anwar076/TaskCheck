@@ -846,7 +846,32 @@
 <script>
 // === GLOBAL CAMERA / UPLOAD API ===
 
-function openCamera(taskId, mode) {
+async function openCamera(taskId, mode) {
+    const nativeCamera = window.TaskCheckNative?.plugin?.('Camera');
+    if (mode === 'photo' && nativeCamera) {
+        try {
+            const image = await nativeCamera.getPhoto({
+                quality: 85,
+                allowEditing: false,
+                correctOrientation: true,
+                resultType: 'uri',
+                source: 'camera',
+            });
+            const response = await fetch(image.webPath);
+            const blob = await response.blob();
+            const extension = image.format === 'png' ? 'png' : 'jpg';
+            const file = new File([blob], `taskcheck-${Date.now()}.${extension}`, {
+                type: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+                lastModified: Date.now(),
+            });
+            addProofFiles(taskId, [file]);
+            return;
+        } catch (error) {
+            if (/cancel/i.test(error?.message || '')) return;
+            console.warn('Native camera niet beschikbaar; browsercamera wordt gebruikt.', error);
+        }
+    }
+
     // mode = 'photo' of 'video'
     const inputId = mode === 'video' 
         ? 'camera-input-video-' + taskId 

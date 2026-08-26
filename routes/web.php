@@ -22,6 +22,7 @@ use App\Http\Controllers\Employee\NotificationController as EmployeeNotification
 use App\Http\Controllers\Employee\SubmissionController;
 use App\Http\Controllers\Employee\SettingsController as EmployeeSettingsController;
 use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\NativePushSubscriptionController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -447,6 +448,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/push/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey'])->name('push.vapid-public-key');
     Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('/push/native/subscribe', [NativePushSubscriptionController::class, 'store'])->name('push.native.subscribe');
+    Route::delete('/push/native/subscribe', [NativePushSubscriptionController::class, 'destroy'])->name('push.native.unsubscribe');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

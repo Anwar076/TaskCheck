@@ -4,6 +4,7 @@ namespace App\Models\Communication;
 
 use App\Models\Organisation\User;
 use App\Services\Notifications\ExpoPushService;
+use App\Services\Notifications\ApnsPushService;
 use App\Services\Notifications\WebPushService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,15 @@ class Notification extends Model
                 app(ExpoPushService::class)->sendForNotification($notification);
             } catch (\Throwable $e) {
                 \Log::warning('Unable to send expo push', [
+                    'notification_id' => $notification->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            try {
+                app(ApnsPushService::class)->sendForNotification($notification);
+            } catch (\Throwable $e) {
+                \Log::warning('Unable to send APNs push', [
                     'notification_id' => $notification->id,
                     'error' => $e->getMessage(),
                 ]);
