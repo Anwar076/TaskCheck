@@ -1,0 +1,16 @@
+node_modules/
+android/.idea/
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/capacitor-cordova-android-plugins/
+ios/App/Pods/
+ios/App/build/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/capacitor-cordova-ios-plugins/
+*.apk
+*.aab
+*.ipa

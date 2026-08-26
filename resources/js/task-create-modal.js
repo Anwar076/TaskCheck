@@ -228,12 +228,12 @@ export function initTaskCreateModal() {
         }
 
         const row = document.createElement('div');
-        row.className = 'flex gap-2';
+        row.className = 'flex items-center gap-2 min-w-0';
         row.innerHTML = `
             <input type="text" value="${value.replace(/"/g, '&quot;')}" maxlength="500"
-                   class="task-create-checklist-item flex-1 rounded-lg border border-slate-200 px-2 py-2 text-sm"
+                   class="task-create-checklist-item min-w-0 flex-1 min-h-[44px] rounded-lg border border-slate-200 px-3 py-2 text-base sm:text-sm"
                    placeholder="Checklist item">
-            <button type="button" class="task-create-remove-checklist shrink-0 rounded-lg px-2 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label="Verwijderen">×</button>
+            <button type="button" class="task-create-remove-checklist inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label="Verwijderen">×</button>
         `;
         checklistContainer.appendChild(row);
         row.querySelector('.task-create-remove-checklist')?.addEventListener('click', () => row.remove());

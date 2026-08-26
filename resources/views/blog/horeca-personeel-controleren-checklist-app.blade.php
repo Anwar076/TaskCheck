@@ -5,7 +5,7 @@
         $seoTitle = 'Hoe horeca personeel beter te controleren met een checklist app | TaskCheck Blog';
         $seoDescription = 'Praktische gids voor horeca ondernemers: personeel controleren, takenlijsten beheren en werkcontrole borgen met een checklist app.';
         $seoUrl = route('blog.horeca-personeel-controleren-checklist-app');
-        $seoImage = asset('images/taskcheck-horeca-blog-hero.webp');
+        $seoImage = asset('images/blog-horeca-personeel-controleren-checklist-app.jpg');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -17,6 +17,10 @@
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ $seoUrl }}">
     <meta property="og:image" content="{{ $seoImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
 </head>
 <body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
 @include('components.header')
@@ -41,11 +45,14 @@
 <div class="max-w-3xl mx-auto px-6 py-10">
 
     {{-- HERO IMAGE --}}
-    <figure class="mb-10">
-        <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-             alt="TaskCheck horeca dashboard en mobiele checklist app voor personeel controle"
-             class="w-full rounded-2xl shadow-md object-cover"
+    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
+        <img src="{{ $seoImage }}"
+             alt="NVWA-inspecteur in uniform op locatie: werkcontrole in de horeca vraagt om aantoonbare checklists"
+             class="w-full object-cover object-center"
+             width="1024"
+             height="576"
              loading="eager">
+        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Wie horecapersoneel beter wil controleren, heeft duidelijke taken én bewijs nodig — niet alleen mondelinge afspraken.</figcaption>
     </figure>
 
     {{-- ARTICLE BODY --}}
@@ -126,7 +133,7 @@
         <div class="grid sm:grid-cols-2 gap-5">
             <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}"
                class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+                <img src="{{ asset('images/blog-beste-checklist-app-voor-schoonmaakbedrijven.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
                 <div>
                     <span class="text-xs font-semibold text-emerald-600">Schoonmaak</span>
                     <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Beste checklist app voor schoonmaakbedrijven</p>

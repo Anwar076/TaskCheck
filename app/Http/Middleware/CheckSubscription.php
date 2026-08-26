@@ -24,52 +24,84 @@ class CheckSubscription
         if ($user->isSuperAdmin()) {
             return $next($request);
         }
-        
-        // If user has no company, they should register one
+
         if (!$user->company_id) {
-            // Allow access to subscription pages and registration
-            if ($request->routeIs('subscription.*') || $request->routeIs('register')) {
+            if ($this->isAllowedWhileLocked($request)) {
                 return $next($request);
             }
-            
-            return redirect()->route('subscription.choose-plan')
-                ->with('warning', 'Please choose a subscription plan to continue.');
+
+            return $this->deny($request, 'Kies een abonnement om verder te gaan.', 'subscription.choose-plan');
         }
 
         $company = $user->company;
 
         if (!$company) {
-            return redirect()->route('subscription.choose-plan')
-                ->with('error', 'Your company account is not found. Please contact support.');
+            return $this->deny($request, 'Je bedrijfsaccount is niet gevonden. Neem contact op met support.', 'subscription.choose-plan');
         }
 
-        // Check if company can access
-        if (!$company->canAccess()) {
-            // If trial expired and no subscription, redirect to choose plan
-            if ($company->trialExpired() && !$company->hasActiveSubscription()) {
-                return redirect()->route('subscription.choose-plan')
-                    ->with('error', 'Your 14-day free trial has expired. Please choose a subscription plan to continue.');
-            }
-
-            // Otherwise, subscription might be cancelled or expired
-            return redirect()->route('subscription.choose-plan')
-                ->with('error', 'Your subscription is not active. Please choose a plan to continue.');
-        }
-
-        // Allow access to subscription pages
-        if ($request->routeIs('subscription.*')) {
+        if ($this->isAllowedWhileLocked($request)) {
             return $next($request);
         }
 
-        // Show warning if trial is ending soon (less than 3 days)
+        if (!$company->canAccess()) {
+            $redirectRoute = $user->isAdmin()
+                ? 'admin.settings.edit'
+                : 'employee.settings.edit';
+
+            return $this->deny(
+                $request,
+                $company->accessLockMessage() ?? 'Je hebt geen actief abonnement.',
+                $redirectRoute
+            );
+        }
+
         if ($company->isOnTrial() && $company->trialDaysRemaining() <= 3) {
             $request->session()->flash('trial_warning', [
-                'message' => "Your free trial ends in {$company->trialDaysRemaining()} day(s). Please choose a subscription plan.",
+                'message' => "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Kies een abonnement om door te gaan.",
                 'days_remaining' => $company->trialDaysRemaining(),
             ]);
         }
 
         return $next($request);
     }
-}
 
+    private function isAllowedWhileLocked(Request $request): bool
+    {
+        if ($request->routeIs([
+            'subscription.*',
+            'admin.settings.*',
+            'employee.settings.*',
+            'profile.*',
+            'logout',
+            'refresh-csrf',
+            'push.*',
+            'admin.notifications.realtime-feed',
+            'admin.notifications.mark-read',
+            'admin.notifications.mark-all-read',
+            'employee.notifications.realtime-feed',
+            'employee.notifications.mark-read',
+            'employee.notifications.mark-all-read',
+        ])) {
+            return true;
+        }
+
+        return $request->is([
+            'api/user',
+            'api/mobile/me',
+            'api/mobile/logout',
+            'api/mobile/admin/settings',
+        ]);
+    }
+
+    private function deny(Request $request, string $message, string $redirectRoute): Response
+    {
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => $message,
+                'code' => 'subscription_locked',
+            ], 403);
+        }
+
+        return redirect()->route($redirectRoute)->with('error', $message);
+    }
+}

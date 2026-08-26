@@ -5,7 +5,7 @@
         $seoTitle = 'Waarom bedrijven stoppen met Excel en overstappen op checklist apps | TaskCheck Blog';
         $seoDescription = 'Ontdek waarom Excel tekortschiet voor takenlijst personeel en waarom bedrijven kiezen voor een checklist app en werkcontrole app.';
         $seoUrl = route('blog.waarom-bedrijven-stoppen-met-excel-checklists');
-        $seoImage = asset('images/taskcheck-excel-blog-hero.webp');
+        $seoImage = asset('images/blog-waarom-bedrijven-stoppen-met-excel-checklists.jpg');
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -17,6 +17,21 @@
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ $seoUrl }}">
     <meta property="og:image" content="{{ $seoImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImage }}">
+    <script type="application/ld+json">
+    {
+      "@@context":"https://schema.org",
+      "@@type":"Article",
+      "headline": "Waarom bedrijven stoppen met Excel en overstappen op checklist apps",
+      "author":{"@@type":"Organization","name":"TaskCheck"},
+      "publisher":{"@@type":"Organization","name":"TaskCheck"},
+      "image": "{{ $seoImage }}",
+      "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
+    }
+    </script>
 </head>
 <body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
 @include('components.header')
@@ -41,11 +56,14 @@
 <div class="max-w-3xl mx-auto px-6 py-10">
 
     {{-- HERO IMAGE --}}
-    <figure class="mb-10">
-        <img src="{{ asset('images/taskcheck-excel-blog-hero.webp') }}"
-             alt="TaskCheck dashboard als alternatief voor Excel checklists en werkcontrole"
-             class="w-full rounded-2xl shadow-md object-cover"
+    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
+        <img src="{{ $seoImage }}"
+             alt="Medewerker vergelijkt een ingewikkelde Excel-spreadsheet met een overzichtelijke checklist-app"
+             class="w-full object-cover object-center"
+             width="1024"
+             height="576"
              loading="eager">
+        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Spreadsheets groeien mee tot chaos; een checklist-app houdt taken, status en bewijs op één plek.</figcaption>
     </figure>
 
     {{-- ARTICLE BODY --}}
@@ -145,7 +163,7 @@
             </a>
             <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}"
                class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+                <img src="{{ asset('images/blog-beste-checklist-app-voor-schoonmaakbedrijven.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
                 <div>
                     <span class="text-xs font-semibold text-emerald-600">Schoonmaak</span>
                     <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Beste checklist app voor schoonmaakbedrijven</p>

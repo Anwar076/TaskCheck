@@ -2,8 +2,9 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('partials.native-shell')
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -53,7 +54,7 @@
                         </svg>
                         Super Admin
                     </a>
-                    @else
+                    @elseif(empty($subscriptionLocked))
                     <a href="{{ route('admin.dashboard') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.dashboard') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -62,7 +63,8 @@
                         Dashboard
                     </a>
                     @endif
-                    
+
+                    @unless($subscriptionLocked ?? false)
                     <a href="{{ route('admin.lists.index') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.lists.*') && !request()->routeIs('admin.lists.calendar') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.lists.*') && !request()->routeIs('admin.lists.calendar') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -108,6 +110,7 @@
                             Rapportages
                         </a>
                     @endif
+                    @endunless
                     
                     <a href="{{ route('admin.settings.edit') }}" 
                        class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.users.*') || request()->routeIs('admin.locations.*') || request()->routeIs('subscription.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
@@ -124,14 +127,14 @@
         <!-- Clean Main content -->
         <div class="flex-1 flex flex-col overflow-hidden min-h-0">
             <!-- Clean Top navigation -->
-            <header class="sticky top-0 z-30 shrink-0 bg-white border-b border-slate-200 px-4 py-4 shadow-sm sm:px-6">
-                <div class="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
-                    <div class="flex min-w-0 items-center">
-                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 md:hidden">
-                            <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
-                            <div class="leading-tight">
-                                <p class="text-lg font-semibold text-slate-900">TaskCheck</p>
-                                <p class="text-[11px] text-slate-500">Checklist &amp; kwaliteitscontrole</p>
+            <header class="app-safe-header sticky top-0 z-40 shrink-0 bg-white border-b border-slate-200 px-3 pb-3 shadow-sm sm:px-6 sm:pb-4">
+                <div class="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:px-6 lg:px-8">
+                    <div class="flex min-w-0 flex-1 items-center">
+                        <a href="{{ ($subscriptionLocked ?? false) ? route('admin.settings.edit') : route('admin.dashboard') }}" class="flex min-w-0 items-center gap-2 md:hidden">
+                            <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-8 w-8 shrink-0 rounded-lg sm:h-9 sm:w-9">
+                            <div class="min-w-0 leading-tight">
+                                <p class="truncate text-base font-semibold text-slate-900 sm:text-lg">TaskCheck</p>
+                                <p class="hidden truncate text-[11px] text-slate-500 sm:block">Checklist &amp; kwaliteitscontrole</p>
                             </div>
                         </a>
 
@@ -151,7 +154,7 @@
 
                     <!-- Actions -->
                     <div class="hidden md:flex items-center gap-2">
-                        @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                        @if(empty($subscriptionLocked) && auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
                             <div class="hidden items-center rounded-xl border border-slate-200 bg-slate-50 p-1 sm:flex">
                                 <span class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white shadow-sm">
                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -271,7 +274,7 @@
                         </div>
                     </div>
 
-                    <button type="button" aria-label="Menu openen" class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors" id="mobile-menu-button">
+                    <button type="button" aria-label="Menu openen" class="relative z-10 md:hidden inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors" id="mobile-menu-button">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
                         </svg>
@@ -361,7 +364,7 @@
     <div class="md:hidden fixed inset-0 z-[60] hidden" id="mobile-menu-overlay" aria-hidden="true">
         <div class="mobile-menu-backdrop absolute inset-0 bg-slate-950/35 backdrop-blur-sm" id="mobile-menu-backdrop"></div>
         <aside id="mobile-menu-panel" class="absolute inset-y-0 right-0 flex w-[min(22rem,88vw)] translate-x-full flex-col bg-white shadow-2xl ring-1 ring-slate-200 transition-transform duration-300 ease-out">
-            <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div class="app-safe-drawer-header flex items-center justify-between border-b border-slate-100 px-5 pb-4">
                 <div class="flex items-center gap-3">
                     <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
                     <div class="leading-tight">
@@ -369,7 +372,7 @@
                         <p class="text-[11px] text-slate-500">Menu</p>
                     </div>
                 </div>
-                <button type="button" aria-label="Menu sluiten" class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700" id="close-mobile-menu">
+                <button type="button" aria-label="Menu sluiten" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700" id="close-mobile-menu">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -378,6 +381,7 @@
 
             <div class="flex-1 overflow-y-auto px-5 py-4">
                 <nav class="space-y-1">
+                    @unless($subscriptionLocked ?? false)
                     <a href="{{ route('admin.dashboard') }}" 
                        class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -431,6 +435,7 @@
                             Rapportages
                         </a>
                     @endif
+                    @endunless
                     <a href="{{ route('admin.settings.edit') }}" 
                        class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.users.*') || request()->routeIs('admin.locations.*') || request()->routeIs('subscription.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                         <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -440,7 +445,7 @@
                     </a>
                 </nav>
             </div>
-            <div class="border-t border-slate-100 bg-slate-50 px-5 py-4">
+            <div class="app-safe-bottom border-t border-slate-100 bg-slate-50 px-5 pt-4">
                 <div class="mb-4 flex items-center gap-3">
                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 font-medium text-white">
                         {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
@@ -450,7 +455,7 @@
                         <div class="truncate text-xs text-gray-500">{{ Auth::user()->email }}</div>
                     </div>
                 </div>
-                @if(auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
+                @if(empty($subscriptionLocked) && auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
                     <form method="POST" action="{{ route('dashboard.switch') }}" class="mb-3">
                         @csrf
                         <input type="hidden" name="mode" value="employee">

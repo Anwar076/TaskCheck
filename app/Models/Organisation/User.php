@@ -14,6 +14,7 @@ use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Notifications\ResetPasswordNotification;
 use App\Notifications\UserInvitationNotification;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Password;
@@ -187,6 +188,11 @@ class User extends Authenticatable
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     /**

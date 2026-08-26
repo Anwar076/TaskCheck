@@ -272,13 +272,38 @@
         <div class="grid gap-6 sm:gap-8 md:grid-cols-2">
 
             <article class="blog-reveal group blog-card">
-                <a href="{{ route('blog.nvwa-update-horeca-inspecties-juni-2026') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="NVWA update horeca-inspecties juni 2026"
+                <a href="{{ route('blog.nvwa-controle-horeca-2026') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/blog-nvwa-controle-horeca-2026.jpg') }}?v=2"
+                         alt="NVWA-inspectie in de horeca: inspecteur controleert voedselcontainers"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="576">
+                </a>
+                <div class="flex flex-1 flex-col p-5 sm:p-6">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/60">Nieuws</span>
+                        <span class="text-xs text-slate-400">25 aug 2026 · 9 min lezen</span>
+                    </div>
+                    <h2 class="text-lg font-bold leading-snug text-slate-900 transition group-hover:text-blue-800 sm:text-xl">
+                        <a href="{{ route('blog.nvwa-controle-horeca-2026') }}">NVWA-controle horeca in 2026: waar wordt op gecontroleerd?</a>
+                    </h2>
+                    <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-600">Wat controleert de NVWA bij horeca in 2026? HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles organiseert.</p>
+                    <a href="{{ route('blog.nvwa-controle-horeca-2026') }}" class="blog-link-arrow mt-4">
+                        Lees artikel
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </article>
+
+            <article class="blog-reveal group blog-card">
+                <a href="{{ route('blog.nvwa-update-horeca-inspecties-juni-2026') }}" class="blog-card__media block">
+                    <img src="{{ asset('images/blog-nvwa-update-horeca-inspecties-juni-2026.jpg') }}"
+                         alt="NVWA Horeca inspectiekaart met beoordelingen van horecazaken"
+                         loading="lazy"
+                         decoding="async"
+                         width="1024"
+                         height="537">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -298,12 +323,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.haccp-richtlijnen-checklist') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="HACCP richtlijnen checklist: praktisch toepassen in jouw horecazaak"
+                    <img src="{{ asset('images/blog-haccp-richtlijnen-checklist.jpg') }}"
+                         alt="HACCP richtlijnen checklist: hygiëne en schoonmaak in de horecakeuken"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="682">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -323,12 +348,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.haccp-lijsten') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="HACCP lijsten voor horeca: grip op voedselveiligheid en controle"
+                    <img src="{{ asset('images/blog-haccp-lijsten.jpg') }}"
+                         alt="HACCP lijsten voor horeca: digitale checklist op tablet in de keuken"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="682">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -348,12 +373,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.logboek-horeca') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="Logboek horeca: waarom en hoe je grip houdt op voedselveiligheid"
+                    <img src="{{ asset('images/blog-logboek-horeca.jpg') }}"
+                         alt="Logboek horeca: kok vult HACCP-registratie in aan de keukenwerkbank"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="682">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -373,12 +398,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.haccp-temperatuur-lijsten') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="HACCP temperatuur lijsten: essentieel voor elke horecazaak"
+                    <img src="{{ asset('images/blog-haccp-temperatuur-lijsten.jpg') }}"
+                         alt="HACCP temperatuur lijsten: temperatuurcontrole met digitale thermometer"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="830"
+                         height="553">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -397,12 +422,12 @@
             </article>
 <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="Waarom restaurants steeds vaker werken met digitale checklists"
+                    <img src="{{ asset('images/blog-waarom-restaurants-steeds-vaker-werken-met-digitale-checklists.jpg') }}"
+                         alt="Restaurantkeuken: waarom horeca steeds vaker digitale checklists gebruikt"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="682">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -422,12 +447,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="Hoe horeca personeel beter te controleren met een checklist app"
+                    <img src="{{ asset('images/blog-horeca-personeel-controleren-checklist-app.jpg') }}"
+                         alt="NVWA-inspecteur in uniform: horecapersoneel controleren met checklists"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="576">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -447,12 +472,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
-                         alt="Waarom horeca bedrijven stoppen met papieren checklists"
+                    <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}"
+                         alt="Horeca stopt met papieren checklists: tablet naast papieren lijsten in de keuken"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="576">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -472,12 +497,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-schoonmaak-blog-hero.webp') }}"
-                         alt="Beste checklist app voor schoonmaakbedrijven"
+                    <img src="{{ asset('images/blog-beste-checklist-app-voor-schoonmaakbedrijven.jpg') }}"
+                         alt="Schoonmakers gebruiken een digitale checklist-app op locatie"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="576">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -497,12 +522,12 @@
 
             <article class="blog-reveal group blog-card">
                 <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="blog-card__media block">
-                    <img src="{{ asset('images/taskcheck-excel-blog-hero.webp') }}"
-                         alt="Waarom bedrijven stoppen met Excel en overstappen op checklist apps"
+                    <img src="{{ asset('images/blog-waarom-bedrijven-stoppen-met-excel-checklists.jpg') }}"
+                         alt="Waarom bedrijven stoppen met Excel: spreadsheet versus digitale checklist"
                          loading="lazy"
                          decoding="async"
-                         width="800"
-                         height="450">
+                         width="1024"
+                         height="576">
                 </a>
                 <div class="flex flex-1 flex-col p-5 sm:p-6">
                     <div class="mb-3 flex flex-wrap items-center gap-2">

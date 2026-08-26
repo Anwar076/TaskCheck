@@ -109,6 +109,9 @@ Route::get('/blog/nvwa-spoedsluitingen-plaagdieren-2026', function () {
 Route::get('/blog/waarom-restaurants-steeds-vaker-werken-met-digitale-checklists', function () {
     return view('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
 })->name('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
+Route::get('/blog/nvwa-controle-horeca-2026', function () {
+    return view('blog.nvwa-controle-horeca-2026');
+})->name('blog.nvwa-controle-horeca-2026');
 
 Route::get('/haccp-app', function () {
     return view('seo.haccp-app');
@@ -423,6 +426,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
 Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('dashboard');
     Route::get('/lists', [SubmissionController::class, 'index'])->name('lists.index');
+    Route::get('/lists/{list}/open', [SubmissionController::class, 'open'])->name('lists.open');
     Route::get('/lists/{list}', [SubmissionController::class, 'show'])->name('lists.show');
     Route::post('/lists/{list}/start', [SubmissionController::class, 'start'])->name('submissions.start');
     Route::get('/submissions/{submission}', [SubmissionController::class, 'edit'])->name('submissions.edit');

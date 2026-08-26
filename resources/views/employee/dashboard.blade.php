@@ -96,7 +96,7 @@
                                 Openstaande Taken Bekijken
                             </a>
                             @if($redoTasks->count() > 0)
-                            <a href="#attention-tasks" class="inline-flex items-center justify-center min-h-[44px] px-4 py-3 sm:py-2 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base touch-manipulation">
+                            <a href="{{ route('employee.submissions.edit', $redoTasks->first()->submission) }}" class="inline-flex items-center justify-center min-h-[44px] px-4 py-3 sm:py-2 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base touch-manipulation">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                 </svg>
@@ -126,189 +126,6 @@
             </div>
         </div>
     </div>
-
-        {{-- Alerts Section --}}
-        @if($redoTasks->count() > 0 || $notifications->count() > 0)
-            @php
-                $redoCount = $redoTasks->count();
-                $notificationCount = $notifications->count();
-            @endphp
-
-            <div id="quickstart-employee-alerts" class="grid grid-cols-1 gap-4 sm:gap-6 mb-6 sm:mb-8 md:grid-cols-2">
-
-                {{-- OPNIEUW UITVOEREN (alleen wanneer manager om herhaling vraagt) --}}
-                @if($redoCount > 0)
-                    <div id="attention-tasks" class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full ring-1 ring-slate-900/5">
-                        <div class="bg-gradient-to-br from-slate-50 via-amber-50/50 to-orange-50/30 border-b border-slate-100 px-4 sm:px-5 py-3 sm:py-4">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-amber-100/80">
-                                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <h3 class="text-sm sm:text-base font-semibold text-slate-800">
-                                                Taken opnieuw uitvoeren
-                                            </h3>
-                                            <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-bold text-white bg-amber-600">
-                                                {{ $redoCount > 99 ? '99+' : $redoCount }}
-                                            </span>
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-0.5">
-                                            {{ $redoCount }} {{ Str::plural('taak', $redoCount) }} opnieuw uitvoeren om de lijst af te ronden
-                                        </p>
-                                    </div>
-                                </div>
-                                @if($redoCount > 3)
-                                    <a href="{{ route('employee.notifications.index') }}"
-                                    class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-amber-700 bg-white/80 hover:bg-white border border-amber-100/80 hover:border-amber-200 transition-colors shadow-sm min-h-[36px] touch-manipulation">
-                                        Alles bekijken
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
-                                        </svg>
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="p-0 flex-1 flex flex-col divide-y divide-slate-100">
-                            @foreach($redoTasks->take(3) as $redoTask)
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 bg-amber-50/50 border-l-4 border-l-amber-500 transition-colors hover:bg-amber-50">
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-sm font-semibold text-slate-900 truncate">
-                                            {{ $redoTask->task->title }}
-                                        </h4>
-                                        <p class="text-xs text-slate-500 mt-0.5 truncate">
-                                            Checklist: {{ $redoTask->submission->taskList->title }}
-                                        </p>
-                                        @if($redoTask->redo_reason)
-                                            <p class="mt-2 text-xs text-amber-800 line-clamp-2 bg-amber-50 rounded px-2 py-1.5 border border-amber-100">
-                                                <span class="font-medium">Reden:</span> {{ $redoTask->redo_reason }}
-                                            </p>
-                                        @endif
-                                        <p class="mt-1 text-xs text-amber-700 font-medium">Voer deze taak opnieuw uit om de lijst af te ronden.</p>
-                                    </div>
-                                    <a href="{{ route('employee.submissions.edit', $redoTask->submission) }}"
-                                    class="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition-all hover:shadow-md whitespace-nowrap flex-shrink-0 min-h-[44px] touch-manipulation">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
-                                        </svg>
-                                        Herhaal taak
-                                    </a>
-                                </div>
-                            @endforeach
-
-                            @if($redoCount > 3)
-                                <div class="px-4 sm:px-5 py-3 sm:py-4 bg-slate-50/50">
-                                    <a href="{{ route('employee.notifications.index') }}"
-                                    class="flex items-center justify-center gap-2 py-3 sm:py-2 min-h-[44px] text-xs sm:text-sm font-semibold text-amber-700 hover:text-amber-800 transition-colors touch-manipulation">
-                                        Bekijk alle {{ $redoCount }} taken
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                {{-- MELDINGEN --}}
-                @if($notificationCount > 0)
-                    @php $unreadCount = $notifications->whereNull('read_at')->count(); @endphp
-                    <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full ring-1 ring-slate-900/5">
-                        <div class="bg-gradient-to-br from-slate-50 via-blue-50/50 to-sky-50/30 border-b border-slate-100 px-4 sm:px-5 py-3 sm:py-4">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-blue-100/80">
-                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <h3 class="text-sm sm:text-base font-semibold text-slate-800">
-                                                Meldingen
-                                            </h3>
-                                            @if($unreadCount > 0)
-                                                <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-bold text-white bg-blue-600">
-                                                    {{ $unreadCount > 99 ? '99+' : $unreadCount }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <p class="text-xs text-slate-500 mt-0.5">
-                                            {{ $notificationCount }} {{ Str::plural('melding', $notificationCount) }}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <a href="{{ route('employee.notifications.index') }}"
-                                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-blue-700 bg-white/80 hover:bg-white border border-blue-100/80 hover:border-blue-200 transition-colors shadow-sm min-h-[36px] touch-manipulation">
-                                    Alles bekijken
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="p-0 flex-1 flex flex-col divide-y divide-slate-100">
-                            @foreach($notifications->take(3) as $notification)
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 {{ is_null($notification->read_at) ? 'bg-blue-50/30' : 'bg-white' }} {{ is_null($notification->read_at) ? 'border-l-4 border-l-blue-500' : '' }} transition-colors hover:bg-slate-50/50">
-                                    <div class="flex-1 min-w-0 pl-0 {{ is_null($notification->read_at) ? 'sm:pl-0' : '' }}">
-                                        <h4 class="text-sm font-semibold {{ is_null($notification->read_at) ? 'text-slate-900' : 'text-slate-700' }} truncate">
-                                            {{ $notification->title }}
-                                        </h4>
-                                        <p class="text-xs text-slate-500 mt-0.5 line-clamp-2 min-w-0">
-                                            {{ Str::limit($notification->message, 70) }}
-                                        </p>
-                                        <p class="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
-                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            {{ $notification->created_at->diffForHumans() }}
-                                        </p>
-                                    </div>
-
-                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
-                                        <a href="{{ route('employee.notifications.index') }}"
-                                        class="inline-flex sm:hidden items-center justify-center min-h-[44px] px-4 py-2 rounded-xl text-xs font-medium text-blue-700 bg-blue-100/80 hover:bg-blue-100 transition-colors touch-manipulation flex-1 sm:flex-initial">
-                                            Open
-                                        </a>
-
-                                        @if(is_null($notification->read_at))
-                                            <button
-                                                onclick="markNotificationAsRead({{ $notification->id }})"
-                                                class="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 hover:border-emerald-300 transition-all shadow-sm touch-manipulation"
-                                                title="Markeer als gelezen">
-                                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-                                                </svg>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-
-                            @if($notificationCount > 3)
-                                <div class="px-4 sm:px-5 py-3 sm:py-4 bg-slate-50/50">
-                                    <a href="{{ route('employee.notifications.index') }}"
-                                    class="flex items-center justify-center gap-2 py-3 sm:py-2 min-h-[44px] text-xs sm:text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors touch-manipulation">
-                                        Bekijk alle {{ $notificationCount }} meldingen
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-            </div>
-        @endif
-
 
         <!-- Main Content -->
         <div id="quickstart-employee-today" class="mb-6 sm:mb-8">
@@ -658,40 +475,79 @@
     </div>
 </div>
 
+@if($notifications->count() > 0)
+@php $unreadPopupCount = $notifications->whereNull('read_at')->count(); @endphp
+<div
+    x-data="{
+        open: false,
+        key: 'taskcheck:dashboard-alerts-seen:{{ auth()->id() }}:{{ $unreadPopupCount }}',
+        init() {
+            try {
+                this.open = !sessionStorage.getItem(this.key);
+            } catch (error) {
+                this.open = true;
+            }
+        },
+        dismiss() {
+            try { sessionStorage.setItem(this.key, '1'); } catch (error) {}
+            this.open = false;
+        },
+        view() {
+            this.dismiss();
+            this.$nextTick(() => {
+                const root = document.querySelector('[data-employee-notification-root]');
+                const data = root && window.Alpine ? window.Alpine.$data(root) : null;
+                if (data) {
+                    data.open = true;
+                    return;
+                }
+                document.getElementById('employee-notification-bell')?.click();
+            });
+        }
+    }"
+    x-cloak
+    x-show="open"
+    class="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="employee-alerts-popup-title"
+>
+    <div class="absolute inset-0 bg-slate-900/40" @click="dismiss()"></div>
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+        class="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-slate-200"
+    >
+        <div class="flex items-start gap-3">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+                </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+                <h2 id="employee-alerts-popup-title" class="text-base font-semibold text-slate-900">Er zijn meldingen</h2>
+                <p class="mt-1 text-sm text-slate-600">
+                    Je hebt {{ $unreadPopupCount }} {{ $unreadPopupCount === 1 ? 'ongelezen melding' : 'ongelezen meldingen' }}.
+                    Bekijk ze via het bel-icoon rechtsboven.
+                </p>
+            </div>
+        </div>
+        <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" @click="dismiss()" class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                Sluiten
+            </button>
+            <button type="button" @click="view()" class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+                Bekijk meldingen
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Enhanced JavaScript with Animations + Dynamic List Removal -->
 <script>
-function markNotificationAsRead(notificationId) {
-    const button = event.target.closest('button');
-    const originalContent = button.innerHTML;
-    button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
-    button.disabled = true;
-    
-    fetch(`/employee/notifications/${notificationId}/mark-read`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            button.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else {
-            button.innerHTML = originalContent;
-            button.disabled = false;
-        }
-    })
-    .catch(error => {
-        button.innerHTML = originalContent;
-        button.disabled = false;
-        console.error('Error:', error);
-    });
-}
-
 function showDashboardToast(message, type = 'success') {
     const colors = {
         success: 'bg-green-500 border-green-600',

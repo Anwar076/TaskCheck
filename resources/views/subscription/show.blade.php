@@ -43,6 +43,7 @@
 
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
+                @include('partials.subscription-lock-banner')
                 @include('admin.settings.tabs', ['activeTab' => 'subscription'])
 
                     <div class="grid md:grid-cols-2 gap-6 sm:gap-8">

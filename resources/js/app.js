@@ -10,6 +10,18 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
+const markNativeShell = () => {
+    const native = !!(window.Capacitor && (
+        typeof window.Capacitor.isNativePlatform === 'function'
+            ? window.Capacitor.isNativePlatform()
+            : window.Capacitor.isNative
+    ));
+    if (native || (/Capacitor|wv/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent))) {
+        document.documentElement.classList.add('is-native-app');
+    }
+};
+markNativeShell();
+
 // Page-specific controls. Run immediately as well when this bundle is loaded
 // after DOMContentLoaded (for example from browser or service-worker cache).
 const initPageControls = () => {

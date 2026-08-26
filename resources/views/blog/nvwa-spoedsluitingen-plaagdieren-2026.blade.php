@@ -142,7 +142,7 @@
             </a>
             <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}"
                class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+                <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
                 <div>
                     <span class="text-xs font-semibold text-orange-600">Horeca</span>
                     <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Stoppen met papieren checklists</p>

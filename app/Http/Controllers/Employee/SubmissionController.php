@@ -8,6 +8,7 @@ use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use App\Models\Checklist\ListAssignment;
 use App\Services\ScheduleService;
+use App\Helpers\ProofFileHelper;
 use App\Services\CollaborativeSubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -167,7 +168,37 @@ class SubmissionController extends Controller
     $submission->load(['taskList', 'submissionTasks.task']);
     
     // Laat ALLE taken zien die bij deze submission horen
-    return view('employee.submissions.edit', compact('submission'));
+    $neighborLists = $this->neighborListUrls($user, $submission->taskList);
+
+    return view('employee.submissions.edit', array_merge(
+        compact('submission'),
+        $neighborLists
+    ));
+    }
+
+    /**
+     * Open an assigned list: continue today's submission or start a new one.
+     */
+    public function open(Request $request, TaskList $list)
+    {
+        $user = auth()->user();
+
+        if ($list->company_id !== $user->company_id) {
+            abort(403, 'Unauthorized access to task list.');
+        }
+
+        if (!$this->userHasAccessToList($user, $list)) {
+            abort(403, 'You do not have access to this task list.');
+        }
+
+        $submission = $this->collaborativeSubmissionService->resolveOrCreateTodaySubmission($user, $list, [
+            'user_agent' => $request->userAgent(),
+            'ip_address' => $request->ip(),
+        ]);
+
+        $this->ensureSubmissionTasksExist($submission, $list);
+
+        return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()]);
     }
 
     /**
@@ -192,7 +223,38 @@ class SubmissionController extends Controller
                 ->where('task_id', $taskId)
                 ->firstOrFail();
 
+            if (in_array($submission->status, ['completed', 'reviewed'], true)) {
+                $message = 'Deze lijst is al ingediend. Taken kunnen niet meer worden bewerkt.';
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ], 403);
+                }
+                return back()->with('error', $message);
+            }
+
+            if ($submissionTask->status === 'approved') {
+                $message = 'Deze taak is goedgekeurd en kan niet meer worden bewerkt.';
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ], 403);
+                }
+                return back()->with('error', $message);
+            }
+
             $task = $submissionTask->task;
+            $existingProofFiles = $submissionTask->proof_files;
+            if (is_string($existingProofFiles)) {
+                $decoded = json_decode($existingProofFiles, true);
+                $existingProofFiles = is_array($decoded) ? $decoded : [];
+            } elseif (! is_array($existingProofFiles)) {
+                $existingProofFiles = [];
+            } else {
+                $existingProofFiles = array_values($existingProofFiles);
+            }
 
             // Validate based on required proof type
             $rules = [
@@ -209,7 +271,7 @@ class SubmissionController extends Controller
             ];
             
             if (in_array($task->required_proof_type, ['photo', 'video', 'file', 'any'])) {
-                if ($task->required_proof_type !== 'any') {
+                if ($task->required_proof_type !== 'any' && empty($existingProofFiles)) {
                     $rules['proof_files'] = 'required|array|min:1';
                 } else {
                     $rules['proof_files'] = 'nullable|array';
@@ -233,7 +295,7 @@ class SubmissionController extends Controller
             }
 
             // Add digital signature validation if required
-            if ($task->requires_signature) {
+            if ($task->requires_signature && empty($submissionTask->digital_signature)) {
                 $rules['digital_signature'] = 'required|string';
             }
             
@@ -243,8 +305,7 @@ class SubmissionController extends Controller
             $validated = $request->validate($rules, $messages);
 
             // Handle file uploads (append to existing proof files)
-            $existingProofFiles = is_array($submissionTask->proof_files) ? $submissionTask->proof_files : [];
-            $proofFiles = \App\Helpers\ProofFileHelper::mergeUploadedProofFiles(
+            $proofFiles = ProofFileHelper::mergeUploadedProofFiles(
                 $request,
                 $submission->id,
                 $existingProofFiles
@@ -252,17 +313,21 @@ class SubmissionController extends Controller
 
             // Update submission task
             $updateData = [
-                'proof_text' => $validated['proof_text'] ?? null,
-                'employee_comment' => $validated['employee_comment'] ?? null,
+                'proof_text' => $request->has('proof_text')
+                    ? ($validated['proof_text'] ?? null)
+                    : $submissionTask->proof_text,
+                'employee_comment' => $request->has('employee_comment')
+                    ? ($validated['employee_comment'] ?? null)
+                    : $submissionTask->employee_comment,
                 'proof_files' => $proofFiles,
                 'status' => 'completed',
-                'completed_at' => now(),
-                'completed_by_user_id' => $user->id,
+                'completed_at' => $submissionTask->completed_at ?? now(),
+                'completed_by_user_id' => $submissionTask->completed_by_user_id ?? $user->id,
                 'redo_requested' => false,
             ];
 
             // Add digital signature if provided
-            if (isset($validated['digital_signature'])) {
+            if (!empty($validated['digital_signature'])) {
                 $updateData['digital_signature'] = $validated['digital_signature'];
                 $updateData['signature_date'] = now();
             }
@@ -288,7 +353,8 @@ class SubmissionController extends Controller
                     'success' => true,
                     'message' => 'Taak succesvol afgerond!',
                     'completed_at' => $submissionTask->completed_at->toISOString(),
-                    'task_id' => $taskId
+                    'task_id' => $taskId,
+                    'proof_files' => ProofFileHelper::withAbsoluteUrls($proofFiles),
                 ]);
             }
 
@@ -395,6 +461,14 @@ class SubmissionController extends Controller
 
             $validated = $request->validate($rules, $messages);
 
+            $submission->loadMissing(['taskList', 'user']);
+            $neighborLists = $this->neighborListUrls($user, $submission->taskList);
+            $redirectUrl = $neighborLists['nextListUrl'] ?? route('employee.dashboard');
+            $goingToNextList = !empty($neighborLists['nextListUrl']);
+            $successMessage = $goingToNextList
+                ? 'Checklist ingediend. De volgende lijst wordt geopend.'
+                : '🎉 Gefeliciteerd! Je hebt je laatste checklist succesvol voltooid.';
+
             $submission->update([
                 'completed_at' => now(),
                 'status' => 'completed',
@@ -402,7 +476,6 @@ class SubmissionController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            $submission->loadMissing(['taskList', 'user']);
             $adminUsers = \App\Models\Organisation\User::query()
                 ->where('company_id', $submission->company_id)
                 ->where('role', 'admin')
@@ -421,13 +494,13 @@ class SubmissionController extends Controller
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Checklist succesvol ingediend!',
-                    'redirect_url' => route('employee.dashboard')
+                    'message' => $successMessage,
+                    'redirect_url' => $redirectUrl,
+                    'next_list' => $goingToNextList,
                 ]);
             }
 
-            return redirect()->route('employee.dashboard')
-                ->with('success', '🎉 Gefeliciteerd! Je hebt je checklist succesvol voltooid. Bedankt voor je harde werk!');
+            return redirect($redirectUrl)->with('success', $successMessage);
                 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Submission completion validation error', [
@@ -467,9 +540,48 @@ class SubmissionController extends Controller
 
     private function userHasAccessToList($user, $list)
     {
-        // Use the ScheduleService to check if the user has access and the list is scheduled
-        $assignedLists = $this->scheduleService->getScheduledTasksForUser($user);
-        return $assignedLists->contains('id', $list->id);
+        if ($this->listsForNavigation($user)->contains('id', $list->id)) {
+            return true;
+        }
+
+        return $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list) !== null;
+    }
+
+    private function listsForNavigation($user)
+    {
+        return $this->scheduleService->getScheduledTasksForUser($user)
+            ->sortBy(fn ($list) => [$list->display_order ?? PHP_INT_MAX, $list->id])
+            ->values();
+    }
+
+    private function neighborListUrls($user, TaskList $currentList): array
+    {
+        $lists = $this->listsForNavigation($user);
+        $index = $lists->search(fn ($list) => (int) $list->id === (int) $currentList->id);
+        $listUrls = $lists->map(fn ($list) => route('employee.lists.open', $list))->values()->all();
+
+        if ($index === false) {
+            return [
+                'previousListUrl' => null,
+                'nextListUrl' => $lists->isNotEmpty() ? route('employee.lists.open', $lists->first()) : null,
+                'currentListPosition' => 0,
+                'totalLists' => $lists->count(),
+                'listUrls' => $listUrls,
+                'currentListInJump' => false,
+            ];
+        }
+
+        $previous = $index > 0 ? $lists[$index - 1] : null;
+        $next = $index < $lists->count() - 1 ? $lists[$index + 1] : null;
+
+        return [
+            'previousListUrl' => $previous ? route('employee.lists.open', $previous) : null,
+            'nextListUrl' => $next ? route('employee.lists.open', $next) : null,
+            'currentListPosition' => $index + 1,
+            'totalLists' => $lists->count(),
+            'listUrls' => $listUrls,
+            'currentListInJump' => true,
+        ];
     }
 
     private function ensureSubmissionTasksExist(Submission $submission, TaskList $list): void

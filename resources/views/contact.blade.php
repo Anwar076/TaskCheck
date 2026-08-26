@@ -25,6 +25,9 @@
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     <meta name="twitter:image" content="{{ $seoImage }}">
+    @if(filled(config('services.recaptcha.site_key')))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}&hl=nl" async defer></script>
+    @endif
 
     <script type="application/ld+json">
         {
@@ -382,6 +385,10 @@
         .contact-cta:active {
             transform: translateY(0) scale(0.98);
         }
+        .grecaptcha-badge {
+            z-index: 40;
+            bottom: 100px !important;
+        }
 
         .sparkle-pill {
             position: relative;
@@ -517,7 +524,15 @@
                                 </div>
                             @endif
 
-                            <form method="POST" action="{{ route('contact.send') }}" class="relative mt-8 space-y-5 sm:space-y-6">
+                            <form
+                                method="POST"
+                                action="{{ route('contact.send') }}"
+                                class="relative mt-8 space-y-5 sm:space-y-6"
+                                data-contact-form
+                                @if(filled(config('services.recaptcha.site_key')))
+                                    data-recaptcha-sitekey="{{ config('services.recaptcha.site_key') }}"
+                                @endif
+                            >
                                 @csrf
                                 <div class="grid gap-4 sm:grid-cols-2 sm:gap-5">
                                     <div class="relative">
@@ -567,12 +582,17 @@
                                     <label for="message" class="contact-input-label">Bericht</label>
                                 </div>
 
+                                @if(filled(config('services.recaptcha.site_key')))
+                                    <input type="hidden" name="g-recaptcha-response" value="" autocomplete="off">
+                                    <p class="hidden text-sm font-medium text-red-700" data-recaptcha-error>De beveiligingscontrole is mislukt. Probeer het opnieuw.</p>
+                                @endif
+
                                 <div class="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <button type="submit" class="contact-cta inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-8 text-sm font-semibold text-white sm:w-auto sm:min-w-[12rem]">
+                                    <button type="submit" class="contact-cta inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-8 text-sm font-semibold text-white sm:w-auto sm:min-w-[12rem]" data-contact-submit>
                                         <svg class="relative z-[1] h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
                                         <span class="relative z-[1]">Verstuur bericht</span>
                                     </button>
-                                    <p class="text-center text-xs leading-relaxed text-slate-500 sm:text-left sm:max-w-xs">Je gegevens gebruiken we alleen om je vraag te beantwoorden — nooit voor spam.</p>
+                                    <p class="text-center text-xs leading-relaxed text-slate-500 sm:text-left sm:max-w-xs">Je gegevens gebruiken we alleen om je vraag te beantwoorden — nooit voor spam. Deze pagina is beschermd door reCAPTCHA; het <a href="https://policies.google.com/privacy" class="underline decoration-slate-300 underline-offset-2 hover:text-slate-700" rel="noopener noreferrer" target="_blank">privacybeleid</a> en de <a href="https://policies.google.com/terms" class="underline decoration-slate-300 underline-offset-2 hover:text-slate-700" rel="noopener noreferrer" target="_blank">voorwaarden</a> van Google zijn van toepassing.</p>
                         </div>
                             </form>
                         </div>
@@ -678,6 +698,60 @@
                 sel.addEventListener('change', sync);
                 sel.addEventListener('blur', sync);
                 sync();
+            });
+        })();
+
+        (function () {
+            var form = document.querySelector('[data-contact-form]');
+            if (!form) return;
+            var siteKey = form.getAttribute('data-recaptcha-sitekey');
+            if (!siteKey) return;
+            var errorEl = form.querySelector('[data-recaptcha-error]');
+            var submitBtn = form.querySelector('[data-contact-submit]');
+
+            form.addEventListener('submit', function (e) {
+                if (form.getAttribute('data-recaptcha-ready') === '1') return;
+                e.preventDefault();
+                if (errorEl) errorEl.classList.add('hidden');
+                if (submitBtn) submitBtn.disabled = true;
+
+                function fail() {
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (errorEl) errorEl.classList.remove('hidden');
+                }
+
+                function setToken(token) {
+                    var fields = form.querySelectorAll('[name="g-recaptcha-response"]');
+                    if (!fields.length) {
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'g-recaptcha-response';
+                        form.appendChild(input);
+                        fields = form.querySelectorAll('[name="g-recaptcha-response"]');
+                    }
+                    fields.forEach(function (el) { el.value = token; });
+                }
+
+                if (!window.grecaptcha || typeof window.grecaptcha.ready !== 'function') {
+                    fail();
+                    return;
+                }
+
+                window.grecaptcha.ready(function () {
+                    window.grecaptcha.execute(siteKey, { action: 'contact' }).then(function (token) {
+                        if (!token) {
+                            fail();
+                            return;
+                        }
+                        setToken(token);
+                        form.setAttribute('data-recaptcha-ready', '1');
+                        if (typeof form.requestSubmit === 'function') {
+                            form.requestSubmit();
+                        } else {
+                            form.submit();
+                        }
+                    }).catch(fail);
+                });
             });
         })();
     </script>

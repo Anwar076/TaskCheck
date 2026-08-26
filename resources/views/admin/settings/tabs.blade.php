@@ -4,6 +4,7 @@
            class="inline-flex items-center rounded-t-lg border-b-2 px-3 py-2 text-sm transition-colors {{ ($activeTab ?? '') === 'settings' ? 'border-blue-600 text-blue-600 font-semibold' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900 font-medium' }}">
             Instellingen
         </a>
+        @unless($subscriptionLocked ?? false)
         <a href="{{ route('admin.users.index') }}"
            class="inline-flex items-center rounded-t-lg border-b-2 px-3 py-2 text-sm transition-colors {{ ($activeTab ?? '') === 'users' ? 'border-blue-600 text-blue-600 font-semibold' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900 font-medium' }}">
             Gebruikers
@@ -12,6 +13,7 @@
            class="inline-flex items-center rounded-t-lg border-b-2 px-3 py-2 text-sm transition-colors {{ ($activeTab ?? '') === 'locations' ? 'border-blue-600 text-blue-600 font-semibold' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900 font-medium' }}">
             Locaties
         </a>
+        @endunless
         <a href="{{ route('subscription.show') }}"
            class="inline-flex items-center rounded-t-lg border-b-2 px-3 py-2 text-sm transition-colors {{ ($activeTab ?? '') === 'subscription' ? 'border-blue-600 text-blue-600 font-semibold' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900 font-medium' }}">
             Abonnement
