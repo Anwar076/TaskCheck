@@ -18,17 +18,17 @@
         {{-- Hero --}}
         <div class="mb-6 sm:mb-8">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
-                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div class="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                            <div class="w-11 h-11 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                                 </svg>
                             </div>
-                            <div class="min-w-0">
-                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">Nieuwe taak</h1>
-                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5 truncate">
+                            <div class="min-w-0 flex-1">
+                                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Nieuwe taak</h1>
+                                <p class="text-blue-100/90 text-sm sm:text-base mt-0.5 break-words">
                                     In lijst: <span class="font-semibold">{{ $list->title }}</span>
                                     @if(isset($selectedWeekday))
                                         · <span>{{ ['monday'=>'Ma','tuesday'=>'Di','wednesday'=>'Wo','thursday'=>'Do','friday'=>'Vr','saturday'=>'Za','sunday'=>'Zo'][$selectedWeekday] ?? ucfirst($selectedWeekday) }}</span>
@@ -40,7 +40,7 @@
                             </div>
                         </div>
                         <a href="{{ route('admin.lists.show', $list) }}" 
-                           class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors">
+                           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/20 text-white text-sm font-medium rounded-xl hover:bg-white/30 transition-colors w-full lg:w-auto">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18.75"/>
                             </svg>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Form Container -->
-        <div class="bg-white shadow-sm rounded-2xl border border-slate-100 overflow-hidden">
+        <div class="bg-white shadow-sm rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden">
             <form method="POST" action="{{ route('admin.lists.tasks.store', $list) }}" class="divide-y divide-slate-100">
                 @csrf
                 
@@ -61,9 +61,9 @@
                 @endif
 
                 <!-- Basic Information Section -->
-                <div class="p-6 md:p-8 bg-blue-50/40">
-                    <div class="mb-8">
-                        <div class="flex items-center space-x-3 mb-2">
+                <div class="p-4 sm:p-6 lg:p-8 bg-blue-50/40">
+                    <div class="mb-5 sm:mb-8">
+                        <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -71,10 +71,10 @@
                             </div>
                             <h3 class="text-lg sm:text-xl font-bold text-slate-900">Taakinformatie</h3>
                         </div>
-                        <p class="text-slate-600 ml-11 text-sm">Vul de basisgegevens van de taak in.</p>
+                        <p class="text-slate-600 text-sm sm:ml-11">Vul de basisgegevens van de taak in.</p>
                     </div>
                     
-                    <div class="space-y-8">
+                    <div class="space-y-5 sm:space-y-8">
                         <!-- Title Field -->
                         <div class="group">
                             <label for="title" class="block text-sm font-semibold text-slate-900 flex items-center mb-3">
@@ -83,7 +83,7 @@
                             </label>
                             <div class="relative">
                                 <input type="text" name="title" id="title" required 
-                                       class="block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 group-hover:border-slate-300 group-hover:shadow-md" 
+                                       class="block w-full px-4 py-3 pr-10 border border-slate-200 rounded-xl shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 group-hover:border-slate-300 group-hover:shadow-md" 
                                        value="{{ old('title') }}" placeholder="bijv. Alle prullenbakken legen">
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,9 +157,9 @@
 
                 @if(in_array($list->schedule_type, ['daily', 'weekly', 'custom']))
                 <!-- Day Selection Section -->
-                <div class="p-6 md:p-8 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
-                    <div class="mb-8">
-                        <div class="flex items-center space-x-3 mb-2">
+                <div class="p-4 sm:p-6 lg:p-8 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+                    <div class="mb-5 sm:mb-8">
+                        <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -167,24 +167,24 @@
                             </div>
                             <h3 class="text-lg sm:text-xl font-bold text-slate-900">Dagtoewijzing</h3>
                         </div>
-                        <p class="text-slate-600 ml-11 text-sm">Kies op welke dagen deze taak beschikbaar moet zijn (optioneel)</p>
+                        <p class="text-slate-600 text-sm sm:ml-11">Kies op welke dagen deze taak beschikbaar moet zijn (optioneel)</p>
                     </div>
                     
                     <!-- Schedule Info -->
-                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-8 shadow-sm">
-                        <div class="flex items-start space-x-4">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-sm">
+                        <div class="flex items-start gap-3 sm:gap-4">
                             <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            <div>
-                                <h4 class="font-bold text-blue-900 mb-2 text-lg">Huidig schema: {{ ucfirst($list->schedule_type) }}</h4>
-                                <p class="text-blue-800">
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-blue-900 mb-2 text-base sm:text-lg">Huidig schema: {{ ucfirst($list->schedule_type) }}</h4>
+                                <p class="text-blue-800 text-sm sm:text-base break-words">
                                     @if($list->schedule_type === 'daily')
                                         Deze lijst verschijnt elke dag. Je kunt deze taak koppelen aan specifieke dagen of algemeen laten.
                                     @elseif($list->schedule_type === 'weekly')
-                                        Deze lijst verschijnt op: <span class="font-bold bg-blue-200 px-2 py-1 rounded-lg">{{ implode(', ', array_map('ucfirst', $list->getShowOnDays())) }}</span>
+                                        Deze lijst verschijnt op: <span class="inline-block font-bold bg-blue-200 px-2 py-1 rounded-lg mt-1">{{ implode(', ', array_map('ucfirst', $list->getShowOnDays())) }}</span>
                                     @else
                                         Aangepaste schema-configuratie is actief.
                                     @endif
@@ -194,7 +194,7 @@
                     </div>
                     <!-- Day Selection Grid -->
                     <div class="space-y-6">
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 sm:gap-3">
                             @php
                                 $weekdays = [
                                     'monday' => 'Ma',
@@ -214,7 +214,7 @@
                                     $isSelectedForTask = in_array($dayKey, $selectedDays);
                                 @endphp
                                 <div class="relative group">
-                                    <label class="flex flex-col items-center p-4 border-2 rounded-2xl transition-all duration-200 cursor-pointer
+                                    <label class="flex flex-col items-center p-2 sm:p-4 border-2 rounded-xl sm:rounded-2xl transition-all duration-200 cursor-pointer min-h-[72px] sm:min-h-0
                                         @if(!$isAvailableOnList) 
                                             border-gray-300 bg-gray-100 cursor-not-allowed opacity-50
                                         @elseif($isSelectedForTask) 
@@ -228,7 +228,7 @@
                                                    {{ $isSelectedForTask ? 'checked' : '' }}>
                                         @endif
                                         
-                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-2 text-lg font-bold
+                                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-0 sm:mb-2 text-sm sm:text-lg font-bold
                                             @if(!$isAvailableOnList)
                                                 bg-slate-300 text-slate-500
                                             @elseif($isSelectedForTask)
@@ -238,7 +238,7 @@
                                             @endif">
                                             {{ $dayName }}
                                         </div>
-                                        <span class="text-sm font-semibold
+                                        <span class="day-label-text hidden sm:block text-sm font-semibold
                                             @if(!$isAvailableOnList)
                                                 text-slate-400
                                             @elseif($isSelectedForTask)
@@ -247,7 +247,7 @@
                                                 text-slate-700 group-hover:text-green-700
                                             @endif">{{ $dayName }}</span>
                                         @if(!$isAvailableOnList)
-                                            <span class="text-xs text-slate-400 mt-1">Niet beschikbaar</span>
+                                            <span class="hidden sm:block text-xs text-slate-400 mt-1 text-center leading-tight">Niet beschikbaar</span>
                                         @endif
                                     </label>
                                     @if($isSelectedForTask)
@@ -261,14 +261,14 @@
                             @endforeach
                         </div>
                         <!-- Help Information -->
-                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
-                            <div class="flex items-start space-x-3">
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5">
+                            <div class="flex items-start gap-3">
                                 <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <h5 class="text-sm font-bold text-blue-900 mb-3">Hoe dag toewijzing werkt</h5>
                                     <ul class="text-sm text-blue-800 space-y-2">
                                         <li class="flex items-start">
@@ -292,9 +292,9 @@
                 @endif
 
                 <!-- Task Settings Section -->
-                <div class="p-6 md:p-8 bg-gradient-to-r from-purple-50/50 to-pink-50/50">
-                    <div class="mb-8">
-                        <div class="flex items-center space-x-3 mb-2">
+                <div class="p-4 sm:p-6 lg:p-8 bg-gradient-to-r from-purple-50/50 to-pink-50/50">
+                    <div class="mb-5 sm:mb-8">
+                        <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -303,7 +303,7 @@
                             </div>
                             <h3 class="text-lg sm:text-xl font-bold text-slate-900">Taakconfiguratie</h3>
                         </div>
-                        <p class="text-slate-600 ml-11 text-sm">Configureer bewijsvereisten voor deze taak.</p>
+                        <p class="text-slate-600 text-sm sm:ml-11">Configureer bewijsvereisten voor deze taak.</p>
                     </div>
                     
                     <div>
@@ -355,7 +355,7 @@
                     @endphp
                     <div class="mt-6 pt-6 border-t border-slate-200">
                         <h4 class="text-sm font-semibold text-slate-900 mb-4">Meting (temperatuur / pH) - optioneel</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="metric_type" class="block text-sm font-medium text-slate-700 mb-2">Type meting</label>
                                 <select id="metric_type" name="metric_type" class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
@@ -388,7 +388,7 @@
                         </div>
                         <div class="mt-4">
                             <label for="metric_comparison" class="block text-sm font-medium text-slate-700 mb-2">Bij maximum: vergelijking</label>
-                            <select id="metric_comparison" name="metric_comparison" class="block w-full md:w-72 px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                            <select id="metric_comparison" name="metric_comparison" class="block w-full px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                 <option value="lte" {{ $oldMetricComparison === 'lte' ? 'selected' : '' }}>Waarde mag maximaal gelijk zijn (<= max)</option>
                                 <option value="lt" {{ $oldMetricComparison === 'lt' ? 'selected' : '' }}>Waarde moet lager zijn (< max)</option>
                             </select>
@@ -400,9 +400,9 @@
                 </div>
 
                 <!-- Task Options Section -->
-                <div class="p-6 md:p-8 bg-gradient-to-r from-emerald-50/50 to-teal-50/50">
-                    <div class="mb-8">
-                        <div class="flex items-center space-x-3 mb-2">
+                <div class="p-4 sm:p-6 lg:p-8 bg-gradient-to-r from-emerald-50/50 to-teal-50/50">
+                    <div class="mb-5 sm:mb-8">
+                        <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -410,19 +410,19 @@
                             </div>
                             <h3 class="text-lg sm:text-xl font-bold text-slate-900">Taakopties</h3>
                         </div>
-                        <p class="text-slate-600 ml-11 text-sm">Configureer aanvullende taakvereisten</p>
+                        <p class="text-slate-600 text-sm sm:ml-11">Configureer aanvullende taakvereisten</p>
                     </div>
                     
                     <div class="space-y-6">
                         <!-- Required Task Option -->
                         <label for="is_required" class="block cursor-pointer">
-                            <div class="relative bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-5 hover:border-emerald-300 hover:shadow-md transition-all duration-300">
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex items-center h-6 mt-1">
+                            <div class="relative bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-4 sm:p-5 hover:border-emerald-300 hover:shadow-md transition-all duration-300">
+                                <div class="flex items-start gap-3 sm:gap-4">
+                                    <div class="flex items-center h-6 mt-1 flex-shrink-0">
                                         <input type="checkbox" name="is_required" id="is_required" value="1" {{ old('is_required', true) ? 'checked' : '' }} 
                                                class="h-5 w-5 text-emerald-600 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 transition-colors duration-200 touch-manipulation">
                                     </div>
-                                    <div class="flex-1">
+                                    <div class="flex-1 min-w-0">
                                         <span class="font-bold text-slate-900 text-base block">Verplichte taak</span>
                                         <p class="text-slate-600 mt-1.5 text-sm">Deze taak moet voltooid zijn voordat de medewerker kan indienen.</p>
                                     </div>
@@ -432,13 +432,13 @@
                         
                         <!-- Digital Signature Option -->
                         <label for="requires_signature" class="block cursor-pointer">
-                            <div class="relative bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-5 hover:border-emerald-300 hover:shadow-md transition-all duration-300">
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex items-center h-6 mt-1">
+                            <div class="relative bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-4 sm:p-5 hover:border-emerald-300 hover:shadow-md transition-all duration-300">
+                                <div class="flex items-start gap-3 sm:gap-4">
+                                    <div class="flex items-center h-6 mt-1 flex-shrink-0">
                                         <input type="checkbox" name="requires_signature" id="requires_signature" value="1" {{ old('requires_signature') ? 'checked' : '' }} 
                                                class="h-5 w-5 text-emerald-600 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 transition-colors duration-200 touch-manipulation">
                                     </div>
-                                    <div class="flex-1">
+                                    <div class="flex-1 min-w-0">
                                         <span class="font-bold text-slate-900 text-base block">Handtekening vereist</span>
                                         <p class="text-slate-600 mt-1.5 text-sm">Medewerker moet een handtekening zetten bij het voltooien van deze taak.</p>
                                     </div>
@@ -449,9 +449,9 @@
                 </div>
 
                 <!-- Checklist Section -->
-                <div class="p-6 md:p-8 bg-gradient-to-r from-cyan-50/50 to-blue-50/50">
-                    <div class="mb-8">
-                        <div class="flex items-center space-x-3 mb-2">
+                <div class="p-4 sm:p-6 lg:p-8 bg-gradient-to-r from-cyan-50/50 to-blue-50/50">
+                    <div class="mb-5 sm:mb-8">
+                        <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
@@ -459,13 +459,13 @@
                             </div>
                             <h3 class="text-lg sm:text-xl font-bold text-slate-900">Checklist items</h3>
                         </div>
-                        <p class="text-slate-600 ml-11 text-sm">Voeg items toe die medewerkers moeten afvinken (optioneel)</p>
+                        <p class="text-slate-600 text-sm sm:ml-11">Voeg items toe die medewerkers moeten afvinken (optioneel)</p>
                     </div>
                     
                     <div class="space-y-6">
                         <div id="checklist-container" class="space-y-4 min-h-[60px] bg-white/50 backdrop-blur-sm rounded-xl border-2 border-dashed border-slate-300 p-4">
                             <!-- Checklist items will be added here dynamically -->
-                            <div class="text-center text-slate-500 py-8" id="empty-checklist-message">
+                            <div class="text-center text-slate-500 py-6 sm:py-8" id="empty-checklist-message">
                                 <svg class="w-12 h-12 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                                 </svg>
@@ -474,8 +474,8 @@
                         </div>
                         
                         <div class="flex justify-center">
-                            <button type="button" id="add-checklist-item" class="group inline-flex items-center px-6 py-3 min-h-[44px] border-2 border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all duration-300 shadow-lg hover:shadow-xl touch-manipulation active:scale-[0.98]">
-                                <svg class="w-5 h-5 mr-3 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button type="button" id="add-checklist-item" class="group inline-flex items-center justify-center w-full sm:w-auto px-5 sm:px-6 py-3 min-h-[44px] border-2 border-transparent text-sm sm:text-base font-semibold rounded-xl text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all duration-300 shadow-lg hover:shadow-xl touch-manipulation active:scale-[0.98]">
+                                <svg class="w-5 h-5 mr-2 sm:mr-3 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
                                 Checklist item toevoegen
@@ -487,17 +487,17 @@
 
 
                 <!-- Submit Section -->
-                <div class="bg-slate-50 px-6 py-8 md:px-8 border-t border-slate-200">
-                    <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+                <div class="bg-slate-50 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 border-t border-slate-200">
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
                         <a href="{{ route('admin.lists.show', $list) }}" 
-                           class="group inline-flex items-center justify-center px-6 py-3 min-h-[44px] border-2 border-slate-300 text-base font-semibold rounded-xl text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 hover:shadow-md touch-manipulation">
+                           class="group inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 min-h-[44px] border-2 border-slate-300 text-base font-semibold rounded-xl text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 hover:shadow-md touch-manipulation">
                             <svg class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                             </svg>
                             Annuleren
                         </a>
                         <button type="submit" 
-                                class="group inline-flex items-center justify-center px-8 py-3 min-h-[44px] border-2 border-transparent text-base font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl touch-manipulation active:scale-[0.98]">
+                                class="group inline-flex items-center justify-center w-full sm:w-auto px-8 py-3 min-h-[44px] border-2 border-transparent text-base font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl touch-manipulation active:scale-[0.98]">
                             <svg class="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -511,6 +511,7 @@
 </div>
 @endsection
 
+@push('scripts')
 <script>
 // Day Selection Functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -522,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         function updateStyle() {
             const icon = label.querySelector('div');
-            const text = label.querySelector('span:last-child');
+            const text = label.querySelector('.day-label-text');
             
             if (checkbox.checked) {
                 // Selected state - green
@@ -532,8 +533,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon.classList.remove('bg-slate-200', 'text-slate-700', 'group-hover:bg-green-200', 'group-hover:text-green-800');
                 icon.classList.add('bg-green-600', 'text-white');
                 
-                text.classList.remove('text-slate-700', 'group-hover:text-green-700');
-                text.classList.add('text-white');
+                if (text) {
+                    text.classList.remove('text-slate-700', 'group-hover:text-green-700');
+                    text.classList.add('text-white');
+                }
             } else {
                 // Unselected state - gray/white with green hover
                 label.classList.remove('border-green-500', 'bg-green-500', 'text-white', 'shadow-md');
@@ -543,8 +546,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon.classList.remove('bg-green-600', 'text-white');
                     icon.classList.add('bg-slate-200', 'text-slate-700', 'group-hover:bg-green-200', 'group-hover:text-green-800');
                     
-                    text.classList.remove('text-white');
-                    text.classList.add('text-slate-700', 'group-hover:text-green-700');
+                    if (text) {
+                        text.classList.remove('text-white');
+                        text.classList.add('text-slate-700', 'group-hover:text-green-700');
+                    }
                 }
             }
         }
@@ -583,21 +588,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'flex items-center space-x-4 checklist-item bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-4 hover:border-cyan-300 hover:shadow-md transition-all duration-300';
+        itemDiv.className = 'flex items-center gap-2 sm:gap-4 checklist-item bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-3 sm:p-4 hover:border-cyan-300 hover:shadow-md transition-all duration-300 min-w-0';
         itemDiv.id = itemId;
         
         itemDiv.innerHTML = `
-            <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-sm">
+            <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-sm">
                 <span class="text-white font-bold text-sm">${checklistItemCount}</span>
             </div>
             <input type="text" 
                    name="checklist_items[]" 
-                   class="flex-1 px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl shadow-sm bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300" 
-                   placeholder="e.g., Check equipment condition..." 
+                   class="min-w-0 flex-1 px-3 sm:px-4 py-3 min-h-[44px] border-2 border-slate-200 rounded-xl shadow-sm bg-white/70 backdrop-blur-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300" 
+                   placeholder="bijv. Apparatuur controleren…" 
                    value="${value}">
             <button type="button" 
                     onclick="removeChecklistItem('${itemId}')" 
-                    class="group flex-shrink-0 p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300 transform hover:scale-110">
+                    class="group flex-shrink-0 p-2 sm:p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300" aria-label="Item verwijderen">
                 <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -653,3 +658,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 </script>
+@endpush

@@ -21,9 +21,9 @@
 
         {{-- Hero --}}
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden mb-6 sm:mb-8">
-            <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                    <div class="flex items-start gap-4 min-w-0">
+            <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 sm:gap-6">
+                    <div class="flex items-start gap-3 sm:gap-4 min-w-0">
                         @if($submission->is_team_submission)
                             <div class="flex -space-x-2 flex-shrink-0">
                                 @forelse(collect($teamContributors)->take(4) as $contributor)
@@ -46,9 +46,9 @@
                                 <span class="text-xl sm:text-2xl font-bold text-white">{{ substr($submission->user->name, 0, 1) }}</span>
                             </div>
                         @endif
-                        <div class="min-w-0">
-                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Inzending beoordelen</h1>
-                            <p class="mt-1 text-blue-100 text-base sm:text-lg">{{ $submission->taskList->title }}</p>
+                        <div class="min-w-0 flex-1">
+                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white break-words">Inzending beoordelen</h1>
+                            <p class="mt-1 text-blue-100 text-base sm:text-lg break-words">{{ $submission->taskList->title }}</p>
                             @if(!empty($listDepartments))
                                 <div class="mt-2 flex flex-wrap items-center gap-2">
                                     @foreach($listDepartments as $department)
@@ -64,17 +64,21 @@
                                     </span>
                                 </div>
                             @else
-                                <p class="mt-0.5 text-blue-200/90 text-sm sm:text-base">{{ $submission->user->name }} • {{ $submission->user->email }}</p>
+                                <p class="mt-0.5 text-blue-200/90 text-sm sm:text-base break-words">
+                                    <span>{{ $submission->user->name }}</span>
+                                    <span class="hidden sm:inline"> • </span>
+                                    <span class="block sm:inline break-all">{{ $submission->user->email }}</span>
+                                </p>
                             @endif
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
                         @php
                             $statusLabels = ['in_progress' => 'Bezig', 'completed' => 'Afgerond', 'reviewed' => 'Beoordeeld', 'rejected' => 'Afgewezen'];
                             $statusColors = ['completed' => 'bg-amber-100 text-amber-800 border-amber-200', 'reviewed' => 'bg-emerald-100 text-emerald-800 border-emerald-200', 'rejected' => 'bg-red-100 text-red-800 border-red-200', 'in_progress' => 'bg-blue-100 text-blue-800 border-blue-200'];
                             $s = $submission->status;
                         @endphp
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border {{ $statusColors[$s] ?? 'bg-slate-100 text-slate-800 border-slate-200' }}">
+                        <span class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border {{ $statusColors[$s] ?? 'bg-slate-100 text-slate-800 border-slate-200' }}">
                             @if($s === 'completed' || $s === 'reviewed')
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             @elseif($s === 'rejected')
@@ -84,7 +88,7 @@
                             @endif
                             {{ $statusLabels[$s] ?? ucfirst($s) }}
                         </span>
-                        <a href="{{ route('admin.submissions.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-xl transition-colors">
+                        <a href="{{ route('admin.submissions.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-xl transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
                             Naar overzicht
                         </a>
@@ -99,42 +103,38 @@
                 $approvedTasks = $submission->submissionTasks->where('status', 'approved')->count();
                 $progress = $totalTasks > 0 ? round(($completedTasks + $approvedTasks) / $totalTasks * 100) : 0;
             @endphp
-            <div class="px-4 sm:px-6 lg:px-8 py-5 bg-slate-50 border-t border-slate-200">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-                    <div class="flex flex-wrap items-center gap-6 sm:gap-8">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Gestart</p>
-                                <p class="text-sm font-medium text-slate-900">{{ ($submission->started_at ?? $submission->created_at)->translatedFormat('d M Y, H:i') }}</p>
-                            </div>
+            <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 bg-slate-50 border-t border-slate-200">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        @if($submission->completed_at)
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Afgerond</p>
-                                    <p class="text-sm font-medium text-slate-900">{{ $submission->completed_at->translatedFormat('d M Y, H:i') }}</p>
-                                </div>
-                            </div>
-                        @endif
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Voortgang</p>
-                                <p class="text-sm font-medium text-slate-900">{{ $completedTasks + $approvedTasks }}/{{ $totalTasks }} taken ({{ $progress }}%)</p>
-                            </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Gestart</p>
+                            <p class="text-sm font-medium text-slate-900 break-words">{{ ($submission->started_at ?? $submission->created_at)->translatedFormat('d M Y, H:i') }}</p>
                         </div>
                     </div>
-                    <div class="sm:min-w-[160px]">
-                        <div class="h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300" style="width: {{ $progress }}%"></div>
+                    @if($submission->completed_at)
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Afgerond</p>
+                                <p class="text-sm font-medium text-slate-900 break-words">{{ $submission->completed_at->translatedFormat('d M Y, H:i') }}</p>
+                            </div>
+                        </div>
+                    @endif
+                    <div class="flex items-center gap-3 min-w-0 sm:col-span-2 xl:col-span-1">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Voortgang</p>
+                            <p class="text-sm font-medium text-slate-900">{{ $completedTasks + $approvedTasks }}/{{ $totalTasks }} taken ({{ $progress }}%)</p>
+                            <div class="mt-2 h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300" style="width: {{ $progress }}%"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -142,7 +142,7 @@
         </div>
 
         @if($submission->is_team_submission)
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6 sm:mb-8">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-6 sm:mb-8">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <div>
                         <h3 class="text-lg font-semibold text-slate-900">Team bijdrage</h3>
@@ -288,16 +288,16 @@
         --}}
 
         @if($submission->employee_signature)
-            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 sm:mb-8">
-                <div class="flex items-start gap-4">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 mb-6 sm:mb-8">
+                <div class="flex items-start gap-3 sm:gap-4">
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     </div>
-                    <div>
+                    <div class="min-w-0 flex-1">
                         <h3 class="text-lg font-semibold text-slate-900 mb-1">Handtekening medewerker</h3>
                         <p class="text-sm text-slate-600 mb-4">Digitale handtekening geleverd door de medewerker</p>
-                        <div class="bg-slate-50 rounded-xl p-4 inline-block">
-                            <img src="{{ $submission->employee_signature }}" alt="Handtekening medewerker" class="border border-slate-200 rounded-lg bg-white max-w-xs max-h-32 shadow-sm">
+                        <div class="bg-slate-50 rounded-xl p-3 sm:p-4 overflow-x-auto">
+                            <img src="{{ $submission->employee_signature }}" alt="Handtekening medewerker" class="border border-slate-200 rounded-lg bg-white max-w-full w-auto max-h-32 shadow-sm">
                         </div>
                     </div>
                 </div>
@@ -313,12 +313,12 @@
                         ->count();
                 @endphp
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
-                        <div>
-                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Taken beoordelen</h3>
+                        <div class="min-w-0">
+                            <h3 class="text-lg sm:text-2xl font-bold text-slate-900">Taken beoordelen</h3>
                             <p class="text-sm text-slate-500">{{ $submission->submissionTasks->count() }} taken in totaal</p>
                             @if(!empty($taskReviewsById))
                                 <p class="text-xs text-slate-400 mt-1">
@@ -328,7 +328,7 @@
                         </div>
                     </div>
                     @if($submission->taskList->requires_review && $bulkApprovableCount > 0)
-                        <form method="POST" action="{{ route('admin.submissions.approve-all', $submission) }}" onsubmit="return confirm('Weet je zeker dat je alle {{ $bulkApprovableCount }} afgeronde taken wilt goedkeuren?');">
+                        <form method="POST" action="{{ route('admin.submissions.approve-all', $submission) }}" class="w-full sm:w-auto" onsubmit="return confirm('Weet je zeker dat je alle {{ $bulkApprovableCount }} afgeronde taken wilt goedkeuren?');">
                             @csrf
                             <button type="submit" class="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
@@ -362,16 +362,16 @@
                         );
                     @endphp
                     <div class="p-4 sm:p-6 lg:p-8 hover:bg-slate-50/50 transition-colors submission-task" data-submission-task-id="{{ $submissionTask->id }}">
-                        <div class="flex flex-col lg:flex-row lg:items-start lg:gap-8">
+                        <div class="flex flex-col xl:flex-row xl:items-start xl:gap-8">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-start gap-4 mb-6">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
+                                <div class="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+                                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
                                         <span class="text-white font-bold text-sm">{{ $index + 1 }}</span>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                                            <h4 class="text-lg sm:text-xl font-bold text-slate-900 break-words">{{ $submissionTask->task->title }}</h4>
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border task-status-badge {{ $taskStatusColors[$ts] ?? 'bg-slate-100 text-slate-800 border-slate-200' }}">
+                                        <h4 class="text-base sm:text-xl font-bold text-slate-900 break-words">{{ $submissionTask->task->title }}</h4>
+                                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border task-status-badge {{ $taskStatusColors[$ts] ?? 'bg-slate-100 text-slate-800 border-slate-200' }}">
                                                 @if(in_array($ts, ['completed','approved']))
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 @elseif($ts === 'rejected')
@@ -390,8 +390,8 @@
                                                 }
                                             @endphp
                                             @if($taskCompleter)
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border bg-indigo-50 text-indigo-800 border-indigo-200">
-                                                    Ingevuld door {{ $taskCompleter->name }}
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium border bg-indigo-50 text-indigo-800 border-indigo-200 max-w-full">
+                                                    <span class="truncate">Ingevuld door {{ $taskCompleter->name }}</span>
                                                 </span>
                                             @endif
                                             @if($aiTask)
@@ -423,15 +423,15 @@
                                             @endif
                                         </div>
                                         @if($submissionTask->task->description)
-                                            <p class="text-slate-600 leading-relaxed">{{ $submissionTask->task->description }}</p>
+                                            <p class="mt-2 text-slate-600 leading-relaxed break-words">{{ $submissionTask->task->description }}</p>
                                         @endif
                                         @if($submissionTask->task->instructions)
                                             <div class="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
                                                 <div class="flex items-start gap-3">
                                                     <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                                                    <div>
+                                                    <div class="min-w-0">
                                                         <p class="text-sm font-medium text-blue-900">Instructies</p>
-                                                        <p class="text-sm text-blue-800 mt-1 whitespace-pre-line">{{ $submissionTask->task->instructions }}</p>
+                                                        <p class="text-sm text-blue-800 mt-1 whitespace-pre-line break-words">{{ $submissionTask->task->instructions }}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -481,16 +481,16 @@
                                         $progressPercent = count($submissionTask->task->checklist_items) > 0 ? round(($completedCount / count($submissionTask->task->checklist_items)) * 100) : 0;
                                     @endphp
                                     <div class="mt-6">
-                                        <div class="bg-emerald-50 rounded-xl p-5 sm:p-6 border border-emerald-100">
-                                            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center">
+                                        <div class="bg-emerald-50 rounded-xl p-4 sm:p-6 border border-emerald-100">
+                                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4">
+                                                <div class="flex items-center gap-3 min-w-0">
+                                                    <div class="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                                                     </div>
                                                     <h5 class="text-base font-bold text-emerald-900">Checklist</h5>
                                                 </div>
-                                                <div class="text-right">
-                                                    <span class="text-xl font-bold text-emerald-900">{{ $completedCount }}/{{ count($submissionTask->task->checklist_items) }}</span>
+                                                <div class="sm:text-right">
+                                                    <span class="text-lg sm:text-xl font-bold text-emerald-900">{{ $completedCount }}/{{ count($submissionTask->task->checklist_items) }}</span>
                                                     <span class="text-sm text-emerald-700 ml-1">{{ $progressPercent }}% voltooid</span>
                                                 </div>
                                             </div>
@@ -500,11 +500,11 @@
                                             <div class="space-y-2">
                                                 @foreach($submissionTask->task->checklist_items as $indexItem => $item)
                                                     @php $isChecked = isset($checklistProgress[$indexItem]) && $checklistProgress[$indexItem]; @endphp
-                                                    <div class="flex items-center gap-3 p-3 rounded-lg {{ $isChecked ? 'bg-white/80' : 'bg-emerald-100/50' }}">
+                                                    <div class="flex items-start gap-3 p-3 rounded-lg {{ $isChecked ? 'bg-white/80' : 'bg-emerald-100/50' }}">
                                                         <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 {{ $isChecked ? 'bg-emerald-500' : 'border-2 border-slate-300' }}">
                                                             @if($isChecked)<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>@endif
                                                         </div>
-                                                        <span class="text-sm {{ $isChecked ? 'text-emerald-900 font-medium' : 'text-slate-600' }}">{{ $item }}</span>
+                                                        <span class="text-sm break-words {{ $isChecked ? 'text-emerald-900 font-medium' : 'text-slate-600' }}">{{ $item }}</span>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -514,7 +514,7 @@
 
                                 @if($submissionTask->proof_text || $submissionTask->employee_comment || $submissionTask->proof_files || $submissionTask->digital_signature || !empty($aiTask['comment'] ?? null) || !empty($aiTask['image_feedback'] ?? null))
                                     <div class="mt-6">
-                                        <div class="bg-violet-50 rounded-xl p-5 sm:p-6 border border-violet-100">
+                                        <div class="bg-violet-50 rounded-xl p-4 sm:p-6 border border-violet-100">
                                             <div class="flex items-center gap-3 mb-4">
                                                 <div class="w-9 h-9 bg-violet-500 rounded-xl flex items-center justify-center">
                                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -536,7 +536,7 @@
                                             @endif
                                             
                                             @if($submissionTask->proof_files)
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                                     @foreach($submissionTask->proof_files as $file)
                                                         @php
                                                             $isImage = is_array($file) && isset($file['mime_type']) && strpos($file['mime_type'], 'image/') === 0;
@@ -546,10 +546,10 @@
                                                             @if($isImage && isset($file['path']))
                                                                 <img src="{{ url('storage/' . $file['path']) }}" 
                                                                      alt="Bewijs foto" 
-                                                                     class="w-full h-48 object-cover rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow" 
+                                                                     class="w-full h-40 sm:h-48 object-cover rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow" 
                                                                      onclick="openImageModal('{{ url('storage/' . $file['path']) }}')" />
                                                             @elseif($isVideo && isset($file['path']))
-                                                                <video controls class="w-full h-48 rounded-lg shadow-sm border border-gray-200">
+                                                                <video controls class="w-full h-40 sm:h-48 rounded-lg shadow-sm border border-gray-200">
                                                                     <source src="{{ url('storage/' . $file['path']) }}" type="{{ $file['mime_type'] }}">
                                                                     Je browser ondersteunt geen video.
                                                                 </video>
@@ -576,10 +576,10 @@
                                             @if($submissionTask->digital_signature)
                                                 <div class="bg-white/80 rounded-xl p-4">
                                                     <p class="text-sm font-medium text-violet-900 mb-3">Digitale handtekening</p>
-                                                    <div class="bg-gray-50 rounded-lg p-4 inline-block">
+                                                    <div class="bg-slate-50 rounded-lg p-3 sm:p-4 overflow-x-auto">
                                                         <img src="{{ $submissionTask->digital_signature }}" 
                                                              alt="Digital Signature" 
-                                                             class="border border-gray-300 rounded bg-white max-w-xs max-h-32 shadow-sm">
+                                                             class="border border-gray-300 rounded bg-white max-w-full w-auto max-h-32 shadow-sm">
                                                     </div>
                                                 </div>
                                             @endif
@@ -590,7 +590,7 @@
                                 <!-- Enhanced Manager Review -->
                                 @if($submissionTask->manager_comment || $submissionTask->rejection_reason)
                                     <div class="mt-6 manager-review-block">
-                                        <div class="bg-slate-50 rounded-xl p-5 sm:p-6 border border-slate-200">
+                                        <div class="bg-slate-50 rounded-xl p-4 sm:p-6 border border-slate-200">
                                             <div class="flex items-center gap-3 mb-4">
                                                 <div class="w-9 h-9 bg-slate-500 rounded-xl flex items-center justify-center">
                                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
@@ -599,13 +599,13 @@
                                             </div>
                                             @if($submissionTask->rejection_reason)
                                                 <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 rejection-reason-block">
-                                                    <div class="flex items-start gap-3">
-                                                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-                                                        <div>
-                                                            <p class="font-semibold text-red-900 mb-1">Afwijzingsreden</p>
-                                                            <p class="text-red-800 leading-relaxed rejection-reason-text">{{ $submissionTask->rejection_reason }}</p>
-                                                        </div>
+                                                <div class="flex items-start gap-3">
+                                                    <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                                                    <div class="min-w-0">
+                                                        <p class="font-semibold text-red-900 mb-1">Afwijzingsreden</p>
+                                                        <p class="text-red-800 leading-relaxed break-words rejection-reason-text">{{ $submissionTask->rejection_reason }}</p>
                                                     </div>
+                                                </div>
                                                 </div>
                                             @endif
                                             @if($submissionTask->manager_comment)
@@ -622,8 +622,8 @@
                             </div>
 
                             @if($submissionTask->status === 'completed')
-                                <div class="mt-6 lg:mt-0 lg:flex-shrink-0 lg:w-80">
-                                    <div class="bg-white rounded-xl p-5 sm:p-6 border border-slate-200 shadow-sm review-action-box">
+                                <div class="mt-6 xl:mt-0 xl:flex-shrink-0 xl:w-80">
+                                    <div class="bg-white rounded-xl p-4 sm:p-6 border border-slate-200 shadow-sm review-action-box">
                                         <h6 class="text-base font-bold text-slate-900 mb-4 text-center">Beoordelingsacties</h6>
                                         <form method="POST" action="{{ route('admin.submission-tasks.approve', $submissionTask) }}" class="mb-4 approve-form" id="approve-form-{{ $submissionTask->id }}">
                                             @csrf
@@ -654,7 +654,7 @@
                                                 <label class="block text-sm font-medium text-slate-700 mb-2">Corrigerende actie <span class="text-red-500">*</span></label>
                                                 <textarea name="corrective_action" placeholder="Welke concrete actie moet worden uitgevoerd?" rows="2" required class="w-full text-sm border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500"></textarea>
                                             </div>
-                                            <div class="grid grid-cols-1 gap-3 mb-4">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 mb-4">
                                                 <div><label class="block text-sm font-medium text-slate-700 mb-1">Actiehouder</label><select name="corrective_action_owner_id" required class="w-full text-sm border-slate-200 rounded-xl"><option value="">Kies verantwoordelijke…</option>@foreach($correctiveActionOwners as $owner)<option value="{{ $owner->id }}">{{ $owner->name }}</option>@endforeach</select></div>
                                                 <div><label class="block text-sm font-medium text-slate-700 mb-1">Deadline</label><input type="date" name="corrective_action_due_at" min="{{ now()->toDateString() }}" required class="w-full text-sm border-slate-200 rounded-xl"></div>
                                             </div>
@@ -666,8 +666,8 @@
                                     </div>
                                 </div>
                             @elseif($submissionTask->status === 'rejected')
-                                <div class="mt-6 lg:mt-0 lg:flex-shrink-0 lg:w-80">
-                                    <div class="bg-red-50 rounded-xl p-5 sm:p-6 border border-red-100 review-action-box">
+                                <div class="mt-6 xl:mt-0 xl:flex-shrink-0 xl:w-80">
+                                    <div class="bg-red-50 rounded-xl p-4 sm:p-6 border border-red-100 review-action-box">
                                         <div class="text-center mb-4">
                                             <div class="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -678,8 +678,8 @@
                                     </div>
                                 </div>
                             @elseif($submissionTask->status === 'approved')
-                                <div class="mt-6 lg:mt-0 lg:flex-shrink-0 lg:w-80">
-                                    <div class="bg-emerald-50 rounded-xl p-5 sm:p-6 border border-emerald-100 review-action-box">
+                                <div class="mt-6 xl:mt-0 xl:flex-shrink-0 xl:w-80">
+                                    <div class="bg-emerald-50 rounded-xl p-4 sm:p-6 border border-emerald-100 review-action-box">
                                         <div class="text-center">
                                             <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -690,8 +690,8 @@
                                     </div>
                                 </div>
                             @elseif($submissionTask->status === 'redo_requested')
-                                <div class="mt-6 lg:mt-0 lg:flex-shrink-0 lg:w-80">
-                                    <div class="bg-orange-50 rounded-xl p-5 sm:p-6 border border-orange-100 review-action-box">
+                                <div class="mt-6 xl:mt-0 xl:flex-shrink-0 xl:w-80">
+                                    <div class="bg-orange-50 rounded-xl p-4 sm:p-6 border border-orange-100 review-action-box">
                                         <div class="text-center">
                                             <div class="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
@@ -712,45 +712,48 @@
                 @endforeach
             </div>
         </div>
-    </div>
-</div>
 
-@php
-    $submissionAuditEvents = $submission->submissionTasks->flatMap->auditEvents->sortByDesc('created_at');
-    $auditEventLabels = ['created'=>'Aangemaakt','submitted'=>'Ingevoerd','resubmitted'=>'Bijgewerkt en opnieuw ingediend','rejected'=>'Afgekeurd','approved'=>'Goedgekeurd','verified'=>'Actie geverifieerd','updated'=>'Gegevens bijgewerkt','legacy_snapshot'=>'Beginstand audittrail'];
-@endphp
-<div class="mt-6 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-    <div class="px-5 sm:px-6 py-5 border-b border-slate-100">
-        <h2 class="text-lg font-bold text-slate-900">Geschiedenis en audittrail</h2>
-        <p class="mt-1 text-sm text-slate-500">Chronologische registratie van invoer, wijzigingen, afkeuringen en goedkeuringen.</p>
-    </div>
-    <div class="p-5 sm:p-6">
-        @forelse($submissionAuditEvents as $event)
-            <div class="relative pl-7 pb-5 last:pb-0 border-l-2 border-slate-200 last:border-transparent">
-                <span class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-50"></span>
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
-                    <div><p class="text-sm font-semibold text-slate-900">{{ $auditEventLabels[$event->event_type] ?? $event->event_type }}</p><p class="text-sm text-slate-600">{{ $event->submissionTask?->task?->title ?? 'Controlepunt' }} · {{ $event->from_status ?: '—' }} → {{ $event->to_status ?: '—' }}</p></div>
-                    <p class="text-xs text-slate-500 whitespace-nowrap">{{ $event->created_at->format('d-m-Y H:i:s') }}</p>
-                </div>
-                <p class="mt-1 text-xs text-slate-500">Door {{ $event->actor?->name ?? 'Systeem' }}</p>
-                @if(data_get($event->snapshot, 'rejection_reason') || data_get($event->snapshot, 'verification_note') || data_get($event->snapshot, 'proof_text'))
-                    <p class="mt-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2">{{ data_get($event->snapshot, 'rejection_reason') ?: (data_get($event->snapshot, 'verification_note') ?: data_get($event->snapshot, 'proof_text')) }}</p>
-                @endif
+        @php
+            $submissionAuditEvents = $submission->submissionTasks->flatMap->auditEvents->sortByDesc('created_at');
+            $auditEventLabels = ['created'=>'Aangemaakt','submitted'=>'Ingevoerd','resubmitted'=>'Bijgewerkt en opnieuw ingediend','rejected'=>'Afgekeurd','approved'=>'Goedgekeurd','verified'=>'Actie geverifieerd','updated'=>'Gegevens bijgewerkt','legacy_snapshot'=>'Beginstand audittrail'];
+        @endphp
+        <div class="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                <h2 class="text-base sm:text-lg font-bold text-slate-900">Geschiedenis en audittrail</h2>
+                <p class="mt-1 text-sm text-slate-500">Chronologische registratie van invoer, wijzigingen, afkeuringen en goedkeuringen.</p>
             </div>
-        @empty
-            <p class="text-sm text-slate-500">Nog geen gebeurtenissen geregistreerd.</p>
-        @endforelse
+            <div class="p-4 sm:p-6 overflow-x-auto">
+                @forelse($submissionAuditEvents as $event)
+                    <div class="relative pl-7 pb-5 last:pb-0 border-l-2 border-slate-200 last:border-transparent">
+                        <span class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-600 ring-4 ring-blue-50"></span>
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 min-w-0">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">{{ $auditEventLabels[$event->event_type] ?? $event->event_type }}</p>
+                                <p class="text-sm text-slate-600 break-words">{{ $event->submissionTask?->task?->title ?? 'Controlepunt' }} · {{ $event->from_status ?: '—' }} → {{ $event->to_status ?: '—' }}</p>
+                            </div>
+                            <p class="text-xs text-slate-500 sm:whitespace-nowrap sm:flex-shrink-0">{{ $event->created_at->format('d-m-Y H:i:s') }}</p>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500">Door {{ $event->actor?->name ?? 'Systeem' }}</p>
+                        @if(data_get($event->snapshot, 'rejection_reason') || data_get($event->snapshot, 'verification_note') || data_get($event->snapshot, 'proof_text'))
+                            <p class="mt-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 break-words">{{ data_get($event->snapshot, 'rejection_reason') ?: (data_get($event->snapshot, 'verification_note') ?: data_get($event->snapshot, 'proof_text')) }}</p>
+                        @endif
+                    </div>
+                @empty
+                    <p class="text-sm text-slate-500">Nog geen gebeurtenissen geregistreerd.</p>
+                @endforelse
+            </div>
+        </div>
     </div>
 </div>
 
-<div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onclick="if(event.target===this)closeImageModal()">
-    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-end px-4 py-3 border-b border-slate-200">
+<div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm" onclick="if(event.target===this)closeImageModal()">
+    <div class="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-end px-3 sm:px-4 py-2 sm:py-3 border-b border-slate-200">
             <button type="button" onclick="closeImageModal()" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors" aria-label="Sluiten">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <div class="p-4 overflow-auto max-h-[calc(90vh-60px)]">
+        <div class="p-3 sm:p-4 overflow-auto max-h-[calc(90vh-60px)]">
             <img id="modalImage" src="" alt="Bewijs foto" class="max-w-full max-h-[70vh] mx-auto rounded-lg object-contain">
         </div>
     </div>
@@ -787,7 +790,7 @@ function showNotification(message, type = 'success') {
     
     // Create notification element
     const notification = document.createElement('div');
-    notification.className = `notification-toast fixed top-5 right-5 z-50 max-w-sm p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-out ${
+    notification.className = `notification-toast fixed top-4 left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-out ${
         type === 'success' 
             ? 'bg-green-500 text-white' 
             : 'bg-red-500 text-white'

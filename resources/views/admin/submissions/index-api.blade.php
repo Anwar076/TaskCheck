@@ -37,19 +37,19 @@
         </div>
 
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
+            <div class="px-3 pb-5 pt-4 sm:px-6 sm:pb-8 sm:pt-5 lg:px-8">
         {{-- Tabs --}}
         <div id="submissions-tabs" class="mb-6 sm:mb-8" style="display: none;">
             <div class="border-b border-slate-200">
-                <nav class="flex gap-1" aria-label="Tabs">
-                    <button type="button" class="tab-btn -mb-px px-4 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600 transition-colors focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="">
+                <nav class="flex gap-1 overflow-x-auto no-scrollbar -mb-px" aria-label="Tabs">
+                    <button type="button" class="tab-btn shrink-0 -mb-px px-3 sm:px-4 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600 transition-colors whitespace-nowrap focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="">
                         Alle inzendingen
                     </button>
-                    <button type="button" class="tab-btn -mb-px px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="to_review">
+                    <button type="button" class="tab-btn shrink-0 -mb-px px-3 sm:px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors whitespace-nowrap focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="to_review">
                         Te beoordelen
                         <span id="tab-to-review-badge" class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 hidden">0</span>
                     </button>
-                    <button type="button" class="tab-btn -mb-px px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="done">
+                    <button type="button" class="tab-btn shrink-0 -mb-px px-3 sm:px-4 py-3 text-sm font-medium border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-colors whitespace-nowrap focus:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-blue-500/20" data-tab-value="done">
                         Afgerond
                     </button>
                 </nav>
@@ -63,10 +63,10 @@
         </div>
 
         {{-- Stats --}}
-        <div id="submissions-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8" style="display: none;">
-            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
+        <div id="submissions-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8" style="display: none;">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-3 sm:p-5">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <div class="hidden sm:flex w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                     <div>
@@ -75,9 +75,9 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-3 sm:p-5">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                    <div class="hidden sm:flex w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-xl items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <div>
@@ -86,9 +86,9 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-3 sm:p-5">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                    <div class="hidden sm:flex w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <div>
@@ -97,9 +97,9 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 sm:p-5">
+            <div class="bg-slate-50 rounded-xl border border-slate-100 p-3 sm:p-5">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-50 rounded-xl flex items-center justify-center">
+                    <div class="hidden sm:flex w-10 h-10 sm:w-12 sm:h-12 bg-violet-50 rounded-xl items-center justify-center">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
                     </div>
                     <div>
@@ -124,10 +124,10 @@
                                 class="block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div id="status-filter-wrap" class="flex items-center gap-2">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 w-full lg:w-auto">
+                        <div id="status-filter-wrap" class="flex items-center gap-2 w-full sm:w-auto">
                             <label for="status-filter" class="text-sm text-slate-600 whitespace-nowrap">Status:</label>
-                            <select id="status-filter" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[140px]">
+                            <select id="status-filter" class="flex-1 sm:flex-none px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-0 sm:min-w-[140px]">
                                 <option value="">Alle statussen</option>
                                 <option value="in_progress">Bezig</option>
                                 <option value="completed">Afgerond</option>
@@ -135,7 +135,7 @@
                                 <option value="rejected">Afgewezen</option>
                             </select>
                         </div>
-                        <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" title="Vernieuwen">
+                        <button type="button" id="refresh-btn" class="inline-flex items-center justify-center w-11 h-11 sm:w-10 sm:h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors self-end sm:self-auto" title="Vernieuwen">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                         </button>
                     </div>
@@ -143,18 +143,26 @@
             </div>
         </div>
 
-        {{-- Tabel --}}
-        <div id="submissions-table-wrap" class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden" style="display: none;">
-            <div id="submissions-table" class="w-full" style="display: none;">
+        {{-- Tabel: zelfde layout overal, horizontaal scrollen op smalle schermen --}}
+        <div id="submissions-table-wrap" class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-x-auto" style="display: none;">
+            <div id="submissions-table" class="w-full min-w-[1230px]">
                 <table class="w-full table-fixed divide-y divide-slate-200">
+                    <colgroup>
+                        <col style="width: 220px">
+                        <col style="width: 220px">
+                        <col style="width: 160px">
+                        <col style="width: 200px">
+                        <col style="width: 170px">
+                        <col style="width: 260px">
+                    </colgroup>
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="w-[24%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
-                            <th class="w-[20%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
-                            <th class="w-[11%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-                            <th class="w-[11%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Voortgang</th>
-                            <th class="w-[12%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Ingediend</th>
-                            <th class="w-[22%] px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
+                            <th class="px-5 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Status</th>
+                            <th class="px-5 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Voortgang</th>
+                            <th class="px-5 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Ingediend</th>
+                            <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
                         </tr>
                     </thead>
                     <tbody id="submissions-tbody" class="divide-y divide-slate-200">
@@ -249,7 +257,6 @@ function applySubmissionsResponse(data) {
     const statsDiv = document.getElementById('submissions-stats');
     const filtersDiv = document.getElementById('submissions-filters');
     const tableWrap = document.getElementById('submissions-table-wrap');
-    const tableDiv = document.getElementById('submissions-table');
     const emptyDiv = document.getElementById('empty-state');
     const errorDiv = document.getElementById('error-state');
     const paginationDiv = document.getElementById('pagination-container');
@@ -276,7 +283,6 @@ function applySubmissionsResponse(data) {
     loadingDiv.style.display = 'none';
     errorDiv.style.display = 'none';
     tableWrap.style.display = 'none';
-    tableDiv.style.display = 'none';
     emptyDiv.style.display = 'none';
     paginationDiv.style.display = 'none';
 
@@ -296,7 +302,6 @@ function applySubmissionsResponse(data) {
     if (items.length > 0) {
         renderSubmissions(items);
         tableWrap.style.display = 'block';
-        tableDiv.style.display = 'block';
         if (data.last_page > 1) {
             renderPagination(data);
             paginationDiv.style.display = 'flex';
@@ -328,7 +333,6 @@ async function loadSubmissions(page = 1) {
     const statsDiv = document.getElementById('submissions-stats');
     const filtersDiv = document.getElementById('submissions-filters');
     const tableWrap = document.getElementById('submissions-table-wrap');
-    const tableDiv = document.getElementById('submissions-table');
     const emptyDiv = document.getElementById('empty-state');
     const errorDiv = document.getElementById('error-state');
     const paginationDiv = document.getElementById('pagination-container');
@@ -339,7 +343,6 @@ async function loadSubmissions(page = 1) {
         statsDiv.style.display = 'none';
         filtersDiv.style.display = 'none';
         tableWrap.style.display = 'none';
-        tableDiv.style.display = 'none';
         emptyDiv.style.display = 'none';
         paginationDiv.style.display = 'none';
     }
@@ -431,7 +434,9 @@ function formatSubmittedAt(iso) {
 
 function renderSubmissions(items) {
     const tbody = document.getElementById('submissions-tbody');
-    tbody.innerHTML = items.map(s => {
+    const rows = [];
+
+    items.forEach(s => {
         const isTeam = Boolean(s.is_team_submission);
         const contributors = Array.isArray(s.contributors) ? s.contributors : [];
         const userName = s.user ? escapeHtml(s.user.name) : 'Onbekend';
@@ -447,9 +452,8 @@ function renderSubmissions(items) {
         const submittedAt = s.completed_at || s.submitted_at || s.created_at;
         const submittedFmt = formatSubmittedAt(submittedAt);
         const viewUrl = "{{ url('admin/submissions') }}/" + s.id;
-        const reviewUrl = "{{ url('admin/submissions') }}/" + s.id;
         const needsReview = s.status === 'completed';
-        const actionUrl = needsReview ? reviewUrl : viewUrl;
+        const actionUrl = viewUrl;
         const actionLabel = needsReview ? 'Beoordelen' : 'Bekijken';
         const actionClass = needsReview
             ? 'bg-emerald-600 text-white hover:bg-emerald-700'
@@ -505,7 +509,12 @@ function renderSubmissions(items) {
                     <span class="text-sm font-medium text-slate-900 truncate">${userName}</span>
                </div>`;
 
-        return `
+        const actionButtons = `
+            <a href="${actionUrl}" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
+            ${needsReview ? `<button type="button" onclick="approveAllSubmission(${s.id}, this)" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 transition-colors">Alles goedkeuren</button>` : ''}
+        `;
+
+        rows.push(`
         <tr class="group hover:bg-slate-50/80 transition-colors border-l-[3px] ${st.border}">
             <td class="px-4 py-3 align-middle">
                 ${employeeCell}
@@ -516,29 +525,30 @@ function renderSubmissions(items) {
                     <span class="text-sm font-medium text-slate-900 truncate" title="${listTitle}">${listTitle}</span>
                 </div>
             </td>
-            <td class="px-4 py-3 align-middle">
+            <td class="px-5 py-3 align-middle whitespace-nowrap">
                 <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${st.bg} ${st.text}">
                     <span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>
                     ${st.label}
                 </span>
             </td>
-            <td class="px-4 py-3 align-middle">
-                <div class="flex items-center gap-2">
-                    <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-0">
+            <td class="px-5 py-3 align-middle">
+                <div class="flex items-center gap-2.5">
+                    <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-[88px]">
                         <div class="h-full ${progressColor} rounded-full" style="width:${Math.min(progress, 100)}%"></div>
                     </div>
-                    <span class="text-xs font-semibold tabular-nums text-slate-600 w-8 text-right flex-shrink-0">${progress}%</span>
+                    <span class="text-xs font-semibold tabular-nums text-slate-600 w-9 text-right flex-shrink-0">${progress}%</span>
                 </div>
             </td>
-            <td class="px-4 py-3 align-middle text-sm text-slate-600 truncate" title="${escapeAttr(submittedFmt.title)}">${submittedFmt.text}</td>
+            <td class="px-5 py-3 align-middle text-sm text-slate-600 whitespace-nowrap" title="${escapeAttr(submittedFmt.title)}">${submittedFmt.text}</td>
             <td class="px-4 py-3 align-middle text-right">
                 <div class="inline-flex flex-wrap justify-end gap-1.5">
-                    <a href="${actionUrl}" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
-                    ${needsReview ? `<button type="button" onclick="approveAllSubmission(${s.id}, this)" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 transition-colors">Alles goedkeuren</button>` : ''}
+                    ${actionButtons}
                 </div>
             </td>
-        </tr>`;
-    }).join('');
+        </tr>`);
+    });
+
+    tbody.innerHTML = rows.join('');
 }
 
 async function approveAllSubmission(id, button) {
@@ -599,9 +609,39 @@ function renderPagination(data) {
     }
 
     div.innerHTML = `
-        <div class="text-sm text-slate-600">${from} t/m ${to} van ${total} resultaten</div>
-        <nav class="relative z-0 inline-flex rounded-xl shadow-sm overflow-hidden">${navHtml}</nav>
+        <div class="text-sm text-slate-600 text-center sm:text-left">${from} t/m ${to} van ${total} resultaten</div>
+        <nav class="relative z-0 inline-flex max-w-full overflow-x-auto rounded-xl shadow-sm">${navHtml}</nav>
     `;
 }
 </script>
+<style>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+#submissions-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+}
+#submissions-table table {
+    min-width: 1230px;
+}
+#submissions-table th,
+#submissions-table td {
+    box-sizing: border-box;
+}
+#submissions-table-wrap::-webkit-scrollbar {
+    height: 10px;
+}
+#submissions-table-wrap::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 999px;
+}
+#submissions-table-wrap::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 999px;
+}
+#submissions-table-wrap::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+</style>
 @endsection
