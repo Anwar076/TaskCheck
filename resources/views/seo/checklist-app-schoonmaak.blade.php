@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @php
-        $seoTitle       = 'Checklist app schoonmaak – digitaal bewijs & realtime controle | TaskCheck';
-        $seoDescription = 'Digitale schoonmaak checklist app voor horeca, hotels en schoonmaakbedrijven. Met foto- en videobewijs, realtime voortgang en rapportages. Probeer 14 dagen gratis TaskCheck!';
+        $seoTitle       = 'Checklist app schoonmaak voor horeca: digitaal bewijs & HACCP | TaskCheck';
+        $seoDescription = 'Digitale schoonmaak checklist app voor restaurants, hotels en bakkerijen. Met foto- en videobewijs, HACCP/NVWA integratie, en realtime voortgang. Probeer 14 dagen gratis TaskCheck – dé checklist app voor de horeca!';
         $seoUrl = route('seo.checklist-app-schoonmaak');
         $seoImage = asset('images/seo-checklist-schoonmaak-hero.png');
     @endphp
@@ -428,7 +428,11 @@
                     ['Checklist app met foto-bewijs', route('seo.checklist-app-met-foto-bewijs')],
                     ['Schoonmaakrooster horeca', route('seo.schoonmaakrooster-horeca')],
                     ['Restaurant checklist app', route('seo.restaurant-checklist-app')],
-                    ['Wat is een checklist app?', route('seo.wat-is-een-checklist-app')],
+                    ['Wat is een checklist app?', route('seo.wat-is-een-checklist-app')],                    ['HACCP checklist app', route('seo.haccp-checklist-app')],
+                    ['Schoonmaak checklist app', route('seo.schoonmaak-checklist-app')],
+                    ['Temperatuurregistratie app', route('seo.temperatuurregistratie-app')],
+                    ['Opening checklist horeca', route('seo.opening-checklist-horeca')],
+                    ['Sluitings checklist horeca', route('seo.sluitings-checklist-horeca')],
                 ] as $link)
                 <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
                     {{ $link[0] }}
@@ -440,6 +444,7 @@
 
     </div>
 <section class="relative py-14 bg-slate-50 border-t border-b border-slate-200"><div class="max-w-4xl mx-auto px-4"><h2 class="text-2xl font-bold mb-4">Waarom kiezen horeca en schoonmaakteams voor digitale checklists?</h2><ul class="list-disc pl-6 text-slate-700 space-y-2"><li><strong>Direct bewijs:</strong> Lever foto- of videobewijs bij elke taak, handig voor audits en opdrachtgever-verantwoording.</li><li><strong>Realtime overzicht:</strong> Leiding en opdrachtgever zien direct per locatie wat er is gedaan.</li><li><strong>NVWA & HACCP ready:</strong> Voldoet aan alle eisen voor voedselveiligheid en schoonmaak in horeca.</li><li><strong>Geen losse lijsten meer:</strong> Alles mobiel, geen Excel of papieren formulieren.</li><li><strong>Snelle implementatie:</strong> Start direct met eigen checklists of templates.</li></ul><p class="mt-6">Meer weten? <a href="/register" class="text-blue-700 underline font-semibold">Start 14 dagen gratis</a> of <a href="/pricing" class="text-blue-700 underline font-semibold">bekijk de prijzen</a>.</p></div></section>
+<section class="bg-blue-50 py-12"><div class="max-w-4xl mx-auto px-4"><h2 class="text-2xl font-bold mb-4">Waarom kiezen horeca en bakkerijen voor een digitale checklist app?</h2><ul class="list-disc list-inside text-slate-700 mb-6"><li><strong>Altijd aantoonbaar schoon:</strong> Met foto- en videobewijs per taak bewijs je direct de uitgevoerde werkzaamheden.</li><li><strong>Direct klaar voor NVWA-controle:</strong> Voorkom boetes en stress: alle HACCP en schoonmaakdata overzichtelijk in één app.</li><li><strong>Verschil per locatie weg:</strong> Werk op alle filialen volgens dezelfde, getoetste checklist. Minder herstelwerk, minder discussie.</li><li><strong>Realtime sturing:</strong> Leidinggevenden en franchisers zien per locatie de voortgang en eventuele achterstanden.</li><li><strong>Personeel werkt mobiel:</strong> Geen papieren rompslomp meer. Alles in de app, ook temperatuurmeters en instructievideo's.</li></ul><div class="mt-6"><img src="/images/voorbeeld-haccp-checklist-app.png" alt="Voorbeeld digitale schoonmaak checklist app voor horeca" class="rounded-xl border border-slate-200 shadow-sm w-full max-w-xl mx-auto"></div></div></section>
 </main>
 
 @include('components.footer')
