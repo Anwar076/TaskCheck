@@ -45,6 +45,10 @@ class ApnsPushService
 
         try {
             $response = Http::withToken($this->jwt())
+                ->withOptions([
+                    // APNs' provider API only accepts HTTP/2 requests.
+                    'version' => 2.0,
+                ])
                 ->withHeaders([
                     'apns-topic' => (string) config('services.apns.bundle_id'),
                     'apns-push-type' => 'alert',
