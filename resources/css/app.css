@@ -33,3 +33,26 @@ html.is-native-app {
 .app-safe-fab-top {
     top: max(0.75rem, var(--safe-top));
 }
+
+.app-bottom-nav {
+    padding-bottom: max(0.35rem, var(--safe-bottom));
+}
+
+.realtime-toast-stack {
+    bottom: calc(1rem + var(--safe-bottom));
+}
+
+@media (max-width: 1279px) {
+    html.is-native-app body.employee-portal {
+        padding-top: var(--safe-top);
+    }
+
+    body.employee-portal main {
+        padding-bottom: calc(5.5rem + var(--safe-bottom));
+    }
+
+    body.employee-portal .realtime-toast-stack,
+    body.employee-portal .employee-floating-toast {
+        bottom: calc(4.75rem + var(--safe-bottom)) !important;
+    }
+}
