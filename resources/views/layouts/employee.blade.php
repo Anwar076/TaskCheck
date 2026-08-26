@@ -251,6 +251,11 @@
                     </div>
                     </div>
                 </div>
+                @hasSection('nav-extra')
+                    <div class="border-t border-gray-100 py-3 flex items-center justify-center">
+                        @yield('nav-extra')
+                    </div>
+                @endif
             </div>
 
             <!-- Mobile Menu -->

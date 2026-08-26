@@ -4,179 +4,157 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
+@section('nav-extra')
+        @php
+            $currentListPosition = $currentListPosition ?? 1;
+            $totalLists = $totalLists ?? 1;
+            $listUrls = $listUrls ?? [];
+            $currentListInJump = $currentListInJump ?? true;
+        @endphp
+        <div class="hero-list-nav">
+            <button type="button"
+                    class="hero-nav-btn"
+                    id="hero-nav-prev"
+                    aria-label="Vorige lijst"
+                    @if(!empty($previousListUrl)) data-url="{{ $previousListUrl }}" @else disabled @endif>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <div class="hero-list-nav-center">
+                <h1 class="hero-list-title">
+                    {{ $submission->taskList->title }}
+                </h1>
+
+                @if($currentListInJump && $totalLists > 0)
+                <label class="list-jump" title="Ga naar een andere lijst">
+                    <span class="sr-only">Lijstnummer</span>
+                    <input type="number"
+                           inputmode="numeric"
+                           min="1"
+                           max="{{ max(1, $totalLists) }}"
+                           value="{{ $currentListPosition }}"
+                           id="list-position-input"
+                           class="list-jump-input"
+                           aria-label="Lijst {{ $currentListPosition }} van {{ $totalLists }}"
+                           data-current="{{ $currentListPosition }}"
+                           data-total="{{ $totalLists }}"
+                           data-urls='@json($listUrls)'
+                           @if($totalLists <= 1) disabled @endif>
+                    <span class="list-jump-total">/{{ $totalLists }}</span>
+                </label>
+                @endif
+            </div>
+
+            <button type="button"
+                    class="hero-nav-btn"
+                    id="hero-nav-next"
+                    aria-label="Volgende lijst"
+                    @if(!empty($nextListUrl)) data-url="{{ $nextListUrl }}" @else disabled @endif>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+        </div>
+@endsection
+
 @section('content')
 <div class=" bg-gray-50">
-    {{-- Hero: zelfde wrapper als takenblokken voor identieke breedte --}}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
-    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-    <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
-            
-            {{-- Titel + info --}}
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-3">
-                    <div class="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-
-                    <div class="min-w-0">
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight break-words">
-                            {{ $submission->taskList->title }}
-                        </h1>
-                        <p class="mt-1 text-xs sm:text-sm lg:text-base text-gray-600 font-medium">
-                            Gestart {{ $submission->started_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Progress indicator --}}
-            <div class="flex flex-row md:flex-col items-center justify-between md:items-end gap-2 md:gap-1">
-                @php
-                    $completedTasks = $submission->submissionTasks->whereIn('status', ['completed', 'approved'])->count();
-                    $totalTasks = $submission->submissionTasks->count();
-                    $progressPercent = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
-                    $progressColor = $progressPercent == 0 ? '#ef4444' : ($progressPercent >= 100 ? '#22c55e' : '#3b82f6');
-                    $textColor = $progressPercent == 0 ? 'text-red-600' : ($progressPercent >= 100 ? 'text-green-600' : 'text-gray-900');
-                @endphp
-
-                <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 relative">
-                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="40" stroke="#e5e7eb" stroke-width="6" fill="none" />
-                        <circle cx="50" cy="50" r="40"
-                            id="submission-progress-circle"
-                            stroke="{{ $progressColor }}"
-                            stroke-width="6"
-                            fill="none"
-                            stroke-linecap="round"
-                            stroke-dasharray="{{ 2 * 3.14159 * 40 }}"
-                            stroke-dashoffset="{{ 2 * 3.14159 * 40 * (1 - ($progressPercent / 100)) }}"
-                            class="progress-circle transition-all duration-1000 ease-out">
-                        </circle>
-                    </svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <div id="submission-progress-percent" class="text-sm sm:text-base lg:text-lg font-bold {{ $textColor }}">
-                            {{ $progressPercent }}%
-                        </div>
-                    </div>
-                </div>
-
-                <p id="submission-progress-count" class="text-[11px] sm:text-xs lg:text-sm text-gray-500 text-center">
-                        {{ $completedTasks }}/{{ $totalTasks }} taken
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
+    @php
+        $completedTasks = $submission->submissionTasks->whereIn('status', ['completed', 'approved'])->count();
+        $totalTasks = $submission->submissionTasks->count();
+        $progressPercent = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+        $progressColor = $progressPercent == 0 ? '#ef4444' : ($progressPercent >= 100 ? '#22c55e' : '#3b82f6');
+    @endphp
 
     {{-- Taken: exact dezelfde max-w-7xl + px wrapper als hero --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div class="space-y-6">
+        <div class="space-y-3 sm:space-y-4">
             @foreach($submission->submissionTasks as $index => $submissionTask)
-                @php $task = $submissionTask->task; @endphp
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden task-card group"
+                @php
+                    $task = $submissionTask->task;
+                    $isTaskDone = in_array($submissionTask->status, ['completed', 'approved'], true);
+                    $needsAttention = in_array($submissionTask->status, ['rejected', 'redo_requested'], true)
+                        || ($submissionTask->rejection_reason && $submissionTask->status === 'pending');
+                    $taskValidationRules = is_array($task->validation_rules) ? $task->validation_rules : [];
+                    $hasMetricRuleHeader = !empty($taskValidationRules['metric']);
+                    $requiresEvidence = in_array($task->required_proof_type, ['photo', 'video', 'file', 'text', 'any'], true)
+                        || (bool) $task->requires_signature
+                        || $hasMetricRuleHeader;
+                    $canQuickComplete = !$isTaskDone
+                        && in_array($submissionTask->status, ['pending', 'redo_requested'], true)
+                        && !$requiresEvidence;
+                    $listStillOpen = !in_array($submission->status, ['completed', 'reviewed'], true);
+                    $canEditTask = $listStillOpen
+                        && in_array($submissionTask->status, ['pending', 'redo_requested', 'completed'], true);
+                    $startExpanded = $needsAttention;
+                @endphp
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden task-card {{ $startExpanded ? 'is-expanded' : '' }} {{ $isTaskDone ? 'task-completed' : '' }}"
                      data-task-id="{{ $task->id }}"
                      data-required="{{ $task->is_required ? '1' : '0' }}"
-                     data-status="{{ $submissionTask->status }}">
-                    <!-- Task Header -->
-                    <div class="task-header bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 p-4 sm:p-6 flex items-start justify-between gap-4">
-                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 flex-1 min-w-0">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 mr-3 sm:mr-4">
-                                    @if(in_array($submissionTask->status, ['completed', 'approved']))
-                                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-green-500 rounded-xl flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </div>
-                                    @else
-                                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                                            <span class="text-sm font-bold text-blue-700">{{ $index + 1 }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start gap-2 mb-2">
-                                        <h3 class="text-lg sm:text-xl font-bold {{ in_array($submissionTask->status, ['completed', 'approved']) ? 'text-green-900' : 'text-gray-900' }}">
-                                            {{ $task->title }}
-                                        </h3>
-                                        @if($task->instructions)
-                                            <button type="button" 
-                                                    onclick="toggleInstructions(event, 'task-{{ $submissionTask->id }}')"
-                                                    class="flex-shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors"
-                                                    title="Klik voor gedetailleerde instructies">
-                                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                            </button>
-                                        @endif
-                                    </div>
-                                    @if($task->description)
-                                        <p class="text-sm sm:text-base {{ in_array($submissionTask->status, ['completed', 'approved']) ? 'text-green-700' : 'text-gray-600' }}">
-                                            {{ $task->description }}
-                                        </p>
-                                    @endif
-                                    
-                                    @if($task->instructions)
-                                        <!-- Collapsible Instructions -->
-                                        <div id="instructions-task-{{ $submissionTask->id }}" class="hidden mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                            <div class="flex items-start">
-                                                <div class="flex-shrink-0 mr-2">
-                                                    <svg class="w-4 h-4 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <h4 class="text-sm font-semibold text-blue-900 mb-1">Gedetailleerde Instructies</h4>
-                                                    <p class="text-sm text-blue-700 whitespace-pre-line leading-relaxed">{{ $task->instructions }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap gap-2 md:justify-end">
-                                @if($task->is_required)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                                        Verplicht
-                                    </span>
-                                @endif
-                                @if($task->requires_signature)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                                        </svg>
-                                        Handtekening
-                                    </span>
-                                @endif
-                                @if(in_array($submissionTask->status, ['completed', 'approved']))
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        {{ $submissionTask->status === 'approved' ? 'Goedgekeurd' : 'Afgerond' }}
-                                    </span>
-                                @elseif($submissionTask->status === 'rejected')
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                        </svg>
-                                        Afgewezen
-                                    </span>
-                                @elseif($submissionTask->status === 'redo_requested')
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
-                                        Opnieuw Uitvoeren
-                                    </span>
-                                @endif
-                            </div>
+                     data-status="{{ $submissionTask->status }}"
+                     data-expanded="{{ $startExpanded ? '1' : '0' }}">
+                    <div class="task-header">
+                        <div class="task-index {{ $isTaskDone ? 'is-done' : '' }}">
+                            @if($isTaskDone)
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            @else
+                                <span>{{ $index + 1 }}</span>
+                            @endif
                         </div>
+
+                        <div class="task-title-row">
+                            <h3 class="task-title font-sans {{ $isTaskDone ? 'is-done' : '' }}">
+                                {{ $task->title }}@if($task->is_required)<span class="task-required-mark" title="Verplicht">*</span>@endif
+                            </h3>
+                        </div>
+
+                        <div class="task-actions">
+                            @if($submissionTask->status === 'rejected')
+                                <span class="task-chip task-chip-required">Afgewezen</span>
+                            @elseif($submissionTask->status === 'redo_requested')
+                                <span class="task-chip task-chip-redo">Opnieuw</span>
+                            @endif
+                            @if($canQuickComplete)
+                                <button type="button"
+                                        class="task-quick-complete {{ $startExpanded ? 'hidden' : '' }}"
+                                        data-task-id="{{ $task->id }}"
+                                        title="Markeren als voltooid"
+                                        onclick="event.stopPropagation(); quickCompleteTask('{{ $task->id }}');">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            @endif
+                            <button type="button"
+                                    class="task-toggle"
+                                    aria-expanded="{{ $startExpanded ? 'true' : 'false' }}"
+                                    aria-controls="task-body-{{ $submissionTask->id }}"
+                                    title="{{ $startExpanded ? 'Taak inklappen' : 'Taak uitklappen' }}"
+                                    onclick="event.stopPropagation(); toggleTaskCard(this.closest('.task-card'));">
+                                <svg class="task-toggle-icon w-4 h-4 {{ $startExpanded ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        @if($task->description)
+                            <p class="task-detail {{ $isTaskDone ? 'text-green-700' : 'text-gray-600' }} {{ $startExpanded ? '' : 'hidden' }}">
+                                {{ $task->description }}
+                            </p>
+                        @endif
+                        @if($task->instructions)
+                            <div class="task-detail task-instructions {{ $startExpanded ? '' : 'hidden' }}">
+                                <p class="task-instructions-label">Gedetailleerde instructies</p>
+                                <p class="task-instructions-text">{{ $task->instructions }}</p>
+                            </div>
+                        @endif
                     </div>
 
-                    <div id="task-body-{{ $submissionTask->id }}" class="task-body">
+                    <div id="task-body-{{ $submissionTask->id }}" class="task-body {{ $startExpanded ? '' : 'hidden' }}">
                     @if($submissionTask->rejection_reason && in_array($submissionTask->status, ['pending', 'redo_requested']))
                         <!-- Rejection/Redo Information -->
                         <div class="bg-red-50 border-l-4 border-red-400 px-4 sm:px-6 py-4 sm:py-6">
@@ -204,7 +182,7 @@
                         </div>
                     @endif
 
-                    @if(in_array($submissionTask->status, ['pending', 'redo_requested']))
+                    @if($canEditTask)
                         <!-- Task Completion Form -->
                         <div class="p-4 sm:p-6">
 
@@ -224,7 +202,8 @@
                                                         <input type="checkbox" 
                                                                data-task-id="{{ $task->id }}"
                                                                data-item-index="{{ $index }}"
-                                                               class="checklist-checkbox mt-0.5 w-4 h-4 text-cyan-600 border-2 border-cyan-300 rounded focus:ring-cyan-500 focus:ring-2">
+                                                               class="checklist-checkbox mt-0.5 w-4 h-4 text-cyan-600 border-2 border-cyan-300 rounded focus:ring-cyan-500 focus:ring-2"
+                                                               @checked(!empty(($submissionTask->checklist_progress ?? [])[$index]))>
                                                         <span class="text-sm text-cyan-800 flex-1">{{ $item }}</span>
                                                     </label>
                                                 @endforeach
@@ -235,7 +214,11 @@
                                 </div>
                             @endif
 
-                            <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6" id="task-form-{{ $task->id }}" data-required-proof-type="{{ $task->required_proof_type }}">
+                            @if($isTaskDone)
+                                <p class="task-edit-hint text-sm text-slate-600 mb-4">Deze taak is afgerond. Je kunt de gegevens nog aanpassen tot je de lijst indient.</p>
+                            @endif
+
+                            <form method="POST" action="{{ route('employee.submissions.tasks.complete', [$submission, $task]) }}" enctype="multipart/form-data" class="space-y-6" id="task-form-{{ $task->id }}" data-required-proof-type="{{ $task->required_proof_type }}" data-has-existing-proof="{{ !empty($submissionTask->proof_files) ? '1' : '0' }}" data-has-signature="{{ $submissionTask->digital_signature ? '1' : '0' }}">
                                 @csrf
                                 @php
                                     $validationRules = is_array($task->validation_rules) ? $task->validation_rules : [];
@@ -245,13 +228,17 @@
                                     $metricMin = $validationRules['min'] ?? null;
                                     $metricMax = $validationRules['max'] ?? null;
                                     $metricComparison = $validationRules['comparison'] ?? null;
+                                    $metricValue = null;
+                                    if ($hasMetricRule && filled($submissionTask->proof_text) && preg_match('/[-+]?\d+(?:[.,]\d+)?/', $submissionTask->proof_text, $metricMatch)) {
+                                        $metricValue = str_replace(',', '.', $metricMatch[0]);
+                                    }
                                 @endphp
                                 
                                 <!-- Hidden field for checklist progress -->
                                 <input type="hidden" name="checklist_progress" id="checklist-progress-{{ $task->id }}" value="">
 
                                 @if($hasMetricRule)
-                                    <input type="hidden" name="proof_text" id="metric-proof-text-{{ $task->id }}" value="">
+                                    <input type="hidden" name="proof_text" id="metric-proof-text-{{ $task->id }}" value="{{ old('proof_text', $submissionTask->proof_text) }}">
                                     <div class="rounded-xl border border-blue-200 bg-blue-50 p-4">
                                         <div class="mb-2 flex items-center justify-between gap-2">
                                             <label for="metric-input-{{ $task->id }}" class="text-sm font-semibold text-blue-900">
@@ -274,6 +261,7 @@
                                                 id="metric-input-{{ $task->id }}"
                                                 class="block w-full rounded-xl border border-blue-300 px-4 py-3 text-base shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="{{ $metricType === 'ph' ? 'Bijv. 4.3' : 'Bijv. 6.5' }}"
+                                                value="{{ old('proof_text', $metricValue) }}"
                                                 required
                                                 data-min="{{ $metricMin }}"
                                                 data-max="{{ $metricMax }}"
@@ -352,7 +340,7 @@
                                         </label>
                                         <textarea name="proof_text" rows="4" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base" 
                                             placeholder="Voeg notities of opmerkingen toe over het voltooien van deze taak..."
-                                            {{ $task->required_proof_type === 'text' ? 'required' : '' }}></textarea>
+                                            {{ $task->required_proof_type === 'text' ? 'required' : '' }}>{{ old('proof_text', $submissionTask->proof_text) }}</textarea>
                                     </div>
                                 @endif
 
@@ -477,9 +465,7 @@
                                         @endif
                                         
                                         <!-- Preview area -->
-                                        <div id="preview-area-{{ $task->id }}" class="mt-4 space-y-2">
-                                            <!-- Preview items worden hier getoond -->
-                                        </div>
+                                        <div id="preview-area-{{ $task->id }}" class="mt-4 space-y-2"></div>
                                         
                                         <p class="mt-2 text-xs sm:text-sm text-gray-500">
                                             @if($task->required_proof_type === 'photo')
@@ -494,7 +480,7 @@
                                 @endif
 
                                 @if($task->required_proof_type !== 'text')
-                                <details class="group rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white shadow-sm">
+                                <details class="group rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white shadow-sm" @if($submissionTask->employee_comment) open @endif>
                                     <summary class="list-none cursor-pointer px-4 py-3.5 select-none">
                                         <div class="flex items-center justify-between gap-3">
                                             <div class="flex items-center gap-2.5 min-w-0">
@@ -529,48 +515,50 @@
                                 <!-- Digital Signature for Individual Task -->
                                 @if($task->requires_signature)
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Handtekening <span class="text-red-500">*</span></label>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Handtekening @if(!$submissionTask->digital_signature)<span class="text-red-500">*</span>@endif</label>
                                         <div class="mt-2 w-full max-w-full overflow-x-auto">
                                             <canvas id="signature-pad-task-{{ $submissionTask->id }}" class="border border-gray-300 rounded-xl bg-white shadow-sm w-full max-w-sm" width="350" height="120"></canvas>
                                         </div>
-                                        <input type="hidden" name="digital_signature" id="signature-input-task-{{ $submissionTask->id }}" required>
+                                        <input type="hidden" name="digital_signature" id="signature-input-task-{{ $submissionTask->id }}" @if(!$submissionTask->digital_signature) required @endif>
                                         <div class="flex flex-col sm:flex-row gap-2 mt-3">
                                             <button type="button" class="w-full sm:w-auto px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors" onclick="clearSignaturePad('task-{{ $submissionTask->id }}')">Handtekening Wissen</button>
                                         </div>
-                                        <p class="mt-2 text-xs sm:text-sm text-gray-500">Teken je handtekening hierboven. Dit wordt opgeslagen als bewijs van voltooiing.</p>
+                                        <p class="mt-2 text-xs sm:text-sm text-gray-500">
+                                            @if($submissionTask->digital_signature)
+                                                Er is al een handtekening opgeslagen. Teken opnieuw als je die wilt vervangen.
+                                            @else
+                                                Teken je handtekening hierboven. Dit wordt opgeslagen als bewijs van voltooiing.
+                                            @endif
+                                        </p>
                                     </div>
                                 @endif
 
                                 <div class="flex flex-col sm:flex-row justify-end">
                                     <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-5 sm:px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 mt-2 sm:mt-0">
-                                        @if($task->requires_signature)
+                                            @if($isTaskDone)
+                                                Wijzigingen opslaan
+                                            @elseif($task->requires_signature)
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
                                             Teken & Voltooien
-                                        @else
+                                            @else
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                             </svg>
                                             Markeren als Voltooid
-                                        @endif
+                                            @endif
                                     </button>
                                 </div>
                             </form>
                         </div>
                     @else
                         <!-- Completed Task Display -->
-                        <div class="px-4 sm:px-6 py-4 sm:py-6 bg-green-50 border-l-4 border-green-400">
-                            <div class="flex flex-col sm:flex-row items-start gap-3">
-                                <div class="flex-shrink-0">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                    <div class="flex-1 text-sm sm:text-base">
-                                    <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                                        Voltooid: {{ $submissionTask->completed_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') }}
-                                    </div>
+                        <div class="task-completed-banner">
+                            <div class="task-completed-body">
+                            <p class="task-completed-text">
+                                Voltooid op {{ $submissionTask->completed_at->setTimezone('Europe/Amsterdam')->format('d M Y H:i') }}
+                            </p>
                                     
                                     @if($task->checklist_items && count($task->checklist_items) > 0)
                                         <div class="mb-4">
@@ -653,7 +641,6 @@
                                             </div>
                                         </div>
                                     @endif
-                                </div>
                             </div>
                         </div>
                     @endif
@@ -839,6 +826,15 @@
 
     </div>
 </div>
+@php
+    $savedProofFilesByTask = $submission->submissionTasks->mapWithKeys(function ($st) {
+        return [
+            (string) $st->task_id => \App\Helpers\ProofFileHelper::withAbsoluteUrls(
+                is_array($st->proof_files) ? array_values($st->proof_files) : []
+            ),
+        ];
+    });
+@endphp
 <!-- SignaturePad lib (één keer laden voor alle handtekeningen) -->
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
@@ -872,18 +868,27 @@ function uploadFile(taskId) {
 }
 
 window.taskProofFileStore = window.taskProofFileStore || {};
+window.savedProofFiles = Object.assign({}, window.savedProofFiles || {}, @json($savedProofFilesByTask));
 
 function proofFileKey(file) {
     return `${file.name}|${file.size}|${file.lastModified}`;
 }
 
 function getStoredProofFiles(taskId) {
-    return window.taskProofFileStore[taskId] || [];
+    return window.taskProofFileStore[String(taskId)] || [];
 }
 
 function setStoredProofFiles(taskId, files) {
-    window.taskProofFileStore[taskId] = files;
+    window.taskProofFileStore[String(taskId)] = files;
     syncProofFilesToInput(taskId);
+}
+
+function getSavedProofFiles(taskId) {
+    return window.savedProofFiles[String(taskId)] || [];
+}
+
+function setSavedProofFiles(taskId, files) {
+    window.savedProofFiles[String(taskId)] = Array.isArray(files) ? files : [];
 }
 
 function syncProofFilesToInput(taskId) {
@@ -932,6 +937,55 @@ function handleFileSelect(input, taskId) {
     addProofFiles(taskId, newFiles);
 }
 
+function proofFileKind(mime, name) {
+    const type = (mime || '').toLowerCase();
+    const fileName = (name || '').toLowerCase();
+    if (type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(fileName)) return 'image';
+    if (type.startsWith('video/') || /\.(mp4|webm|mov|m4v|avi)$/i.test(fileName)) return 'video';
+    return 'file';
+}
+
+function renderSavedProofFilePreview(taskId, file) {
+    const previewArea = document.getElementById('preview-area-' + taskId);
+    if (!previewArea) return;
+
+    const name = file.original_name || 'Bestand';
+    const kind = proofFileKind(file.mime_type, name);
+    const url = file.url || '';
+    const sizeKb = file.size ? Math.round(Number(file.size) / 1024) : null;
+
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border flex-col sm:flex-row gap-3 sm:gap-0';
+    row.dataset.savedPath = file.path || '';
+
+    let mediaHtml = `
+        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+        </div>
+    `;
+    if (kind === 'image' && url) {
+        mediaHtml = `<img src="${url}" alt="Opgeslagen foto" class="w-16 h-16 object-cover rounded-lg">`;
+    } else if (kind === 'video' && url) {
+        mediaHtml = `<video src="${url}" class="w-16 h-16 object-cover rounded-lg" muted></video>`;
+    }
+
+    row.innerHTML = `
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+            ${mediaHtml}
+            <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate"></p>
+                <p class="text-xs text-gray-500">${sizeKb !== null ? sizeKb + ' KB • ' : ''}${kind === 'image' ? 'Foto' : (kind === 'video' ? 'Video' : 'Bestand')} • Opgeslagen</p>
+            </div>
+        </div>
+    `;
+    const titleEl = row.querySelector('.text-sm.font-medium');
+    if (titleEl) titleEl.textContent = name;
+
+    previewArea.appendChild(row);
+}
+
 function renderProofFilePreviews(taskId) {
     const previewArea = document.getElementById('preview-area-' + taskId);
     if (!previewArea) return;
@@ -943,7 +997,16 @@ function renderProofFilePreviews(taskId) {
     if (photoInput) photoInput.name = '';
     if (videoInput) videoInput.name = '';
 
+    const saved = getSavedProofFiles(taskId);
+    saved.forEach(file => renderSavedProofFilePreview(taskId, file));
     getStoredProofFiles(taskId).forEach(file => updateMediaPreview(taskId, file));
+
+    if (saved.length > 0) {
+        const hint = document.createElement('p');
+        hint.className = 'text-xs text-slate-500';
+        hint.textContent = 'Eerder opgeslagen bestanden blijven bewaard. Nieuwe foto’s of video’s worden toegevoegd.';
+        previewArea.appendChild(hint);
+    }
 }
 
 function updateMediaPreview(taskId, file) {
@@ -951,8 +1014,7 @@ function updateMediaPreview(taskId, file) {
     if (!previewArea) return;
 
     const url = URL.createObjectURL(file);
-    const isImg = file.type.startsWith('image/');
-    const isVid = file.type.startsWith('video/');
+    const kind = proofFileKind(file.type, file.name);
     const fileKey = proofFileKey(file);
 
     const row = document.createElement('div');
@@ -967,9 +1029,9 @@ function updateMediaPreview(taskId, file) {
         </div>
     `;
 
-    if (isImg) {
+    if (kind === 'image') {
         mediaHtml = `<img src="${url}" alt="Preview" class="w-16 h-16 object-cover rounded-lg">`;
-    } else if (isVid) {
+    } else if (kind === 'video') {
         mediaHtml = `<video src="${url}" class="w-16 h-16 object-cover rounded-lg" muted></video>`;
     }
 
@@ -977,8 +1039,8 @@ function updateMediaPreview(taskId, file) {
         <div class="flex items-center space-x-3 w-full sm:w-auto">
             ${mediaHtml}
             <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-900 truncate">${file.name}</p>
-                <p class="text-xs text-gray-500">${Math.round(file.size / 1024)} KB • ${isImg ? 'Foto' : (isVid ? 'Video' : 'Bestand')}</p>
+                <p class="text-sm font-medium text-gray-900 truncate"></p>
+                <p class="text-xs text-gray-500">${Math.round(file.size / 1024)} KB • ${kind === 'image' ? 'Foto' : (kind === 'video' ? 'Video' : 'Bestand')}</p>
             </div>
         </div>
         <button type="button" class="text-red-600 hover:text-red-800 self-end sm:self-center" onclick="removePreviewItem(this, '${taskId}')">
@@ -987,8 +1049,15 @@ function updateMediaPreview(taskId, file) {
             </svg>
         </button>
     `;
+    const titleEl = row.querySelector('.text-sm.font-medium');
+    if (titleEl) titleEl.textContent = file.name;
 
-    previewArea.appendChild(row);
+    const hint = previewArea.querySelector('p.text-xs.text-slate-500');
+    if (hint) {
+        previewArea.insertBefore(row, hint);
+    } else {
+        previewArea.appendChild(row);
+    }
 }
 
 function removePreviewItem(btn, taskId) {
@@ -996,14 +1065,19 @@ function removePreviewItem(btn, taskId) {
     if (!row) return;
 
     const fileKey = row.dataset.fileKey;
-    row.remove();
-
     setStoredProofFiles(
         taskId,
         getStoredProofFiles(taskId).filter(file => proofFileKey(file) !== fileKey)
     );
     renderProofFilePreviews(taskId);
 }
+
+Object.keys(window.savedProofFiles || {}).forEach(function(taskId) {
+    if ((window.savedProofFiles[taskId] || []).length) {
+        renderProofFilePreviews(taskId);
+    }
+});
+
 </script>
 
 <script>
@@ -1022,18 +1096,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!window.signaturePads) window.signaturePads = {};
 
-    // Init per-task signature pads
-    document.querySelectorAll('canvas[id^="signature-pad-task-"]').forEach(canvas => {
-        if (typeof SignaturePad === 'undefined') return;
-        const key = 'task-' + canvas.id.replace('signature-pad-task-', '');
-        const pad = new SignaturePad(canvas, {
-            backgroundColor: 'rgba(255,255,255,0)',
-            penColor: 'rgb(0, 0, 0)',
-            minWidth: 1,
-            maxWidth: 3
-        });
-        window.signaturePads[key] = pad;
+    // Init per-task signature pads (only expanded cards; hidden canvases get a broken size)
+    document.querySelectorAll('.task-card.is-expanded canvas[id^="signature-pad-task-"]').forEach(canvas => {
+        ensureTaskSignaturePad(canvas);
     });
+
+    initializeTaskAccordions();
 
     // Final signature pad (indien aanwezig)
     setupFinalSignaturePad();
@@ -1059,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
-        }, index * 200 + 300);
+        }, index * 40 + 80);
     });
 
     // Progress circle init
@@ -1074,6 +1142,9 @@ document.addEventListener('DOMContentLoaded', function() {
             progressCircle.style.strokeDashoffset = String(offset);
         }, 500);
     }
+
+    initializeListSwipe();
+    initializeListJump();
 
     // Ripple-effect op buttons
     function createRipple(event) {
@@ -1169,7 +1240,9 @@ function validateTaskForm(form) {
     const mainFileInput = form.querySelector('input[type="file"][name="proof_files[]"]');
     syncProofFilesToInput(taskId);
     const hasProofFiles = getStoredProofFiles(taskId).length > 0
-        || !!(mainFileInput && mainFileInput.files && mainFileInput.files.length > 0);
+        || getSavedProofFiles(taskId).length > 0
+        || !!(mainFileInput && mainFileInput.files && mainFileInput.files.length > 0)
+        || form.dataset.hasExistingProof === '1';
 
     const signatureCanvas = form.querySelector('canvas[id^="signature-pad-task-"]');
     if (signatureCanvas) {
@@ -1178,8 +1251,10 @@ function validateTaskForm(form) {
 
         if (window.signaturePads && window.signaturePads[key]) {
             if (window.signaturePads[key].isEmpty()) {
-                showNotification('Een digitale handtekening is vereist voor deze taak.', 'error');
-                isValid = false;
+                if (form.dataset.hasSignature !== '1') {
+                    showNotification('Een digitale handtekening is vereist voor deze taak.', 'error');
+                    isValid = false;
+                }
             } else if (hidden) {
                 hidden.value = window.signaturePads[key].toDataURL();
             }
@@ -1464,11 +1539,10 @@ function initializeFinalSubmissionAjax() {
                 console.warn('Kon localStorage niet schrijven:', e);
             }
             
-            showNotification('Checklist succesvol ingediend!', 'success');
-            hideLoadingOverlay();
+            showNotification(data.message || 'Checklist succesvol ingediend!', 'success');
             setTimeout(() => {
                 window.location.href = data.redirect_url || '/employee/dashboard';
-            }, 1500);
+            }, data.next_list ? 700 : 1200);
         })
         .catch(err => {
             let msg = 'Fout bij het indienen van checklist. Probeer opnieuw.';
@@ -1489,83 +1563,75 @@ function initializeFinalSubmissionAjax() {
     });
 }
 
-// ✅ Belangrijk: hier vervangen we altijd gewoon het formulierblok → direct visuele update
-function updateTaskToCompleted(taskId, completedAt) {
-    console.log('updateTaskToCompleted CALLED for task:', taskId, completedAt);
-
+function updateTaskToCompleted(taskId, completedAt, proofFiles) {
     const form = document.querySelector(`#task-form-${taskId}`);
     const taskCard = form ? form.closest('.task-card') : null;
+
+    if (Array.isArray(proofFiles)) {
+        setSavedProofFiles(taskId, proofFiles);
+    }
 
     if (taskCard) {
         taskCard.dataset.status = 'completed';
         taskCard.classList.add('task-completed');
     }
 
-    // Header optioneel stylen
     if (taskCard) {
-        const taskHeader = taskCard.querySelector('.bg-gradient-to-r');
+        const taskHeader = taskCard.querySelector('.task-header');
         if (taskHeader) {
-            const headerIconDiv = taskHeader.querySelector('.w-9.h-9, .w-10.h-10');
-            if (headerIconDiv) {
-                headerIconDiv.className = 'w-9 h-9 sm:w-10 sm:h-10 bg-green-500 rounded-xl flex items-center justify-center';
-                headerIconDiv.innerHTML = `
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            const indexEl = taskHeader.querySelector('.task-index');
+            if (indexEl) {
+                indexEl.classList.add('is-done');
+                indexEl.innerHTML = `
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                     </svg>
                 `;
             }
 
-            const titleEl = taskHeader.querySelector('h3');
-            if (titleEl) titleEl.className = 'text-lg sm:text-xl font-bold text-green-900';
+            const titleEl = taskHeader.querySelector('.task-title');
+            if (titleEl) titleEl.classList.add('is-done');
 
-            const descEl = taskHeader.querySelector('p.text-sm, p.text-sm.sm\\:text-base');
-            if (descEl) descEl.className = 'text-sm sm:text-base text-green-700';
-
-            const badge = taskHeader.querySelector('.flex.flex-wrap.gap-2');
-            if (badge && !badge.querySelector('.bg-green-100')) {
-                badge.innerHTML += `
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Voltooid
-                    </span>
-                `;
+            const descEl = taskHeader.querySelector('p.task-detail');
+            if (descEl) {
+                descEl.classList.remove('text-gray-600');
+                descEl.classList.add('text-green-700');
             }
         }
     }
 
-    // Formulierblok vervangen door "Task completed"
-    if (form && form.parentElement) {
-        const container = form.parentElement;
-        container.innerHTML = `
-            <div class="bg-green-50 border-l-4 border-green-400 px-4 sm:px-6 py-4 sm:py-6">
-                <div class="flex flex-col sm:flex-row items-start gap-3">
-                    <div class="flex-shrink-0">
-                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="flex-1 text-sm sm:text-base">
-                        <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                             Taak succesvol voltooid
-                        </div>
-                        <div class="text-sm sm:text-base font-semibold text-green-900 mb-2">
-                            Voltooid: ${new Date(completedAt).toLocaleDateString('nl-NL', { 
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit'
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+    if (form) {
+        const savedCount = getSavedProofFiles(taskId).length;
+        const hadNewProof = getStoredProofFiles(taskId).length > 0;
+        if (form.dataset.hasExistingProof === '1' || hadNewProof || savedCount > 0) {
+            form.dataset.hasExistingProof = '1';
+        }
+        const sigHidden = form.querySelector('input[name="digital_signature"]');
+        if (sigHidden && sigHidden.value) {
+            form.dataset.hasSignature = '1';
+            sigHidden.removeAttribute('required');
+        }
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Wijzigingen opslaan';
+
+        const formWrap = form.parentElement;
+        if (formWrap && !formWrap.querySelector('.task-edit-hint')) {
+            const hint = document.createElement('p');
+            hint.className = 'task-edit-hint text-sm text-slate-600 mb-4';
+            hint.textContent = 'Deze taak is afgerond. Je kunt de gegevens nog aanpassen tot je de lijst indient.';
+            formWrap.insertBefore(hint, form);
+        }
     }
 
+    if (typeof setStoredProofFiles === 'function') {
+        setStoredProofFiles(taskId, []);
+    }
+    renderProofFilePreviews(taskId);
+
     if (taskCard) {
+        const quickBtn = taskCard.querySelector('.task-quick-complete');
+        if (quickBtn) quickBtn.remove();
+        setTaskExpanded(taskCard, false);
         taskCard.style.opacity = '0';
         setTimeout(() => {
             taskCard.style.opacity = '1';
@@ -1587,22 +1653,19 @@ function updateProgressIndicator() {
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
         const progressCircle = document.getElementById('submission-progress-circle');
-        const progressText = document.getElementById('submission-progress-percent');
         const progressCount = document.getElementById('submission-progress-count');
 
-        if (progressCircle && progressText && progressCount) {
+        if (progressCircle) {
             const circumference = 2 * Math.PI * 40;
             const offset = circumference * (1 - (percent / 100));
             progressCircle.style.strokeDasharray = String(circumference);
             progressCircle.style.strokeDashoffset = String(offset);
-            progressText.textContent = percent + '%';
-            progressCount.textContent = `${completed}/${total} taken`;
 
             const color = percent >= 100 ? '#22c55e' : (percent > 0 ? '#3b82f6' : '#ef4444');
             progressCircle.setAttribute('stroke', color);
-            progressText.className = 'text-sm sm:text-base lg:text-lg font-bold ' + (
-                percent >= 100 ? 'text-green-600' : (percent > 0 ? 'text-gray-900' : 'text-red-600')
-            );
+        }
+        if (progressCount) {
+            progressCount.textContent = `${completed}/${total} taken`;
         }
     } catch (e) {
         console.error('updateProgressIndicator error:', e);
@@ -1717,16 +1780,16 @@ function initializeChecklists() {
             .then(data => {
                 if (!data.success) throw new Error(data.message || 'Onbekende fout opgetreden');
 
-                updateTaskToCompleted(taskId, data.completed_at);
+                updateTaskToCompleted(taskId, data.completed_at, data.proof_files);
                 localStorage.removeItem(key);
                 updateProgressIndicator();
-                showNotification('Taak succesvol afgerond!', 'success');
+                showNotification('Opgeslagen.', 'success');
                 updateFinalSubmissionForm();
                 hideLoadingOverlay();
 
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = original;
+                    submitBtn.textContent = 'Wijzigingen opslaan';
                 }
                 form.dataset.submitting = '0';
             })
@@ -1784,53 +1847,168 @@ function showNotification(message, type = 'success', duration = 3000) {
     }, duration);
 }
 
-function toggleInstructions(e, taskId) {
-    const instructionsElement = document.getElementById('instructions-' + taskId);
-    const button = e.currentTarget;
-    
-    if (!instructionsElement || !button) return;
+function ensureTaskSignaturePad(canvas) {
+    if (!canvas || typeof SignaturePad === 'undefined') return;
+    if (!window.signaturePads) window.signaturePads = {};
+    const key = 'task-' + canvas.id.replace('signature-pad-task-', '');
+    if (window.signaturePads[key]) return;
+    window.signaturePads[key] = new SignaturePad(canvas, {
+        backgroundColor: 'rgba(255,255,255,0)',
+        penColor: 'rgb(0, 0, 0)',
+        minWidth: 1,
+        maxWidth: 3
+    });
+}
 
-    if (instructionsElement.classList.contains('hidden')) {
-        instructionsElement.classList.remove('hidden');
-        instructionsElement.style.maxHeight = '0px';
-        instructionsElement.style.overflow = 'hidden';
-        instructionsElement.style.transition = 'max-height 0.3s ease-out';
+function setTaskExpanded(card, expanded) {
+    if (!card) return;
+    const body = card.querySelector('.task-body');
+    const toggle = card.querySelector('.task-toggle');
+    const toggleIcon = card.querySelector('.task-toggle-icon');
 
-        setTimeout(() => {
-            instructionsElement.style.maxHeight = instructionsElement.scrollHeight + 'px';
-        }, 10);
+    card.dataset.expanded = expanded ? '1' : '0';
+    card.classList.toggle('is-expanded', expanded);
 
-        button.classList.add('bg-blue-100');
-        button.title = 'Verberg instructies';
+    if (body) body.classList.toggle('hidden', !expanded);
 
-        const icon = button.querySelector('svg');
-        if (icon) {
-            icon.innerHTML = `
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-            `;
-        }
-    } else {
-        instructionsElement.style.maxHeight = '0px';
-        setTimeout(() => {
-            instructionsElement.classList.add('hidden');
-            instructionsElement.style.maxHeight = '';
-            instructionsElement.style.overflow = '';
-            instructionsElement.style.transition = '';
-        }, 300);
+    card.querySelectorAll('.task-detail').forEach(el => {
+        el.classList.toggle('hidden', !expanded);
+    });
 
-        button.classList.remove('bg-blue-100');
-        button.title = 'Klik voor gedetailleerde instructies';
-
-        const icon = button.querySelector('svg');
-        if (icon) {
-            icon.innerHTML = `
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M13 16h-1v-4h-1m1-4h.01
-                         M21 12a9 9 0 11-18 0 
-                         9 9 0 0118 0z"></path>
-            `;
-        }
+    if (toggle) {
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        toggle.title = expanded ? 'Taak inklappen' : 'Taak uitklappen';
     }
+    if (toggleIcon) {
+        toggleIcon.classList.toggle('rotate-180', expanded);
+    }
+
+    if (expanded) {
+        requestAnimationFrame(() => {
+            card.querySelectorAll('canvas[id^="signature-pad-task-"]').forEach(ensureTaskSignaturePad);
+        });
+    }
+}
+
+function toggleTaskCard(card) {
+    if (!card) return;
+    setTaskExpanded(card, card.dataset.expanded !== '1');
+}
+
+function initializeTaskAccordions() {
+    document.querySelectorAll('.task-header').forEach(header => {
+        header.addEventListener('click', function(e) {
+            if (e.target.closest('button, a, input, textarea, label, canvas')) return;
+            toggleTaskCard(header.closest('.task-card'));
+        });
+    });
+}
+
+function quickCompleteTask(taskId) {
+    const form = document.getElementById('task-form-' + taskId);
+    if (!form) return;
+    if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+        return;
+    }
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+}
+
+function goToNeighborList(url) {
+    if (!url) return;
+    window.location.href = url;
+}
+
+function initializeListJump() {
+    const input = document.getElementById('list-position-input');
+    if (!input || input.disabled) return;
+
+    const current = parseInt(input.dataset.current, 10);
+    const total = parseInt(input.dataset.total, 10);
+    let urls = [];
+    try {
+        urls = JSON.parse(input.dataset.urls || '[]');
+    } catch (e) {
+        urls = [];
+    }
+
+    const reset = () => {
+        input.value = String(current);
+    };
+
+    const go = () => {
+        const value = parseInt(String(input.value).replace(/[^\d]/g, ''), 10);
+        if (!Number.isInteger(value) || value < 1 || value > total || !urls[value - 1]) {
+            reset();
+            return;
+        }
+        if (value === current) {
+            reset();
+            return;
+        }
+        goToNeighborList(urls[value - 1]);
+    };
+
+    input.addEventListener('focus', function() {
+        input.select();
+    });
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            go();
+        }
+        if (e.key === 'Escape') {
+            reset();
+            input.blur();
+        }
+    });
+    input.addEventListener('change', go);
+}
+
+function initializeListSwipe() {
+    const prevBtn = document.getElementById('hero-nav-prev');
+    const nextBtn = document.getElementById('hero-nav-next');
+    const prevUrl = prevBtn && !prevBtn.disabled ? prevBtn.dataset.url : '';
+    const nextUrl = nextBtn && !nextBtn.disabled ? nextBtn.dataset.url : '';
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            goToNeighborList(prevUrl);
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            goToNeighborList(nextUrl);
+        });
+    }
+
+    if (!prevUrl && !nextUrl) return;
+
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+        if (e.target.closest('input, textarea, select, canvas, button, a, label')) return;
+        tracking = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e) {
+        if (!tracking) return;
+        tracking = false;
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+        if (dx > 0) {
+            goToNeighborList(prevUrl);
+            return;
+        }
+        goToNeighborList(nextUrl);
+    }, { passive: true });
 }
 </script>
 
@@ -1847,14 +2025,323 @@ function toggleInstructions(e, taskId) {
     to { transform: scale(4); opacity: 0; }
 }
 
-.task-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.task-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+.hero-list-nav {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+    align-items: center;
+    justify-items: center;
+    column-gap: 0.75rem;
+    width: 100%;
+}
+.hero-list-nav-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+}
+.hero-list-title {
+    margin: 0;
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    font-weight: 700;
+    color: #111827;
+    overflow-wrap: anywhere;
+}
+@media (min-width: 640px) {
+    .hero-list-title { font-size: 1.5rem; }
+}
+@media (min-width: 1024px) {
+    .hero-list-title { font-size: 1.875rem; }
 }
 
-button, a[role="button"], a[href*="dashboard"] {
+.hero-nav-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #6b7280;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.hero-nav-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    color: #111827;
+    border-color: #cbd5e1;
+}
+.hero-nav-btn:disabled {
+    color: #d1d5db;
+    border-color: #f3f4f6;
+    background: #f9fafb;
+    cursor: not-allowed;
+}
+
+.list-jump {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+}
+.list-jump-input {
+    width: 2rem;
+    height: 1.75rem;
+    padding: 0;
+    text-align: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: #fff;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.list-jump-input:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.list-jump-input:disabled {
+    color: #9ca3af;
+    background: #f9fafb;
+    cursor: default;
+}
+.list-jump-input::-webkit-outer-spin-button,
+.list-jump-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.list-jump-total {
+    min-width: 1.25rem;
+}
+
+.task-card {
+    font-family: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.task-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+.task-card.is-expanded {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+.task-card.task-completed {
+    border-color: #bbf7d0;
+}
+.task-card.task-completed .task-header {
+    background: #f8fffb;
+}
+
+.task-completed-banner {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    column-gap: 12px;
+    padding: 0 20px 16px;
+    background: #ecfdf5;
+}
+.task-completed-body {
+    grid-column: 2 / -1;
+    min-width: 0;
+}
+.task-completed-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #065f46;
+}
+
+.task-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 8px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    background: #fff;
+}
+.task-card.is-expanded .task-header {
+    background: linear-gradient(to right, #eff6ff, #eef2ff);
+    border-bottom: 1px solid #f3f4f6;
+}
+.task-card.task-completed.is-expanded .task-header {
+    background: linear-gradient(to right, #f0fdf4, #ecfdf5);
+}
+
+.task-index {
+    grid-column: 1;
+    grid-row: 1;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    background: #dbeafe;
+    color: #1d4ed8;
+    line-height: 1;
+}
+.task-index.is-done {
+    background: #22c55e;
+    color: #fff;
+}
+
+.task-title-row {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.task-title {
+    margin: 0;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.task-required-mark {
+    color: #dc2626;
+    font-weight: 700;
+    margin-left: 0.15em;
+}
+.task-title.is-done {
+    color: #14532d;
+}
+
+.task-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+.task-chip-required { background: #fef2f2; color: #b91c1c; }
+.task-chip-redo { background: #fff7ed; color: #c2410c; }
+
+.task-detail {
+    grid-column: 2 / -1;
+    margin: 0;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+.task-instructions-label {
+    margin: 0 0 2px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #334155;
+}
+.task-instructions-text {
+    margin: 0;
+    color: #475569;
+    white-space: pre-line;
+}
+
+.task-actions {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.task-quick-complete,
+.task-toggle {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.task-quick-complete {
+    visibility: visible !important;
+    border: 1px solid #86efac;
+    background: #16a34a;
+    color: #fff;
+}
+.task-card.is-expanded .task-quick-complete {
+    display: none !important;
+}
+.task-quick-complete:hover {
+    background: #15803d;
+    border-color: #22c55e;
+}
+.task-toggle {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #6b7280;
+}
+.task-toggle:hover {
+    background: #f8fafc;
+    color: #111827;
+    border-color: #cbd5e1;
+}
+.task-toggle-icon { transition: transform 0.2s ease; }
+
+@media (min-width: 640px) {
+    .task-title { font-size: 1.25rem; }
+    .task-detail { font-size: 1rem; }
+}
+
+@media (max-width: 639px) {
+    .task-header {
+        padding: 14px;
+        column-gap: 10px;
+    }
+    .task-completed-banner {
+        padding: 0 14px 14px;
+        column-gap: 10px;
+        grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    }
+    .task-card.is-expanded .task-header {
+        padding: 14px;
+    }
+    .task-index,
+    .task-quick-complete,
+    .task-toggle {
+        width: 2.25rem;
+        height: 2.25rem;
+    }
+    .task-title { font-size: 1rem; }
+    .task-actions { gap: 6px; }
+}
+
+button[type="submit"], a[href*="dashboard"] {
     position: relative;
     overflow: hidden;
 }

@@ -425,6 +425,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
 Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('dashboard');
     Route::get('/lists', [SubmissionController::class, 'index'])->name('lists.index');
+    Route::get('/lists/{list}/open', [SubmissionController::class, 'open'])->name('lists.open');
     Route::get('/lists/{list}', [SubmissionController::class, 'show'])->name('lists.show');
     Route::post('/lists/{list}/start', [SubmissionController::class, 'start'])->name('submissions.start');
     Route::get('/submissions/{submission}', [SubmissionController::class, 'edit'])->name('submissions.edit');
