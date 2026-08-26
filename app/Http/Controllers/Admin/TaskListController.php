@@ -1958,10 +1958,15 @@ PROMPT,
     public function approveAllTasks(Request $request, \App\Models\Submissions\Submission $submission)
     {
         $submission->loadMissing('taskList');
+        $wantsJson = $request->ajax() || $request->expectsJson();
 
         if (! $submission->taskList?->requires_review) {
-            return redirect()->back()
-                ->with('error', 'Deze takenlijst hoeft niet gecontroleerd te worden.');
+            $message = 'Deze takenlijst hoeft niet gecontroleerd te worden.';
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
+            return redirect()->back()->with('error', $message);
         }
 
         $approvedCount = DB::transaction(function () use ($submission) {
@@ -1983,14 +1988,28 @@ PROMPT,
         });
 
         if ($approvedCount === 0) {
-            return redirect()->back()
-                ->with('error', 'Er zijn geen taken die in één keer goedgekeurd kunnen worden.');
+            $message = 'Er zijn geen taken die in één keer goedgekeurd kunnen worden.';
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
+            return redirect()->back()->with('error', $message);
         }
 
-        return redirect()->back()
-            ->with('success', $approvedCount === 1
-                ? '1 taak succesvol goedgekeurd.'
-                : "{$approvedCount} taken succesvol goedgekeurd.");
+        $message = $approvedCount === 1
+            ? '1 taak succesvol goedgekeurd.'
+            : "{$approvedCount} taken succesvol goedgekeurd.";
+
+        if ($wantsJson) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'approved_count' => $approvedCount,
+                'submission_status' => $submission->fresh()->status,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**

@@ -149,12 +149,12 @@
                 <table class="w-full table-fixed divide-y divide-slate-200">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="w-[26%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
-                            <th class="w-[24%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
-                            <th class="w-[12%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-                            <th class="w-[12%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Voortgang</th>
-                            <th class="w-[14%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Ingediend</th>
-                            <th class="w-[12%] px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
+                            <th class="w-[24%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
+                            <th class="w-[20%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
+                            <th class="w-[11%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                            <th class="w-[11%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Voortgang</th>
+                            <th class="w-[12%] px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Ingediend</th>
+                            <th class="w-[22%] px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
                         </tr>
                     </thead>
                     <tbody id="submissions-tbody" class="divide-y divide-slate-200">
@@ -532,10 +532,48 @@ function renderSubmissions(items) {
             </td>
             <td class="px-4 py-3 align-middle text-sm text-slate-600 truncate" title="${escapeAttr(submittedFmt.title)}">${submittedFmt.text}</td>
             <td class="px-4 py-3 align-middle text-right">
-                <a href="${actionUrl}" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
+                <div class="inline-flex flex-wrap justify-end gap-1.5">
+                    <a href="${actionUrl}" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
+                    ${needsReview ? `<button type="button" onclick="approveAllSubmission(${s.id}, this)" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 transition-colors">Alles goedkeuren</button>` : ''}
+                </div>
             </td>
         </tr>`;
     }).join('');
+}
+
+async function approveAllSubmission(id, button) {
+    if (!confirm('Weet je zeker dat je alle taken van deze inzending wilt goedkeuren?')) {
+        return;
+    }
+
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Bezig...';
+
+    try {
+        await fetch('/sanctum/csrf-cookie', { method: 'GET', credentials: 'same-origin' }).catch(() => {});
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const res = await fetch(`{{ url('admin/submissions') }}/${id}/approve-all`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfMeta ? csrfMeta.getAttribute('content') : '',
+            },
+            credentials: 'same-origin',
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || data.success === false) {
+            throw new Error(data.message || 'Goedkeuren is niet gelukt.');
+        }
+
+        await loadSubmissions(currentPage);
+    } catch (err) {
+        alert(err.message || 'Goedkeuren is niet gelukt.');
+        button.disabled = false;
+        button.textContent = originalLabel;
+    }
 }
 
 function renderPagination(data) {
