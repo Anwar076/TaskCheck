@@ -42,7 +42,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // API Routes - Complete Application API
-Route::middleware(['web', 'auth:sanctum'])->group(function () {
+Route::middleware(['web', 'auth:sanctum', 'subscription'])->group(function () {
     // Dashboard
     Route::get('/dashboard/admin/stats', [DashboardController::class, 'adminStats']);
     Route::get('/dashboard/employee/data', [DashboardController::class, 'employeeData']);
@@ -96,7 +96,8 @@ Route::prefix('mobile')->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout']);
         Route::get('/me', [MobileAuthController::class, 'me']);
 
-        Route::get('/dashboard', [MobileDashboardController::class, 'index']);
+        Route::middleware('subscription')->group(function () {
+            Route::get('/dashboard', [MobileDashboardController::class, 'index']);
 
         Route::get('/task-lists', [MobileTaskListController::class, 'index']);
         Route::get('/task-lists/{id}', [MobileTaskListController::class, 'show']);
@@ -160,6 +161,7 @@ Route::prefix('mobile')->group(function () {
             Route::get('/templates', [MobileAdminTemplateController::class, 'index']);
 
             Route::get('/weekly-overview', [MobileAdminWeeklyOverviewController::class, 'index']);
+        });
         });
     });
 });

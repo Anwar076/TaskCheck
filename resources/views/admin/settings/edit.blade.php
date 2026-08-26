@@ -44,6 +44,7 @@
 
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
+                @include('partials.subscription-lock-banner')
                 @include('admin.settings.tabs', ['activeTab' => 'settings'])
 
                 <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

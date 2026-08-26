@@ -5,3 +5,31 @@
 [x-cloak] {
     display: none !important;
 }
+
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+}
+
+html.is-native-app {
+    --safe-top: max(48px, env(safe-area-inset-top, 0px));
+    --safe-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+}
+
+.app-safe-header {
+    padding-top: max(0.625rem, var(--safe-top));
+}
+
+.app-safe-drawer-header {
+    padding-top: max(1rem, var(--safe-top));
+}
+
+.app-safe-bottom {
+    padding-bottom: max(1rem, var(--safe-bottom));
+}
+
+.app-safe-fab-top {
+    top: max(0.75rem, var(--safe-top));
+}

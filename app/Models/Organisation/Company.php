@@ -261,6 +261,31 @@ class Company extends Model
         );
     }
 
+    public function accessLockMessage(): ?string
+    {
+        if ($this->canAccess()) {
+            return null;
+        }
+
+        if (! $this->is_active) {
+            return 'Dit account is gedeactiveerd. Neem contact op met support.';
+        }
+
+        if ($this->trialExpired()) {
+            return 'Je proefperiode is verlopen. Kies een abonnement om TaskCheck weer te gebruiken.';
+        }
+
+        if ($this->subscription_status === 'cancelled') {
+            return 'Je abonnement is opgezegd. Kies een abonnement om TaskCheck weer te gebruiken.';
+        }
+
+        if ($this->subscription_status === 'expired') {
+            return 'Je abonnement is verlopen. Kies een abonnement om TaskCheck weer te gebruiken.';
+        }
+
+        return 'Je hebt geen actief abonnement. Kies een abonnement om TaskCheck weer te gebruiken.';
+    }
+
     // Get days remaining in trial
     public function trialDaysRemaining(): int
     {

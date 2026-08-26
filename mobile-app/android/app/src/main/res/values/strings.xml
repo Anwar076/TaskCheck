@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TaskCheck</string>
+    <string name="title_activity_main">TaskCheck</string>
+    <string name="package_name">nl.taskcheck.app</string>
+    <string name="custom_url_scheme">nl.taskcheck.app</string>
+</resources>

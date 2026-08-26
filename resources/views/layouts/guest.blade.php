@@ -2,8 +2,9 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('partials.native-shell')
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -60,7 +61,7 @@
             <div class="taskcheck-login-grid" aria-hidden="true"></div>
             <div class="taskcheck-login-vignette" aria-hidden="true"></div>
             <!-- Auth Card -->
-            <div class="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+            <div class="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+2.5rem))] sm:px-6">
                 <div class="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-7 shadow-xl backdrop-blur">
                     {{ $slot }}
                 </div>

@@ -22,7 +22,7 @@ class EnsureOnboardingComplete
         }
 
         $company = $user->company;
-        if (!$company || !$company->needsOnboarding()) {
+        if (!$company || !$company->needsOnboarding() || !$company->canAccess()) {
             return $next($request);
         }
 

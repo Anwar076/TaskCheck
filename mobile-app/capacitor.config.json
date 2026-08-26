@@ -1,0 +1,27 @@
+{
+  "appId": "nl.taskcheck.app",
+  "appName": "TaskCheck",
+  "webDir": "www",
+  "server": {
+    "url": "http://10.0.2.2:8000/login?source=pwa",
+    "cleartext": true,
+    "androidScheme": "https",
+    "iosScheme": "https"
+  },
+  "ios": {
+    "preferredContentMode": "mobile",
+    "scheme": "TaskCheck"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#2563eb",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "backgroundColor": "#ffffff"
+    }
+  }
+}
