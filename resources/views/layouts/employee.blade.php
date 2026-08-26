@@ -298,7 +298,7 @@
         </main>
 
         <!-- Minimal Footer -->
-        <footer class="bg-white border-t border-gray-200 py-8 mt-16 pb-[calc(2rem+5.5rem+var(--safe-bottom))] xl:pb-8">
+        <footer class="bg-white border-t border-gray-200 py-8 mt-16 pb-[calc(2rem+4.5rem+max(48px,var(--safe-bottom)))] xl:pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex items-center justify-center mb-2">
