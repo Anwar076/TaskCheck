@@ -10,6 +10,7 @@ use App\Models\Platform\PlatformAlertLog;
 use App\Models\Platform\PlatformBroadcast;
 use App\Services\Platform\CompanyUsageService;
 use App\Services\Platform\CompanyDuplicationService;
+use App\Services\Billing\MollieService;
 use App\Services\Platform\PlatformAlertService;
 use App\Services\Platform\PlatformHealthService;
 use App\Models\Platform\IncidentTicket;
@@ -305,7 +306,7 @@ class DashboardController extends Controller
             ->with('success', 'Testmelding verstuurd naar: '.implode(', ', $recipients));
     }
 
-    public function showCompany(Company $company)
+    public function showCompany(Company $company, MollieService $mollieService)
     {
         $users = User::query()->where('company_id', $company->id);
         $locations = Location::withoutGlobalScope('company')->where('company_id', $company->id);
@@ -360,6 +361,33 @@ class DashboardController extends Controller
             : collect();
         $aiTokens = (int) $aiUsageByFeature->sum('tokens');
         $lastActivityAt = (clone $submissions)->max('updated_at');
+        $mollieBilling = [
+            'connected' => filled($company->mollie_customer_id) && filled($company->mollie_subscription_id),
+            'available' => true,
+            'status' => null,
+            'next_payment_date' => null,
+            'interval' => null,
+            'amount' => null,
+            'currency' => 'EUR',
+        ];
+        if ($mollieBilling['connected']) {
+            try {
+                $mollieSubscription = $mollieService->getSubscription(
+                    (string) $company->mollie_customer_id,
+                    (string) $company->mollie_subscription_id,
+                );
+                $mollieBilling['status'] = $mollieSubscription['status'] ?? null;
+                $mollieBilling['next_payment_date'] = filled($mollieSubscription['nextPaymentDate'] ?? null)
+                    ? Carbon::parse($mollieSubscription['nextPaymentDate'])->startOfDay()
+                    : null;
+                $mollieBilling['interval'] = $mollieSubscription['interval'] ?? null;
+                $mollieBilling['amount'] = data_get($mollieSubscription, 'amount.value');
+                $mollieBilling['currency'] = data_get($mollieSubscription, 'amount.currency', 'EUR');
+            } catch (\Throwable $exception) {
+                report($exception);
+                $mollieBilling['available'] = false;
+            }
+        }
 
         return view('super-admin.companies.show', compact(
             'company',
@@ -374,6 +402,7 @@ class DashboardController extends Controller
             'aiUsageByFeature',
             'aiTokens',
             'lastActivityAt',
+            'mollieBilling',
         ));
     }
 

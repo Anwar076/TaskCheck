@@ -9,6 +9,7 @@ use App\Models\Organisation\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class SuperAdminCompanyDetailTest extends TestCase
@@ -34,6 +35,31 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee($company->name)
             ->assertSee('Abonnement beheren')
             ->assertSee('Recente gebruikers');
+    }
+
+    public function test_super_admin_sees_the_real_next_mollie_billing_date(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        config()->set('services.mollie.key', 'test_key');
+        $company = Company::firstOrFail();
+        $company->update(['mollie_customer_id' => 'cst_test', 'mollie_subscription_id' => 'sub_test']);
+        Http::fake([
+            'https://api.mollie.com/v2/customers/cst_test/subscriptions/sub_test' => Http::response([
+                'status' => 'active',
+                'nextPaymentDate' => '2026-09-15',
+                'interval' => '1 month',
+                'amount' => ['value' => '99.00', 'currency' => 'EUR'],
+            ]),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']))
+            ->assertOk()
+            ->assertSee('Volgende facturatie')
+            ->assertSee('15-09-2026')
+            ->assertSee('Maandelijks')
+            ->assertSee('EUR 99,00');
     }
 
     public function test_super_admin_can_open_global_users_overview(): void
