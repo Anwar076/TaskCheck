@@ -126,6 +126,8 @@ class DashboardController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'billing_period' => ['required', Rule::in(array_keys(Company::BILLING_PERIODS))],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'trial_duration_value' => ['required', 'integer', 'min:1', 'max:365'],
+            'trial_duration_unit' => ['required', Rule::in(['days', 'weeks', 'months'])],
             'max_users' => ['required', 'integer', 'min:-1'],
             'max_locations' => ['required', 'integer', 'min:-1'],
             'max_storage_gb' => ['required', 'integer', 'min:-1'],
@@ -365,8 +367,8 @@ class DashboardController extends Controller
             'connected' => filled($company->mollie_customer_id) && filled($company->mollie_subscription_id),
             'available' => true,
             'status' => null,
-            'next_payment_date' => null,
-            'interval' => null,
+            'next_payment_date' => $company->billing_start_date ?: $company->trial_ends_at?->copy()->startOfDay(),
+            'interval' => Company::billingPeriod($company->billing_period ?: 'monthly')['mollie_interval'],
             'amount' => null,
             'currency' => 'EUR',
         ];
@@ -509,12 +511,15 @@ class DashboardController extends Controller
             ->with('success', "Bedrijf gedupliceerd met {$result['lists']} lijsten, {$result['tasks']} taken en {$result['locations']} locaties. ".($validated['account_setup'] === 'invite' ? 'De nieuwe beheerder heeft een uitnodiging ontvangen.' : 'Het beheerderswachtwoord is ingesteld zonder e-mail te versturen.'));
     }
 
-    public function updateCompanySubscription(Request $request, Company $company): RedirectResponse
+    public function updateCompanySubscription(Request $request, Company $company, MollieService $mollieService): RedirectResponse
     {
         $validated = $request->validate([
             'subscription_plan' => ['required', Rule::in(array_keys(Company::plans()))],
             'subscription_status' => ['required', Rule::in(['trial', 'active', 'cancelled', 'expired'])],
             'billing_required' => ['nullable', 'boolean'],
+            'billing_period' => ['required', Rule::in(array_keys(Company::BILLING_PERIODS))],
+            'billing_start_date' => ['nullable', 'date'],
+            'trial_ends_at' => ['nullable', 'date'],
             'subscription_ends_at' => ['nullable', 'date'],
             'is_active' => ['nullable', 'boolean'],
             'custom_subscription_name' => ['nullable', 'required_if:subscription_plan,custom', 'string', 'max:100'],
@@ -530,6 +535,10 @@ class DashboardController extends Controller
         $endDate = !empty($validated['subscription_ends_at'])
             ? Carbon::parse($validated['subscription_ends_at'])->endOfDay()
             : null;
+        $trialEndsAt = !empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at'])->endOfDay() : null;
+        $billingStartDate = !empty($validated['billing_start_date'])
+            ? Carbon::parse($validated['billing_start_date'])->startOfDay()
+            : $trialEndsAt?->copy()->startOfDay();
 
         if (!$billingRequired && !$endDate && $validated['subscription_status'] === 'active') {
             return redirect()->back()->withErrors([
@@ -538,6 +547,30 @@ class DashboardController extends Controller
         }
 
         $isCustom = $plan === 'custom';
+        $mollieSubscriptionId = $company->mollie_subscription_id;
+        if ($company->mollie_customer_id && $company->mollie_subscription_id) {
+            try {
+                if (!$billingRequired || in_array($validated['subscription_status'], ['cancelled', 'expired'], true)) {
+                    $mollieService->cancelSubscription((string) $company->mollie_customer_id, (string) $company->mollie_subscription_id);
+                    $mollieSubscriptionId = null;
+                } else {
+                    $netAmount = (float) ($isCustom ? $validated['custom_monthly_price'] : ($planConfig['billing_amount'] ?? $planConfig['price_monthly'] ?? 0));
+                    $molliePayload = [
+                        'amount' => ['currency' => 'EUR', 'value' => number_format($netAmount * 1.21, 2, '.', '')],
+                        'interval' => Company::billingPeriod($validated['billing_period'])['mollie_interval'],
+                        'description' => 'TaskCheck '.($isCustom ? $validated['custom_subscription_name'] : ($planConfig['name'] ?? $plan)).' abonnement',
+                        'metadata' => ['company_id' => $company->id, 'plan' => $plan, 'interval' => Company::billingPeriod($validated['billing_period'])['mollie_interval']],
+                    ];
+                    if ($billingStartDate && $billingStartDate->isFuture()) {
+                        $molliePayload['startDate'] = $billingStartDate->toDateString();
+                    }
+                    $mollieService->updateSubscription((string) $company->mollie_customer_id, (string) $company->mollie_subscription_id, $molliePayload);
+                }
+            } catch (\Throwable $exception) {
+                report($exception);
+                return back()->withInput()->with('error', 'De wijzigingen zijn niet opgeslagen, omdat Mollie het abonnement niet kon bijwerken: '.$exception->getMessage());
+            }
+        }
 
         $company->update([
             'subscription_plan' => $plan,
@@ -545,7 +578,11 @@ class DashboardController extends Controller
             'custom_monthly_price' => $isCustom ? $validated['custom_monthly_price'] : null,
             'subscription_status' => $validated['subscription_status'],
             'billing_required' => $billingRequired,
+            'billing_period' => $validated['billing_period'],
+            'billing_start_date' => $billingStartDate,
+            'trial_ends_at' => $trialEndsAt,
             'subscription_ends_at' => $endDate,
+            'mollie_subscription_id' => $mollieSubscriptionId,
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'max_users' => $isCustom ? $validated['custom_max_users'] : ($planConfig['max_users'] ?? $company->max_users),
             'max_locations' => $isCustom ? $validated['custom_max_locations'] : ($planConfig['max_locations'] ?? $company->max_locations),

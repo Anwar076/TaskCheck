@@ -7,6 +7,7 @@ use App\Models\Organisation\User;
 use App\Models\Billing\SubscriptionPlan;
 use App\Services\Billing\MollieService;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -132,5 +133,48 @@ class SubscriptionFlowTest extends TestCase
         $this->assertSame('starter', $company->subscription_plan);
         $this->assertNull($company->mollie_payment_id);
         $this->assertNull($company->pending_subscription_plan);
+    }
+
+    public function test_first_paid_date_becomes_billing_anchor_and_recurring_starts_one_interval_later(): void
+    {
+        Mail::fake();
+        Config::set('services.mollie.webhook_url', 'https://example.test/mollie/webhook');
+        $company = Company::query()->create([
+            'name' => 'Trial Company',
+            'subscription_status' => 'trial',
+            'trial_ends_at' => '2026-09-01',
+            'mollie_customer_id' => 'cst_anchor',
+            'mollie_payment_id' => 'tr_first',
+            'pending_subscription_plan' => 'starter',
+            'is_active' => true,
+        ]);
+        User::factory()->create(['role' => 'admin', 'email' => 'anchor@example.test', 'company_id' => $company->id]);
+        $subscriptionPayload = null;
+        $payment = [
+            'id' => 'tr_first',
+            'status' => 'paid',
+            'sequenceType' => 'first',
+            'paidAt' => '2026-09-03T12:00:00+00:00',
+            'description' => 'TaskCheck Starter abonnement',
+            'amount' => ['currency' => 'EUR', 'value' => '47.19'],
+            'metadata' => ['company_id' => $company->id, 'plan' => 'starter', 'interval' => '1 month'],
+        ];
+        $mollie = Mockery::mock(MollieService::class);
+        $mollie->shouldReceive('getPayment')->once()->with('tr_first')->andReturn($payment);
+        $mollie->shouldReceive('getCustomerSubscriptions')->once()->with('cst_anchor')->andReturn([]);
+        $mollie->shouldReceive('createSubscription')->once()->andReturnUsing(function ($customerId, $payload) use (&$subscriptionPayload) {
+            $subscriptionPayload = $payload;
+            return ['id' => 'sub_anchor'];
+        });
+        $this->instance(MollieService::class, $mollie);
+
+        $this->post(route('subscription.mollie.webhook'), ['id' => 'tr_first'])->assertOk();
+
+        $company->refresh();
+        $this->assertSame('active', $company->subscription_status);
+        $this->assertSame('2026-09-03', $company->billing_start_date?->toDateString());
+        $this->assertSame('sub_anchor', $company->mollie_subscription_id);
+        $this->assertSame('2026-10-03', data_get($subscriptionPayload, 'startDate'));
+        $this->assertSame('1 month', data_get($subscriptionPayload, 'interval'));
     }
 }

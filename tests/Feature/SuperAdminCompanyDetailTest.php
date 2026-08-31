@@ -62,6 +62,53 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('EUR 99,00');
     }
 
+    public function test_super_admin_can_change_billing_schedule_and_it_updates_mollie(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        config()->set('services.mollie.key', 'test_key');
+        $company = Company::firstOrFail();
+        $company->update(['mollie_customer_id' => 'cst_schedule', 'mollie_subscription_id' => 'sub_schedule']);
+        Http::fake(['https://api.mollie.com/v2/customers/cst_schedule/subscriptions/sub_schedule' => Http::response(['id' => 'sub_schedule'])]);
+
+        $this->actingAs($admin)->put(route('super-admin.companies.subscription.update', $company), [
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'billing_required' => '1',
+            'billing_period' => 'quarterly',
+            'billing_start_date' => now()->addMonth()->toDateString(),
+            'trial_ends_at' => now()->addWeeks(3)->toDateString(),
+            'is_active' => '1',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']));
+
+        $company->refresh();
+        $this->assertSame('quarterly', $company->billing_period);
+        $this->assertSame(now()->addMonth()->toDateString(), $company->billing_start_date?->toDateString());
+        Http::assertSent(fn ($request) => $request->method() === 'PATCH'
+            && data_get($request->data(), 'interval') === '3 months'
+            && data_get($request->data(), 'startDate') === now()->addMonth()->toDateString());
+    }
+
+    public function test_trial_length_and_default_first_billing_date_are_visible(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+        $company->update([
+            'created_at' => now()->startOfDay(),
+            'trial_ends_at' => now()->addDays(14)->startOfDay(),
+            'billing_start_date' => now()->addDays(14)->toDateString(),
+            'billing_period' => 'monthly',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']))
+            ->assertOk()
+            ->assertSee('14 dagen')
+            ->assertSee(now()->addDays(14)->format('d-m-Y'))
+            ->assertSee('Geplande eerste facturatie');
+    }
+
     public function test_super_admin_can_open_global_users_overview(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
@@ -119,6 +166,8 @@ class SuperAdminCompanyDetailTest extends TestCase
             'name' => 'Professional Plus',
             'billing_period' => 'monthly',
             'price' => '109.00',
+            'trial_duration_value' => 2,
+            'trial_duration_unit' => 'weeks',
             'max_users' => 15,
             'max_locations' => 3,
             'max_storage_gb' => 75,
@@ -151,6 +200,8 @@ class SuperAdminCompanyDetailTest extends TestCase
             'name' => 'Franchise Plus',
             'billing_period' => 'annual',
             'price' => '2290.00',
+            'trial_duration_value' => 1,
+            'trial_duration_unit' => 'months',
             'max_users' => 40,
             'max_locations' => 12,
             'max_storage_gb' => 200,
@@ -165,6 +216,8 @@ class SuperAdminCompanyDetailTest extends TestCase
         ]);
         $this->assertSame(40, Company::plan('franchise_plus')['max_users']);
         $this->assertSame('annual', Company::plan('franchise_plus')['billing_period']);
+        $this->assertSame(1, Company::plan('franchise_plus')['trial_duration_value']);
+        $this->assertSame('months', Company::plan('franchise_plus')['trial_duration_unit']);
         $this->assertSame(2290.0, Company::plan('franchise_plus')['billing_amount']);
         $this->assertSame(0.0, Company::plan('franchise_plus')['price_monthly']);
         $this->assertSame(2290.0, Company::plan('franchise_plus')['price_annual']);
@@ -181,6 +234,7 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->actingAs($admin)->put(route('super-admin.companies.subscription.update', $company), [
             'subscription_plan' => 'starter',
             'subscription_status' => 'active',
+            'billing_period' => 'monthly',
             'subscription_ends_at' => '2027-12-31',
             'billing_required' => '1',
             'is_active' => '1',
@@ -198,6 +252,7 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->actingAs($admin)->put(route('super-admin.companies.subscription.update', $company), [
             'subscription_plan' => 'custom',
             'subscription_status' => 'active',
+            'billing_period' => 'monthly',
             'billing_required' => '1',
             'is_active' => '1',
             'custom_subscription_name' => 'Kwalitaria Plus',
@@ -490,6 +545,12 @@ class SuperAdminCompanyDetailTest extends TestCase
             'is_active' => true,
         ]);
         $list->tasks()->create(['title' => 'Koeling controleren', 'created_by' => $admin->id, 'is_required' => true]);
+        \App\Models\Billing\SubscriptionPlan::query()->create([
+            'plan_key' => 'franchise_trial', 'name' => 'Franchise Trial', 'billing_period' => 'monthly',
+            'billing_amount' => 199, 'price_monthly' => 199, 'price_annual' => 0,
+            'trial_duration_value' => 1, 'trial_duration_unit' => 'months',
+            'max_users' => 50, 'max_locations' => 20, 'max_storage_gb' => 100, 'features' => [],
+        ]);
 
         $response = $this->actingAs($admin)->post(route('super-admin.companies.duplicate', $source), [
             'company_name' => 'Kwalitaria Nieuwe Franchisee',
@@ -497,7 +558,7 @@ class SuperAdminCompanyDetailTest extends TestCase
             'admin_email' => 'nieuwe.eigenaar@example.test',
             'account_setup' => 'password',
             'admin_password' => 'Sterk-Wachtwoord-2026!',
-            'subscription_plan' => 'custom',
+            'subscription_plan' => 'franchise_trial',
             'copy_lists' => '1',
             'copy_locations' => '1',
             'copy_settings' => '1',
@@ -515,6 +576,8 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->assertSame('Papendrecht', Location::withoutGlobalScopes()->findOrFail($copiedList->location_id)->name);
         $this->assertDatabaseHas('tasks', ['list_id' => $copiedList->id, 'title' => 'Koeling controleren']);
         $this->assertSame(['Keuken'], $copy->departments);
+        $this->assertSame(now()->addMonthNoOverflow()->toDateString(), $copy->trial_ends_at?->toDateString());
+        $this->assertSame($copy->trial_ends_at?->toDateString(), $copy->billing_start_date?->toDateString());
         $this->assertSame(0, \App\Models\Submissions\Submission::withoutGlobalScopes()->where('company_id', $copy->id)->count());
     }
 }

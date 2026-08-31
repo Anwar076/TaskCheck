@@ -16,17 +16,21 @@ class CompanyDuplicationService
     {
         return DB::transaction(function () use ($source, $data) {
             $copySettings = (bool) ($data['copy_settings'] ?? false);
+            $trialEnd = Company::trialEndForPlan($data['subscription_plan']);
+            $plan = Company::plan($data['subscription_plan']) ?? [];
             $company = Company::query()->create([
                 'name' => $data['company_name'],
                 'company_type' => $source->company_type,
                 'email' => $data['admin_email'],
                 'subscription_plan' => $data['subscription_plan'],
                 'subscription_status' => 'trial',
-                'trial_ends_at' => now()->addDays(14),
+                'trial_ends_at' => $trialEnd,
                 'billing_required' => false,
-                'max_users' => Company::plan($data['subscription_plan'])['max_users'] ?? 5,
-                'max_locations' => Company::plan($data['subscription_plan'])['max_locations'] ?? 1,
-                'max_storage_gb' => Company::plan($data['subscription_plan'])['max_storage_gb'] ?? 5,
+                'billing_period' => $plan['billing_period'] ?? 'monthly',
+                'billing_start_date' => $trialEnd->toDateString(),
+                'max_users' => $plan['max_users'] ?? 5,
+                'max_locations' => $plan['max_locations'] ?? 1,
+                'max_storage_gb' => $plan['max_storage_gb'] ?? 5,
                 'description' => $copySettings ? $source->description : null,
                 'departments' => $copySettings ? $source->departments : null,
                 'working_hours' => $copySettings ? $source->working_hours : null,

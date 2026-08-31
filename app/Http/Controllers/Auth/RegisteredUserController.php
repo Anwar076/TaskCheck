@@ -44,6 +44,9 @@ class RegisteredUserController extends Controller
             'company_name' => ['required', 'string', 'max:255'],
         ]);
 
+        $trialEnd = Company::trialEndForPlan('starter');
+        $trialPlan = Company::plan('starter') ?? [];
+        $trialLabel = ($trialPlan['trial_duration_value'] ?? 14).' '.match($trialPlan['trial_duration_unit'] ?? 'days') { 'weeks' => 'weken', 'months' => 'maanden', default => 'dagen' };
         DB::beginTransaction();
         try {
             // Create company with trial period
@@ -51,7 +54,10 @@ class RegisteredUserController extends Controller
                 'name' => $request->company_name,
                 'company_type' => config('app.default_company_type', 'horeca'),
                 'subscription_status' => 'trial',
-                'trial_ends_at' => now()->addDays(14),
+                'subscription_plan' => 'starter',
+                'trial_ends_at' => $trialEnd,
+                'billing_period' => 'monthly',
+                'billing_start_date' => $trialEnd->toDateString(),
             ]);
 
             $this->seedDefaultTemplatesForCompany($company);
@@ -81,7 +87,7 @@ class RegisteredUserController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.dashboard')->with('success', 'Welkom bij TaskCheck! Je proefperiode van 14 dagen is gestart.');
+            return redirect()->route('admin.dashboard')->with('success', "Welkom bij TaskCheck! Je proefperiode van {$trialLabel} is gestart.");
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
@@ -412,4 +418,3 @@ class RegisteredUserController extends Controller
         return true;
     }
 }
-

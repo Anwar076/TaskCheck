@@ -556,11 +556,15 @@ class SubscriptionController extends Controller
                 throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
             }
 
-            $company->activateSubscription($plan, $this->billingPeriodMonths($plan));
+            $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval('', $plan));
+            $firstPaidAt = filled($payment['paidAt'] ?? null) ? Carbon::parse($payment['paidAt']) : now();
+            $company->activateSubscription($plan, $this->intervalMonths($interval));
 
             $updateData = [
                 'mollie_payment_id' => null,
                 'pending_subscription_plan' => null,
+                'billing_period' => $this->billingPeriodFromInterval($interval),
+                'billing_start_date' => $firstPaidAt->toDateString(),
             ];
 
             if ($company->mollie_customer_id && !$company->mollie_subscription_id) {
@@ -571,8 +575,9 @@ class SubscriptionController extends Controller
                         : $this->calculateGrossAmount((float) Company::plan($plan)['billing_amount']);
                     $amountValue = (string) data_get($payment, 'amount.value', $fallbackAmount);
                     $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval($billingEmail, $plan));
+                    $nextChargeDate = $this->addInterval($firstPaidAt->copy()->startOfDay(), $interval)->toDateString();
 
-                    $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
+                    $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval, $nextChargeDate);
 
                     $updateData['mollie_subscription_id'] = $subscription['id'] ?? null;
                 } catch (\Throwable $e) {
@@ -768,24 +773,45 @@ class SubscriptionController extends Controller
         return number_format($gross, 2, '.', '');
     }
 
-    private function billingPeriodMonths(string $plan): int
+    private function billingPeriodFromInterval(string $interval): string
     {
-        return match (Company::plan($plan)['billing_period'] ?? 'monthly') {
-            'quarterly' => 3,
-            'semiannual' => 6,
-            'annual' => 12,
+        return match ($interval) {
+            '3 months' => 'quarterly',
+            '6 months' => 'semiannual',
+            '12 months' => 'annual',
+            default => 'monthly',
+        };
+    }
+
+    private function intervalMonths(string $interval): int
+    {
+        return match ($interval) {
+            '3 months' => 3,
+            '6 months' => 6,
+            '12 months' => 12,
             default => 1,
         };
     }
 
-    private function createRecurringSubscription(Company $company, string $plan, string $amountValue, string $interval): array
+    private function addInterval(Carbon $date, string $interval): Carbon
+    {
+        return match ($interval) {
+            '1 day' => $date->addDay(),
+            '3 months' => $date->addMonthsNoOverflow(3),
+            '6 months' => $date->addMonthsNoOverflow(6),
+            '12 months' => $date->addYearNoOverflow(),
+            default => $date->addMonthNoOverflow(),
+        };
+    }
+
+    private function createRecurringSubscription(Company $company, string $plan, string $amountValue, string $interval, ?string $startDate = null): array
     {
         $existingSubscriptionId = $this->findExistingReusableSubscriptionId($company);
         if ($existingSubscriptionId !== null) {
             return ['id' => $existingSubscriptionId];
         }
 
-        return $this->mollieService->createSubscription((string) $company->mollie_customer_id, [
+        $payload = [
             'amount' => [
                 'currency' => 'EUR',
                 'value' => $amountValue,
@@ -798,7 +824,12 @@ class SubscriptionController extends Controller
                 'plan' => $plan,
                 'interval' => $interval,
             ],
-        ]);
+        ];
+        if ($startDate) {
+            $payload['startDate'] = $startDate;
+        }
+
+        return $this->mollieService->createSubscription((string) $company->mollie_customer_id, $payload);
     }
 
     private function findExistingReusableSubscriptionId(Company $company): ?string
@@ -865,7 +896,8 @@ class SubscriptionController extends Controller
                 : $this->calculateGrossAmount((float) Company::plan($plan)['billing_amount']);
             $interval = $this->resolveSubscriptionInterval($billingEmail, $plan);
 
-            $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
+            $nextChargeDate = $this->addInterval(now()->startOfDay(), $interval)->toDateString();
+            $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval, $nextChargeDate);
             $subscriptionId = trim((string) ($subscription['id'] ?? ''));
 
             if ($subscriptionId !== '') {
@@ -1009,9 +1041,14 @@ class SubscriptionController extends Controller
             ? $company->subscription_ends_at->copy()
             : now();
 
-        $company->update([
-            'subscription_ends_at' => $base->addMonths(1)->addDays(3),
-        ]);
+        $months = match ($company->billing_period ?: (Company::plan($company->subscription_plan)['billing_period'] ?? 'monthly')) {
+            'quarterly' => 3,
+            'semiannual' => 6,
+            'annual' => 12,
+            default => 1,
+        };
+
+        $company->update(['subscription_ends_at' => $base->addMonths($months)->addDays(3)]);
     }
 
     private function renderInvoicePdf(Invoice $invoice): string

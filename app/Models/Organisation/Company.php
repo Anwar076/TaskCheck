@@ -39,6 +39,8 @@ class Company extends Model
         'trial_ends_at',
         'subscription_ends_at',
         'billing_required',
+        'billing_period',
+        'billing_start_date',
         'mollie_customer_id',
         'mollie_subscription_id',
         'mollie_payment_id',
@@ -81,6 +83,7 @@ class Company extends Model
         'subscription_ends_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
         'billing_required' => 'boolean',
+        'billing_start_date' => 'date',
         'custom_monthly_price' => 'decimal:2',
         'is_active' => 'boolean',
         'departments' => 'array',
@@ -192,6 +195,8 @@ class Company extends Model
                 'name' => $override->name,
                 'billing_period' => $override->billing_period,
                 'billing_amount' => (float) ($override->billing_amount ?? ($override->billing_period === 'annual' ? $override->price_annual : $override->price_monthly)),
+                'trial_duration_value' => (int) $override->trial_duration_value,
+                'trial_duration_unit' => $override->trial_duration_unit,
                 'price_monthly' => (float) $override->price_monthly,
                 'price_annual' => (float) $override->price_annual,
                 'max_users' => $override->max_users,
@@ -205,6 +210,8 @@ class Company extends Model
             $plan['billing_period'] ??= 'monthly';
             $plan['billing_amount'] ??= (float) $plan['price_monthly'];
             $plan['features'] ??= self::defaultPlanFeatures($key);
+            $plan['trial_duration_value'] ??= 14;
+            $plan['trial_duration_unit'] ??= 'days';
         }
         unset($plan);
 
@@ -231,6 +238,19 @@ class Company extends Model
     public static function billingPeriod(string $key): array
     {
         return self::BILLING_PERIODS[$key] ?? self::BILLING_PERIODS['monthly'];
+    }
+
+    public static function trialEndForPlan(?string $planKey, ?Carbon $start = null): Carbon
+    {
+        $plan = self::plan($planKey ?: 'starter') ?? [];
+        $value = max(1, (int) ($plan['trial_duration_value'] ?? 14));
+        $date = ($start ?: now())->copy();
+
+        return match ($plan['trial_duration_unit'] ?? 'days') {
+            'weeks' => $date->addWeeks($value),
+            'months' => $date->addMonthsNoOverflow($value),
+            default => $date->addDays($value),
+        };
     }
 
     public static function plan(string $key): ?array
@@ -391,9 +411,12 @@ class Company extends Model
     // Start trial period (14 days)
     public function startTrial(): void
     {
+        $trialEnd = self::trialEndForPlan($this->subscription_plan);
         $this->update([
             'subscription_status' => 'trial',
-            'trial_ends_at' => now()->addDays(14),
+            'trial_ends_at' => $trialEnd,
+            'billing_period' => 'monthly',
+            'billing_start_date' => $trialEnd->toDateString(),
             'trial_expired_email_sent_at' => null,
         ]);
     }
@@ -424,11 +447,12 @@ class Company extends Model
         }
 
         $details = self::plan($this->subscription_plan) ?? [];
+        $details['billing_period'] = $this->billing_period ?: ($details['billing_period'] ?? 'monthly');
 
         if ($this->subscription_plan === 'custom') {
             $details['name'] = $this->custom_subscription_name ?: $details['name'];
             $details['price_monthly'] = (float) ($this->custom_monthly_price ?? 0);
-            $details['billing_period'] = 'monthly';
+            $details['billing_period'] = $this->billing_period ?: 'monthly';
             $details['billing_amount'] = (float) ($this->custom_monthly_price ?? 0);
             $details['max_users'] = (int) $this->max_users;
             $details['max_locations'] = (int) $this->max_locations;
