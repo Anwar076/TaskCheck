@@ -410,6 +410,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/companies/{company}/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
     Route::post('/companies/{company}/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');
     Route::put('/companies/{company}/profile', [SuperAdminDashboardController::class, 'updateCompanyProfile'])->name('companies.profile.update');
+    Route::put('/companies/{company}/identity', [SuperAdminDashboardController::class, 'updateCompanyIdentity'])->name('companies.identity.update');
+    Route::post('/companies/{company}/identity/scim-token', [SuperAdminDashboardController::class, 'rotateCompanyScimToken'])->name('companies.identity.scim-token');
     Route::post('/companies/{company}/users', [SuperAdminDashboardController::class, 'storeCompanyUser'])->name('companies.users.store');
     Route::put('/companies/{company}/users/{user}', [SuperAdminDashboardController::class, 'updateCompanyUser'])->name('companies.users.update');
     Route::post('/companies/{company}/users/{user}/password-reset', [SuperAdminDashboardController::class, 'sendCompanyUserPasswordReset'])->name('companies.users.password-reset');

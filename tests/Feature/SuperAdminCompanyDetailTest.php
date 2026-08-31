@@ -267,6 +267,39 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->assertDatabaseHas('users', ['company_id' => $company->id, 'email' => 'extra-admin@klant.test', 'role' => 'admin']);
     }
 
+    public function test_super_admin_can_manage_company_microsoft_identity_settings(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+        $tenantId = '11111111-1111-4111-8111-111111111111';
+        $clientId = '22222222-2222-4222-8222-222222222222';
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'identity']))
+            ->assertOk()
+            ->assertSee('Microsoft Entra ID')
+            ->assertSee('SCIM');
+
+        $this->actingAs($admin)->put(route('super-admin.companies.identity.update', $company), [
+            'domain' => 'voorbeeld.nl',
+            'entra_enabled' => '1',
+            'entra_mfa_required' => '1',
+            'entra_tenant_id' => $tenantId,
+            'entra_client_id' => $clientId,
+            'entra_client_secret' => 'minimaal-zestien-tekens',
+            'entra_admin_group_ids' => 'AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA',
+            'entra_employee_group_ids' => 'BBBBBBBB-BBBB-4BBB-8BBB-BBBBBBBBBBBB',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'identity']));
+
+        $company->refresh();
+        $this->assertTrue($company->entra_enabled);
+        $this->assertTrue($company->entra_mfa_required);
+        $this->assertFalse($company->entra_sso_required);
+        $this->assertSame('voorbeeld.nl', $company->domain);
+        $this->assertSame(['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'], $company->entra_admin_group_ids);
+    }
+
     public function test_super_admin_can_add_and_edit_an_employee_for_selected_company(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();

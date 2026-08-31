@@ -66,7 +66,7 @@
     </section>
 
     <nav class="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" aria-label="Klantonderdelen">
-        @foreach(['overview' => ['dashboard','Overzicht'], 'users' => ['profile','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']] as $key => [$icon, $label])
+        @foreach(['overview' => ['dashboard','Overzicht'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen'], 'identity' => ['subscriptions','Microsoft SSO'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']] as $key => [$icon, $label])
             <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => $key]) }}" class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold {{ $companySection === $key ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}"><x-super-admin-icon :name="$icon" class="h-4 w-4" />{{ $label }}</a>
         @endforeach
     </nav>
@@ -290,6 +290,10 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2"><div class="sm:col-span-2"><label class="mb-1 block text-sm font-medium text-slate-700">Bedrijfsnaam</label><input name="name" value="{{ old('name',$company->name) }}" required class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">E-mail</label><input name="email" type="email" value="{{ old('email',$company->email) }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Telefoon</label><input name="phone" value="{{ old('phone',$company->phone) }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Website</label><input name="website" type="url" value="{{ old('website',$company->website) }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Type</label><select name="company_type" class="w-full rounded-xl border-slate-300 text-sm"><option value="">Niet ingesteld</option><option value="horeca" @selected($company->company_type==='horeca')>Horeca</option><option value="cleaning" @selected($company->company_type==='cleaning')>Schoonmaak</option><option value="other" @selected($company->company_type==='other')>Anders</option></select></div><div class="sm:col-span-2"><label class="mb-1 block text-sm font-medium text-slate-700">Adres</label><input name="address" value="{{ old('address',$company->address) }}" class="w-full rounded-xl border-slate-300 text-sm"></div></div>
             <div class="flex justify-end"><button class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Bedrijfsgegevens opslaan</button></div>
         </form>
+    @endif
+
+    @if($companySection === 'identity')
+        @include('super-admin.companies._identity')
     @endif
 
     @if($companySection === 'activity')

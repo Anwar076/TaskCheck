@@ -109,19 +109,10 @@
             </div>
     </form>
 
-    <div class="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-        <span class="h-px flex-1 bg-slate-200"></span><span>of</span><span class="h-px flex-1 bg-slate-200"></span>
-    </div>
-    <form method="POST" action="{{ route('entra.redirect') }}" class="space-y-3">
-        @csrf
-        <label for="entra_email" class="block text-sm font-semibold text-slate-800">Zakelijk e-mailadres voor Microsoft SSO</label>
-        <input id="entra_email" name="email" type="email" required autocomplete="username"
-               value="{{ old('email') }}" placeholder="naam@bedrijf.nl"
-               class="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-100">
-        <button type="submit" class="flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50">
-            Aanmelden met Microsoft
-        </button>
-    </form>
+    <details class="group mt-5 rounded-xl border border-slate-200 bg-white" @if(old('login_method') === 'microsoft') open @endif>
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"><span class="flex items-center gap-2"><span class="grid h-5 w-5 grid-cols-2 gap-0.5"><i class="bg-[#f25022]"></i><i class="bg-[#7fba00]"></i><i class="bg-[#00a4ef]"></i><i class="bg-[#ffb900]"></i></span>Inloggen met Microsoft</span><svg class="h-4 w-4 transition group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg></summary>
+        <form method="POST" action="{{ route('entra.redirect') }}" class="space-y-3 border-t border-slate-100 p-4">@csrf<input type="hidden" name="login_method" value="microsoft"><label for="entra_email" class="block text-sm font-semibold text-slate-800">Zakelijk e-mailadres</label><input id="entra_email" name="email" type="email" required autocomplete="username" value="{{ old('email') }}" placeholder="naam@bedrijf.nl" class="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-100"><button type="submit" class="flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Doorgaan met Microsoft</button></form>
+    </details>
 
     <p class="mt-6 text-center text-sm text-slate-500">
         Nog geen account?
