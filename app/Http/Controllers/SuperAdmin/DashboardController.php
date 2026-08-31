@@ -450,6 +450,8 @@ class DashboardController extends Controller
             'company_name' => ['required', 'string', 'max:255'],
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'account_setup' => ['required', Rule::in(['invite', 'password'])],
+            'admin_password' => ['nullable', 'required_if:account_setup,password', 'string', 'min:12', 'max:255'],
             'subscription_plan' => ['required', Rule::in(array_keys(Company::plans()))],
             'copy_lists' => ['nullable', 'boolean'],
             'copy_locations' => ['nullable', 'boolean'],
@@ -470,10 +472,12 @@ class DashboardController extends Controller
         }
 
         $result = $duplicator->duplicate($company, $validated);
-        $result['admin']->sendInvitationNotification($request->user());
+        if ($validated['account_setup'] === 'invite') {
+            $result['admin']->sendInvitationNotification($request->user());
+        }
 
         return redirect()->route('super-admin.companies.show', $result['company'])
-            ->with('success', "Bedrijf gedupliceerd met {$result['lists']} lijsten, {$result['tasks']} taken en {$result['locations']} locaties. De nieuwe beheerder heeft een uitnodiging ontvangen.");
+            ->with('success', "Bedrijf gedupliceerd met {$result['lists']} lijsten, {$result['tasks']} taken en {$result['locations']} locaties. ".($validated['account_setup'] === 'invite' ? 'De nieuwe beheerder heeft een uitnodiging ontvangen.' : 'Het beheerderswachtwoord is ingesteld zonder e-mail te versturen.'));
     }
 
     public function updateCompanySubscription(Request $request, Company $company): RedirectResponse

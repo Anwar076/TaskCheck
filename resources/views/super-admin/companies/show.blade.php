@@ -66,10 +66,23 @@
         </div>
     </section>
 
-    <nav class="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" aria-label="Klantonderdelen">
-        @foreach(['overview' => ['dashboard','Overzicht'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen'], 'reporting' => ['invoices','Rapportages'], 'identity' => ['subscriptions','Microsoft SSO'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']] as $key => [$icon, $label])
+    @php
+        $primaryCompanySections = ['overview' => ['dashboard','Overzicht'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen']];
+        $moreCompanySections = ['reporting' => ['invoices','Rapportages'], 'identity' => ['subscriptions','Microsoft SSO'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']];
+        $moreSectionActive = array_key_exists($companySection, $moreCompanySections);
+    @endphp
+    <nav class="relative flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" aria-label="Klantonderdelen">
+        @foreach($primaryCompanySections as $key => [$icon, $label])
             <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => $key]) }}" class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold {{ $companySection === $key ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}"><x-super-admin-icon :name="$icon" class="h-4 w-4" />{{ $label }}</a>
         @endforeach
+        <details class="group relative ml-auto">
+            <summary class="inline-flex cursor-pointer list-none items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold transition [&::-webkit-details-marker]:hidden {{ $moreSectionActive ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}"><span class="text-lg leading-none">•••</span> Meer <x-super-admin-icon name="chevron" class="h-3.5 w-3.5 transition-transform group-open:rotate-180" /></summary>
+            <div class="absolute right-0 top-full z-30 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                @foreach($moreCompanySections as $key => [$icon, $label])
+                    <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => $key]) }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold {{ $companySection === $key ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}"><x-super-admin-icon :name="$icon" class="h-4 w-4" />{{ $label }}</a>
+                @endforeach
+            </div>
+        </details>
     </nav>
 
     <section class="{{ $companySection === 'overview' ? 'grid' : 'hidden' }} grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
@@ -317,7 +330,9 @@
     <form method="POST" action="{{ route('super-admin.companies.duplicate', $company) }}">@csrf
         <div class="border-b border-slate-200 px-6 py-5"><h2 class="text-lg font-semibold text-slate-900">{{ $company->name }} dupliceren</h2><p class="mt-1 text-sm text-slate-500">Maak een schone franchiseomgeving met een nieuwe beheerder en een proefperiode van 14 dagen. Inzendingen, medewerkers, facturen, betalingen en SSO-instellingen gaan nooit mee.</p></div>
         <div class="space-y-5 px-6 py-5">
-            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium text-slate-700">Naam nieuw bedrijf</label><input name="company_name" required value="{{ old('company_name', $company->name.' - kopie') }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Abonnement</label><select name="subscription_plan" class="w-full rounded-xl border-slate-300 text-sm">@foreach(\App\Models\Organisation\Company::plans() as $key => $planOption)<option value="{{ $key }}" @selected($key === $company->subscription_plan)>{{ $planOption['name'] }}</option>@endforeach</select></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Naam nieuwe beheerder</label><input name="admin_name" required value="{{ old('admin_name') }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">E-mail nieuwe beheerder</label><input type="email" name="admin_email" required value="{{ old('admin_email') }}" class="w-full rounded-xl border-slate-300 text-sm"><p class="mt-1 text-xs text-slate-500">Deze persoon ontvangt een uitnodiging om een wachtwoord in te stellen.</p></div></div>
+            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium text-slate-700">Naam nieuw bedrijf</label><input name="company_name" required value="{{ old('company_name', $company->name.' - kopie') }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Abonnement</label><select name="subscription_plan" class="w-full rounded-xl border-slate-300 text-sm">@foreach(\App\Models\Organisation\Company::plans() as $key => $planOption)<option value="{{ $key }}" @selected($key === $company->subscription_plan)>{{ $planOption['name'] }}</option>@endforeach</select></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Naam nieuwe beheerder</label><input name="admin_name" required value="{{ old('admin_name') }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">E-mail nieuwe beheerder</label><input type="email" name="admin_email" required value="{{ old('admin_email') }}" class="w-full rounded-xl border-slate-300 text-sm"></div></div>
+            <fieldset><legend class="text-sm font-semibold text-slate-800">Account activeren</legend><div class="mt-2 grid gap-3 sm:grid-cols-2"><label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-3"><input type="radio" name="account_setup" value="invite" @checked(old('account_setup', 'invite') === 'invite') class="mt-0.5 border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Uitnodiging per e-mail</strong><span class="text-xs text-slate-500">De beheerder kiest zelf een wachtwoord.</span></span></label><label class="flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-3"><input type="radio" name="account_setup" value="password" @checked(old('account_setup') === 'password') class="mt-0.5 border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Wachtwoord direct instellen</strong><span class="text-xs text-slate-500">Er wordt geen e-mail verstuurd.</span></span></label></div></fieldset>
+            <div id="duplicate-password-fields" class="hidden rounded-xl border border-blue-100 bg-blue-50/60 p-4"><label class="mb-1 block text-sm font-medium text-slate-700">Wachtwoord nieuwe beheerder</label><div class="flex flex-col gap-2 sm:flex-row"><input id="duplicate-admin-password" type="text" name="admin_password" minlength="12" autocomplete="new-password" value="{{ old('admin_password') }}" class="min-w-0 flex-1 rounded-xl border-slate-300 font-mono text-sm" placeholder="Minimaal 12 tekens"><button id="generate-duplicate-admin-password" type="button" class="rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100">Genereer veilig wachtwoord</button></div><p class="mt-2 text-xs text-slate-500">Kopieer dit wachtwoord en deel het via een veilig kanaal. TaskCheck mailt het niet.</p></div>
             <fieldset><legend class="text-sm font-semibold text-slate-800">Onderdelen meenemen</legend><div class="mt-3 grid gap-3 sm:grid-cols-2">
                 <label class="flex gap-3 rounded-xl border border-slate-200 p-3"><input type="checkbox" name="copy_lists" value="1" checked class="mt-0.5 rounded border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Takenlijsten en taken</strong><span class="text-xs text-slate-500">Inclusief planning, bewijsvereisten en algemene roltoewijzingen.</span></span></label>
                 <label class="flex gap-3 rounded-xl border border-slate-200 p-3"><input type="checkbox" name="copy_locations" value="1" checked class="mt-0.5 rounded border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Locaties</strong><span class="text-xs text-slate-500">Lijsten blijven aan de overeenkomstige gekopieerde locatie gekoppeld.</span></span></label>
@@ -355,6 +370,22 @@ document.getElementById('generate-company-user-password')?.addEventListener('cli
     const values = new Uint32Array(18);
     crypto.getRandomValues(values);
     document.getElementById('new-company-user-password').value = Array.from(values, value => alphabet[value % alphabet.length]).join('');
+});
+const duplicatePasswordFields = document.getElementById('duplicate-password-fields');
+const duplicatePasswordInput = document.getElementById('duplicate-admin-password');
+const syncDuplicateAccountSetup = () => {
+    const usesPassword = document.querySelector('input[name="account_setup"]:checked')?.value === 'password';
+    duplicatePasswordFields?.classList.toggle('hidden', !usesPassword);
+    if (duplicatePasswordInput) duplicatePasswordInput.required = usesPassword;
+};
+document.querySelectorAll('input[name="account_setup"]').forEach(input => input.addEventListener('change', syncDuplicateAccountSetup));
+syncDuplicateAccountSetup();
+document.getElementById('generate-duplicate-admin-password')?.addEventListener('click', () => {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+    const values = new Uint32Array(20);
+    crypto.getRandomValues(values);
+    duplicatePasswordInput.value = Array.from(values, value => alphabet[value % alphabet.length]).join('');
+    duplicatePasswordInput.select();
 });
 </script>
 @endpush

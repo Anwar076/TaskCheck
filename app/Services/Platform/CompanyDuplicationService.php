@@ -40,7 +40,7 @@ class CompanyDuplicationService
                 'company_id' => $company->id,
                 'name' => $data['admin_name'],
                 'email' => $data['admin_email'],
-                'password' => Hash::make(Str::random(64)),
+                'password' => Hash::make($data['account_setup'] === 'password' ? $data['admin_password'] : Str::random(64)),
                 'role' => 'admin',
                 'is_active' => true,
                 'email_verified_at' => now(),

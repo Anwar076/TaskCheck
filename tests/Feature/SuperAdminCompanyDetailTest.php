@@ -8,6 +8,7 @@ use App\Models\Organisation\Company;
 use App\Models\Organisation\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class SuperAdminCompanyDetailTest extends TestCase
@@ -468,6 +469,8 @@ class SuperAdminCompanyDetailTest extends TestCase
             'company_name' => 'Kwalitaria Nieuwe Franchisee',
             'admin_name' => 'Nieuwe Eigenaar',
             'admin_email' => 'nieuwe.eigenaar@example.test',
+            'account_setup' => 'password',
+            'admin_password' => 'Sterk-Wachtwoord-2026!',
             'subscription_plan' => 'custom',
             'copy_lists' => '1',
             'copy_locations' => '1',
@@ -477,6 +480,9 @@ class SuperAdminCompanyDetailTest extends TestCase
         $copy = Company::where('name', 'Kwalitaria Nieuwe Franchisee')->firstOrFail();
         $response->assertRedirect(route('super-admin.companies.show', $copy));
         $this->assertDatabaseHas('users', ['company_id' => $copy->id, 'email' => 'nieuwe.eigenaar@example.test', 'role' => 'admin']);
+        $newAdmin = User::where('email', 'nieuwe.eigenaar@example.test')->firstOrFail();
+        $this->assertTrue(Hash::check('Sterk-Wachtwoord-2026!', $newAdmin->password));
+        Notification::assertNothingSent();
         $this->assertDatabaseHas('locations', ['company_id' => $copy->id, 'name' => 'Papendrecht']);
         $copiedList = TaskList::withoutGlobalScopes()->where('company_id', $copy->id)->where('title', 'Openingslijst')->firstOrFail();
         $this->assertNotSame($list->id, $copiedList->id);
