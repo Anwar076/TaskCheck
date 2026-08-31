@@ -20,6 +20,7 @@ class NotifyTrialExpiredCommandTest extends TestCase
             'name' => 'Trial Bedrijf',
             'email' => 'billing@example.test',
             'subscription_status' => 'trial',
+            'signup_source' => Company::SIGNUP_SOURCE_SELF_SERVICE,
             'trial_ends_at' => now()->subDay(),
             'is_active' => true,
         ]);
@@ -42,6 +43,7 @@ class NotifyTrialExpiredCommandTest extends TestCase
             'name' => 'Trial Bedrijf',
             'email' => 'billing@example.test',
             'subscription_status' => 'trial',
+            'signup_source' => Company::SIGNUP_SOURCE_SELF_SERVICE,
             'trial_ends_at' => now()->subDay(),
             'trial_expired_email_sent_at' => now()->subHour(),
             'is_active' => true,

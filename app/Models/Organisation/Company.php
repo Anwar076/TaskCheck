@@ -41,6 +41,7 @@ class Company extends Model
         'billing_required',
         'billing_period',
         'billing_start_date',
+        'signup_source',
         'mollie_customer_id',
         'mollie_subscription_id',
         'mollie_payment_id',
@@ -53,6 +54,7 @@ class Company extends Model
         'onboarding_list_id',
         'onboarding_completed_at',
         'trial_expired_email_sent_at',
+        'payment_invitation_sent_at',
         'entra_enabled',
         'entra_sso_required',
         'entra_mfa_required',
@@ -77,6 +79,8 @@ class Company extends Model
     public const CALENDAR_TIME_MODE_24_HOURS = '24_hours';
     public const REPORTING_FREQUENCY_DAILY = 'daily';
     public const REPORTING_FREQUENCY_WEEKLY = 'weekly';
+    public const SIGNUP_SOURCE_SELF_SERVICE = 'self_service';
+    public const SIGNUP_SOURCE_MANAGED = 'managed';
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
@@ -91,6 +95,7 @@ class Company extends Model
         'reporting_enabled' => 'boolean',
         'reporting_last_sent_at' => 'datetime',
         'trial_expired_email_sent_at' => 'datetime',
+        'payment_invitation_sent_at' => 'datetime',
         'entra_enabled' => 'boolean',
         'entra_sso_required' => 'boolean',
         'entra_mfa_required' => 'boolean',
@@ -98,6 +103,11 @@ class Company extends Model
         'entra_admin_group_ids' => 'array',
         'entra_employee_group_ids' => 'array',
     ];
+
+    public function isManagedAccount(): bool
+    {
+        return $this->signup_source !== self::SIGNUP_SOURCE_SELF_SERVICE;
+    }
 
     public const WEEKDAYS = [
         'monday' => 'Maandag',

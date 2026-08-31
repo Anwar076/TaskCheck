@@ -17,31 +17,29 @@
         </div>
     </header>
 
-    <div class="hidden grid-cols-[minmax(15rem,2fr)_7rem_minmax(9rem,1fr)_7rem_19rem] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 xl:grid">
-        <span>Gebruiker</span><span>Rol</span><span>Locatietoegang</span><span>Status</span><span class="text-right">Acties</span>
-    </div>
-    <div id="company-user-list" class="divide-y divide-slate-100">
-        @forelse($companyUsers as $user)
-            <article data-user-row data-user-search="{{ mb_strtolower($user->name.' '.$user->email.' '.$user->phone.' '.($user->location?->name ?? '').' '.$user->role) }}" class="grid gap-4 px-5 py-4 transition hover:bg-slate-50/60 xl:grid-cols-[minmax(15rem,2fr)_7rem_minmax(9rem,1fr)_7rem_19rem] xl:items-center">
-                <div class="flex min-w-0 items-start gap-3">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-bold text-blue-700">{{ strtoupper(mb_substr($user->name, 0, 2)) }}</span>
-                    <div class="min-w-0"><p class="break-words text-sm font-semibold text-slate-900">{{ $user->name }}</p><a href="mailto:{{ $user->email }}" class="mt-0.5 block break-all text-sm text-slate-500 hover:text-blue-700">{{ $user->email }}</a>@if($user->phone)<p class="mt-0.5 text-xs text-slate-400">{{ $user->phone }}</p>@endif</div>
-                </div>
-                <div><span class="text-xs font-medium uppercase tracking-wide text-slate-400 xl:hidden">Rol</span><p class="mt-1 text-sm font-semibold text-slate-800 xl:mt-0">{{ $user->role === 'employee' ? 'Medewerker' : 'Beheerder' }}</p><p class="mt-0.5 text-xs text-slate-500">{{ $user->role === 'employee' ? 'Voert taken uit' : 'Beheert de omgeving' }}</p></div>
-                <div><span class="text-xs font-medium uppercase tracking-wide text-slate-400 xl:hidden">Locatietoegang</span><div class="mt-1 flex items-center gap-2 xl:mt-0"><svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.1 6-11a6 6 0 10-12 0c0 5.9 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></svg><span class="text-sm font-medium text-slate-700">{{ $user->role === 'admin' ? 'Organisatiebreed' : ($user->location?->name ?? 'Alle locaties') }}</span></div></div>
-                <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full {{ $user->is_active ? 'bg-emerald-500' : 'bg-red-500' }}"></span><span class="text-sm font-medium {{ $user->is_active ? 'text-emerald-700' : 'text-red-700' }}">{{ $user->is_active ? 'Actief' : 'Geblokkeerd' }}</span></div>
-                <div class="flex flex-wrap gap-2 xl:justify-end">
-                    <form method="POST" action="{{ route('super-admin.companies.users.impersonate', [$company, $user]) }}" onsubmit="return confirm('Inloggen als {{ addslashes($user->name) }}? Alle handelingen worden namens deze gebruiker uitgevoerd.')">@csrf<button class="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100">Login als gebruiker</button></form>
-                    <button type="button" data-open-dialog="edit-company-user-{{ $user->id }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">Bewerken</button>
-                    <form method="POST" action="{{ route('super-admin.companies.users.password-reset', [$company, $user]) }}" onsubmit="return confirm('Wachtwoordlink versturen naar {{ addslashes($user->email) }}?')">@csrf<button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Resetlink</button></form>
-                    @if(!$user->is(auth()->user()))<form method="POST" action="{{ route('super-admin.companies.users.toggle', [$company, $user]) }}" onsubmit="return confirm('Account van {{ addslashes($user->name) }} {{ $user->is_active ? 'blokkeren' : 'activeren' }}?')">@csrf @method('PUT')<button class="rounded-lg px-3 py-2 text-xs font-semibold {{ $user->is_active ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">{{ $user->is_active ? 'Blokkeren' : 'Activeren' }}</button></form>@else<span class="self-center px-2 text-xs font-medium text-slate-400">Dit ben jij</span>@endif
-                </div>
-            </article>
-            @include('super-admin.companies._user-dialog', ['dialogUser' => $user])
-        @empty
-            <div class="px-6 py-14 text-center"><div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><x-super-admin-icon name="profile" /></div><p class="mt-3 font-semibold text-slate-800">Nog geen gebruikers</p><p class="mt-1 text-sm text-slate-500">Voeg de eerste beheerder of medewerker van deze klant toe.</p></div>
-        @endforelse
+    <div class="overflow-x-auto">
+        <table id="company-user-list" class="w-full min-w-[1050px] table-fixed text-left">
+            <thead class="border-b border-slate-200 bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr><th class="w-[27%] px-5 py-3">Gebruiker</th><th class="w-[13%] px-4 py-3">Rol</th><th class="w-[16%] px-4 py-3">Locatietoegang</th><th class="w-[10%] px-4 py-3">Status</th><th class="w-[34%] px-5 py-3 text-right">Acties</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @forelse($companyUsers as $user)
+                    <tr data-user-row data-user-search="{{ mb_strtolower($user->name.' '.$user->email.' '.$user->phone.' '.($user->location?->name ?? '').' '.$user->role) }}" class="transition hover:bg-slate-50/60">
+                        <td class="px-5 py-4 align-middle"><div class="flex min-w-0 items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-bold text-blue-700">{{ strtoupper(mb_substr($user->name, 0, 2)) }}</span><div class="min-w-0"><p class="truncate text-sm font-semibold text-slate-900">{{ $user->name }}</p><a href="mailto:{{ $user->email }}" class="mt-0.5 block truncate text-sm text-slate-500 hover:text-blue-700">{{ $user->email }}</a>@if($user->phone)<p class="mt-0.5 truncate text-xs text-slate-400">{{ $user->phone }}</p>@endif</div></div></td>
+                        <td class="px-4 py-4 align-middle"><p class="text-sm font-semibold text-slate-800">{{ $user->role === 'employee' ? 'Medewerker' : 'Beheerder' }}</p><p class="mt-0.5 text-xs text-slate-500">{{ $user->role === 'employee' ? 'Voert taken uit' : 'Beheert omgeving' }}</p></td>
+                        <td class="px-4 py-4 align-middle"><div class="flex items-center gap-2"><svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.1 6-11a6 6 0 10-12 0c0 5.9 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></svg><span class="text-sm font-medium text-slate-700">{{ $user->role === 'admin' ? 'Organisatiebreed' : ($user->location?->name ?? 'Alle locaties') }}</span></div></td>
+                        <td class="px-4 py-4 align-middle"><div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full {{ $user->is_active ? 'bg-emerald-500' : 'bg-red-500' }}"></span><span class="text-sm font-medium {{ $user->is_active ? 'text-emerald-700' : 'text-red-700' }}">{{ $user->is_active ? 'Actief' : 'Geblokkeerd' }}</span></div></td>
+                        <td class="px-5 py-4 align-middle"><div class="flex flex-wrap justify-end gap-2"><form method="POST" action="{{ route('super-admin.companies.users.impersonate', [$company, $user]) }}" onsubmit="return confirm('Inloggen als {{ addslashes($user->name) }}? Alle handelingen worden namens deze gebruiker uitgevoerd.')">@csrf<button class="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100">Login als gebruiker</button></form><button type="button" data-open-dialog="edit-company-user-{{ $user->id }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">Bewerken</button><form method="POST" action="{{ route('super-admin.companies.users.password-reset', [$company, $user]) }}" onsubmit="return confirm('Wachtwoordlink versturen naar {{ addslashes($user->email) }}?')">@csrf<button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Resetlink</button></form>@if(!$user->is(auth()->user()))<form method="POST" action="{{ route('super-admin.companies.users.toggle', [$company, $user]) }}" onsubmit="return confirm('Account van {{ addslashes($user->name) }} {{ $user->is_active ? 'blokkeren' : 'activeren' }}?')">@csrf @method('PUT')<button class="rounded-lg px-3 py-2 text-xs font-semibold {{ $user->is_active ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">{{ $user->is_active ? 'Blokkeren' : 'Activeren' }}</button></form>@else<span class="self-center px-2 text-xs font-medium text-slate-400">Dit ben jij</span>@endif</div></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5" class="px-6 py-14 text-center"><div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><x-super-admin-icon name="profile" /></div><p class="mt-3 font-semibold text-slate-800">Nog geen gebruikers</p><p class="mt-1 text-sm text-slate-500">Voeg de eerste beheerder of medewerker van deze klant toe.</p></td></tr>
+                @endforelse
+            </tbody>
+        </table>
         <div id="company-user-empty-search" class="hidden px-6 py-12 text-center text-sm text-slate-500">Geen gebruikers gevonden met deze zoekopdracht.</div>
+        @foreach($companyUsers as $user)
+            @include('super-admin.companies._user-dialog', ['dialogUser' => $user])
+        @endforeach
     </div>
 </section>
 

@@ -7,6 +7,7 @@ use App\Models\Billing\Invoice;
 use App\Services\Billing\MollieService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -100,7 +101,7 @@ class SubscriptionController extends Controller
     public function activate(Request $request): RedirectResponse
     {
         $request->validate([
-            'plan' => ['required', 'in:starter,professional,business,custom'],
+            'plan' => ['required', Rule::in(array_keys(Company::plans()))],
         ]);
 
         $company = Auth::user()->company;
@@ -110,18 +111,18 @@ class SubscriptionController extends Controller
                 ->with('error', 'Organisatie niet gevonden.');
         }
 
-        if ($request->plan === 'custom') {
-            return redirect()->route('subscription.choose-plan')
-                ->with('warning', 'Custom abonnementen worden handmatig geactiveerd. Neem contact op met support.');
-        }
-
-        $plan = Company::plan($request->plan);
+        $plan = $request->plan === $company->subscription_plan
+            ? $company->getPlanDetails()
+            : Company::plan($request->plan);
         $billingEmail = (string) Auth::user()->email;
         $isStarterTestOverride = $this->shouldUseStarterTestOverride($billingEmail, (string) $request->plan);
         $amountValue = $isStarterTestOverride
             ? '1.00'
             : $this->calculateGrossAmount((float) $plan['billing_amount']);
         $subscriptionInterval = $this->resolveSubscriptionInterval($billingEmail, (string) $request->plan);
+        if ($company->isManagedAccount() && $request->plan === $company->subscription_plan) {
+            $subscriptionInterval = Company::billingPeriod($company->billing_period ?: 'monthly')['mollie_interval'];
+        }
 
         try {
             $webhookUrl = $this->resolveWebhookUrl();

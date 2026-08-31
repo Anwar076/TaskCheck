@@ -170,13 +170,14 @@
                                 </div>
                             @endif
 
-                            <a href="{{ route('subscription.choose-plan') }}"
-                               class="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
-                                </svg>
-                                Abonnement wijzigen
-                            </a>
+                            @if($company->isManagedAccount() && $company->billing_required && !$company->mollie_subscription_id)
+                                <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                                    Het abonnement <strong>{{ $planDetails['name'] }}</strong> is al toegewezen. De betaaluitnodiging wordt op <strong>{{ ($company->billing_start_date ?: $company->trial_ends_at)?->format('d-m-Y') }}</strong> per e-mail verstuurd.
+                                </div>
+                                <form method="POST" action="{{ route('subscription.activate') }}">@csrf<input type="hidden" name="plan" value="{{ $company->subscription_plan }}"><button class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">Eerste betaling starten</button></form>
+                            @else
+                                <a href="{{ route('subscription.choose-plan') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>Abonnement wijzigen</a>
+                            @endif
                         </div>
 
                         {{-- Gebruik --}}

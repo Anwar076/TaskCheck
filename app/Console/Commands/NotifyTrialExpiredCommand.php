@@ -18,6 +18,7 @@ class NotifyTrialExpiredCommand extends Command
     {
         $companies = Company::query()
             ->where('subscription_status', 'trial')
+            ->where('signup_source', Company::SIGNUP_SOURCE_SELF_SERVICE)
             ->whereNotNull('trial_ends_at')
             ->where('trial_ends_at', '<=', now())
             ->whereNull('trial_expired_email_sent_at')

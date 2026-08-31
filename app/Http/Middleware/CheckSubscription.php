@@ -56,9 +56,13 @@ class CheckSubscription
         }
 
         if ($company->isOnTrial() && $company->trialDaysRemaining() <= 3) {
+            $message = $company->isManagedAccount()
+                ? "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Het abonnement {$company->getPlanDetails()['name']} is al toegewezen; op {$company->billing_start_date?->format('d-m-Y')} ontvang je de betaallink."
+                : "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Kies een abonnement om door te gaan.";
             $request->session()->flash('trial_warning', [
-                'message' => "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Kies een abonnement om door te gaan.",
+                'message' => $message,
                 'days_remaining' => $company->trialDaysRemaining(),
+                'choose_plan' => !$company->isManagedAccount(),
             ]);
         }
 

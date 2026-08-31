@@ -440,8 +440,9 @@ class DashboardController extends Controller
         $subscriptionEndsAt = $billingRequired
             ? null
             : Carbon::parse($validated['access_end_date'])->endOfDay();
+        $trialEnd = $billingRequired ? Company::trialEndForPlan($plan) : null;
 
-        $company = DB::transaction(function () use ($validated, $plan, $planConfig, $billingRequired, $subscriptionEndsAt) {
+        $company = DB::transaction(function () use ($validated, $plan, $planConfig, $billingRequired, $subscriptionEndsAt, $trialEnd) {
             $company = Company::create([
                 'name' => $validated['company_name'],
                 'phone' => $validated['company_phone'] ?? null,
@@ -449,9 +450,13 @@ class DashboardController extends Controller
                 'website' => $validated['company_website'] ?? null,
                 'email' => $validated['admin_email'],
                 'subscription_plan' => $plan,
-                'subscription_status' => 'active',
+                'subscription_status' => $billingRequired ? 'trial' : 'active',
+                'trial_ends_at' => $trialEnd,
                 'subscription_ends_at' => $subscriptionEndsAt,
                 'billing_required' => $billingRequired,
+                'billing_period' => $planConfig['billing_period'] ?? 'monthly',
+                'billing_start_date' => $trialEnd?->toDateString(),
+                'signup_source' => Company::SIGNUP_SOURCE_MANAGED,
                 'max_users' => $planConfig['max_users'] ?? 5,
                 'max_locations' => $planConfig['max_locations'] ?? 1,
                 'max_storage_gb' => $planConfig['max_storage_gb'] ?? 5,

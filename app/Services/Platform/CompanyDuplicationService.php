@@ -28,6 +28,7 @@ class CompanyDuplicationService
                 'billing_required' => false,
                 'billing_period' => $plan['billing_period'] ?? 'monthly',
                 'billing_start_date' => $trialEnd->toDateString(),
+                'signup_source' => Company::SIGNUP_SOURCE_MANAGED,
                 'max_users' => $plan['max_users'] ?? 5,
                 'max_locations' => $plan['max_locations'] ?? 1,
                 'max_storage_gb' => $plan['max_storage_gb'] ?? 5,

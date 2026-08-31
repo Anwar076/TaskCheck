@@ -58,6 +58,7 @@ class RegisteredUserController extends Controller
                 'trial_ends_at' => $trialEnd,
                 'billing_period' => 'monthly',
                 'billing_start_date' => $trialEnd->toDateString(),
+                'signup_source' => Company::SIGNUP_SOURCE_SELF_SERVICE,
             ]);
 
             $this->seedDefaultTemplatesForCompany($company);

@@ -38,5 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('platform:check-alerts')->everyFiveMinutes();
         $schedule->command('reports:send-company')->everyMinute();
         $schedule->command('subscriptions:notify-trial-expired')->hourly();
+        $schedule->command('subscriptions:send-first-payment-invitations')->hourly();
     })
     ->create();
