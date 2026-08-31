@@ -14,8 +14,8 @@
 }
 
 html.is-native-app {
-    --safe-top: max(48px, env(safe-area-inset-top, 0px));
-    --safe-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    --safe-top: max(56px, env(safe-area-inset-top, 0px));
+    --safe-bottom: max(48px, env(safe-area-inset-bottom, 0px));
 }
 
 .app-safe-header {
@@ -32,4 +32,27 @@ html.is-native-app {
 
 .app-safe-fab-top {
     top: max(0.75rem, var(--safe-top));
+}
+
+.app-bottom-nav {
+    padding-bottom: max(48px, calc(0.5rem + var(--safe-bottom)));
+}
+
+.realtime-toast-stack {
+    bottom: calc(1rem + var(--safe-bottom));
+}
+
+@media (max-width: 1279px) {
+    body.employee-portal {
+        padding-top: max(0.75rem, var(--safe-top));
+    }
+
+    body.employee-portal main {
+        padding-bottom: calc(4.5rem + max(48px, var(--safe-bottom)));
+    }
+
+    body.employee-portal .realtime-toast-stack,
+    body.employee-portal .employee-floating-toast {
+        bottom: calc(5.25rem + max(48px, var(--safe-bottom))) !important;
+    }
 }

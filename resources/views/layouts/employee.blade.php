@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="taskcheck-auth" content="1">
     @include('partials.native-shell')
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -28,10 +29,15 @@
     <link rel="alternate icon" type="image/png" href="{{ asset('logos/taskcheck-favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logos/taskcheck-favicon.png') }}">
 </head>
-<body class="font-sans antialiased bg-gray-50 min-h-screen">
+<body class="employee-portal font-sans antialiased bg-gray-50 min-h-screen">
     <div class="flex flex-col min-h-screen">
-        <!-- Clean Navigation -->
-        <nav class="app-safe-header bg-white border-b border-gray-200 sticky top-0 z-50">
+        @php
+            $unreadNotifications = auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->take(5)->get();
+            $unreadCount = auth()->user()->unreadNotifications()->count();
+        @endphp
+        <!-- Desktop top nav (xl+). On mobile/tablet the icon bar at the bottom replaces this. -->
+        <nav class="sticky top-0 z-50 @hasSection('nav-extra') bg-white border-b border-gray-200 @else xl:bg-white xl:border-b xl:border-gray-200 @endif">
+            <div class="hidden xl:block app-safe-header">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center min-h-14 gap-2 sm:h-16">
                     <div class="flex min-w-0 items-center">
@@ -48,7 +54,7 @@
 
                         <!-- Clean Navigation Links -->
                         @unless($subscriptionLocked ?? false)
-                        <div class="hidden lg:ml-8 lg:flex lg:space-x-1">
+                        <div class="hidden xl:ml-8 xl:flex xl:space-x-1">
                             <a href="{{ route('employee.dashboard') }}" 
                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('employee.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +75,7 @@
 
                     <!-- Clean User Menu -->
                     <div class="flex items-center space-x-2 sm:space-x-3">
-                        <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                        <div class="flex items-center space-x-4">
                         @if(empty($subscriptionLocked) && auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
                             <div class="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
                                 <form method="POST" action="{{ route('dashboard.switch') }}">
@@ -92,11 +98,7 @@
                         @endif
                         @include('partials.google-translate', ['variant' => 'topbar'])
                         </div>
-                        @php
-                            $unreadNotifications = auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->take(5)->get();
-                            $unreadCount = auth()->user()->unreadNotifications()->count();
-                        @endphp
-                        
+
                         <!-- Notifications Dropdown -->
                         <div class="relative" x-data="{ open: false }" data-employee-notification-root>
                             <button
@@ -202,7 +204,7 @@
                             </div>
                         </div>
                         
-                        <div class="relative hidden lg:block" x-data="{ open: false }">
+                        <div class="relative" x-data="{ open: false }">
                             <button
                                 type="button"
                                 @click="open = !open"
@@ -243,99 +245,21 @@
                             </div>
                         </div>
 
-                    <!-- Mobile menu button -->
-                    <div class="lg:hidden flex items-center shrink-0">
-                        <button type="button" class="mobile-menu-button relative z-10 inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors">
-                            <span class="sr-only">Open main menu</span>
-                            <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-                    </div>
                     </div>
                 </div>
+            </div>
+            </div>
                 @hasSection('nav-extra')
-                    <div class="border-t border-gray-100 py-3 flex items-center justify-center">
-                        @yield('nav-extra')
+                    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+                        <div class="py-3 flex items-center justify-center xl:border-t xl:border-gray-100">
+                            @yield('nav-extra')
+                        </div>
                     </div>
                 @endif
-            </div>
 
-            <!-- Mobile Menu -->
-            <div class="mobile-menu fixed inset-0 z-[60] hidden lg:hidden" aria-hidden="true">
-                <div class="mobile-menu-backdrop absolute inset-0 bg-slate-950/35 backdrop-blur-sm"></div>
-                <aside class="mobile-menu-panel absolute inset-y-0 right-0 flex w-[min(22rem,88vw)] translate-x-full flex-col bg-white shadow-2xl ring-1 ring-slate-200 transition-transform duration-300 ease-out">
-                    <div class="app-safe-drawer-header flex items-center justify-between border-b border-slate-100 px-5 pb-4">
-                        <div class="flex items-center gap-3">
-                            <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
-                            <div class="leading-tight">
-                                <p class="text-base font-semibold text-slate-900">TaskCheck</p>
-                                <p class="text-[11px] text-slate-500">Menu</p>
-                            </div>
-                        </div>
-                        <button type="button" class="mobile-menu-close inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700" aria-label="Menu sluiten">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto px-5 py-4">
-                        <nav class="space-y-1">
-                            @unless($subscriptionLocked ?? false)
-                            <a href="{{ route('employee.dashboard') }}"
-                               class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('employee.dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                                </svg>
-                                Dashboard
-                            </a>
-                            <a href="{{ route('employee.lists.index') }}"
-                               class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('employee.lists.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                                <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                                </svg>
-                                Mijn Taken
-                            </a>
-                            @endunless
-                        </nav>
-                    </div>
-
-                    <div class="app-safe-bottom border-t border-slate-100 bg-slate-50 px-5 pt-4">
-                        <div class="mb-4 flex items-center gap-3">
-                            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 font-medium text-white">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                            </div>
-                            <div class="min-w-0">
-                                <div class="truncate text-sm font-medium text-gray-900">{{ Auth::user()->name }}</div>
-                                <div class="truncate text-xs text-gray-500">{{ Auth::user()->email }}</div>
-                            </div>
-                        </div>
-                        @if(empty($subscriptionLocked) && auth()->user()->isAdmin() && !auth()->user()->isSuperAdmin())
-                            <form method="POST" action="{{ route('dashboard.switch') }}" class="mb-3">
-                                @csrf
-                                <input type="hidden" name="mode" value="admin">
-                                <button type="submit" class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-50">
-                                    Naar adminweergave
-                                </button>
-                            </form>
-                        @endif
-                        <a href="{{ route('employee.settings.edit') }}" class="mb-3 flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
-                            Instellingen
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="flex w-full items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
-                                <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
-                                </svg>
-                                Uitloggen
-                            </button>
-                        </form>
-                    </div>
-                </aside>
-            </div>
         </nav>
+
+        @include('partials.mobile-bottom-nav-employee')
 
         <!-- Page Content -->
         <main class="flex-1" data-page-transition-root>
@@ -368,11 +292,13 @@
                 @endif
             </div>
 
+            @include('partials.ios-push-prompt')
+
             @yield('content')
         </main>
 
         <!-- Minimal Footer -->
-        <footer class="bg-white border-t border-gray-200 py-8 mt-16">
+        <footer class="bg-white border-t border-gray-200 py-8 mt-16 pb-[calc(2rem+4.5rem+max(48px,var(--safe-bottom)))] xl:pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex items-center justify-center mb-2">
@@ -527,6 +453,13 @@
         }
 
         async function subscribeForBackgroundPush() {
+            if (document.documentElement.classList.contains('is-native-app')) {
+                if (typeof window.TaskCheckNative?.registerPush === 'function') {
+                    await window.TaskCheckNative.registerPush();
+                }
+                return;
+            }
+
             try {
                 if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                     return;
@@ -692,7 +625,7 @@
             if (!container) {
                 container = document.createElement('div');
                 container.setAttribute('data-realtime-toast-container', '1');
-                container.className = 'fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-3 left-3 sm:left-auto sm:right-4 z-[9999] sm:max-w-sm space-y-3';
+                container.className = 'realtime-toast-stack fixed right-3 left-3 sm:left-auto sm:right-4 z-[9999] sm:max-w-sm space-y-3';
                 document.body.appendChild(container);
             }
 
@@ -819,9 +752,13 @@
 
         // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
-            registerServiceWorkerIfNeeded();
+            const isNativeApp = document.documentElement.classList.contains('is-native-app');
 
-            if ('Notification' in window && Notification.permission === 'default') {
+            if (!isNativeApp) {
+                registerServiceWorkerIfNeeded();
+            }
+
+            if (!isNativeApp && 'Notification' in window && Notification.permission === 'default') {
                 document.addEventListener('click', () => {
                     Notification.requestPermission()
                         .then((permission) => {
@@ -831,7 +768,7 @@
                         })
                         .catch(() => {});
                 }, { once: true });
-            } else if ('Notification' in window && Notification.permission === 'granted') {
+            } else if (!isNativeApp && 'Notification' in window && Notification.permission === 'granted') {
                 subscribeForBackgroundPush();
             }
 
@@ -851,48 +788,6 @@
                     await markAllEmployeeNotificationsAsRead();
                 }
             });
-
-            const mobileMenuButton = document.querySelector('.mobile-menu-button');
-            const mobileMenu = document.querySelector('.mobile-menu');
-            const mobileMenuPanel = document.querySelector('.mobile-menu-panel');
-            const mobileMenuClose = document.querySelector('.mobile-menu-close');
-            const mobileMenuBackdrop = document.querySelector('.mobile-menu-backdrop');
-            
-            if (mobileMenuButton && mobileMenu && mobileMenuPanel) {
-                const openMobileMenu = function() {
-                    mobileMenu.classList.remove('hidden');
-                    mobileMenu.setAttribute('aria-hidden', 'false');
-                    document.body.classList.add('overflow-hidden');
-                    requestAnimationFrame(function() {
-                        mobileMenuPanel.classList.remove('translate-x-full');
-                    });
-                };
-
-                const closeMobileMenu = function() {
-                    mobileMenuPanel.classList.add('translate-x-full');
-                    mobileMenu.setAttribute('aria-hidden', 'true');
-                    document.body.classList.remove('overflow-hidden');
-                    window.setTimeout(function() {
-                        if (mobileMenu.getAttribute('aria-hidden') === 'true') {
-                            mobileMenu.classList.add('hidden');
-                        }
-                    }, 300);
-                };
-
-                mobileMenuButton.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                    openMobileMenu();
-                });
-
-                mobileMenuClose?.addEventListener('click', closeMobileMenu);
-                mobileMenuBackdrop?.addEventListener('click', closeMobileMenu);
-
-                document.addEventListener('keydown', function(event) {
-                    if (event.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
-                        closeMobileMenu();
-                    }
-                });
-            }
 
             // Auto-hide only real flash messages (not inline rejection blocks).
             setTimeout(function() {

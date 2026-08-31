@@ -11,8 +11,8 @@ class NativePushSubscriptionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'token' => ['required', 'string', 'max:255'],
-            'platform' => ['required', 'in:ios'],
+            'token' => ['required', 'string', 'max:512'],
+            'platform' => ['required', 'in:ios,android'],
             'device_name' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -21,24 +21,24 @@ class NativePushSubscriptionController extends Controller
             [
                 'user_id' => $request->user()->id,
                 'expo_push_token' => null,
-                'push_provider' => 'apns',
+                'push_provider' => $validated['platform'] === 'android' ? 'fcm' : 'apns',
                 'platform' => $validated['platform'],
                 'device_name' => $validated['device_name'] ?? null,
             ]
         );
 
-        return response()->json(['message' => 'iOS-pushtoken geregistreerd.']);
+        return response()->json(['message' => 'Pushtoken geregistreerd.']);
     }
 
     public function destroy(Request $request): JsonResponse
     {
-        $validated = $request->validate(['token' => ['required', 'string', 'max:255']]);
+        $validated = $request->validate(['token' => ['required', 'string', 'max:512']]);
 
         DevicePushToken::query()
             ->where('user_id', $request->user()->id)
             ->where('native_push_token', $validated['token'])
             ->delete();
 
-        return response()->json(['message' => 'iOS-pushtoken verwijderd.']);
+        return response()->json(['message' => 'Pushtoken verwijderd.']);
     }
 }

@@ -61,12 +61,19 @@ return [
 
     'apns' => [
         'enabled' => env('APNS_ENABLED', false),
+        'production' => env('APNS_PRODUCTION', true),
         'team_id' => env('APNS_TEAM_ID'),
         'key_id' => env('APNS_KEY_ID'),
         'bundle_id' => env('APNS_BUNDLE_ID', 'nl.brancom.taskcheck'),
         'private_key' => env('APNS_PRIVATE_KEY'),
         'private_key_path' => env('APNS_PRIVATE_KEY_PATH'),
-        'production' => env('APNS_PRODUCTION', true),
+    ],
+
+    'fcm' => [
+        'enabled' => env('FCM_ENABLED', false),
+        'project_id' => env('FCM_PROJECT_ID'),
+        'client_email' => env('FCM_CLIENT_EMAIL'),
+        'private_key' => env('FCM_PRIVATE_KEY'),
     ],
 
     'marketing_link' => [

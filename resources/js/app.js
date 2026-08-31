@@ -101,6 +101,9 @@ if (document.readyState === 'loading') {
     });
 
     window.addEventListener('load', async () => {
+        if (document.documentElement.classList.contains('is-native-app')) {
+            return;
+        }
         try {
             const registration = await navigator.serviceWorker.register('/sw.js');
             attachRegistrationListeners(registration);

@@ -145,8 +145,7 @@ class SubmissionController extends Controller
 
         $this->ensureSubmissionTasksExist($submission, $list);
 
-        return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
-            ->with('success', 'Takenlijst succesvol gestart!');
+        return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()]);
     }
 
     /**

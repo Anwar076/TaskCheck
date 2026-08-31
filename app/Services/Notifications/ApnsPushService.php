@@ -62,7 +62,10 @@ class ApnsPushService
                             'body' => $notification->message ?: 'Nieuwe melding',
                         ],
                         'sound' => 'default',
-                        'badge' => 1,
+                        'badge' => Notification::query()
+                            ->where('user_id', $notification->user_id)
+                            ->whereNull('read_at')
+                            ->count(),
                     ],
                     'notification_id' => $notification->id,
                     'url' => data_get($notification->data, 'url'),

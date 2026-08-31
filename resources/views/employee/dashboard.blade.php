@@ -557,7 +557,7 @@ function showDashboardToast(message, type = 'success') {
     };
 
     const toast = document.createElement('div');
-    toast.className = `fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white border ${colors[type] || colors.info} transform translate-y-4 opacity-0 transition-all duration-300 max-w-xs`;
+    toast.className = `employee-floating-toast fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white border ${colors[type] || colors.info} transform translate-y-4 opacity-0 transition-all duration-300 max-w-xs`;
     toast.innerHTML = `
         <div class="flex items-center space-x-2">
             <span class="text-sm font-medium">${message}</span>

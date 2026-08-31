@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="taskcheck-auth" content="1">
     @include('partials.native-shell')
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -344,6 +345,8 @@
                             </div>
                         @endif
                     @endif
+
+                    @include('partials.ios-push-prompt')
 
                     <!-- Page header -->
                     @hasSection('header')
@@ -890,6 +893,13 @@
         }
 
         async function subscribeForBackgroundPush() {
+            if (document.documentElement.classList.contains('is-native-app')) {
+                if (typeof window.TaskCheckNative?.registerPush === 'function') {
+                    await window.TaskCheckNative.registerPush();
+                }
+                return;
+            }
+
             try {
                 if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                     return;
@@ -998,7 +1008,9 @@
         // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
+                if (!document.documentElement.classList.contains('is-native-app')) {
+                    navigator.serviceWorker.register('/sw.js').catch(() => {});
+                }
             }
 
             setupAdminNotificationBell();
@@ -1010,7 +1022,9 @@
             }
 
             if ('Notification' in window && Notification.permission === 'granted') {
-                subscribeForBackgroundPush();
+                if (!document.documentElement.classList.contains('is-native-app')) {
+                    subscribeForBackgroundPush();
+                }
             }
 
             startAdminRealtimePolling();
