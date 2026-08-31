@@ -59,6 +59,28 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('Bedrijf en beheerder aanmaken');
     }
 
+    public function test_super_admin_can_open_subscription_overview_and_detail(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.subscriptions.index'))
+            ->assertOk()
+            ->assertSee('Abonnementen')
+            ->assertSee('Starter')
+            ->assertSee('Maatwerk');
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.subscriptions.show', 'starter'))
+            ->assertOk()
+            ->assertSee('Gekoppelde klanten');
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.subscriptions.show', 'bestaat-niet'))
+            ->assertNotFound();
+    }
+
     public function test_subscription_end_date_is_saved_when_monthly_billing_is_enabled(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
@@ -74,6 +96,34 @@ class SuperAdminCompanyDetailTest extends TestCase
         ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']));
 
         $this->assertSame('2027-12-31', $company->fresh()->subscription_ends_at?->format('Y-m-d'));
+    }
+
+    public function test_super_admin_can_save_a_customer_specific_subscription(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+
+        $this->actingAs($admin)->put(route('super-admin.companies.subscription.update', $company), [
+            'subscription_plan' => 'custom',
+            'subscription_status' => 'active',
+            'billing_required' => '1',
+            'is_active' => '1',
+            'custom_subscription_name' => 'Kwalitaria Plus',
+            'custom_monthly_price' => '249.50',
+            'custom_max_users' => '35',
+            'custom_max_locations' => '8',
+            'custom_max_storage_gb' => '100',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']));
+
+        $company->refresh();
+        $this->assertSame('custom', $company->subscription_plan);
+        $this->assertSame('Kwalitaria Plus', $company->custom_subscription_name);
+        $this->assertSame('249.50', $company->custom_monthly_price);
+        $this->assertSame(35, $company->max_users);
+        $this->assertSame(8, $company->max_locations);
+        $this->assertSame(100, $company->max_storage_gb);
+        $this->assertSame('Kwalitaria Plus', $company->getPlanDetails()['name']);
     }
 
     public function test_super_admin_can_create_company_and_first_admin(): void

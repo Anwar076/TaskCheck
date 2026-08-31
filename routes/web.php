@@ -399,6 +399,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::delete('/marketing-links/{marketingLink}', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'destroy'])->name('marketing-links.destroy');
     Route::post('/platform-alerts/test', [SuperAdminDashboardController::class, 'sendPlatformAlertTest'])->name('platform-alerts.test');
     Route::get('/companies/create', [SuperAdminDashboardController::class, 'createCompany'])->name('companies.create');
+    Route::get('/subscriptions', [SuperAdminDashboardController::class, 'subscriptions'])->name('subscriptions.index');
+    Route::get('/subscriptions/{plan}', [SuperAdminDashboardController::class, 'showSubscription'])->name('subscriptions.show');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
     Route::get('/companies/{company}', [SuperAdminDashboardController::class, 'showCompany'])->name('companies.show');
     Route::get('/companies/{company}/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('companies.lists.ai-import');

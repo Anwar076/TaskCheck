@@ -31,6 +31,8 @@ class Company extends Model
         'reporting_weekly_day',
         'reporting_last_sent_at',
         'subscription_plan',
+        'custom_subscription_name',
+        'custom_monthly_price',
         'pending_subscription_plan',
         'subscription_status',
         'trial_ends_at',
@@ -78,6 +80,7 @@ class Company extends Model
         'subscription_ends_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
         'billing_required' => 'boolean',
+        'custom_monthly_price' => 'decimal:2',
         'is_active' => 'boolean',
         'departments' => 'array',
         'working_hours' => 'array',
@@ -138,7 +141,7 @@ class Company extends Model
             'max_storage_gb' => -1,
         ],
         'custom' => [
-            'name' => 'Enterprise',
+            'name' => 'Maatwerk',
             'price_monthly' => 0,
             'price_annual' => 0,
             'max_users' => -1, // Unlimited
@@ -331,7 +334,17 @@ class Company extends Model
             return [];
         }
 
-        return self::PLANS[$this->subscription_plan] ?? [];
+        $details = self::PLANS[$this->subscription_plan] ?? [];
+
+        if ($this->subscription_plan === 'custom') {
+            $details['name'] = $this->custom_subscription_name ?: $details['name'];
+            $details['price_monthly'] = (float) ($this->custom_monthly_price ?? 0);
+            $details['max_users'] = (int) $this->max_users;
+            $details['max_locations'] = (int) $this->max_locations;
+            $details['max_storage_gb'] = (int) $this->max_storage_gb;
+        }
+
+        return $details;
     }
 
     // Check if user limit is reached

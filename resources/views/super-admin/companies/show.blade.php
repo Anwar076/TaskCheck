@@ -26,7 +26,7 @@
         'expired' => 'Verlopen',
         default => ucfirst($status),
     };
-    $plan = \App\Models\Organisation\Company::PLANS[$company->subscription_plan] ?? null;
+    $plan = $company->getPlanDetails();
     $companySection = request('section', 'overview');
 @endphp
 
@@ -306,6 +306,11 @@
 </div>
 @push('scripts')
 <script>
+const subscriptionPlan = document.getElementById('subscription-plan');
+const customSubscriptionFields = document.getElementById('custom-subscription-fields');
+const toggleCustomSubscriptionFields = () => customSubscriptionFields?.classList.toggle('hidden', subscriptionPlan?.value !== 'custom');
+subscriptionPlan?.addEventListener('change', toggleCustomSubscriptionFields);
+toggleCustomSubscriptionFields();
 document.querySelectorAll('[data-confirm-submit]').forEach((button) => button.addEventListener('click', (event) => { if (!confirm(button.dataset.confirmSubmit)) event.preventDefault(); }));
 document.querySelectorAll('[data-open-dialog]').forEach((button) => button.addEventListener('click', () => document.getElementById(button.dataset.openDialog)?.showModal()));
 document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));

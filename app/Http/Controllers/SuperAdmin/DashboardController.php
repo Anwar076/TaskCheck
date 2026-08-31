@@ -39,6 +39,40 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
+    public function subscriptions()
+    {
+        $counts = Company::query()
+            ->selectRaw('subscription_plan, COUNT(*) as company_count')
+            ->groupBy('subscription_plan')
+            ->pluck('company_count', 'subscription_plan');
+
+        $plans = collect(Company::PLANS)->map(function (array $plan, string $key) use ($counts) {
+            return array_merge($plan, [
+                'key' => $key,
+                'company_count' => (int) ($counts[$key] ?? 0),
+            ]);
+        });
+
+        return view('super-admin.subscriptions.index', compact('plans'));
+    }
+
+    public function showSubscription(string $plan)
+    {
+        abort_unless(isset(Company::PLANS[$plan]), 404);
+
+        $companies = Company::query()
+            ->where('subscription_plan', $plan)
+            ->withCount(['users', 'locations'])
+            ->orderBy('name')
+            ->get();
+
+        return view('super-admin.subscriptions.show', [
+            'planKey' => $plan,
+            'plan' => Company::PLANS[$plan],
+            'companies' => $companies,
+        ]);
+    }
+
     public function index()
     {
         $companies = Company::query()
@@ -339,6 +373,11 @@ class DashboardController extends Controller
             'billing_required' => ['nullable', 'boolean'],
             'subscription_ends_at' => ['nullable', 'date'],
             'is_active' => ['nullable', 'boolean'],
+            'custom_subscription_name' => ['nullable', 'required_if:subscription_plan,custom', 'string', 'max:100'],
+            'custom_monthly_price' => ['nullable', 'required_if:subscription_plan,custom', 'numeric', 'min:0', 'max:999999.99'],
+            'custom_max_users' => ['nullable', 'required_if:subscription_plan,custom', 'integer', 'min:-1'],
+            'custom_max_locations' => ['nullable', 'required_if:subscription_plan,custom', 'integer', 'min:-1'],
+            'custom_max_storage_gb' => ['nullable', 'required_if:subscription_plan,custom', 'integer', 'min:-1'],
         ]);
 
         $billingRequired = (bool) ($validated['billing_required'] ?? false);
@@ -354,15 +393,19 @@ class DashboardController extends Controller
             ])->withInput();
         }
 
+        $isCustom = $plan === 'custom';
+
         $company->update([
             'subscription_plan' => $plan,
+            'custom_subscription_name' => $isCustom ? $validated['custom_subscription_name'] : null,
+            'custom_monthly_price' => $isCustom ? $validated['custom_monthly_price'] : null,
             'subscription_status' => $validated['subscription_status'],
             'billing_required' => $billingRequired,
             'subscription_ends_at' => $endDate,
             'is_active' => (bool) ($validated['is_active'] ?? true),
-            'max_users' => $planConfig['max_users'] ?? $company->max_users,
-            'max_locations' => $planConfig['max_locations'] ?? $company->max_locations,
-            'max_storage_gb' => $planConfig['max_storage_gb'] ?? $company->max_storage_gb,
+            'max_users' => $isCustom ? $validated['custom_max_users'] : ($planConfig['max_users'] ?? $company->max_users),
+            'max_locations' => $isCustom ? $validated['custom_max_locations'] : ($planConfig['max_locations'] ?? $company->max_locations),
+            'max_storage_gb' => $isCustom ? $validated['custom_max_storage_gb'] : ($planConfig['max_storage_gb'] ?? $company->max_storage_gb),
         ]);
 
         return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'billing'])

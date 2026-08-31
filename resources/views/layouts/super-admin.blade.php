@@ -73,6 +73,11 @@
                         <x-super-admin-icon name="invoices" class="shrink-0" />
                         Facturen
                     </a>
+                    <a href="{{ route('super-admin.subscriptions.index') }}"
+                       class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.subscriptions.*') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <x-super-admin-icon name="invoices" class="shrink-0" />
+                        Abonnementen
+                    </a>
                     <a href="{{ route('profile.edit') }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors {{ request()->routeIs('profile.*') ? 'bg-blue-100 text-blue-700' : '' }}">
                         <x-super-admin-icon name="profile" class="shrink-0" />
@@ -178,6 +183,7 @@
                     ['monitoring', 'Monitoring', route('super-admin.dashboard', ['tab' => 'monitoring'])],
                     ['templates', 'Templates', route('super-admin.dashboard', ['tab' => 'templates'])],
                     ['invoices', 'Facturen', route('super-admin.dashboard', ['tab' => 'invoices'])],
+                    ['invoices', 'Abonnementen', route('super-admin.subscriptions.index')],
                     ['profile', 'Profiel', route('profile.edit')],
                 ] as [$icon, $label, $url])
                     <a href="{{ $url }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"><x-super-admin-icon :name="$icon" class="h-5 w-5 text-slate-500" />{{ $label }}</a>
