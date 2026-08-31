@@ -3,6 +3,7 @@
 namespace App\Models\Organisation;
 
 use App\Models\Billing\Invoice;
+use App\Models\Billing\SubscriptionPlan;
 use App\Models\Submissions\SubmissionTask;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -158,12 +159,79 @@ class Company extends Model
         'custom' => ['admin' => null, 'employee' => null],
     ];
 
+    public const PLAN_FEATURES = [
+        'ai_import' => 'AI-import voor documenten',
+        'ai_suggestions' => 'AI-suggesties voor taken',
+        'reports' => 'Weekoverzicht en rapportages',
+    ];
+
+    public const CORE_FEATURES = [
+        'Takenlijsten en checklists',
+        'Foto- en videobewijs',
+        'Realtime voortgangsoverzicht',
+        'Mobiele webapp voor medewerkers',
+    ];
+
+    public static function plans(): array
+    {
+        $plans = self::PLANS;
+
+        if (! \Illuminate\Support\Facades\Schema::hasTable('subscription_plans')) {
+            return $plans;
+        }
+
+        foreach (SubscriptionPlan::query()->get() as $override) {
+            $plans[$override->plan_key] = [
+                'name' => $override->name,
+                'price_monthly' => (float) $override->price_monthly,
+                'price_annual' => (float) $override->price_annual,
+                'max_users' => $override->max_users,
+                'max_locations' => $override->max_locations,
+                'max_storage_gb' => $override->max_storage_gb,
+                'features' => $override->features ?? self::defaultPlanFeatures($override->plan_key),
+            ];
+        }
+
+        foreach ($plans as $key => &$plan) {
+            $plan['features'] ??= self::defaultPlanFeatures($key);
+        }
+        unset($plan);
+
+        return $plans;
+    }
+
+    public static function publicPlans(): array
+    {
+        $publicKeys = ['starter', 'professional', 'business'];
+
+        return array_intersect_key(self::plans(), array_flip($publicKeys));
+    }
+
+    public static function defaultPlanFeatures(string $key): array
+    {
+        return $key === 'starter' ? [] : array_keys(self::PLAN_FEATURES);
+    }
+
+    public function hasPlanFeature(string $feature): bool
+    {
+        return in_array($feature, $this->getPlanDetails()['features'] ?? [], true);
+    }
+
+    public static function plan(string $key): ?array
+    {
+        return self::plans()[$key] ?? null;
+    }
+
     /**
      * @return array{admin: int|null, employee: int|null}
      */
     public static function planRoleLimits(?string $planKey): array
     {
         $key = $planKey ?: 'starter';
+
+        if (! isset(self::PLAN_ROLE_LIMITS[$key]) && self::plan($key)) {
+            return ['admin' => null, 'employee' => null];
+        }
 
         return self::PLAN_ROLE_LIMITS[$key] ?? self::PLAN_ROLE_LIMITS['starter'];
     }
@@ -321,9 +389,9 @@ class Company extends Model
             'subscription_plan' => $plan,
             'subscription_status' => 'active',
             'subscription_ends_at' => $endDate,
-            'max_users' => self::PLANS[$plan]['max_users'] ?? 5,
-            'max_locations' => self::PLANS[$plan]['max_locations'] ?? 1,
-            'max_storage_gb' => self::PLANS[$plan]['max_storage_gb'] ?? 5,
+            'max_users' => self::plan($plan)['max_users'] ?? 5,
+            'max_locations' => self::plan($plan)['max_locations'] ?? 1,
+            'max_storage_gb' => self::plan($plan)['max_storage_gb'] ?? 5,
         ]);
     }
 
@@ -334,7 +402,7 @@ class Company extends Model
             return [];
         }
 
-        $details = self::PLANS[$this->subscription_plan] ?? [];
+        $details = self::plan($this->subscription_plan) ?? [];
 
         if ($this->subscription_plan === 'custom') {
             $details['name'] = $this->custom_subscription_name ?: $details['name'];
@@ -387,8 +455,8 @@ class Company extends Model
             return (int) ($this->max_locations ?? -1);
         }
 
-        if ($plan && isset(self::PLANS[$plan]['max_locations'])) {
-            return (int) self::PLANS[$plan]['max_locations'];
+        if ($plan && ($planDetails = self::plan($plan))) {
+            return (int) $planDetails['max_locations'];
         }
 
         return (int) ($this->max_locations ?? 1);

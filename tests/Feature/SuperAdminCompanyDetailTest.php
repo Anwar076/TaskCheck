@@ -81,6 +81,64 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_super_admin_can_edit_a_subscription_plan(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)->put(route('super-admin.subscriptions.update', 'professional'), [
+            'name' => 'Professional Plus',
+            'price_monthly' => '109.00',
+            'price_annual' => '89.00',
+            'max_users' => 15,
+            'max_locations' => 3,
+            'max_storage_gb' => 75,
+            'features' => ['ai_import', 'reports'],
+        ])->assertRedirect(route('super-admin.subscriptions.show', 'professional'));
+
+        $this->assertDatabaseHas('subscription_plans', [
+            'plan_key' => 'professional',
+            'name' => 'Professional Plus',
+            'max_users' => 15,
+        ]);
+        $this->assertSame('Professional Plus', Company::plan('professional')['name']);
+        $this->assertSame(['ai_import', 'reports'], Company::plan('professional')['features']);
+    }
+
+    public function test_super_admin_can_create_a_subscription_plan(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.subscriptions.create'))
+            ->assertOk()
+            ->assertSee('Nieuw abonnement aanmaken')
+            ->assertSee('Vaste projectvereisten')
+            ->assertSee('Capaciteitsvereisten')
+            ->assertSee('Optionele onderdelen');
+
+        $response = $this->actingAs($admin)->post(route('super-admin.subscriptions.store'), [
+            'name' => 'Franchise Plus',
+            'price_monthly' => '229.00',
+            'price_annual' => '199.00',
+            'max_users' => 40,
+            'max_locations' => 12,
+            'max_storage_gb' => 200,
+            'features' => ['ai_import', 'ai_suggestions'],
+        ]);
+
+        $response->assertRedirect(route('super-admin.subscriptions.show', 'franchise_plus'));
+        $this->assertDatabaseHas('subscription_plans', [
+            'plan_key' => 'franchise_plus',
+            'name' => 'Franchise Plus',
+            'is_public' => false,
+        ]);
+        $this->assertSame(40, Company::plan('franchise_plus')['max_users']);
+        $this->assertSame(['ai_import', 'ai_suggestions'], Company::plan('franchise_plus')['features']);
+        $this->assertSame(['admin' => null, 'employee' => null], Company::planRoleLimits('franchise_plus'));
+    }
+
     public function test_subscription_end_date_is_saved_when_monthly_billing_is_enabled(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();

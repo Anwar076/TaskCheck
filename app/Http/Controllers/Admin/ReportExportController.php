@@ -95,7 +95,7 @@ class ReportExportController extends Controller
 
     private function selection(Request $request): array
     {
-        if ((auth()->user()->company?->subscription_plan ?: 'starter') === 'starter') {
+        if (! auth()->user()->company?->hasPlanFeature('reports')) {
             abort(403, 'Rapportages zijn beschikbaar vanaf Professional.');
         }
 

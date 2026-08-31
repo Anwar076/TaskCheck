@@ -11,6 +11,7 @@
 <div class="space-y-6">
     <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div><p class="text-sm font-semibold text-blue-600">Platformbeheer</p><h1 class="mt-1 text-2xl font-bold text-slate-900">Abonnementen</h1><p class="mt-1 text-sm text-slate-500">Bekijk de voorwaarden en klanten per abonnement.</p></div>
+        <a href="{{ route('super-admin.subscriptions.create') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">+ Nieuw abonnement</a>
     </div>
 
     <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

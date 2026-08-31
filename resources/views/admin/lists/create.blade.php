@@ -35,7 +35,7 @@
                             </svg>
                             Terug naar overzicht
                         </a>
-                        @if((auth()->user()->company?->subscription_plan ?? 'starter') !== 'starter')
+                        @if(auth()->user()->company?->hasPlanFeature('ai_import'))
                             <a href="{{ route('admin.lists.ai-import') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>

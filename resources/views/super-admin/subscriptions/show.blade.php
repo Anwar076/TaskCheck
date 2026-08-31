@@ -13,11 +13,27 @@
         <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p class="text-sm text-blue-100">Abonnement</p><h1 class="mt-1 text-3xl font-bold">{{ $plan['name'] }}</h1><p class="mt-2 text-blue-100">{{ $planKey === 'custom' ? 'Voorwaarden worden per klant ingesteld.' : '€ '.number_format($plan['price_monthly'], 2, ',', '.').' per maand, excl. btw' }}</p></div><span class="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold ring-1 ring-white/20">{{ $companies->count() }} {{ $companies->count() === 1 ? 'klant' : 'klanten' }}</span></div>
     </section>
 
-    <section class="grid gap-4 sm:grid-cols-3">
-        @foreach([['Gebruikers', $plan['max_users']], ['Locaties', $plan['max_locations']], ['Opslag (GB)', $plan['max_storage_gb']]] as [$label, $value])
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-2 text-2xl font-bold text-slate-900">{{ $value === -1 ? 'Onbeperkt' : $value }}</p></div>
-        @endforeach
-    </section>
+    @if($planKey !== 'custom')
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div><h2 class="text-lg font-semibold text-slate-900">Abonnement bewerken</h2><p class="mt-1 text-sm text-slate-500">Wijzigingen gelden voor nieuwe én bestaande klanten met dit pakket.</p></div>
+            @if($errors->any())<div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+            <form method="POST" action="{{ route('super-admin.subscriptions.update', $planKey) }}" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">@csrf @method('PUT')
+                <div><label class="mb-1 block text-sm font-medium text-slate-700">Naam</label><input name="name" required value="{{ old('name', $plan['name']) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+                <div><label class="mb-1 block text-sm font-medium text-slate-700">Maandprijs excl. btw</label><input name="price_monthly" type="number" min="0" step="0.01" required value="{{ old('price_monthly', $plan['price_monthly']) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+                <div><label class="mb-1 block text-sm font-medium text-slate-700">Jaarprijs per maand excl. btw</label><input name="price_annual" type="number" min="0" step="0.01" required value="{{ old('price_annual', $plan['price_annual']) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+                <fieldset class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:col-span-2 lg:col-span-3"><legend class="px-1 text-sm font-semibold text-slate-900">Vaste projectvereisten</legend><div class="mt-2 grid gap-2 sm:grid-cols-2">@foreach(\App\Models\Organisation\Company::CORE_FEATURES as $featureLabel)<div class="flex items-center gap-2 text-sm text-slate-700"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">✓</span><span>{{ $featureLabel }}</span></div>@endforeach</div></fieldset>
+                <div class="border-t border-slate-200 pt-4 sm:col-span-2 lg:col-span-3"><h3 class="text-sm font-semibold text-slate-900">Capaciteitsvereisten</h3><p class="mt-1 text-xs text-slate-500">Gebruik -1 voor onbeperkt.</p></div>
+                <div><label class="mb-1 block text-sm font-medium text-slate-700">Max. gebruikers</label><input name="max_users" type="number" min="-1" required value="{{ old('max_users', $plan['max_users']) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+                <div><label class="mb-1 block text-sm font-medium text-slate-700">Max. locaties</label><input name="max_locations" type="number" min="-1" required value="{{ old('max_locations', $plan['max_locations']) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+                <div><label class="mb-1 block text-sm font-medium text-slate-700">Max. opslag (GB)</label><input name="max_storage_gb" type="number" min="-1" required value="{{ old('max_storage_gb', $plan['max_storage_gb']) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+                <fieldset class="border-t border-slate-200 pt-4 sm:col-span-2 lg:col-span-3"><legend class="text-sm font-semibold text-slate-900">Optionele onderdelen</legend><p class="mt-1 text-xs text-slate-500">Aanvullende modules die je per pakket kunt activeren.</p><div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">@foreach(\App\Models\Organisation\Company::PLAN_FEATURES as $featureKey => $featureLabel)<label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm text-slate-700"><input type="checkbox" name="features[]" value="{{ $featureKey }}" class="rounded border-slate-300 text-blue-600" @checked(in_array($featureKey, old('features', $plan['features'] ?? []), true))><span>{{ $featureLabel }}</span></label>@endforeach</div></fieldset>
+                <p class="text-xs text-slate-500 sm:col-span-2">Gebruik -1 voor onbeperkt. De aangepaste prijs wordt gebruikt bij nieuwe activaties en toekomstige planwijzigingen.</p>
+                <div class="flex justify-end"><button type="submit" class="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 lg:w-auto">Wijzigingen opslaan</button></div>
+            </form>
+        </section>
+    @else
+        <section class="rounded-2xl border border-blue-200 bg-blue-50 p-5"><h2 class="font-semibold text-slate-900">Maatwerk per klant</h2><p class="mt-1 text-sm text-slate-600">Naam, prijs en limieten wijzig je bij de betreffende klant hieronder.</p></section>
+    @endif
 
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-100 px-5 py-4"><h2 class="font-semibold text-slate-900">Gekoppelde klanten</h2><p class="mt-1 text-xs text-slate-500">Open een klant om het abonnement te wijzigen.</p></div>
@@ -33,6 +49,19 @@
             @empty
                 <div class="px-6 py-12 text-center text-sm text-slate-500">Er zijn nog geen klanten aan dit abonnement gekoppeld.</div>
             @endforelse
+        </div>
+    </section>
+
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 px-5 py-4"><h2 class="font-semibold text-slate-900">Gebruikers binnen dit pakket</h2><p class="mt-1 text-xs text-slate-500">Alle beheerders en medewerkers van de gekoppelde klanten.</p></div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Gebruiker</th><th class="px-4 py-3">Bedrijf</th><th class="px-4 py-3">Rol</th><th class="px-4 py-3">Status</th><th class="px-5 py-3 text-right">Klant openen</th></tr></thead><tbody class="divide-y divide-slate-100">
+                @forelse($companies->flatMap->users as $user)
+                    <tr><td class="px-5 py-3"><p class="font-medium text-slate-900">{{ $user->name }}</p><p class="text-xs text-slate-500">{{ $user->email }}</p></td><td class="px-4 py-3 text-slate-700">{{ $user->company->name ?? '—' }}</td><td class="px-4 py-3 text-slate-600">{{ $user->role === 'admin' ? 'Beheerder' : 'Medewerker' }}</td><td class="px-4 py-3"><span class="rounded-full px-2 py-1 text-xs font-semibold {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $user->is_active ? 'Actief' : 'Inactief' }}</span></td><td class="px-5 py-3 text-right"><a href="{{ route('super-admin.companies.show', ['company' => $user->company_id, 'section' => 'users']) }}" class="font-semibold text-blue-700">Bekijken →</a></td></tr>
+                @empty
+                    <tr><td colspan="5" class="px-6 py-10 text-center text-slate-500">Nog geen gebruikers binnen dit abonnement.</td></tr>
+                @endforelse
+            </tbody></table>
         </div>
     </section>
 </div>

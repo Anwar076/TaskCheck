@@ -1,0 +1,28 @@
+@extends('layouts.super-admin')
+
+@section('page-title', 'Nieuw abonnement')
+
+@section('breadcrumbs')
+    <span class="text-slate-400">/</span><a href="{{ route('super-admin.subscriptions.index') }}" class="font-medium text-slate-500 hover:text-blue-700">Abonnementen</a><span class="text-slate-400">/</span><span class="font-semibold text-slate-900">Nieuw</span>
+@endsection
+
+@section('content')
+<div class="mx-auto max-w-4xl space-y-6">
+    <div><p class="text-sm font-semibold text-blue-600">Platformbeheer</p><h1 class="mt-1 text-2xl font-bold text-slate-900">Nieuw abonnement aanmaken</h1><p class="mt-1 text-sm text-slate-500">Dit pakket wordt beschikbaar voor toewijzing aan specifieke klanten.</p></div>
+    @if($errors->any())<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+    <form method="POST" action="{{ route('super-admin.subscriptions.store') }}" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">@csrf
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div class="sm:col-span-2"><label class="mb-1.5 block text-sm font-medium text-slate-700">Naam abonnement</label><input name="name" required autofocus value="{{ old('name') }}" placeholder="Bijv. Franchise Plus" class="w-full rounded-xl border-slate-300 text-sm"></div>
+            <div><label class="mb-1.5 block text-sm font-medium text-slate-700">Maandprijs excl. btw</label><input name="price_monthly" type="number" min="0" step="0.01" required value="{{ old('price_monthly') }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+            <div><label class="mb-1.5 block text-sm font-medium text-slate-700">Jaarprijs per maand excl. btw</label><input name="price_annual" type="number" min="0" step="0.01" required value="{{ old('price_annual') }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+            <fieldset class="sm:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><legend class="px-1 text-sm font-semibold text-slate-900">Vaste projectvereisten</legend><p class="mb-3 text-xs text-slate-600">Deze kernonderdelen zijn altijd beschikbaar binnen TaskCheck.</p><div class="grid gap-2 sm:grid-cols-2">@foreach(\App\Models\Organisation\Company::CORE_FEATURES as $featureLabel)<div class="flex items-center gap-2 text-sm text-slate-700"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">✓</span><span>{{ $featureLabel }}</span></div>@endforeach</div></fieldset>
+            <div class="sm:col-span-2 border-t border-slate-200 pt-5"><h2 class="text-sm font-semibold text-slate-900">Capaciteitsvereisten</h2><p class="mt-1 text-xs text-slate-500">Bepaal hoeveel gebruikers, locaties en opslag binnen het pakket vallen.</p></div>
+            <div><label class="mb-1.5 block text-sm font-medium text-slate-700">Max. gebruikers</label><input name="max_users" type="number" min="-1" required value="{{ old('max_users', 10) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+            <div><label class="mb-1.5 block text-sm font-medium text-slate-700">Max. locaties</label><input name="max_locations" type="number" min="-1" required value="{{ old('max_locations', 1) }}" class="w-full rounded-xl border-slate-300 text-sm"></div>
+            <div><label class="mb-1.5 block text-sm font-medium text-slate-700">Max. opslag (GB)</label><input name="max_storage_gb" type="number" min="-1" required value="{{ old('max_storage_gb', 10) }}" class="w-full rounded-xl border-slate-300 text-sm"><p class="mt-1 text-xs text-slate-500">Gebruik -1 voor onbeperkt.</p></div>
+            <fieldset class="sm:col-span-2 border-t border-slate-200 pt-5"><legend class="text-sm font-semibold text-slate-900">Optionele onderdelen</legend><p class="mt-1 text-xs text-slate-500">Selecteer welke aanvullende modules bij dit abonnement horen.</p><div class="mt-3 grid gap-3 sm:grid-cols-2">@foreach(\App\Models\Organisation\Company::PLAN_FEATURES as $featureKey => $featureLabel)<label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm text-slate-700"><input type="checkbox" name="features[]" value="{{ $featureKey }}" class="rounded border-slate-300 text-blue-600" @checked(in_array($featureKey, old('features', []), true))><span>{{ $featureLabel }}</span></label>@endforeach</div></fieldset>
+        </div>
+        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><a href="{{ route('super-admin.subscriptions.index') }}" class="inline-flex justify-center rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Annuleren</a><button type="submit" class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Abonnement aanmaken</button></div>
+    </form>
+</div>
+@endsection

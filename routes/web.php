@@ -400,7 +400,10 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/platform-alerts/test', [SuperAdminDashboardController::class, 'sendPlatformAlertTest'])->name('platform-alerts.test');
     Route::get('/companies/create', [SuperAdminDashboardController::class, 'createCompany'])->name('companies.create');
     Route::get('/subscriptions', [SuperAdminDashboardController::class, 'subscriptions'])->name('subscriptions.index');
+    Route::get('/subscriptions/create', [SuperAdminDashboardController::class, 'createSubscriptionPlan'])->name('subscriptions.create');
+    Route::post('/subscriptions', [SuperAdminDashboardController::class, 'storeSubscriptionPlan'])->name('subscriptions.store');
     Route::get('/subscriptions/{plan}', [SuperAdminDashboardController::class, 'showSubscription'])->name('subscriptions.show');
+    Route::put('/subscriptions/{plan}', [SuperAdminDashboardController::class, 'updateSubscriptionPlan'])->name('subscriptions.update');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
     Route::get('/companies/{company}', [SuperAdminDashboardController::class, 'showCompany'])->name('companies.show');
     Route::get('/companies/{company}/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('companies.lists.ai-import');

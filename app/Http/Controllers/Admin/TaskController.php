@@ -463,7 +463,7 @@ class TaskController extends Controller
     public function aiSuggest(Request $request)
     {
         $company = auth()->user()->company;
-        if (($company?->subscription_plan ?? 'starter') === 'starter') {
+        if (! $company?->hasPlanFeature('ai_suggestions')) {
             abort(403, 'AI is beschikbaar vanaf Professional.');
         }
 

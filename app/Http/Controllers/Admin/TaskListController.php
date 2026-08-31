@@ -2114,13 +2114,11 @@ PROMPT,
     private function ensurePlanFeatureAvailable(string $feature): void
     {
         $company = auth()->user()->company;
-        $plan = $company?->subscription_plan ?: 'starter';
-
-        if ($feature === 'ai' && $plan === 'starter') {
+        if ($feature === 'ai' && ! $company?->hasPlanFeature('ai_import')) {
             abort(403, 'AI-import is beschikbaar vanaf Professional.');
         }
 
-        if ($feature === 'weekly_overview' && $plan === 'starter') {
+        if ($feature === 'weekly_overview' && ! $company?->hasPlanFeature('reports')) {
             abort(403, 'Rapportages zijn beschikbaar vanaf Professional.');
         }
     }

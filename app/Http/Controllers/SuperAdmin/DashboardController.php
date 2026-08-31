@@ -13,6 +13,7 @@ use App\Services\Platform\PlatformAlertService;
 use App\Services\Platform\PlatformHealthService;
 use App\Models\Platform\IncidentTicket;
 use App\Models\Billing\Invoice;
+use App\Models\Billing\SubscriptionPlan;
 use App\Models\Communication\Notification;
 use App\Models\Submissions\Submission;
 use App\Models\Checklist\Task;
@@ -46,7 +47,7 @@ class DashboardController extends Controller
             ->groupBy('subscription_plan')
             ->pluck('company_count', 'subscription_plan');
 
-        $plans = collect(Company::PLANS)->map(function (array $plan, string $key) use ($counts) {
+        $plans = collect(Company::plans())->map(function (array $plan, string $key) use ($counts) {
             return array_merge($plan, [
                 'key' => $key,
                 'company_count' => (int) ($counts[$key] ?? 0),
@@ -58,19 +59,81 @@ class DashboardController extends Controller
 
     public function showSubscription(string $plan)
     {
-        abort_unless(isset(Company::PLANS[$plan]), 404);
+        abort_unless(Company::plan($plan), 404);
 
         $companies = Company::query()
             ->where('subscription_plan', $plan)
+            ->with(['users' => fn ($query) => $query->with('company')->orderBy('name')])
             ->withCount(['users', 'locations'])
             ->orderBy('name')
             ->get();
 
         return view('super-admin.subscriptions.show', [
             'planKey' => $plan,
-            'plan' => Company::PLANS[$plan],
+            'plan' => Company::plan($plan),
             'companies' => $companies,
         ]);
+    }
+
+    public function createSubscriptionPlan()
+    {
+        return view('super-admin.subscriptions.create');
+    }
+
+    public function storeSubscriptionPlan(Request $request): RedirectResponse
+    {
+        $validated = $this->validateSubscriptionPlan($request);
+        $baseKey = Str::slug($validated['name'], '_') ?: 'abonnement';
+        $key = $baseKey;
+        $suffix = 2;
+
+        while (array_key_exists($key, Company::plans())) {
+            $key = $baseKey.'_'.$suffix++;
+        }
+
+        SubscriptionPlan::query()->create(array_merge($validated, [
+            'plan_key' => $key,
+            'is_public' => false,
+            'features' => $validated['features'] ?? [],
+        ]));
+
+        return redirect()->route('super-admin.subscriptions.show', $key)->with('success', 'Nieuw abonnement is aangemaakt.');
+    }
+
+    public function updateSubscriptionPlan(Request $request, string $plan): RedirectResponse
+    {
+        abort_unless(Company::plan($plan), 404);
+        abort_if($plan === 'custom', 422, 'Maatwerkabonnementen worden per klant beheerd.');
+
+        $validated = $this->validateSubscriptionPlan($request);
+
+        SubscriptionPlan::query()->updateOrCreate(['plan_key' => $plan], $validated);
+
+        Company::query()->where('subscription_plan', $plan)->where('subscription_plan', '!=', 'custom')->update([
+            'max_users' => $validated['max_users'],
+            'max_locations' => $validated['max_locations'],
+            'max_storage_gb' => $validated['max_storage_gb'],
+        ]);
+
+        return redirect()->route('super-admin.subscriptions.show', $plan)->with('success', 'Abonnement is bijgewerkt.');
+    }
+
+    private function validateSubscriptionPlan(Request $request): array
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'price_monthly' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'price_annual' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'max_users' => ['required', 'integer', 'min:-1'],
+            'max_locations' => ['required', 'integer', 'min:-1'],
+            'max_storage_gb' => ['required', 'integer', 'min:-1'],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['string', Rule::in(array_keys(Company::PLAN_FEATURES))],
+        ]);
+
+        $validated['features'] = $validated['features'] ?? [];
+
+        return $validated;
     }
 
     public function index()
@@ -310,7 +373,7 @@ class DashboardController extends Controller
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'admin_password' => ['required', 'string', 'min:8'],
-            'subscription_plan' => ['required', Rule::in(array_keys(Company::PLANS))],
+            'subscription_plan' => ['required', Rule::in(array_keys(Company::plans()))],
             'billing_required' => ['nullable', 'boolean'],
             'access_end_date' => ['nullable', 'date', 'after_or_equal:today'],
             'company_phone' => ['nullable', 'string', 'max:100'],
@@ -326,7 +389,7 @@ class DashboardController extends Controller
         }
 
         $plan = $validated['subscription_plan'];
-        $planConfig = Company::PLANS[$plan] ?? Company::PLANS['starter'];
+        $planConfig = Company::plan($plan) ?? Company::plan('starter');
         $subscriptionEndsAt = $billingRequired
             ? null
             : Carbon::parse($validated['access_end_date'])->endOfDay();
@@ -368,7 +431,7 @@ class DashboardController extends Controller
     public function updateCompanySubscription(Request $request, Company $company): RedirectResponse
     {
         $validated = $request->validate([
-            'subscription_plan' => ['required', Rule::in(array_keys(Company::PLANS))],
+            'subscription_plan' => ['required', Rule::in(array_keys(Company::plans()))],
             'subscription_status' => ['required', Rule::in(['trial', 'active', 'cancelled', 'expired'])],
             'billing_required' => ['nullable', 'boolean'],
             'subscription_ends_at' => ['nullable', 'date'],
@@ -382,7 +445,7 @@ class DashboardController extends Controller
 
         $billingRequired = (bool) ($validated['billing_required'] ?? false);
         $plan = $validated['subscription_plan'];
-        $planConfig = Company::PLANS[$plan] ?? Company::PLANS['starter'];
+        $planConfig = Company::plan($plan) ?? Company::plan('starter');
         $endDate = !empty($validated['subscription_ends_at'])
             ? Carbon::parse($validated['subscription_ends_at'])->endOfDay()
             : null;
