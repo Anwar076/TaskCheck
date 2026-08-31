@@ -1,14 +1,16 @@
 @props(['name'])
-<svg {{ $attributes->merge(['class' => 'h-5 w-5', 'fill' => 'none', 'stroke' => 'currentColor', 'stroke-width' => '1.8', 'viewBox' => '0 0 24 24', 'aria-hidden' => 'true']) }}>
+<svg {{ $attributes->merge(['class' => 'h-5 w-5', 'fill' => 'none', 'stroke' => 'currentColor', 'stroke-width' => '1.75', 'viewBox' => '0 0 24 24', 'aria-hidden' => 'true']) }}>
 @switch($name)
-@case('dashboard')<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"/>@break
-@case('communication')<path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 17.25V6.75zm.5-.75 7.3 5.1a2 2 0 002.4 0L20.5 6"/>@break
-@case('companies')<path stroke-linecap="round" stroke-linejoin="round" d="M3.5 21h17M5 3h14v18M8 7h2m4 0h2M8 11h2m4 0h2M9 21v-5h6v5"/>@break
-@case('usage')<path stroke-linecap="round" stroke-linejoin="round" d="M4 20v-7h4v7H4zm6-12h4v12h-4V8zm6-5h4v17h-4V3z"/>@break
-@case('monitoring')<path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l2.2-5 4.1 10 2.2-5H21M4 21h16a1 1 0 001-1V4a1 1 0 00-1-1H4a1 1 0 00-1 1v16a1 1 0 001 1z"/>@break
-@case('templates')<path stroke-linecap="round" stroke-linejoin="round" d="M6 3h8l4 4v14H6V3zm8 0v5h4M9 12h6m-6 4h6"/>@break
-@case('invoices')<path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21V3zm3 5h6m-6 4h6m-6 4h3"/>@break
-@case('profile')<path stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 9a7 7 0 0114 0"/>@break
+@case('dashboard')<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 3.75h5.25V9H4.5V3.75zm9.75 0h5.25V9h-5.25V3.75zM4.5 15h5.25v5.25H4.5V15zm9.75 0h5.25v5.25h-5.25V15z"/>@break
+@case('communication')<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75A2.25 2.25 0 016 4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 19.5H6a2.25 2.25 0 01-2.25-2.25V6.75zM4.5 6l6.18 4.326a2.25 2.25 0 002.64 0L19.5 6"/>@break
+@case('companies')<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M5.25 21V5.25A2.25 2.25 0 017.5 3h9a2.25 2.25 0 012.25 2.25V21M8.25 7.5h1.5m4.5 0h1.5m-7.5 4.5h1.5m4.5 0h1.5m-6 9v-4.5h4.5V21"/>@break
+@case('users')<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0M18 9.75a3 3 0 012.25 5M6 9.75a3 3 0 00-2.25 5"/>@break
+@case('usage')<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.25v-6.5h3.75v6.5H4.5zm5.625 0V9.5h3.75v10.75h-3.75zm5.625 0V4.25h3.75v16h-3.75z"/>@break
+@case('monitoring')<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h4l2.25-5.25L14 17.25 16.25 12h4M5.25 3.75h13.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z"/>@break
+@case('templates')<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h7.25l3.75 3.75v12.75H7.5V3.75zm7.25 0V7.5h3.75M10.5 12h5m-5 3.75h5M5.25 6v15h10.5"/>@break
+@case('invoices')<path stroke-linecap="round" stroke-linejoin="round" d="M6 3.75h12v16.5l-2.25-1.5-2.25 1.5-2.25-1.5L9 20.25l-3-2V3.75zM9 8.25h6m-6 3.75h6m-6 3.75h3"/>@break
+@case('subscriptions')<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75A2.25 2.25 0 016 4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 19.5H6a2.25 2.25 0 01-2.25-2.25V6.75zM3.75 9h16.5M7.5 15.75h3.75"/>@break
+@case('profile')<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm3.75-5.25a5.25 5.25 0 00-7.5 0M15 9a3 3 0 11-6 0 3 3 0 016 0z"/>@break
 @case('website')<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0c2-2.4 3-5.4 3-9s-1-6.6-3-9m0 18c-2-2.4-3-5.4-3-9s1-6.6 3-9M3.5 9h17m-17 6h17"/>@break
 @case('logout')<path stroke-linecap="round" stroke-linejoin="round" d="M14 8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7a2 2 0 002-2v-3m-3-4h10m0 0-3-3m3 3-3 3"/>@break
 @case('chevron')<path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>@break

@@ -50,7 +50,7 @@
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'users']) }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'users' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <x-super-admin-icon name="profile" class="shrink-0" />
+                        <x-super-admin-icon name="users" class="shrink-0" />
                         Gebruikers
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'usage']) }}"
@@ -75,7 +75,7 @@
                     </a>
                     <a href="{{ route('super-admin.subscriptions.index') }}"
                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.subscriptions.*') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                        <x-super-admin-icon name="invoices" class="shrink-0" />
+                        <x-super-admin-icon name="subscriptions" class="shrink-0" />
                         Abonnementen
                     </a>
                     <a href="{{ route('profile.edit') }}"
@@ -178,12 +178,12 @@
                     ['dashboard', 'Dashboard', route('super-admin.dashboard')],
                     ['communication', 'Communicatie', route('super-admin.dashboard', ['tab' => 'communications'])],
                     ['companies', 'Bedrijven', route('super-admin.dashboard', ['tab' => 'companies'])],
-                    ['profile', 'Gebruikers', route('super-admin.dashboard', ['tab' => 'users'])],
+                    ['users', 'Gebruikers', route('super-admin.dashboard', ['tab' => 'users'])],
                     ['usage', 'Gebruik', route('super-admin.dashboard', ['tab' => 'usage'])],
                     ['monitoring', 'Monitoring', route('super-admin.dashboard', ['tab' => 'monitoring'])],
                     ['templates', 'Templates', route('super-admin.dashboard', ['tab' => 'templates'])],
                     ['invoices', 'Facturen', route('super-admin.dashboard', ['tab' => 'invoices'])],
-                    ['invoices', 'Abonnementen', route('super-admin.subscriptions.index')],
+                    ['subscriptions', 'Abonnementen', route('super-admin.subscriptions.index')],
                     ['profile', 'Profiel', route('profile.edit')],
                 ] as [$icon, $label, $url])
                     <a href="{{ $url }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"><x-super-admin-icon :name="$icon" class="h-5 w-5 text-slate-500" />{{ $label }}</a>
