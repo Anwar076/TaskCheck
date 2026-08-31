@@ -43,7 +43,9 @@ Route::get('/refresh-csrf', function () {
 // })->name('features');
 
 Route::get('/pricing', function () {
-    return view('pricing');
+    return view('pricing', [
+        'plans' => \App\Models\Organisation\Company::publicPlans(),
+    ]);
 })->name('pricing');
 
 // Route::get('/about', function () {

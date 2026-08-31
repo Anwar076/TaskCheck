@@ -6,6 +6,12 @@
         $seoDescription = 'Eerlijke prijzen voor TaskCheck. Starter, Professional, Business en Enterprise op aanvraag. Start 14 dagen gratis zonder creditcard.';
         $seoUrl = route('pricing');
         $seoImage = asset('images/taskcheck-dashboard-hero.webp');
+        $displayPrice = static function (float $amount): string {
+            $formatted = number_format($amount, 2, ',', '.');
+
+            return str_ends_with($formatted, ',00') ? substr($formatted, 0, -3) : $formatted;
+        };
+        $billingSuffix = static fn (array $plan): string => \App\Models\Organisation\Company::billingPeriod($plan['billing_period'] ?? 'monthly')['suffix'];
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -329,7 +335,7 @@
                             <p class="mt-1.5 text-sm leading-snug text-slate-500">Voor kleine teams die willen starten met structuur</p>
                         </div>
                         <div class="relative mt-5">
-                            <p class="text-4xl font-extrabold tabular-nums text-slate-900 sm:text-[2.35rem]">€39<span class="ml-1 text-lg font-semibold text-slate-500">/maand</span></p>
+                            <p class="text-4xl font-extrabold tabular-nums text-slate-900 sm:text-[2.35rem]">€{{ $displayPrice((float) $plans['starter']['billing_amount']) }}<span class="ml-1 text-lg font-semibold text-slate-500">/{{ $billingSuffix($plans['starter']) }}</span></p>
                             <p class="mt-1 text-xs font-medium text-slate-400">excl. 21% btw</p>
                         </div>
                         <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Alles wat je nodig hebt om direct te beginnen met digitale checklists en controle.</p>
@@ -362,8 +368,8 @@
                         </div>
                         <div class="relative mt-5">
                             <div class="flex flex-wrap items-baseline gap-1">
-                                <span class="bg-gradient-to-r from-[#2563eb] to-[#6366f1] bg-clip-text text-4xl font-extrabold tabular-nums text-transparent sm:text-[2.35rem]">€99</span>
-                                <span class="text-lg font-semibold text-slate-500">/maand</span>
+                                <span class="bg-gradient-to-r from-[#2563eb] to-[#6366f1] bg-clip-text text-4xl font-extrabold tabular-nums text-transparent sm:text-[2.35rem]">€{{ $displayPrice((float) $plans['professional']['billing_amount']) }}</span>
+                                <span class="text-lg font-semibold text-slate-500">/{{ $billingSuffix($plans['professional']) }}</span>
                             </div>
                             <p class="mt-1 text-xs font-medium text-slate-400">excl. 21% btw</p>
                         </div>
@@ -395,7 +401,7 @@
                             <p class="mt-1.5 text-sm leading-snug text-slate-500">Voor bedrijven met meerdere locaties en grotere teams</p>
                         </div>
                         <div class="relative mt-5">
-                            <p class="text-4xl font-extrabold tabular-nums text-slate-900 sm:text-[2.35rem]">€179<span class="ml-1 text-lg font-semibold text-slate-500">/maand</span></p>
+                            <p class="text-4xl font-extrabold tabular-nums text-slate-900 sm:text-[2.35rem]">€{{ $displayPrice((float) $plans['business']['billing_amount']) }}<span class="ml-1 text-lg font-semibold text-slate-500">/{{ $billingSuffix($plans['business']) }}</span></p>
                             <p class="mt-1 text-xs font-medium text-slate-400">excl. 21% btw</p>
                         </div>
                         <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Volledige controle over meerdere locaties, met diep inzicht in prestaties en kwaliteit per vestiging.</p>
