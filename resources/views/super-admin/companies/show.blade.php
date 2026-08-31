@@ -11,7 +11,9 @@
 
 @section('content')
 @php
-    $status = $company->isOnTrial() ? 'trial' : ($company->subscription_status ?: 'onbekend');
+    $status = !$company->billing_required
+        ? ($company->subscription_ends_at?->isFuture() ? 'active' : 'expired')
+        : ($company->isOnTrial() ? 'trial' : ($company->subscription_status ?: 'onbekend'));
     $statusStyles = match($status) {
         'active' => 'bg-emerald-100 text-emerald-700 ring-emerald-200',
         'trial' => 'bg-blue-100 text-blue-700 ring-blue-200',
@@ -19,7 +21,7 @@
         'expired' => 'bg-red-100 text-red-700 ring-red-200',
         default => 'bg-slate-100 text-slate-600 ring-slate-200',
     };
-    $statusLabel = match($status) {
+    $statusLabel = !$company->billing_required ? 'Gratis toegang' : match($status) {
         'active' => 'Actief',
         'trial' => 'Proefperiode',
         'cancelled' => 'Geannuleerd',
@@ -376,6 +378,10 @@ const customSubscriptionFields = document.getElementById('custom-subscription-fi
 const toggleCustomSubscriptionFields = () => customSubscriptionFields?.classList.toggle('hidden', subscriptionPlan?.value !== 'custom');
 subscriptionPlan?.addEventListener('change', toggleCustomSubscriptionFields);
 toggleCustomSubscriptionFields();
+const companyBillingRequired = document.getElementById('company-billing-required');
+const togglePaidBillingFields = () => document.querySelectorAll('[data-paid-billing-field]').forEach((field) => field.classList.toggle('hidden', !companyBillingRequired?.checked));
+companyBillingRequired?.addEventListener('change', togglePaidBillingFields);
+togglePaidBillingFields();
 document.querySelectorAll('[data-confirm-submit]').forEach((button) => button.addEventListener('click', (event) => { if (!confirm(button.dataset.confirmSubmit)) event.preventDefault(); }));
 document.querySelectorAll('[data-open-dialog]').forEach((button) => button.addEventListener('click', () => document.getElementById(button.dataset.openDialog)?.showModal()));
 document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));

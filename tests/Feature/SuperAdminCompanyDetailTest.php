@@ -298,6 +298,37 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->assertSame('2027-12-31', $company->fresh()->subscription_ends_at?->format('Y-m-d'));
     }
 
+    public function test_future_free_access_is_shown_instead_of_trial_billing(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+        $endDate = now()->addYear()->toDateString();
+
+        $this->actingAs($admin)->put(route('super-admin.companies.subscription.update', $company), [
+            'subscription_plan' => 'professional',
+            'subscription_status' => 'trial',
+            'billing_period' => 'monthly',
+            'billing_start_date' => now()->addWeeks(2)->toDateString(),
+            'trial_ends_at' => now()->addWeeks(2)->toDateString(),
+            'subscription_ends_at' => $endDate,
+            'is_active' => '1',
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']));
+
+        $company->refresh();
+        $this->assertFalse($company->billing_required);
+        $this->assertSame('active', $company->subscription_status);
+        $this->assertNull($company->billing_start_date);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'billing']))
+            ->assertOk()
+            ->assertSee('Gratis toegang actief')
+            ->assertSee('Einddatum toegang')
+            ->assertSee(now()->addYear()->format('d-m-Y'))
+            ->assertDontSee('Geplande eerste facturatie');
+    }
+
     public function test_super_admin_can_save_a_customer_specific_subscription(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();

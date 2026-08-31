@@ -596,6 +596,11 @@ class DashboardController extends Controller
             : $trialEndsAt?->copy()->startOfDay();
         $subscriptionStatus = $validated['subscription_status'];
 
+        if (!$billingRequired && $endDate) {
+            $subscriptionStatus = $endDate->isPast() ? 'expired' : 'active';
+            $billingStartDate = null;
+        }
+
         if ($billingRequired
             && $subscriptionStatus === 'active'
             && $trialEndsAt?->isFuture()
