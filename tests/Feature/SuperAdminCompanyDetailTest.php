@@ -37,6 +37,61 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('Recente gebruikers');
     }
 
+    public function test_super_admin_can_delete_a_company_with_its_users(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::query()->create([
+            'name' => 'Verwijderbare klant',
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'is_active' => true,
+        ]);
+        $users = User::factory()->count(2)->create(['company_id' => $company->id]);
+        Location::query()->create(['company_id' => $company->id, 'name' => 'Testlocatie']);
+
+        $this->actingAs($admin)->delete(route('super-admin.companies.destroy', $company), [
+            'confirmation_name' => 'Verwijderbare klant',
+        ])->assertRedirect(route('super-admin.dashboard', ['tab' => 'companies']));
+
+        $this->assertDatabaseMissing('companies', ['id' => $company->id]);
+        foreach ($users as $user) {
+            $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        }
+        $this->assertDatabaseMissing('locations', ['company_id' => $company->id]);
+    }
+
+    public function test_company_deletion_requires_the_exact_company_name(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::query()->create([
+            'name' => 'Blijvende klant',
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->from(route('super-admin.companies.show', $company))
+            ->delete(route('super-admin.companies.destroy', $company), ['confirmation_name' => 'verkeerd'])
+            ->assertSessionHasErrors('confirmation_name');
+
+        $this->assertDatabaseHas('companies', ['id' => $company->id]);
+    }
+
+    public function test_super_admin_cannot_delete_their_own_company(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = $admin->company;
+
+        $this->actingAs($admin)->delete(route('super-admin.companies.destroy', $company), [
+            'confirmation_name' => $company->name,
+        ])->assertSessionHas('error');
+
+        $this->assertDatabaseHas('companies', ['id' => $company->id]);
+    }
+
     public function test_super_admin_sees_the_real_next_mollie_billing_date(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();

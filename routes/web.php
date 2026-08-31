@@ -410,6 +410,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
     Route::post('/companies/{company}/duplicate', [SuperAdminDashboardController::class, 'duplicateCompany'])->name('companies.duplicate');
     Route::get('/companies/{company}', [SuperAdminDashboardController::class, 'showCompany'])->name('companies.show');
+    Route::delete('/companies/{company}', [SuperAdminDashboardController::class, 'destroyCompany'])->name('companies.destroy');
     Route::get('/companies/{company}/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('companies.lists.ai-import');
     Route::post('/companies/{company}/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
     Route::post('/companies/{company}/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');

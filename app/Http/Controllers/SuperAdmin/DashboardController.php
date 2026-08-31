@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -514,6 +515,55 @@ class DashboardController extends Controller
 
         return redirect()->route('super-admin.companies.show', $result['company'])
             ->with('success', "Bedrijf gedupliceerd met {$result['lists']} lijsten, {$result['tasks']} taken en {$result['locations']} locaties. ".($validated['account_setup'] === 'invite' ? 'De nieuwe beheerder heeft een uitnodiging ontvangen.' : 'Het beheerderswachtwoord is ingesteld zonder e-mail te versturen.'));
+    }
+
+    public function destroyCompany(Request $request, Company $company, MollieService $mollieService): RedirectResponse
+    {
+        if ((int) $request->user()->company_id === (int) $company->id) {
+            return back()->with('error', 'Je kunt het bedrijf van je eigen actieve superadmin-account niet verwijderen.');
+        }
+
+        $request->validate([
+            'confirmation_name' => ['required', 'string', Rule::in([$company->name])],
+        ], [
+            'confirmation_name.in' => 'Vul de volledige bedrijfsnaam exact in om het bedrijf te verwijderen.',
+        ]);
+
+        if ($company->mollie_customer_id && $company->mollie_subscription_id) {
+            try {
+                $mollieService->cancelSubscription(
+                    (string) $company->mollie_customer_id,
+                    (string) $company->mollie_subscription_id,
+                );
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return back()->with('error', 'Het bedrijf is niet verwijderd, omdat het Mollie-abonnement niet kon worden stopgezet: '.$exception->getMessage());
+            }
+        }
+
+        $companyName = $company->name;
+        $userCount = $company->users()->count();
+        $submissionIds = Submission::withoutGlobalScope('company')
+            ->where('company_id', $company->id)
+            ->pluck('id');
+        $logoPath = $company->logo_path;
+
+        DB::transaction(fn () => $company->delete());
+
+        try {
+            foreach ($submissionIds as $submissionId) {
+                Storage::disk('public')->deleteDirectory('submissions/'.$submissionId);
+            }
+            if ($logoPath) {
+                Storage::disk('public')->delete($logoPath);
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
+        return redirect()->route('super-admin.dashboard', ['tab' => 'companies'])
+            ->with('success', "{$companyName} en {$userCount} onderliggende gebruiker(s) zijn definitief verwijderd.");
     }
 
     public function updateCompanySubscription(Request $request, Company $company, MollieService $mollieService): RedirectResponse

@@ -54,6 +54,9 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button type="button" data-open-dialog="duplicate-company" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/20">Bedrijf dupliceren</button>
+                    @if((int) auth()->user()->company_id !== (int) $company->id)
+                        <button type="button" data-open-dialog="delete-company" class="inline-flex items-center gap-2 rounded-xl bg-red-950/25 px-3 py-2 text-sm font-semibold text-white ring-1 ring-red-100/30 hover:bg-red-950/40">Bedrijf verwijderen</button>
+                    @endif
                     <span class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-800">
                         <span class="h-2 w-2 rounded-full {{ $company->is_active ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                         {{ $company->is_active ? 'Toegang actief' : 'Toegang geblokkeerd' }}
@@ -343,6 +346,29 @@
         <div class="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end"><button type="button" data-close-dialog class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Annuleren</button><button class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700" onclick="return confirm('Nieuw bedrijf en beheerdersaccount aanmaken?')">Bedrijf dupliceren</button></div>
     </form>
 </dialog>
+@if((int) auth()->user()->company_id !== (int) $company->id)
+<dialog id="delete-company" class="w-[calc(100%-2rem)] max-w-lg rounded-2xl p-0 shadow-2xl backdrop:bg-slate-950/60">
+    <form method="POST" action="{{ route('super-admin.companies.destroy', $company) }}">
+        @csrf
+        @method('DELETE')
+        <div class="border-b border-red-100 bg-red-50 px-6 py-5">
+            <h2 class="text-lg font-semibold text-red-900">{{ $company->name }} definitief verwijderen?</h2>
+            <p class="mt-1 text-sm text-red-700">Deze actie kan niet ongedaan worden gemaakt.</p>
+        </div>
+        <div class="space-y-4 px-6 py-5">
+            <p class="text-sm leading-relaxed text-slate-600">Het bedrijf en alle onderliggende gebruikers, locaties, takenlijsten, inzendingen, bewijsbestanden en facturen worden verwijderd. Een gekoppeld Mollie-abonnement wordt eerst stopgezet.</p>
+            <div>
+                <label for="delete-company-confirmation" class="mb-1.5 block text-sm font-medium text-slate-700">Typ <strong>{{ $company->name }}</strong> ter bevestiging</label>
+                <input id="delete-company-confirmation" name="confirmation_name" required autocomplete="off" class="w-full rounded-xl border-slate-300 text-sm focus:border-red-500 focus:ring-red-500">
+            </div>
+        </div>
+        <div class="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end">
+            <button type="button" data-close-dialog class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Annuleren</button>
+            <button class="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Bedrijf definitief verwijderen</button>
+        </div>
+    </form>
+</dialog>
+@endif
 @push('scripts')
 <script>
 const subscriptionPlan = document.getElementById('subscription-plan');
