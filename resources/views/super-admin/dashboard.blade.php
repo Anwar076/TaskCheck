@@ -514,7 +514,15 @@
                             <div class="rounded-lg bg-slate-50 p-2.5"><span class="block text-slate-500">Facturatie</span><strong class="mt-0.5 block text-slate-800">{{ $company->billing_mode_label }}</strong></div>
                             <div class="rounded-lg bg-slate-50 p-2.5"><span class="block text-slate-500">Opslag</span><strong class="mt-0.5 block text-slate-800">{{ number_format((float) $company->storage_used_gb, 2, ',', '.') }} GB</strong></div>
                         </div>
-                        <a href="{{ route('super-admin.companies.show', $company) }}" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Bedrijf bekijken <span>→</span></a>
+                        <div class="mt-3 flex items-center gap-2">
+                            <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => 'settings']) }}" aria-label="{{ $company->name }} bewerken" title="Bedrijf bewerken" class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.121 2.121 0 0 1 3 3L8.25 18.1 4 19.25l1.15-4.25L16.862 3.487Z"/><path stroke-linecap="round" d="m14.75 5.6 3 3"/></svg>
+                                Bewerken
+                            </a>
+                            @if((int) auth()->user()->company_id !== (int) $company->id)
+                                <form method="POST" action="{{ route('super-admin.companies.destroy', $company) }}" data-delete-company data-company-name="{{ $company->name }}">@csrf @method('DELETE')<input type="hidden" name="confirmation_name"><button aria-label="{{ $company->name }} verwijderen" title="Bedrijf verwijderen" class="flex h-10 w-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"><svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg></button></form>
+                            @endif
+                        </div>
                     </article>
                 @empty
                     <p class="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">Geen bedrijven gevonden.</p>
@@ -559,10 +567,14 @@
                                 </td>
                                 <td class="py-3 pr-4">{{ (int) $company->active_locations }}</td>
                                 <td class="py-3 px-3">
-                                    <a href="{{ route('super-admin.companies.show', $company) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100">
-                                        Bekijken
-                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"/></svg>
-                                    </a>
+                                    <div class="flex items-center gap-1.5">
+                                        <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => 'settings']) }}" aria-label="{{ $company->name }} bewerken" title="Bedrijf bewerken" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.121 2.121 0 0 1 3 3L8.25 18.1 4 19.25l1.15-4.25L16.862 3.487Z"/><path stroke-linecap="round" d="m14.75 5.6 3 3"/></svg>
+                                        </a>
+                                        @if((int) auth()->user()->company_id !== (int) $company->id)
+                                            <form method="POST" action="{{ route('super-admin.companies.destroy', $company) }}" data-delete-company data-company-name="{{ $company->name }}">@csrf @method('DELETE')<input type="hidden" name="confirmation_name"><button aria-label="{{ $company->name }} verwijderen" title="Bedrijf verwijderen" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"><svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg></button></form>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -1099,6 +1111,19 @@
 </style>
 <script>
 (() => {
+    document.querySelectorAll('[data-delete-company]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            const companyName = form.dataset.companyName ?? '';
+            const confirmation = window.prompt(`Typ "${companyName}" om dit bedrijf en alle onderliggende gebruikers definitief te verwijderen.`);
+            if (confirmation !== companyName) {
+                event.preventDefault();
+                if (confirmation !== null) window.alert('De bedrijfsnaam komt niet exact overeen. Het bedrijf is niet verwijderd.');
+                return;
+            }
+            form.querySelector('input[name="confirmation_name"]').value = confirmation;
+        });
+    });
+
     const communicationCounts = @json($communicationCounts ?? []);
     const previewModal = document.getElementById('sa-message-preview');
     document.querySelectorAll('[data-preview-close]').forEach((button) => button.addEventListener('click', () => previewModal?.classList.add('hidden')));

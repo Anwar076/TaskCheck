@@ -37,6 +37,26 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('Recente gebruikers');
     }
 
+    public function test_company_overview_shows_edit_and_delete_icon_actions(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::query()->create([
+            'name' => 'Actieknoppen klant',
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'active',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.dashboard', ['tab' => 'companies']))
+            ->assertOk()
+            ->assertSee(route('super-admin.companies.show', ['company' => $company, 'section' => 'settings']), false)
+            ->assertSee(route('super-admin.companies.destroy', $company), false)
+            ->assertSee($company->name.' bewerken')
+            ->assertSee($company->name.' verwijderen');
+    }
+
     public function test_super_admin_can_delete_a_company_with_its_users(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
