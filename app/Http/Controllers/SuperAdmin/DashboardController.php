@@ -539,6 +539,15 @@ class DashboardController extends Controller
         $billingStartDate = !empty($validated['billing_start_date'])
             ? Carbon::parse($validated['billing_start_date'])->startOfDay()
             : $trialEndsAt?->copy()->startOfDay();
+        $subscriptionStatus = $validated['subscription_status'];
+
+        if ($billingRequired
+            && $subscriptionStatus === 'active'
+            && $trialEndsAt?->isFuture()
+            && !$company->mollie_subscription_id
+            && !$endDate) {
+            $subscriptionStatus = 'trial';
+        }
 
         if (!$billingRequired && !$endDate && $validated['subscription_status'] === 'active') {
             return redirect()->back()->withErrors([
@@ -550,7 +559,7 @@ class DashboardController extends Controller
         $mollieSubscriptionId = $company->mollie_subscription_id;
         if ($company->mollie_customer_id && $company->mollie_subscription_id) {
             try {
-                if (!$billingRequired || in_array($validated['subscription_status'], ['cancelled', 'expired'], true)) {
+                if (!$billingRequired || in_array($subscriptionStatus, ['cancelled', 'expired'], true)) {
                     $mollieService->cancelSubscription((string) $company->mollie_customer_id, (string) $company->mollie_subscription_id);
                     $mollieSubscriptionId = null;
                 } else {
@@ -576,7 +585,7 @@ class DashboardController extends Controller
             'subscription_plan' => $plan,
             'custom_subscription_name' => $isCustom ? $validated['custom_subscription_name'] : null,
             'custom_monthly_price' => $isCustom ? $validated['custom_monthly_price'] : null,
-            'subscription_status' => $validated['subscription_status'],
+            'subscription_status' => $subscriptionStatus,
             'billing_required' => $billingRequired,
             'billing_period' => $validated['billing_period'],
             'billing_start_date' => $billingStartDate,

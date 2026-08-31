@@ -31,7 +31,7 @@
                                 <p class="text-blue-100/90 text-sm sm:text-base mt-0.5">Abonnementsdetails</p>
                             </div>
                         </div>
-                        @if($company->subscription_status === 'trial')
+                        @if($company->isOnTrial())
                             <div class="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur rounded-xl">
                                 <span class="text-white font-semibold">{{ $company->trialDaysRemaining() }}</span>
                                 <span class="text-blue-100 text-sm">dagen proefperiode over</span>
@@ -58,8 +58,14 @@
                                 <h3 class="text-lg font-bold text-slate-900">Huidig abonnement</h3>
                             </div>
 
-                            @if($company->subscription_status === 'trial')
+                            @if($company->isOnTrial())
                                 <div class="space-y-3">
+                                    @if($planDetails)
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Toegewezen abonnement</p>
+                                            <p class="mt-1 text-2xl font-bold text-blue-600">{{ $planDetails['name'] }}</p>
+                                        </div>
+                                    @endif
                                     <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-semibold border border-blue-100">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>

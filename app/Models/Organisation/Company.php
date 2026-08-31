@@ -336,24 +336,37 @@ class Company extends Model
     // Check if company is on trial
     public function isOnTrial(): bool
     {
-        return $this->subscription_status === 'trial' 
-            && $this->trial_ends_at 
-            && $this->trial_ends_at->isFuture();
+        return (bool) ($this->trial_ends_at?->isFuture()
+            && ($this->subscription_status === 'trial' || $this->isAwaitingFirstPayment()));
     }
 
     // Check if trial has expired
     public function trialExpired(): bool
     {
-        return $this->subscription_status === 'trial' 
-            && $this->trial_ends_at 
-            && $this->trial_ends_at->isPast();
+        return (bool) ($this->trial_ends_at?->isPast()
+            && ($this->subscription_status === 'trial' || $this->isAwaitingFirstPayment()));
     }
 
     // Check if subscription is active
     public function hasActiveSubscription(): bool
     {
         return $this->subscription_status === 'active' 
+            && !$this->isAwaitingFirstPayment()
             && (!$this->subscription_ends_at || $this->subscription_ends_at->isFuture());
+    }
+
+    /**
+     * A paid plan with a configured trial is not active until the first Mollie
+     * payment has established a subscription (or access was explicitly granted
+     * through an end date).
+     */
+    public function isAwaitingFirstPayment(): bool
+    {
+        return (bool) ($this->billing_required
+            && in_array($this->subscription_status, ['trial', 'active'], true)
+            && $this->trial_ends_at
+            && !$this->mollie_subscription_id
+            && !$this->subscription_ends_at);
     }
 
     public function hasCancelledButStillActiveAccess(): bool

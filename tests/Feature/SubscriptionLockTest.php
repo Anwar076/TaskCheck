@@ -25,6 +25,26 @@ class SubscriptionLockTest extends TestCase
             ->assertSee('Je proefperiode is verlopen');
     }
 
+    public function test_paid_company_marked_active_remains_in_trial_until_first_payment(): void
+    {
+        $company = $this->company([
+            'subscription_status' => 'active',
+            'billing_required' => true,
+            'trial_ends_at' => now()->addWeek(),
+            'mollie_subscription_id' => null,
+            'subscription_ends_at' => null,
+        ]);
+
+        $this->assertTrue($company->isOnTrial());
+        $this->assertFalse($company->hasActiveSubscription());
+        $this->assertTrue($company->canAccess());
+
+        $company->trial_ends_at = now()->subDay();
+
+        $this->assertTrue($company->trialExpired());
+        $this->assertFalse($company->canAccess());
+    }
+
     public function test_cancelled_subscription_admin_is_locked_to_settings(): void
     {
         [$admin] = $this->lockedAdmin([

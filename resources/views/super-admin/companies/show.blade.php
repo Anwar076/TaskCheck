@@ -11,7 +11,7 @@
 
 @section('content')
 @php
-    $status = $company->subscription_status ?: 'onbekend';
+    $status = $company->isOnTrial() ? 'trial' : ($company->subscription_status ?: 'onbekend');
     $statusStyles = match($status) {
         'active' => 'bg-emerald-100 text-emerald-700 ring-emerald-200',
         'trial' => 'bg-blue-100 text-blue-700 ring-blue-200',
