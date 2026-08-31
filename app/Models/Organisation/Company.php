@@ -172,6 +172,13 @@ class Company extends Model
         'Mobiele webapp voor medewerkers',
     ];
 
+    public const BILLING_PERIODS = [
+        'monthly' => ['label' => 'Maandelijks', 'suffix' => 'maand', 'mollie_interval' => '1 month'],
+        'quarterly' => ['label' => 'Per kwartaal', 'suffix' => 'kwartaal', 'mollie_interval' => '3 months'],
+        'semiannual' => ['label' => 'Halfjaarlijks', 'suffix' => 'halfjaar', 'mollie_interval' => '6 months'],
+        'annual' => ['label' => 'Jaarlijks', 'suffix' => 'jaar', 'mollie_interval' => '12 months'],
+    ];
+
     public static function plans(): array
     {
         $plans = self::PLANS;
@@ -183,6 +190,8 @@ class Company extends Model
         foreach (SubscriptionPlan::query()->get() as $override) {
             $plans[$override->plan_key] = [
                 'name' => $override->name,
+                'billing_period' => $override->billing_period,
+                'billing_amount' => (float) ($override->billing_amount ?? ($override->billing_period === 'annual' ? $override->price_annual : $override->price_monthly)),
                 'price_monthly' => (float) $override->price_monthly,
                 'price_annual' => (float) $override->price_annual,
                 'max_users' => $override->max_users,
@@ -193,6 +202,8 @@ class Company extends Model
         }
 
         foreach ($plans as $key => &$plan) {
+            $plan['billing_period'] ??= 'monthly';
+            $plan['billing_amount'] ??= (float) $plan['price_monthly'];
             $plan['features'] ??= self::defaultPlanFeatures($key);
         }
         unset($plan);
@@ -215,6 +226,11 @@ class Company extends Model
     public function hasPlanFeature(string $feature): bool
     {
         return in_array($feature, $this->getPlanDetails()['features'] ?? [], true);
+    }
+
+    public static function billingPeriod(string $key): array
+    {
+        return self::BILLING_PERIODS[$key] ?? self::BILLING_PERIODS['monthly'];
     }
 
     public static function plan(string $key): ?array
@@ -407,6 +423,8 @@ class Company extends Model
         if ($this->subscription_plan === 'custom') {
             $details['name'] = $this->custom_subscription_name ?: $details['name'];
             $details['price_monthly'] = (float) ($this->custom_monthly_price ?? 0);
+            $details['billing_period'] = 'monthly';
+            $details['billing_amount'] = (float) ($this->custom_monthly_price ?? 0);
             $details['max_users'] = (int) $this->max_users;
             $details['max_locations'] = (int) $this->max_locations;
             $details['max_storage_gb'] = (int) $this->max_storage_gb;

@@ -88,8 +88,8 @@ class SuperAdminCompanyDetailTest extends TestCase
 
         $this->actingAs($admin)->put(route('super-admin.subscriptions.update', 'professional'), [
             'name' => 'Professional Plus',
-            'price_monthly' => '109.00',
-            'price_annual' => '89.00',
+            'billing_period' => 'monthly',
+            'price' => '109.00',
             'max_users' => 15,
             'max_locations' => 3,
             'max_storage_gb' => 75,
@@ -120,8 +120,8 @@ class SuperAdminCompanyDetailTest extends TestCase
 
         $response = $this->actingAs($admin)->post(route('super-admin.subscriptions.store'), [
             'name' => 'Franchise Plus',
-            'price_monthly' => '229.00',
-            'price_annual' => '199.00',
+            'billing_period' => 'annual',
+            'price' => '2290.00',
             'max_users' => 40,
             'max_locations' => 12,
             'max_storage_gb' => 200,
@@ -135,6 +135,10 @@ class SuperAdminCompanyDetailTest extends TestCase
             'is_public' => false,
         ]);
         $this->assertSame(40, Company::plan('franchise_plus')['max_users']);
+        $this->assertSame('annual', Company::plan('franchise_plus')['billing_period']);
+        $this->assertSame(2290.0, Company::plan('franchise_plus')['billing_amount']);
+        $this->assertSame(0.0, Company::plan('franchise_plus')['price_monthly']);
+        $this->assertSame(2290.0, Company::plan('franchise_plus')['price_annual']);
         $this->assertSame(['ai_import', 'ai_suggestions'], Company::plan('franchise_plus')['features']);
         $this->assertSame(['admin' => null, 'employee' => null], Company::planRoleLimits('franchise_plus'));
     }

@@ -82,7 +82,7 @@ class DashboardController extends Controller
 
     public function storeSubscriptionPlan(Request $request): RedirectResponse
     {
-        $validated = $this->validateSubscriptionPlan($request);
+        $validated = $this->normalizeSubscriptionPrice($this->validateSubscriptionPlan($request));
         $baseKey = Str::slug($validated['name'], '_') ?: 'abonnement';
         $key = $baseKey;
         $suffix = 2;
@@ -105,7 +105,7 @@ class DashboardController extends Controller
         abort_unless(Company::plan($plan), 404);
         abort_if($plan === 'custom', 422, 'Maatwerkabonnementen worden per klant beheerd.');
 
-        $validated = $this->validateSubscriptionPlan($request);
+        $validated = $this->normalizeSubscriptionPrice($this->validateSubscriptionPlan($request));
 
         SubscriptionPlan::query()->updateOrCreate(['plan_key' => $plan], $validated);
 
@@ -122,8 +122,8 @@ class DashboardController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'price_monthly' => ['required', 'numeric', 'min:0', 'max:999999.99'],
-            'price_annual' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'billing_period' => ['required', Rule::in(array_keys(Company::BILLING_PERIODS))],
+            'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'max_users' => ['required', 'integer', 'min:-1'],
             'max_locations' => ['required', 'integer', 'min:-1'],
             'max_storage_gb' => ['required', 'integer', 'min:-1'],
@@ -132,6 +132,20 @@ class DashboardController extends Controller
         ]);
 
         $validated['features'] = $validated['features'] ?? [];
+
+        return $validated;
+    }
+
+    private function normalizeSubscriptionPrice(array $validated): array
+    {
+        $period = $validated['billing_period'];
+        $price = $validated['price'];
+        unset($validated['billing_period'], $validated['price']);
+
+        $validated['billing_period'] = $period;
+        $validated['billing_amount'] = $price;
+        $validated['price_monthly'] = $period === 'monthly' ? $price : 0;
+        $validated['price_annual'] = $period === 'annual' ? $price : 0;
 
         return $validated;
     }

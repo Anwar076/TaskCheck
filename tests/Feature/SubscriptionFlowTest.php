@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Organisation\Company;
 use App\Models\Organisation\User;
+use App\Models\Billing\SubscriptionPlan;
 use App\Services\Billing\MollieService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +27,7 @@ class SubscriptionFlowTest extends TestCase
 
         $user = User::factory()->create([
             'role' => 'admin',
-            'email' => 'anwar@brancom.nl',
+            'email' => 'billing@example.com',
             'company_id' => $company->id,
         ]);
 
@@ -69,6 +70,34 @@ class SubscriptionFlowTest extends TestCase
         $this->assertSame('47.19', data_get($capturedPayload, 'amount.value'));
     }
 
+    public function test_annual_plan_uses_full_amount_and_twelve_month_mollie_interval(): void
+    {
+        Config::set('services.mollie.webhook_url', 'https://example.test/mollie/webhook');
+        $defaults = Company::PLANS['professional'];
+        SubscriptionPlan::query()->create(array_merge($defaults, [
+            'plan_key' => 'professional',
+            'billing_period' => 'annual',
+            'billing_amount' => 950,
+            'features' => [],
+        ]));
+        $company = Company::query()->create(['name' => 'Annual Company', 'subscription_status' => 'trial', 'is_active' => true]);
+        $user = User::factory()->create(['role' => 'admin', 'email' => 'annual@example.com', 'company_id' => $company->id]);
+        $capturedPayload = null;
+        $mollie = Mockery::mock(MollieService::class);
+        $mollie->shouldReceive('createCustomer')->once()->andReturn(['id' => 'cst_annual']);
+        $mollie->shouldReceive('createFirstPayment')->once()->andReturnUsing(function (array $payload) use (&$capturedPayload) {
+            $capturedPayload = $payload;
+            return ['id' => 'tr_annual', '_links' => ['checkout' => ['href' => 'https://checkout.mollie.com/payments/annual']]];
+        });
+        $this->instance(MollieService::class, $mollie);
+
+        $this->actingAs($user)->post(route('subscription.activate'), ['plan' => 'professional'])
+            ->assertRedirect('https://checkout.mollie.com/payments/annual');
+
+        $this->assertSame('12 months', data_get($capturedPayload, 'metadata.interval'));
+        $this->assertSame('1149.50', data_get($capturedPayload, 'amount.value'));
+    }
+
     public function test_paid_webhook_does_not_reactivate_company_after_full_cancellation(): void
     {
         $company = Company::query()->create([
@@ -105,4 +134,3 @@ class SubscriptionFlowTest extends TestCase
         $this->assertNull($company->pending_subscription_plan);
     }
 }
-

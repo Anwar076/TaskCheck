@@ -120,7 +120,7 @@ class SubscriptionController extends Controller
         $isStarterTestOverride = $this->shouldUseStarterTestOverride($billingEmail, (string) $request->plan);
         $amountValue = $isStarterTestOverride
             ? '1.00'
-            : $this->calculateGrossMonthlyAmount((float) $plan['price_monthly']);
+            : $this->calculateGrossAmount((float) $plan['billing_amount']);
         $subscriptionInterval = $this->resolveSubscriptionInterval($billingEmail, (string) $request->plan);
 
         try {
@@ -556,7 +556,7 @@ class SubscriptionController extends Controller
                 throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
             }
 
-            $company->activateSubscription($plan);
+            $company->activateSubscription($plan, $this->billingPeriodMonths($plan));
 
             $updateData = [
                 'mollie_payment_id' => null,
@@ -568,7 +568,7 @@ class SubscriptionController extends Controller
                     $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
                     $fallbackAmount = $this->shouldUseStarterTestOverride($billingEmail, $plan)
                         ? '1.00'
-                        : $this->calculateGrossMonthlyAmount((float) Company::plan($plan)['price_monthly']);
+                        : $this->calculateGrossAmount((float) Company::plan($plan)['billing_amount']);
                     $amountValue = (string) data_get($payment, 'amount.value', $fallbackAmount);
                     $interval = (string) data_get($payment, 'metadata.interval', $this->resolveSubscriptionInterval($billingEmail, $plan));
 
@@ -600,7 +600,7 @@ class SubscriptionController extends Controller
                     continue;
                 }
 
-                $expectedAmount = $this->calculateGrossMonthlyAmount((float) ($planConfig['price_monthly'] ?? 0));
+                $expectedAmount = $this->calculateGrossAmount((float) ($planConfig['billing_amount'] ?? 0));
                 if ($expectedAmount === $paidAmount) {
                     return $planKey;
                 }
@@ -752,14 +752,30 @@ class SubscriptionController extends Controller
 
     private function resolveSubscriptionInterval(string $email, string $plan): string
     {
-        return $this->shouldUseStarterTestOverride($email, $plan) ? '1 day' : '1 month';
+        if ($this->shouldUseStarterTestOverride($email, $plan)) {
+            return '1 day';
+        }
+
+        $period = (string) (Company::plan($plan)['billing_period'] ?? 'monthly');
+
+        return Company::billingPeriod($period)['mollie_interval'];
     }
 
-    private function calculateGrossMonthlyAmount(float $basePrice): string
+    private function calculateGrossAmount(float $basePrice): string
     {
         $gross = $basePrice * (1 + (self::VAT_RATE / 100));
 
         return number_format($gross, 2, '.', '');
+    }
+
+    private function billingPeriodMonths(string $plan): int
+    {
+        return match (Company::plan($plan)['billing_period'] ?? 'monthly') {
+            'quarterly' => 3,
+            'semiannual' => 6,
+            'annual' => 12,
+            default => 1,
+        };
     }
 
     private function createRecurringSubscription(Company $company, string $plan, string $amountValue, string $interval): array
@@ -846,7 +862,7 @@ class SubscriptionController extends Controller
             $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
             $amountValue = $this->shouldUseStarterTestOverride($billingEmail, $plan)
                 ? '1.00'
-                : $this->calculateGrossMonthlyAmount((float) Company::plan($plan)['price_monthly']);
+                : $this->calculateGrossAmount((float) Company::plan($plan)['billing_amount']);
             $interval = $this->resolveSubscriptionInterval($billingEmail, $plan);
 
             $subscription = $this->createRecurringSubscription($company, $plan, $amountValue, $interval);
