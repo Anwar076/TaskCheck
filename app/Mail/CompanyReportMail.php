@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Queue\SerializesModels;
 
 class CompanyReportMail extends Mailable
@@ -18,7 +20,8 @@ class CompanyReportMail extends Mailable
      */
     public function __construct(
         public Company $company,
-        public array $report
+        public array $report,
+        public string $deliveryFormat = 'email',
     ) {}
 
     public function envelope(): Envelope
@@ -31,7 +34,7 @@ class CompanyReportMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.company-report',
+            view: $this->deliveryFormat === 'pdf' ? 'emails.company-report-pdf-delivery' : 'emails.company-report',
             with: [
                 'company' => $this->company,
                 'report' => $this->report,
@@ -41,6 +44,17 @@ class CompanyReportMail extends Mailable
 
     public function attachments(): array
     {
-        return [];
+        if (! in_array($this->deliveryFormat, ['pdf', 'both'], true)) {
+            return [];
+        }
+
+        $pdf = Pdf::loadView('reports.company-report-pdf', ['company' => $this->company, 'report' => $this->report])
+            ->setPaper('a4', 'portrait');
+
+        return [Attachment::fromData(fn () => $pdf->output(), sprintf(
+            '%s-%s.pdf',
+            str($this->report['title'] ?? 'rapportage')->slug(),
+            $this->report['period_end']->format('Y-m-d')
+        ))->withMime('application/pdf')];
     }
 }

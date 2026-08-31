@@ -53,6 +53,7 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <button type="button" data-open-dialog="duplicate-company" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/20">Bedrijf dupliceren</button>
                     <span class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-800">
                         <span class="h-2 w-2 rounded-full {{ $company->is_active ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                         {{ $company->is_active ? 'Toegang actief' : 'Toegang geblokkeerd' }}
@@ -66,7 +67,7 @@
     </section>
 
     <nav class="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" aria-label="Klantonderdelen">
-        @foreach(['overview' => ['dashboard','Overzicht'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen'], 'identity' => ['subscriptions','Microsoft SSO'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']] as $key => [$icon, $label])
+        @foreach(['overview' => ['dashboard','Overzicht'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen'], 'reporting' => ['invoices','Rapportages'], 'identity' => ['subscriptions','Microsoft SSO'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']] as $key => [$icon, $label])
             <a href="{{ route('super-admin.companies.show', ['company' => $company, 'section' => $key]) }}" class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold {{ $companySection === $key ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-700' }}"><x-super-admin-icon :name="$icon" class="h-4 w-4" />{{ $label }}</a>
         @endforeach
     </nav>
@@ -284,6 +285,10 @@
         <section class="grid grid-cols-1 gap-6 xl:grid-cols-3"><div class="xl:col-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div class="border-b border-slate-100 px-5 py-4"><h2 class="font-semibold text-slate-900">Factuurhistorie</h2></div><div class="divide-y divide-slate-100">@forelse($companyInvoices as $invoice)<div class="flex items-center gap-4 px-5 py-4"><div class="min-w-0 flex-1"><p class="font-semibold text-slate-900">{{ $invoice->invoice_number }}</p><p class="text-xs text-slate-500">{{ $invoice->paid_at?->format('d-m-Y') ?? 'Nog niet betaald' }} · {{ $invoice->description ?: 'TaskCheck abonnement' }}</p></div><strong class="text-sm">{{ $invoice->currency }} {{ number_format((float)$invoice->amount, 2, ',', '.') }}</strong><a target="_blank" href="{{ route('subscription.invoices.download', $invoice) }}" class="text-sm font-semibold text-blue-700">PDF</a></div>@empty<div class="px-6 py-12 text-center text-sm text-slate-500">Nog geen facturen voor deze klant.</div>@endforelse</div></div><div>@include('super-admin.companies._subscription-form')</div></section>
     @endif
 
+    @if($companySection === 'reporting')
+        @include('super-admin.companies._reporting')
+    @endif
+
     @if($companySection === 'settings')
         <form method="POST" action="{{ route('super-admin.companies.profile.update', $company) }}" class="mx-auto max-w-3xl space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">@csrf @method('PUT')
             <div><h2 class="text-lg font-semibold text-slate-900">Bedrijfsgegevens wijzigen</h2><p class="text-sm text-slate-500">Deze gegevens worden gebruikt voor klantcontact en facturatie.</p></div>
@@ -308,6 +313,21 @@
         </section>
     @endif
 </div>
+<dialog id="duplicate-company" class="w-[calc(100%-2rem)] max-w-2xl rounded-2xl p-0 shadow-2xl backdrop:bg-slate-950/50">
+    <form method="POST" action="{{ route('super-admin.companies.duplicate', $company) }}">@csrf
+        <div class="border-b border-slate-200 px-6 py-5"><h2 class="text-lg font-semibold text-slate-900">{{ $company->name }} dupliceren</h2><p class="mt-1 text-sm text-slate-500">Maak een schone franchiseomgeving met een nieuwe beheerder en een proefperiode van 14 dagen. Inzendingen, medewerkers, facturen, betalingen en SSO-instellingen gaan nooit mee.</p></div>
+        <div class="space-y-5 px-6 py-5">
+            <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium text-slate-700">Naam nieuw bedrijf</label><input name="company_name" required value="{{ old('company_name', $company->name.' - kopie') }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Abonnement</label><select name="subscription_plan" class="w-full rounded-xl border-slate-300 text-sm">@foreach(\App\Models\Organisation\Company::plans() as $key => $planOption)<option value="{{ $key }}" @selected($key === $company->subscription_plan)>{{ $planOption['name'] }}</option>@endforeach</select></div><div><label class="mb-1 block text-sm font-medium text-slate-700">Naam nieuwe beheerder</label><input name="admin_name" required value="{{ old('admin_name') }}" class="w-full rounded-xl border-slate-300 text-sm"></div><div><label class="mb-1 block text-sm font-medium text-slate-700">E-mail nieuwe beheerder</label><input type="email" name="admin_email" required value="{{ old('admin_email') }}" class="w-full rounded-xl border-slate-300 text-sm"><p class="mt-1 text-xs text-slate-500">Deze persoon ontvangt een uitnodiging om een wachtwoord in te stellen.</p></div></div>
+            <fieldset><legend class="text-sm font-semibold text-slate-800">Onderdelen meenemen</legend><div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <label class="flex gap-3 rounded-xl border border-slate-200 p-3"><input type="checkbox" name="copy_lists" value="1" checked class="mt-0.5 rounded border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Takenlijsten en taken</strong><span class="text-xs text-slate-500">Inclusief planning, bewijsvereisten en algemene roltoewijzingen.</span></span></label>
+                <label class="flex gap-3 rounded-xl border border-slate-200 p-3"><input type="checkbox" name="copy_locations" value="1" checked class="mt-0.5 rounded border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Locaties</strong><span class="text-xs text-slate-500">Lijsten blijven aan de overeenkomstige gekopieerde locatie gekoppeld.</span></span></label>
+                <label class="flex gap-3 rounded-xl border border-slate-200 p-3"><input type="checkbox" name="copy_settings" value="1" checked class="mt-0.5 rounded border-slate-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Werkwijze en afdelingen</strong><span class="text-xs text-slate-500">Werkuren, afdelingen en algemene organisatie-inrichting.</span></span></label>
+                <label class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3"><input type="checkbox" name="copy_reporting" value="1" class="mt-0.5 rounded border-amber-300 text-blue-600"><span><strong class="block text-sm text-slate-800">Rapportageontvangers</strong><span class="text-xs text-amber-800">Niet standaard: controleer eerst of de oude ontvangers rapporten mogen krijgen.</span></span></label>
+            </div></fieldset>
+        </div>
+        <div class="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end"><button type="button" data-close-dialog class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Annuleren</button><button class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700" onclick="return confirm('Nieuw bedrijf en beheerdersaccount aanmaken?')">Bedrijf dupliceren</button></div>
+    </form>
+</dialog>
 @push('scripts')
 <script>
 const subscriptionPlan = document.getElementById('subscription-plan');

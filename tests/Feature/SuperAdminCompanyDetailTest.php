@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Checklist\TaskList;
+use App\Models\Organisation\Location;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class SuperAdminCompanyDetailTest extends TestCase
@@ -398,5 +400,89 @@ class SuperAdminCompanyDetailTest extends TestCase
             TaskList::withoutGlobalScopes()->where('company_id', $selectedCompany->id)->count(),
             $response->viewData('metrics')['lists']
         );
+    }
+
+    public function test_super_admin_can_manage_company_report_recipients(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $company = Company::firstOrFail();
+
+        $this->actingAs($admin)->put(route('super-admin.companies.reporting.update', $company), [
+            'report_recipients' => [
+                ['email' => 'dag@example.test', 'frequency' => 'daily', 'send_time' => '18:00', 'delivery_format' => 'pdf'],
+                ['email' => 'week@example.test', 'frequency' => 'weekly', 'weekly_day' => 1, 'send_time' => '20:00', 'delivery_format' => 'both'],
+            ],
+        ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'reporting']));
+
+        $this->assertDatabaseHas('company_report_recipients', ['company_id' => $company->id, 'email' => 'dag@example.test', 'frequency' => 'daily', 'delivery_format' => 'pdf']);
+        $this->assertDatabaseHas('company_report_recipients', ['company_id' => $company->id, 'email' => 'week@example.test', 'frequency' => 'weekly', 'weekly_day' => 1, 'delivery_format' => 'both']);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'reporting']))
+            ->assertOk()
+            ->assertSee('Geplande rapportages')
+            ->assertSee('dag@example.test');
+    }
+
+    public function test_super_admin_can_impersonate_a_company_user_and_return(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $employee = User::where('role', 'employee')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('super-admin.companies.users.impersonate', [$employee->company_id, $employee]))
+            ->assertRedirect(route('employee.dashboard'))
+            ->assertSessionHas('impersonator_id', $admin->id)
+            ->assertSessionHas('impersonated_user_id', $employee->id);
+        $this->assertAuthenticatedAs($employee);
+
+        $this->post(route('impersonation.stop'))
+            ->assertRedirect(route('super-admin.dashboard', ['tab' => 'users']))
+            ->assertSessionMissing('impersonator_id')
+            ->assertSessionMissing('impersonated_user_id');
+        $this->assertAuthenticatedAs($admin);
+    }
+
+    public function test_super_admin_can_duplicate_a_company_with_lists_and_a_new_admin(): void
+    {
+        Notification::fake();
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        $source = Company::firstOrFail();
+        $source->update(['departments' => ['Keuken'], 'working_hours' => Company::defaultWorkingHours()]);
+        $location = Location::withoutGlobalScopes()->create(['company_id' => $source->id, 'name' => 'Papendrecht', 'is_active' => true]);
+        $list = TaskList::withoutGlobalScopes()->create([
+            'company_id' => $source->id,
+            'created_by' => $admin->id,
+            'location_id' => $location->id,
+            'title' => 'Openingslijst',
+            'schedule_type' => 'daily',
+            'priority' => 'high',
+            'is_active' => true,
+        ]);
+        $list->tasks()->create(['title' => 'Koeling controleren', 'created_by' => $admin->id, 'is_required' => true]);
+
+        $response = $this->actingAs($admin)->post(route('super-admin.companies.duplicate', $source), [
+            'company_name' => 'Kwalitaria Nieuwe Franchisee',
+            'admin_name' => 'Nieuwe Eigenaar',
+            'admin_email' => 'nieuwe.eigenaar@example.test',
+            'subscription_plan' => 'custom',
+            'copy_lists' => '1',
+            'copy_locations' => '1',
+            'copy_settings' => '1',
+        ]);
+
+        $copy = Company::where('name', 'Kwalitaria Nieuwe Franchisee')->firstOrFail();
+        $response->assertRedirect(route('super-admin.companies.show', $copy));
+        $this->assertDatabaseHas('users', ['company_id' => $copy->id, 'email' => 'nieuwe.eigenaar@example.test', 'role' => 'admin']);
+        $this->assertDatabaseHas('locations', ['company_id' => $copy->id, 'name' => 'Papendrecht']);
+        $copiedList = TaskList::withoutGlobalScopes()->where('company_id', $copy->id)->where('title', 'Openingslijst')->firstOrFail();
+        $this->assertNotSame($list->id, $copiedList->id);
+        $this->assertSame('Papendrecht', Location::withoutGlobalScopes()->findOrFail($copiedList->location_id)->name);
+        $this->assertDatabaseHas('tasks', ['list_id' => $copiedList->id, 'title' => 'Koeling controleren']);
+        $this->assertSame(['Keuken'], $copy->departments);
+        $this->assertSame(0, \App\Models\Submissions\Submission::withoutGlobalScopes()->where('company_id', $copy->id)->count());
     }
 }

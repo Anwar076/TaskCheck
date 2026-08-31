@@ -23,6 +23,7 @@ class CompanySettingsController extends Controller
                 ->with('error', 'Geen organisatie gekoppeld.');
         }
 
+        $company->load(['reportRecipients' => fn ($query) => $query->orderBy('id')]);
         return view('admin.settings.edit', compact('company'));
     }
 
@@ -63,6 +64,13 @@ class CompanySettingsController extends Controller
             'reporting_frequency' => ['nullable', 'in:daily,weekly'],
             'reporting_send_time' => ['nullable', 'date_format:H:i'],
             'reporting_weekly_day' => ['nullable', 'integer', 'between:1,7'],
+            'report_recipients' => ['nullable', 'array', 'max:20'],
+            'report_recipients.*.id' => ['nullable', 'integer'],
+            'report_recipients.*.email' => ['required', 'email', 'max:255'],
+            'report_recipients.*.frequency' => ['required', 'in:daily,weekly'],
+            'report_recipients.*.send_time' => ['required', 'date_format:H:i'],
+            'report_recipients.*.weekly_day' => ['nullable', 'integer', 'between:1,7'],
+            'report_recipients.*.delivery_format' => ['required', 'in:email,pdf,both'],
             'logo' => [
                 'nullable',
                 'image',
@@ -146,8 +154,24 @@ class CompanySettingsController extends Controller
             $validated['logo_path'] = $path;
         }
 
-        unset($validated['logo'], $validated['remove_logo'], $validated['departments_text']);
+        $recipientRows = $validated['report_recipients'] ?? [];
+        unset($validated['logo'], $validated['remove_logo'], $validated['departments_text'], $validated['report_recipients']);
         $company->update($validated);
+        $keptIds = [];
+        foreach ($recipientRows as $row) {
+            $recipient = !empty($row['id']) ? $company->reportRecipients()->find($row['id']) : null;
+            $recipient ??= $company->reportRecipients()->make();
+            $recipient->fill([
+                'email' => $row['email'],
+                'frequency' => $row['frequency'],
+                'send_time' => $row['send_time'],
+                'weekly_day' => $row['frequency'] === Company::REPORTING_FREQUENCY_WEEKLY ? ($row['weekly_day'] ?? 1) : null,
+                'delivery_format' => $row['delivery_format'],
+                'is_enabled' => true,
+            ])->save();
+            $keptIds[] = $recipient->id;
+        }
+        $company->reportRecipients()->when($keptIds !== [], fn ($query) => $query->whereNotIn('id', $keptIds))->delete();
         $company->refresh();
 
         app(AdminOnboardingService::class)->handleOrganizationSaved($company);

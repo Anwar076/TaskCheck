@@ -30,6 +30,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body class="font-sans antialiased bg-slate-50">
+    @include('partials.impersonation-banner')
     <div class="min-h-screen h-screen flex overflow-hidden">
         <!-- Clean Sidebar -->
         <div class="hidden md:flex md:w-64 md:flex-col md:shrink-0">

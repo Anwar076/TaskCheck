@@ -18,10 +18,11 @@
                 ->values()
                 ->all();
             $workingHours = $company->normalizedWorkingHours();
-            $reportingEnabled = old('reporting_enabled', $company->reporting_enabled) ? true : false;
-            $reportingFrequency = old('reporting_frequency', $company->reporting_frequency ?? \App\Models\Organisation\Company::REPORTING_FREQUENCY_DAILY);
-            $reportingTime = old('reporting_send_time', $company->reporting_send_time ? substr((string) $company->reporting_send_time, 0, 5) : '09:00');
-            $reportingWeeklyDay = (int) old('reporting_weekly_day', $company->reporting_weekly_day ?? 1);
+            $reportRecipients = collect(old('report_recipients', $company->reportRecipients->map(fn ($recipient) => [
+                'id' => $recipient->id, 'email' => $recipient->email, 'frequency' => $recipient->frequency,
+                'send_time' => substr((string) $recipient->send_time, 0, 5), 'weekly_day' => $recipient->weekly_day,
+                'delivery_format' => $recipient->delivery_format,
+            ])->all()));
         @endphp
         <div class="mb-6 sm:mb-8">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
@@ -314,55 +315,15 @@
                 </svg>
                 Rapportage via e-mail
             </h2>
-            <p class="mb-4 text-sm text-gray-500">Kies of je een samenvatting wilt ontvangen per e-mail, dagelijks of wekelijks op een vast tijdstip.</p>
-
-            <div class="space-y-4">
-                <label class="inline-flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <input type="hidden" name="reporting_enabled" value="0">
-                    <input id="reporting-enabled" type="checkbox" name="reporting_enabled" value="1" @checked($reportingEnabled) class="rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                    <span class="text-sm font-medium text-slate-800">Rapportage e-mails ontvangen</span>
-                </label>
-
-                <div id="reporting-settings-fields" class="rounded-xl border border-slate-200 bg-white p-4 md:p-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <x-form-label for="reporting_frequency">Frequentie</x-form-label>
-                        <select id="reporting_frequency" name="reporting_frequency" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            <option value="{{ \App\Models\Organisation\Company::REPORTING_FREQUENCY_DAILY }}" @selected($reportingFrequency === \App\Models\Organisation\Company::REPORTING_FREQUENCY_DAILY)>Dagelijks</option>
-                            <option value="{{ \App\Models\Organisation\Company::REPORTING_FREQUENCY_WEEKLY }}" @selected($reportingFrequency === \App\Models\Organisation\Company::REPORTING_FREQUENCY_WEEKLY)>Wekelijks</option>
-                        </select>
-                        @error('reporting_frequency')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <x-form-label for="reporting_send_time">Tijdstip</x-form-label>
-                        <input type="time" id="reporting_send_time" name="reporting_send_time" value="{{ $reportingTime }}" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        <p class="mt-1 text-xs text-gray-500">Tijdzone: Nederland (Europe/Amsterdam)</p>
-                        @error('reporting_send_time')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div id="reporting-weekly-day-wrap" class="md:pt-0">
-                        <x-form-label for="reporting_weekly_day">Dag (wekelijks)</x-form-label>
-                        <select id="reporting_weekly_day" name="reporting_weekly_day" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                            <option value="1" @selected($reportingWeeklyDay === 1)>Maandag</option>
-                            <option value="2" @selected($reportingWeeklyDay === 2)>Dinsdag</option>
-                            <option value="3" @selected($reportingWeeklyDay === 3)>Woensdag</option>
-                            <option value="4" @selected($reportingWeeklyDay === 4)>Donderdag</option>
-                            <option value="5" @selected($reportingWeeklyDay === 5)>Vrijdag</option>
-                            <option value="6" @selected($reportingWeeklyDay === 6)>Zaterdag</option>
-                            <option value="7" @selected($reportingWeeklyDay === 7)>Zondag</option>
-                        </select>
-                        @error('reporting_weekly_day')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    </div>
-                </div>
+            <p class="mb-4 text-sm text-gray-500">Maak per ontvanger een eigen dag- of weekrapportage en kies opgemaakte e-mail, PDF of beide.</p>
+            <div id="report-recipient-list" class="space-y-3">
+                @foreach($reportRecipients as $index => $recipient)
+                    @include('admin.settings.partials.report-recipient', ['index' => $index, 'recipient' => $recipient])
+                @endforeach
             </div>
+            <button type="button" id="add-report-recipient" class="mt-3 inline-flex items-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100">+ Ontvanger toevoegen</button>
+            @error('report_recipients')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+            <template id="report-recipient-template">@include('admin.settings.partials.report-recipient', ['index' => '__INDEX__', 'recipient' => ['id' => null, 'email' => '', 'frequency' => 'daily', 'send_time' => '18:00', 'weekly_day' => 1, 'delivery_format' => 'both']])</template>
         </div>
 
         <!-- Opslaan -->
@@ -568,28 +529,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const reportingEnabled = document.getElementById('reporting-enabled');
-    const reportingFields = document.getElementById('reporting-settings-fields');
-    const reportingFrequency = document.getElementById('reporting_frequency');
-    const reportingWeeklyDayWrap = document.getElementById('reporting-weekly-day-wrap');
+    const reportRecipientList = document.getElementById('report-recipient-list');
+    const reportRecipientTemplate = document.getElementById('report-recipient-template');
+    const addReportRecipientButton = document.getElementById('add-report-recipient');
+    let reportRecipientIndex = reportRecipientList?.querySelectorAll('.report-recipient').length ?? 0;
 
-    function syncReportingUi() {
-        const enabled = Boolean(reportingEnabled?.checked);
-        const weekly = reportingFrequency?.value === 'weekly';
-
-        if (reportingFields) {
-            reportingFields.classList.toggle('opacity-50', !enabled);
-            reportingFields.classList.toggle('pointer-events-none', !enabled);
-        }
-
-        if (reportingWeeklyDayWrap) {
-            reportingWeeklyDayWrap.classList.toggle('hidden', !weekly);
-        }
+    function syncReportRecipient(card) {
+        const frequency = card?.querySelector('.report-frequency');
+        const weekday = card?.querySelector('.report-weekday');
+        weekday?.classList.toggle('hidden', frequency?.value !== 'weekly');
     }
 
-    reportingEnabled?.addEventListener('change', syncReportingUi);
-    reportingFrequency?.addEventListener('change', syncReportingUi);
-    syncReportingUi();
+    reportRecipientList?.querySelectorAll('.report-recipient').forEach(syncReportRecipient);
+
+    addReportRecipientButton?.addEventListener('click', function () {
+        const html = reportRecipientTemplate?.innerHTML.replaceAll('__INDEX__', String(reportRecipientIndex++));
+        if (!html || !reportRecipientList) return;
+
+        reportRecipientList.insertAdjacentHTML('beforeend', html);
+        const card = reportRecipientList.lastElementChild;
+        syncReportRecipient(card);
+        card?.querySelector('input[type="email"]')?.focus();
+    });
+
+    reportRecipientList?.addEventListener('change', function (event) {
+        const frequency = event.target.closest('.report-frequency');
+        if (frequency) syncReportRecipient(frequency.closest('.report-recipient'));
+    });
+
+    reportRecipientList?.addEventListener('click', function (event) {
+        const removeButton = event.target.closest('.remove-report-recipient');
+        if (removeButton) removeButton.closest('.report-recipient')?.remove();
+    });
 });
 </script>
 @endsection

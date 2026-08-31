@@ -134,7 +134,10 @@ class WeeklyOverviewService
             ->where('company_id', $companyId)
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
-            ->having('period_submissions_count', '>', 0)
+            ->whereHas('submissions', fn ($query) => $query->whereBetween('created_at', [
+                $start->copy()->startOfDay(),
+                $end->copy()->endOfDay(),
+            ]))
             ->orderByDesc('period_submissions_count')
             ->orderBy('title')
             ->take($limit)

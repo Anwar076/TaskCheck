@@ -30,6 +30,7 @@
     <link rel="apple-touch-icon" href="{{ asset('logos/taskcheck-favicon.png') }}">
 </head>
 <body class="employee-portal font-sans antialiased bg-gray-50 min-h-screen">
+    @include('partials.impersonation-banner')
     <div class="flex flex-col min-h-screen">
         @php
             $unreadNotifications = auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->take(5)->get();

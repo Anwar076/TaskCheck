@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController
 use App\Http\Controllers\Admin\ReportExportController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
+use App\Http\Controllers\SuperAdmin\ImpersonationController;
 use App\Services\Ai\SubmissionReviewService;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\NotificationController as EmployeeNotificationController;
@@ -405,6 +406,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::get('/subscriptions/{plan}', [SuperAdminDashboardController::class, 'showSubscription'])->name('subscriptions.show');
     Route::put('/subscriptions/{plan}', [SuperAdminDashboardController::class, 'updateSubscriptionPlan'])->name('subscriptions.update');
     Route::post('/companies', [SuperAdminDashboardController::class, 'storeCompany'])->name('companies.store');
+    Route::post('/companies/{company}/duplicate', [SuperAdminDashboardController::class, 'duplicateCompany'])->name('companies.duplicate');
     Route::get('/companies/{company}', [SuperAdminDashboardController::class, 'showCompany'])->name('companies.show');
     Route::get('/companies/{company}/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('companies.lists.ai-import');
     Route::post('/companies/{company}/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
@@ -416,6 +418,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::put('/companies/{company}/users/{user}', [SuperAdminDashboardController::class, 'updateCompanyUser'])->name('companies.users.update');
     Route::post('/companies/{company}/users/{user}/password-reset', [SuperAdminDashboardController::class, 'sendCompanyUserPasswordReset'])->name('companies.users.password-reset');
     Route::put('/companies/{company}/users/{user}/toggle', [SuperAdminDashboardController::class, 'toggleCompanyUser'])->name('companies.users.toggle');
+    Route::post('/companies/{company}/users/{user}/login-as', [ImpersonationController::class, 'start'])->name('companies.users.impersonate');
+    Route::put('/companies/{company}/reporting', [SuperAdminDashboardController::class, 'updateCompanyReporting'])->name('companies.reporting.update');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
     Route::get('/errors/feed', [SuperAdminDashboardController::class, 'errorsFeed'])->name('errors.feed');
     Route::post('/incidents', [SuperAdminDashboardController::class, 'createIncidentTicket'])->name('incidents.store');
@@ -428,6 +432,10 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::resource('templates', SuperAdminTemplateController::class)->except(['show']);
     Route::post('/templates/{template}/publish', [SuperAdminTemplateController::class, 'publish'])->name('templates.publish');
 });
+
+Route::post('/impersonation/stop', [ImpersonationController::class, 'stop'])
+    ->middleware('auth')
+    ->name('impersonation.stop');
 
 // Employee Routes
 Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('employee')->name('employee.')->group(function () {

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Mail\CompanyReportMail;
 use App\Models\Organisation\Company;
+use App\Models\Organisation\CompanyReportRecipient;
 use App\Services\Admin\CompanyReportingService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -12,98 +13,43 @@ use Illuminate\Support\Facades\Mail;
 class SendCompanyReportsCommand extends Command
 {
     protected $signature = 'reports:send-company {--force : Testverzending, negeert tijdstip en dubbele-check}';
-
-    protected $description = 'Verstuur dagelijkse of wekelijkse bedrijfsrapportages per e-mail';
+    protected $description = 'Verstuur geplande dagelijkse en wekelijkse bedrijfsrapportages';
 
     public function handle(CompanyReportingService $reportingService): int
     {
         $nowNl = now('Europe/Amsterdam')->seconds(0);
         $force = (bool) $this->option('force');
-
-        $companies = Company::query()
-            ->where('reporting_enabled', true)
-            ->whereNotNull('reporting_frequency')
-            ->whereNotNull('reporting_send_time')
-            ->whereNotNull('email')
-            ->get()
-            ->filter(function (Company $company) use ($nowNl, $force) {
-                if ($force) {
-                    return true;
-                }
-
-                return $this->matchesSendTime($company, $nowNl);
-            })
-            ->values();
-
-        if ($companies->isEmpty()) {
-            $this->info('Geen rapportages op dit tijdstip ('.$nowNl->format('H:i').' NL).');
-
-            return self::SUCCESS;
+        $query = CompanyReportRecipient::query()->with('company')->where('is_enabled', true);
+        if (! $force) {
+            $query->whereTime('send_time', $nowNl->format('H:i:s'));
         }
 
         $sent = 0;
-        /** @var Company $company */
-        foreach ($companies as $company) {
-            if (! $force && ! $this->shouldSendNow($company, $nowNl)) {
-                $this->line(sprintf('Overgeslagen (al verstuurd): %s', $company->name));
-
+        foreach ($query->get() as $schedule) {
+            if (! $schedule->company || (! $force && ! $this->shouldSendNow($schedule, $nowNl))) {
                 continue;
             }
-
-            $frequency = (string) $company->reporting_frequency;
-            $report = $reportingService->buildReport($company, $frequency, $nowNl);
-
-            Mail::to($company->email)->send(new CompanyReportMail($company, $report));
-
-            $company->update([
-                'reporting_last_sent_at' => now(),
-            ]);
-
+            $report = $reportingService->buildReport($schedule->company, $schedule->frequency, $nowNl);
+            Mail::to($schedule->email)->send(new CompanyReportMail($schedule->company, $report, $schedule->delivery_format));
+            $schedule->update(['last_sent_at' => now()]);
             $sent++;
-            $this->info(sprintf('Rapportage verstuurd: %s (%s)', $company->name, $company->email));
+            $this->info("Rapportage verstuurd: {$schedule->company->name} ({$schedule->email})");
         }
 
         $this->info("Totaal verstuurd: {$sent}");
-
         return self::SUCCESS;
     }
 
-    private function matchesSendTime(Company $company, Carbon $nowNl): bool
+    private function shouldSendNow(CompanyReportRecipient $schedule, Carbon $nowNl): bool
     {
-        $configured = $this->configuredSendTime($company);
-
-        return $configured->format('H:i') === $nowNl->format('H:i');
-    }
-
-    private function configuredSendTime(Company $company): Carbon
-    {
-        $time = (string) $company->reporting_send_time;
-
-        return Carbon::createFromFormat('H:i:s', strlen($time) === 5 ? $time.':00' : $time, 'Europe/Amsterdam');
-    }
-
-    private function shouldSendNow(Company $company, Carbon $nowNl): bool
-    {
-        $lastSent = $company->reporting_last_sent_at?->copy()->timezone('Europe/Amsterdam');
-        $frequency = (string) $company->reporting_frequency;
-
-        if ($frequency === Company::REPORTING_FREQUENCY_WEEKLY) {
-            $targetDay = (int) ($company->reporting_weekly_day ?? 1);
-            if ((int) $nowNl->isoWeekday() !== $targetDay) {
+        $lastSent = $schedule->last_sent_at?->copy()->timezone('Europe/Amsterdam');
+        if ($schedule->frequency === Company::REPORTING_FREQUENCY_WEEKLY) {
+            if ((int) $nowNl->isoWeekday() !== (int) ($schedule->weekly_day ?? 1)) {
                 return false;
             }
 
-            if (! $lastSent) {
-                return true;
-            }
-
-            return ! $lastSent->isSameWeek($nowNl);
+            return ! $lastSent || ! $lastSent->isSameWeek($nowNl);
         }
-
-        if (! $lastSent) {
-            return true;
-        }
-
-        return ! $lastSent->isSameDay($nowNl);
+        return ! $lastSent || ! $lastSent->isSameDay($nowNl);
     }
 }

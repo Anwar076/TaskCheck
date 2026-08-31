@@ -9,6 +9,7 @@ use App\Models\Marketing\MarketingLinkCampaign;
 use App\Models\Platform\PlatformAlertLog;
 use App\Models\Platform\PlatformBroadcast;
 use App\Services\Platform\CompanyUsageService;
+use App\Services\Platform\CompanyDuplicationService;
 use App\Services\Platform\PlatformAlertService;
 use App\Services\Platform\PlatformHealthService;
 use App\Models\Platform\IncidentTicket;
@@ -348,6 +349,7 @@ class DashboardController extends Controller
         $companyLists = (clone $lists)->withCount(['tasks', 'submissions'])->latest()->get();
         $companyInvoices = Invoice::query()->where('company_id', $company->id)->latest('paid_at')->get();
         $companyLocations = (clone $locations)->orderBy('name')->get();
+        $company->load(['reportRecipients' => fn ($query) => $query->orderBy('id')]);
         $aiUsageByFeature = Schema::hasTable('ai_usage_logs')
             ? AiUsageLog::query()
                 ->where('company_id', $company->id)
@@ -440,6 +442,38 @@ class DashboardController extends Controller
 
         return redirect()->route('super-admin.companies.show', $company)
             ->with('success', 'Bedrijf en admin account zijn aangemaakt.');
+    }
+
+    public function duplicateCompany(Request $request, Company $company, CompanyDuplicationService $duplicator): RedirectResponse
+    {
+        $validated = $request->validate([
+            'company_name' => ['required', 'string', 'max:255'],
+            'admin_name' => ['required', 'string', 'max:255'],
+            'admin_email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'subscription_plan' => ['required', Rule::in(array_keys(Company::plans()))],
+            'copy_lists' => ['nullable', 'boolean'],
+            'copy_locations' => ['nullable', 'boolean'],
+            'copy_settings' => ['nullable', 'boolean'],
+            'copy_reporting' => ['nullable', 'boolean'],
+        ]);
+
+        foreach (['copy_lists', 'copy_locations', 'copy_settings', 'copy_reporting'] as $option) {
+            $validated[$option] = $request->boolean($option);
+        }
+
+        $locationLimit = (int) (Company::plan($validated['subscription_plan'])['max_locations'] ?? 1);
+        $sourceLocationCount = $company->locations()->count();
+        if ($validated['copy_locations'] && $locationLimit !== -1 && $sourceLocationCount > $locationLimit) {
+            return back()->withErrors([
+                'subscription_plan' => "Dit abonnement ondersteunt {$locationLimit} locatie(s), terwijl de bron {$sourceLocationCount} locaties heeft.",
+            ])->withInput();
+        }
+
+        $result = $duplicator->duplicate($company, $validated);
+        $result['admin']->sendInvitationNotification($request->user());
+
+        return redirect()->route('super-admin.companies.show', $result['company'])
+            ->with('success', "Bedrijf gedupliceerd met {$result['lists']} lijsten, {$result['tasks']} taken en {$result['locations']} locaties. De nieuwe beheerder heeft een uitnodiging ontvangen.");
     }
 
     public function updateCompanySubscription(Request $request, Company $company): RedirectResponse
@@ -632,6 +666,43 @@ class DashboardController extends Controller
 
         return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
             ->with('success', "Account van {$user->name} is ".($user->is_active ? 'geactiveerd.' : 'geblokkeerd.'));
+    }
+
+    public function updateCompanyReporting(Request $request, Company $company): RedirectResponse
+    {
+        $validated = $request->validate([
+            'report_recipients' => ['nullable', 'array', 'max:20'],
+            'report_recipients.*.id' => ['nullable', 'integer'],
+            'report_recipients.*.email' => ['required', 'email', 'max:255'],
+            'report_recipients.*.frequency' => ['required', Rule::in(['daily', 'weekly'])],
+            'report_recipients.*.send_time' => ['required', 'date_format:H:i'],
+            'report_recipients.*.weekly_day' => ['nullable', 'integer', 'between:1,7'],
+            'report_recipients.*.delivery_format' => ['required', Rule::in(['email', 'pdf', 'both'])],
+        ]);
+
+        DB::transaction(function () use ($company, $validated) {
+            $keptIds = [];
+            foreach ($validated['report_recipients'] ?? [] as $row) {
+                $recipient = !empty($row['id']) ? $company->reportRecipients()->find($row['id']) : null;
+                $recipient ??= $company->reportRecipients()->make();
+                $recipient->fill([
+                    'email' => $row['email'],
+                    'frequency' => $row['frequency'],
+                    'send_time' => $row['send_time'],
+                    'weekly_day' => $row['frequency'] === 'weekly' ? ($row['weekly_day'] ?? 1) : null,
+                    'delivery_format' => $row['delivery_format'],
+                    'is_enabled' => true,
+                ])->save();
+                $keptIds[] = $recipient->id;
+            }
+
+            $company->reportRecipients()
+                ->when($keptIds !== [], fn ($query) => $query->whereNotIn('id', $keptIds))
+                ->delete();
+        });
+
+        return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'reporting'])
+            ->with('success', 'Rapportageplanning opgeslagen.');
     }
 
     public function sendBroadcastMail(Request $request): RedirectResponse
