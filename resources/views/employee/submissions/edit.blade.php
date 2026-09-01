@@ -1387,7 +1387,9 @@ function syncFinalSubmissionForm(showCelebration = false) {
     try {
         const completedRequiredTasks = countCompletedRequiredTasks();
         const totalRequiredTasks = countTotalRequiredTasks();
-        const ready = completedRequiredTasks >= totalRequiredTasks && totalRequiredTasks > 0;
+        // Model B: alleen verplichte taken blokkeren indiening. Zonder verplichte
+        // taken is de checklist dus direct indienbaar; optionele taken mogen openblijven.
+        const ready = totalRequiredTasks === 0 || completedRequiredTasks >= totalRequiredTasks;
 
         setFinalSubmissionReady(ready);
 

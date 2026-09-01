@@ -58,7 +58,10 @@
 
                     <label class="flex items-center gap-3 cursor-pointer min-h-[44px]">
                         <input type="checkbox" id="task-create-required" checked class="h-5 w-5 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                        <span class="text-sm text-slate-700">Verplichte taak</span>
+                        <span>
+                            <span class="block text-sm text-slate-700">Verplichte taak</span>
+                            <span class="block text-xs text-slate-500">Alleen verplichte taken blokkeren het indienen van de checklist.</span>
+                        </span>
                     </label>
 
                     <button type="button" id="task-create-expand-toggle"

@@ -178,6 +178,79 @@ class TaskListTest extends TestCase
         ]);
     }
 
+    public function test_checklist_without_required_tasks_is_ready_to_submit(): void
+    {
+        $employee = User::where('role', 'employee')->firstOrFail();
+        $list = TaskList::where('company_id', $employee->company_id)->firstOrFail();
+        $list->update(['requires_signature' => false]);
+        $list->tasks()->update(['is_required' => false]);
+
+        $submission = Submission::create([
+            'company_id' => $employee->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => now(),
+            'status' => 'in_progress',
+        ]);
+
+        foreach ($list->tasks as $task) {
+            $submission->submissionTasks()->create(['task_id' => $task->id, 'status' => 'pending']);
+        }
+
+        $this->actingAs($employee)
+            ->get(route('employee.submissions.edit', $submission))
+            ->assertOk()
+            ->assertSee('data-ready="1"', false)
+            ->assertSee('const ready = totalRequiredTasks === 0', false);
+
+        $this->actingAs($employee)
+            ->post(route('employee.submissions.complete', $submission))
+            ->assertRedirect();
+
+        $this->assertSame('completed', $submission->fresh()->status);
+    }
+
+    public function test_only_incomplete_required_tasks_block_submission(): void
+    {
+        $employee = User::where('role', 'employee')->firstOrFail();
+        $list = TaskList::where('company_id', $employee->company_id)->firstOrFail();
+        $list->update(['requires_signature' => false]);
+        $tasks = $list->tasks()->take(2)->get();
+
+        if ($tasks->count() < 2) {
+            $tasks->push($list->tasks()->create([
+                'title' => 'Optionele controletaak',
+                'is_required' => false,
+                'created_by' => $employee->id,
+            ]));
+        }
+
+        $tasks[0]->update(['is_required' => true]);
+        $tasks[1]->update(['is_required' => false]);
+
+        $submission = Submission::create([
+            'company_id' => $employee->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => now(),
+            'status' => 'in_progress',
+        ]);
+        $required = $submission->submissionTasks()->create(['task_id' => $tasks[0]->id, 'status' => 'pending']);
+        $submission->submissionTasks()->create(['task_id' => $tasks[1]->id, 'status' => 'pending']);
+
+        $this->actingAs($employee)
+            ->post(route('employee.submissions.complete', $submission))
+            ->assertSessionHas('error');
+        $this->assertSame('in_progress', $submission->fresh()->status);
+
+        $required->update(['status' => 'completed', 'completed_at' => now()]);
+
+        $this->actingAs($employee)
+            ->post(route('employee.submissions.complete', $submission))
+            ->assertRedirect();
+        $this->assertSame('completed', $submission->fresh()->status);
+    }
+
     public function test_employee_can_complete_task(): void
     {
         $employee = User::where('role', 'employee')->first();
