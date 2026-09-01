@@ -41,7 +41,7 @@ class SendCompanyReportsCommandTest extends TestCase
             'frequency' => Company::REPORTING_FREQUENCY_DAILY,
             'send_time' => '18:00',
             'delivery_format' => 'pdf',
-            'sections' => ['summary' => true, 'top_lists' => false, 'employee_performance' => false, 'attention_points' => false],
+            'sections' => ['summary' => true, 'top_lists' => false, 'employee_performance' => false, 'attention_points' => false, 'task_overview' => false],
             'is_enabled' => true,
         ]);
         $weekly = $company->reportRecipients()->create([
@@ -58,7 +58,7 @@ class SendCompanyReportsCommandTest extends TestCase
         Mail::assertSent(CompanyReportMail::class, 2);
         Mail::assertSent(CompanyReportMail::class, fn (CompanyReportMail $mail) => $mail->hasTo('dag@example.test')
             && $mail->report['frequency'] === Company::REPORTING_FREQUENCY_DAILY
-            && $mail->report['sections'] === ['summary' => true, 'top_lists' => false, 'employee_performance' => false, 'attention_points' => false]
+            && $mail->report['sections'] === ['summary' => true, 'top_lists' => false, 'employee_performance' => false, 'attention_points' => false, 'task_overview' => false]
             && $mail->deliveryFormat === 'pdf'
         );
         Mail::assertSent(CompanyReportMail::class, fn (CompanyReportMail $mail) => $mail->hasTo('week@example.test')
@@ -116,7 +116,7 @@ class SendCompanyReportsCommandTest extends TestCase
             'summary' => ['total_lists' => 2],
             'employee_overview' => [['name' => 'Gedeeld account', 'total_submissions' => 2, 'completion_rate' => 100]],
             'top_lists' => [['title' => 'Openingslijst', 'submissions_count' => 2]],
-            'sections' => ['summary' => true, 'top_lists' => true, 'employee_performance' => false, 'attention_points' => false],
+            'sections' => ['summary' => true, 'top_lists' => true, 'employee_performance' => false, 'attention_points' => false, 'task_overview' => false],
             'overview_url' => 'https://example.test/reports',
         ];
 
@@ -153,6 +153,7 @@ class SendCompanyReportsCommandTest extends TestCase
             'title' => 'Koelkast meten',
             'validation_rules' => ['metric' => 'temperature', 'unit' => '°C', 'max' => 7, 'comparison' => 'lte'],
         ]);
+        $openTask = Task::query()->create(['list_id' => $list->id, 'title' => 'Vloer dweilen']);
         $submission = Submission::query()->create([
             'company_id' => $company->id,
             'user_id' => $employee->id,
@@ -173,6 +174,7 @@ class SendCompanyReportsCommandTest extends TestCase
             'status' => 'completed',
             'proof_text' => '9 °C',
         ]);
+        SubmissionTask::query()->create(['submission_id' => $submission->id, 'task_id' => $openTask->id, 'status' => 'pending']);
 
         $result = app(WeeklyOverviewService::class)->buildAttentionPoints(
             $company->id,
@@ -186,5 +188,20 @@ class SendCompanyReportsCommandTest extends TestCase
         $this->assertSame(['Frituurvet was op'], $result[0]['items'][0]['messages']);
         $this->assertStringContainsString('Afwijkende meting: 9 °C', $result[0]['items'][1]['messages'][0]);
         $this->assertNotContains('Werkbank reinigen', array_column($result[0]['items'], 'task_title'));
+
+        $overview = app(WeeklyOverviewService::class)->buildTaskOverview(
+            $company->id,
+            now()->subDay(),
+            now()->addDay(),
+        );
+
+        $this->assertSame(
+            ['Werkbank reinigen', 'Frituurvet bijvullen', 'Koelkast meten', 'Vloer dweilen'],
+            array_column($overview[0]['tasks'], 'title'),
+        );
+        $this->assertSame(
+            ['Afgerond', 'Afgerond', 'Afgerond', 'Niet afgerond'],
+            array_column($overview[0]['tasks'], 'status_label'),
+        );
     }
 }

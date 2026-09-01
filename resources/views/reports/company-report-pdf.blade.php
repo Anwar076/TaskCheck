@@ -23,4 +23,13 @@
 <p class="muted">Geen opmerkingen of afwijkingen in deze periode.</p>
 @endforelse
 @endif
+@if($sections['task_overview'])
+<h2>Individuele taken</h2>
+@forelse($report['task_overview'] ?? [] as $list)
+<h3 style="margin-bottom:3px">{{ $list['list_title'] }}@if(!empty($list['employee_name'])) <span class="muted">· {{ $list['employee_name'] }}</span>@endif</h3>
+<table class="data"><thead><tr><th>Taak</th><th class="right">Status</th></tr></thead><tbody>@forelse($list['tasks'] as $task)<tr><td>{{ $task['title'] }}</td><td class="right">{{ $task['status_label'] }}</td></tr>@empty<tr><td colspan="2">Geen taken gevonden.</td></tr>@endforelse</tbody></table>
+@empty
+<p class="muted">Geen taken in deze periode.</p>
+@endforelse
+@endif
 <p class="muted" style="margin-top:24px">Gegenereerd door TaskCheck op {{ $report['generated_at']->format('d-m-Y H:i') }}</p></body></html>

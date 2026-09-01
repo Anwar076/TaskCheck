@@ -13,12 +13,13 @@
     <fieldset class="mt-4 border-t border-slate-100 pt-4">
         <legend class="text-xs font-semibold text-slate-700">Onderdelen in deze rapportage</legend>
         <p class="mt-1 text-xs text-slate-500">Vink alleen aan wat voor deze ontvanger relevant is.</p>
-        <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             @foreach([
                 'summary' => ['Samenvatting', 'Totalen, status en voltooiingspercentage'],
                 'top_lists' => ['Meest gebruikte lijsten', 'Lijsten met de meeste inzendingen'],
                 'employee_performance' => ['Prestaties medewerkers', 'Resultaten uitgesplitst per account'],
                 'attention_points' => ['Opmerkingen & afwijkingen', 'Alleen punten die aandacht nodig hebben'],
+                'task_overview' => ['Individuele taken', 'Alle taken met hun afgeronde of open status'],
             ] as $sectionKey => [$sectionLabel, $sectionDescription])
                 <label class="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 hover:bg-slate-50">
                     <input type="hidden" name="report_recipients[{{ $index }}][sections][{{ $sectionKey }}]" value="0">

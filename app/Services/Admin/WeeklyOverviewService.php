@@ -226,6 +226,48 @@ class WeeklyOverviewService
             ->all();
     }
 
+    /** @return array<int, array<string, mixed>> */
+    public function buildTaskOverview(int $companyId, Carbon $start, Carbon $end, ?int $locationId = null): array
+    {
+        return Submission::query()
+            ->where('company_id', $companyId)
+            ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->when($locationId, fn ($query) => $query->whereHas(
+                'taskList',
+                fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId)
+            ))
+            ->with([
+                'taskList:id,title',
+                'user:id,name',
+                'submissionTasks' => fn ($query) => $query->with('task:id,title,order_index')->orderBy('id'),
+            ])
+            ->oldest('created_at')
+            ->get()
+            ->map(fn (Submission $submission) => [
+                'list_title' => $submission->taskList?->title ?? 'Onbekende lijst',
+                'employee_name' => $submission->user?->name,
+                'submitted_at' => $submission->created_at,
+                'tasks' => $submission->submissionTasks->map(fn (SubmissionTask $task) => [
+                    'title' => $task->task?->title ?? 'Onbekend punt',
+                    'status' => $task->status,
+                    'status_label' => $this->taskStatusLabel($task),
+                    'is_finished' => in_array($task->status, ['completed', 'approved'], true),
+                ])->values()->all(),
+            ])
+            ->all();
+    }
+
+    private function taskStatusLabel(SubmissionTask $task): string
+    {
+        return match ($task->status) {
+            'completed' => 'Afgerond',
+            'approved' => 'Goedgekeurd',
+            'rejected' => 'Afgekeurd',
+            'redo_requested' => 'Opnieuw uitvoeren',
+            default => 'Niet afgerond',
+        };
+    }
+
     private function metricDeviationLabel(?array $rules, ?string $proofText): string
     {
         $value = trim((string) $proofText);

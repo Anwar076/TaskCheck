@@ -14,11 +14,14 @@ class CompanyReportRecipient extends Model
 
     public const SECTION_ATTENTION_POINTS = 'attention_points';
 
+    public const SECTION_TASK_OVERVIEW = 'task_overview';
+
     public const DEFAULT_SECTIONS = [
         self::SECTION_SUMMARY => true,
         self::SECTION_TOP_LISTS => true,
         self::SECTION_EMPLOYEE_PERFORMANCE => true,
         self::SECTION_ATTENTION_POINTS => true,
+        self::SECTION_TASK_OVERVIEW => true,
     ];
 
     protected $fillable = ['email', 'frequency', 'send_time', 'weekly_day', 'delivery_format', 'sections', 'is_enabled', 'last_sent_at'];

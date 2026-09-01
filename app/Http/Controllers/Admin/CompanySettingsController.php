@@ -93,6 +93,7 @@ class CompanySettingsController extends Controller
             'report_recipients.*.sections.top_lists' => ['nullable', 'boolean'],
             'report_recipients.*.sections.employee_performance' => ['nullable', 'boolean'],
             'report_recipients.*.sections.attention_points' => ['nullable', 'boolean'],
+            'report_recipients.*.sections.task_overview' => ['nullable', 'boolean'],
             'logo' => [
                 'nullable',
                 'image',
