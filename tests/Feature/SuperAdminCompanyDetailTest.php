@@ -598,7 +598,7 @@ class SuperAdminCompanyDetailTest extends TestCase
 
         $this->actingAs($admin)->put(route('super-admin.companies.reporting.update', $company), [
             'report_recipients' => [
-                ['email' => 'dag@example.test', 'frequency' => 'daily', 'send_time' => '18:00', 'delivery_format' => 'pdf', 'sections' => ['summary' => 1, 'top_lists' => 1, 'employee_performance' => 0]],
+                ['email' => 'dag@example.test', 'frequency' => 'daily', 'send_time' => '18:00', 'delivery_format' => 'pdf', 'sections' => ['summary' => 1, 'top_lists' => 1, 'employee_performance' => 0, 'attention_points' => 1]],
                 ['email' => 'week@example.test', 'frequency' => 'weekly', 'weekly_day' => 1, 'send_time' => '20:00', 'delivery_format' => 'both'],
             ],
         ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'reporting']));
@@ -606,7 +606,7 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->assertDatabaseHas('company_report_recipients', ['company_id' => $company->id, 'email' => 'dag@example.test', 'frequency' => 'daily', 'delivery_format' => 'pdf']);
         $this->assertDatabaseHas('company_report_recipients', ['company_id' => $company->id, 'email' => 'week@example.test', 'frequency' => 'weekly', 'weekly_day' => 1, 'delivery_format' => 'both']);
         $this->assertSame(
-            ['summary' => true, 'top_lists' => true, 'employee_performance' => false],
+            ['summary' => true, 'top_lists' => true, 'employee_performance' => false, 'attention_points' => true],
             $company->reportRecipients()->where('email', 'dag@example.test')->firstOrFail()->sections
         );
 

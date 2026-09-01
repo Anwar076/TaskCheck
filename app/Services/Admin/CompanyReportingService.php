@@ -59,6 +59,7 @@ class CompanyReportingService
         $summary = $this->weeklyOverviewService->buildSummary($companyId, $periodStart, $periodEnd);
         $employeeOverview = $this->weeklyOverviewService->buildEmployeeOverview($companyId, $periodStart, $periodEnd);
         $topLists = $this->weeklyOverviewService->buildTopLists($companyId, $periodStart, $periodEnd, null, 10);
+        $attentionPoints = $this->weeklyOverviewService->buildAttentionPoints($companyId, $periodStart, $periodEnd);
 
         $totalEmployees = User::query()
             ->where('company_id', $companyId)
@@ -103,6 +104,7 @@ class CompanyReportingService
                 $employeeOverview
             ),
             'top_lists' => $topLists,
+            'attention_points' => $attentionPoints,
             'overview_url' => route('admin.weekly-overview', [
                 'start_date' => $periodStart->toDateString(),
                 'end_date' => $periodEnd->toDateString(),

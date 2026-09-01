@@ -2,9 +2,11 @@
 
 namespace App\Services\Admin;
 
+use App\Helpers\MetricValidationHelper;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -148,6 +150,96 @@ class WeeklyOverviewService
                 'priority' => $list->priority,
             ])
             ->all();
+    }
+
+    /**
+     * Only tasks that need attention: comments, review issues or measurements outside their norm.
+     * Normal completed tasks are deliberately excluded.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function buildAttentionPoints(int $companyId, Carbon $start, Carbon $end, ?int $locationId = null): array
+    {
+        $tasks = SubmissionTask::query()
+            ->whereHas('submission', function ($query) use ($companyId, $start, $end, $locationId) {
+                $query->where('company_id', $companyId)
+                    ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                    ->when($locationId, fn ($submissionQuery) => $submissionQuery->whereHas(
+                        'taskList',
+                        fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId)
+                    ));
+            })
+            ->with(['task:id,list_id,title,validation_rules', 'submission:id,list_id,user_id,created_at', 'submission.taskList:id,title', 'submission.user:id,name'])
+            ->orderBy('submission_id')
+            ->orderBy('id')
+            ->get()
+            ->map(function (SubmissionTask $submissionTask) {
+                $messages = collect([
+                    $submissionTask->employee_comment,
+                    $submissionTask->manager_comment,
+                    $submissionTask->rejection_reason,
+                    $submissionTask->redo_reason,
+                    $submissionTask->corrective_action,
+                    $submissionTask->verification_note,
+                ])->filter(fn ($message) => filled($message))->map(fn ($message) => trim((string) $message))->unique()->values();
+
+                $rules = $submissionTask->task?->validation_rules;
+                if (MetricValidationHelper::isDeviation($rules, $submissionTask->proof_text)) {
+                    $messages->prepend($this->metricDeviationLabel($rules, $submissionTask->proof_text));
+                }
+
+                if ($messages->isEmpty() && in_array($submissionTask->status, ['rejected', 'redo_requested'], true)) {
+                    $messages->push($submissionTask->status === 'rejected' ? 'Afgekeurd' : 'Opnieuw uitvoeren');
+                }
+
+                if ($messages->isEmpty()) {
+                    return null;
+                }
+
+                return [
+                    'submission_id' => (int) $submissionTask->submission_id,
+                    'list_title' => $submissionTask->submission?->taskList?->title ?? 'Onbekende lijst',
+                    'employee_name' => $submissionTask->submission?->user?->name,
+                    'submitted_at' => $submissionTask->submission?->created_at,
+                    'task_title' => $submissionTask->task?->title ?? 'Onbekend punt',
+                    'messages' => $messages->all(),
+                ];
+            })
+            ->filter();
+
+        return $tasks
+            ->groupBy('submission_id')
+            ->map(function (Collection $items) {
+                $first = $items->first();
+
+                return [
+                    'list_title' => $first['list_title'],
+                    'employee_name' => $first['employee_name'],
+                    'submitted_at' => $first['submitted_at'],
+                    'items' => $items->map(fn (array $item) => [
+                        'task_title' => $item['task_title'],
+                        'messages' => $item['messages'],
+                    ])->values()->all(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function metricDeviationLabel(?array $rules, ?string $proofText): string
+    {
+        $value = trim((string) $proofText);
+        $unit = trim((string) ($rules['unit'] ?? ''));
+        $bounds = [];
+
+        if (isset($rules['min']) && is_numeric($rules['min'])) {
+            $bounds[] = 'min. '.$rules['min'].$unit;
+        }
+        if (isset($rules['max']) && is_numeric($rules['max'])) {
+            $bounds[] = 'max. '.$rules['max'].$unit;
+        }
+
+        return 'Afwijkende meting: '.$value.($bounds ? ' (norm '.implode(', ', $bounds).')' : '');
     }
 
     /**

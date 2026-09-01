@@ -14,4 +14,13 @@
 @if($sections['top_lists'])
 <h2>Meest gebruikte lijsten</h2><table class="data"><thead><tr><th>Lijst</th><th class="right">Inzendingen</th></tr></thead><tbody>@forelse($report['top_lists'] ?? [] as $item)<tr><td>{{ $item['title'] }}</td><td class="right">{{ $item['submissions_count'] }}</td></tr>@empty<tr><td colspan="2">Geen gegevens in deze periode.</td></tr>@endforelse</tbody></table>
 @endif
+@if($sections['attention_points'])
+<h2>Opmerkingen &amp; afwijkingen</h2>
+@forelse($report['attention_points'] ?? [] as $list)
+<h3 style="margin-bottom:3px">{{ $list['list_title'] }}@if(!empty($list['employee_name'])) <span class="muted">· {{ $list['employee_name'] }}</span>@endif</h3>
+<table class="data"><thead><tr><th>Punt</th><th>Opmerking / afwijking</th></tr></thead><tbody>@foreach($list['items'] as $item)<tr><td>{{ $item['task_title'] }}</td><td>{{ implode(' · ', $item['messages']) }}</td></tr>@endforeach</tbody></table>
+@empty
+<p class="muted">Geen opmerkingen of afwijkingen in deze periode.</p>
+@endforelse
+@endif
 <p class="muted" style="margin-top:24px">Gegenereerd door TaskCheck op {{ $report['generated_at']->format('d-m-Y H:i') }}</p></body></html>

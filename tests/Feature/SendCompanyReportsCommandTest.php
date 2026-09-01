@@ -3,7 +3,13 @@
 namespace Tests\Feature;
 
 use App\Mail\CompanyReportMail;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
 use App\Models\Organisation\Company;
+use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
+use App\Services\Admin\WeeklyOverviewService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -35,7 +41,7 @@ class SendCompanyReportsCommandTest extends TestCase
             'frequency' => Company::REPORTING_FREQUENCY_DAILY,
             'send_time' => '18:00',
             'delivery_format' => 'pdf',
-            'sections' => ['summary' => true, 'top_lists' => false, 'employee_performance' => false],
+            'sections' => ['summary' => true, 'top_lists' => false, 'employee_performance' => false, 'attention_points' => false],
             'is_enabled' => true,
         ]);
         $weekly = $company->reportRecipients()->create([
@@ -52,7 +58,7 @@ class SendCompanyReportsCommandTest extends TestCase
         Mail::assertSent(CompanyReportMail::class, 2);
         Mail::assertSent(CompanyReportMail::class, fn (CompanyReportMail $mail) => $mail->hasTo('dag@example.test')
             && $mail->report['frequency'] === Company::REPORTING_FREQUENCY_DAILY
-            && $mail->report['sections'] === ['summary' => true, 'top_lists' => false, 'employee_performance' => false]
+            && $mail->report['sections'] === ['summary' => true, 'top_lists' => false, 'employee_performance' => false, 'attention_points' => false]
             && $mail->deliveryFormat === 'pdf'
         );
         Mail::assertSent(CompanyReportMail::class, fn (CompanyReportMail $mail) => $mail->hasTo('week@example.test')
@@ -110,7 +116,7 @@ class SendCompanyReportsCommandTest extends TestCase
             'summary' => ['total_lists' => 2],
             'employee_overview' => [['name' => 'Gedeeld account', 'total_submissions' => 2, 'completion_rate' => 100]],
             'top_lists' => [['title' => 'Openingslijst', 'submissions_count' => 2]],
-            'sections' => ['summary' => true, 'top_lists' => true, 'employee_performance' => false],
+            'sections' => ['summary' => true, 'top_lists' => true, 'employee_performance' => false, 'attention_points' => false],
             'overview_url' => 'https://example.test/reports',
         ];
 
@@ -121,5 +127,64 @@ class SendCompanyReportsCommandTest extends TestCase
         $this->assertStringContainsString('Meest gebruikte lijsten', $pdf);
         $this->assertStringNotContainsString('Prestaties medewerkers', $email);
         $this->assertStringNotContainsString('Prestaties medewerkers', $pdf);
+    }
+
+    public function test_attention_points_only_include_comments_and_deviations(): void
+    {
+        $company = Company::query()->create([
+            'name' => 'Testbedrijf',
+            'email' => 'bedrijf@example.test',
+            'is_active' => true,
+        ]);
+        $employee = User::factory()->create([
+            'company_id' => $company->id,
+            'role' => 'employee',
+            'is_active' => true,
+        ]);
+        $list = TaskList::query()->create([
+            'title' => 'Keuken openen',
+            'company_id' => $company->id,
+            'created_by' => $employee->id,
+        ]);
+        $normalTask = Task::query()->create(['list_id' => $list->id, 'title' => 'Werkbank reinigen']);
+        $commentTask = Task::query()->create(['list_id' => $list->id, 'title' => 'Frituurvet bijvullen']);
+        $metricTask = Task::query()->create([
+            'list_id' => $list->id,
+            'title' => 'Koelkast meten',
+            'validation_rules' => ['metric' => 'temperature', 'unit' => '°C', 'max' => 7, 'comparison' => 'lte'],
+        ]);
+        $submission = Submission::query()->create([
+            'company_id' => $company->id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'status' => 'completed',
+        ]);
+
+        SubmissionTask::query()->create(['submission_id' => $submission->id, 'task_id' => $normalTask->id, 'status' => 'completed']);
+        SubmissionTask::query()->create([
+            'submission_id' => $submission->id,
+            'task_id' => $commentTask->id,
+            'status' => 'completed',
+            'employee_comment' => 'Frituurvet was op',
+        ]);
+        SubmissionTask::query()->create([
+            'submission_id' => $submission->id,
+            'task_id' => $metricTask->id,
+            'status' => 'completed',
+            'proof_text' => '9 °C',
+        ]);
+
+        $result = app(WeeklyOverviewService::class)->buildAttentionPoints(
+            $company->id,
+            now()->subDay(),
+            now()->addDay(),
+        );
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Keuken openen', $result[0]['list_title']);
+        $this->assertSame(['Frituurvet bijvullen', 'Koelkast meten'], array_column($result[0]['items'], 'task_title'));
+        $this->assertSame(['Frituurvet was op'], $result[0]['items'][0]['messages']);
+        $this->assertStringContainsString('Afwijkende meting: 9 °C', $result[0]['items'][1]['messages'][0]);
+        $this->assertNotContains('Werkbank reinigen', array_column($result[0]['items'], 'task_title'));
     }
 }
