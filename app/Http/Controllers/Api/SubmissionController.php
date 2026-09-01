@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Helpers\MetricValidationHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Submissions\Submission;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class SubmissionController extends Controller
@@ -31,15 +31,15 @@ class SubmissionController extends Controller
                 $query->where(function ($q) use ($searchTerm) {
                     $q->whereHas('user', function ($userQ) use ($searchTerm) {
                         $userQ->where('name', 'like', "%{$searchTerm}%")
-                              ->orWhere('email', 'like', "%{$searchTerm}%");
-                    })
-                    ->orWhereHas('taskList', function ($listQ) use ($searchTerm) {
-                        $listQ->where('title', 'like', "%{$searchTerm}%");
-                    })
-                    ->orWhereHas('submissionTasks.completedBy', function ($contributorQ) use ($searchTerm) {
-                        $contributorQ->where('name', 'like', "%{$searchTerm}%")
                             ->orWhere('email', 'like', "%{$searchTerm}%");
-                    });
+                    })
+                        ->orWhereHas('taskList', function ($listQ) use ($searchTerm) {
+                            $listQ->where('title', 'like', "%{$searchTerm}%");
+                        })
+                        ->orWhereHas('submissionTasks.completedBy', function ($contributorQ) use ($searchTerm) {
+                            $contributorQ->where('name', 'like', "%{$searchTerm}%")
+                                ->orWhere('email', 'like', "%{$searchTerm}%");
+                        });
                 });
             }
 
@@ -59,7 +59,7 @@ class SubmissionController extends Controller
             if ($request->filled('date_from')) {
                 $query->whereDate('created_at', '>=', $request->get('date_from'));
             }
-            
+
             if ($request->filled('date_to')) {
                 $query->whereDate('created_at', '<=', $request->get('date_to'));
             }
@@ -94,11 +94,11 @@ class SubmissionController extends Controller
 
                     return MetricValidationHelper::isDeviation($rules, $submissionTask->proof_text);
                 });
-                
+
                 $submission->progress_percentage = $submission->status === 'reviewed'
                     ? 100
                     : ($totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0);
-                    
+
                 $submission->total_tasks = $totalTasks;
                 $submission->completed_tasks = $completedTasks;
                 $submission->has_metric_deviation = $hasMetricDeviation;
@@ -106,7 +106,7 @@ class SubmissionController extends Controller
                 $submission->contributors = $submission->contributorTaskSummary();
                 $submission->contributor_count = count($submission->contributors);
                 $submission->list_departments = $submission->taskList?->assignedDepartmentLabels() ?? [];
-                
+
                 return $submission;
             });
 
@@ -121,20 +121,21 @@ class SubmissionController extends Controller
                 'to' => $submissions->lastItem(),
                 'prev_page_url' => $submissions->previousPageUrl(),
                 'next_page_url' => $submissions->nextPageUrl(),
-                'message' => 'Submissions retrieved successfully'
+                'message' => 'Submissions retrieved successfully',
             ];
             $response['meta'] = $meta;
+
             return response()->json($response);
-            
+
         } catch (\Exception $e) {
             \Log::error('Failed to retrieve submissions', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve submissions: ' . $e->getMessage()
+                'message' => 'Failed to retrieve submissions: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -159,7 +160,7 @@ class SubmissionController extends Controller
                     ),
                 ],
                 'status' => 'sometimes|in:in_progress,completed,reviewed,rejected',
-                'notes' => 'nullable|string'
+                'notes' => 'nullable|string',
             ]);
 
             $validated['status'] = $validated['status'] ?? 'in_progress';
@@ -172,19 +173,19 @@ class SubmissionController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $submission,
-                'message' => 'Submission created successfully'
+                'message' => 'Submission created successfully',
             ], 201);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create submission: ' . $e->getMessage()
+                'message' => 'Failed to create submission: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -202,20 +203,20 @@ class SubmissionController extends Controller
             if ($submission->company_id !== auth()->user()->company_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized access to submission.'
+                    'message' => 'Unauthorized access to submission.',
                 ], 403);
             }
 
             return response()->json([
                 'success' => true,
                 'data' => $submission,
-                'message' => 'Submission retrieved successfully'
+                'message' => 'Submission retrieved successfully',
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Submission not found'
+                'message' => 'Submission not found',
             ], 404);
         }
     }
@@ -227,20 +228,20 @@ class SubmissionController extends Controller
     {
         try {
             $submission = Submission::findOrFail($id);
-            
+
             // Ensure submission belongs to same company
             if ($submission->company_id !== auth()->user()->company_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized access to submission.'
+                    'message' => 'Unauthorized access to submission.',
                 ], 403);
             }
-            
+
             $validated = $request->validate([
                 'status' => 'sometimes|in:in_progress,completed,reviewed,rejected',
                 'notes' => 'nullable|string',
                 'admin_notes' => 'nullable|string',
-                'reviewed_by' => 'nullable|exists:users,id'
+                'reviewed_by' => 'nullable|exists:users,id',
             ]);
 
             if (isset($validated['status']) && $validated['status'] === 'reviewed') {
@@ -254,19 +255,19 @@ class SubmissionController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $submission,
-                'message' => 'Submission updated successfully'
+                'message' => 'Submission updated successfully',
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update submission: ' . $e->getMessage()
+                'message' => 'Failed to update submission: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -282,13 +283,13 @@ class SubmissionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Submission deleted successfully'
+                'message' => 'Submission deleted successfully',
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete submission: ' . $e->getMessage()
+                'message' => 'Failed to delete submission: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -299,9 +300,10 @@ class SubmissionController extends Controller
     public function complete(Request $request, Submission $submission): JsonResponse
     {
         try {
+            $submission->loadMissing('taskList');
             // Check if all required tasks are completed
             $pendingRequiredTasks = $submission->submissionTasks()
-                ->where('status', '!=', 'completed')
+                ->whereNotIn('status', ['completed', 'approved'])
                 ->whereHas('task', function ($query) {
                     $query->where('is_required', true);
                 })
@@ -311,20 +313,20 @@ class SubmissionController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Cannot complete submission. There are still required tasks pending.',
-                    'pending_required_tasks' => $pendingRequiredTasks
+                    'pending_required_tasks' => $pendingRequiredTasks,
                 ], 400);
             }
 
             $validated = $request->validate([
                 'employee_signature' => 'nullable|string',
-                'notes' => 'nullable|string'
+                'notes' => 'nullable|string',
             ]);
 
             $submission->update([
-                'status' => 'completed',
+                'status' => $submission->completedStatus(),
                 'completed_at' => now(),
                 'employee_signature' => $validated['employee_signature'] ?? null,
-                'notes' => $validated['notes'] ?? null
+                'notes' => $validated['notes'] ?? null,
             ]);
 
             $submission->load(['user', 'taskList', 'submissionTasks.task']);
@@ -332,19 +334,19 @@ class SubmissionController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $submission,
-                'message' => 'Submission completed successfully'
+                'message' => 'Submission completed successfully',
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to complete submission: ' . $e->getMessage()
+                'message' => 'Failed to complete submission: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -362,7 +364,7 @@ class SubmissionController extends Controller
             $validated = $request->validate([
                 'proof_text' => 'nullable|string',
                 'proof_files' => 'nullable|array',
-                'digital_signature' => 'nullable|string'
+                'digital_signature' => 'nullable|string',
             ]);
 
             $submissionTask->update([
@@ -370,7 +372,7 @@ class SubmissionController extends Controller
                 'completed_at' => now(),
                 'proof_text' => $validated['proof_text'] ?? null,
                 'proof_files' => $validated['proof_files'] ?? null,
-                'digital_signature' => $validated['digital_signature'] ?? null
+                'digital_signature' => $validated['digital_signature'] ?? null,
             ]);
 
             $submissionTask->load(['task']);
@@ -378,19 +380,19 @@ class SubmissionController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $submissionTask,
-                'message' => 'Task completed successfully'
+                'message' => 'Task completed successfully',
             ]);
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to complete task: ' . $e->getMessage()
+                'message' => 'Failed to complete task: '.$e->getMessage(),
             ], 500);
         }
     }

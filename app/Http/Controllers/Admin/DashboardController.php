@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Organisation\User;
 use App\Models\Checklist\TaskList;
+use App\Models\Organisation\Location;
+use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
-use App\Models\Organisation\Location;
 use App\Services\Admin\TeamPerformanceService;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -54,7 +53,7 @@ class DashboardController extends Controller
                 $query->where('location_id', $selectedLocationId);
             }
         });
-        
+
         // Enhanced KPI Statistics
         $stats = [
             // Basic counts
@@ -67,25 +66,28 @@ class DashboardController extends Controller
             'total_lists' => (clone $taskListQuery)->count(),
             'active_lists' => (clone $taskListQuery)->where('is_active', true)->count(),
             'total_tasks' => (clone $tasksQuery)->count(),
-            
+
             // Submissions stats
             'total_submissions' => (clone $submissionQuery)->count(),
-            'pending_submissions' => (clone $submissionQuery)->where('status', 'completed')->count(),
+            'pending_submissions' => (clone $submissionQuery)
+                ->where('status', 'completed')
+                ->whereHas('taskList', fn ($query) => $query->where('requires_review', true))
+                ->count(),
             'approved_submissions' => (clone $submissionQuery)->where('status', 'reviewed')->count(),
             'rejected_submissions' => (clone $submissionQuery)->where('status', 'rejected')->count(),
-            
+
             // Today's activity
             'completed_today' => (clone $submissionQuery)->whereDate('completed_at', today())->count(),
             'started_today' => (clone $submissionQuery)->whereDate('created_at', today())->count(),
             'submissions_this_week' => (clone $submissionQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
             'submissions_this_month' => (clone $submissionQuery)->whereMonth('created_at', now()->month)->count(),
-            
+
             // Performance metrics
             'avg_completion_time' => $this->getAverageCompletionTime(),
             'completion_rate_today' => $this->getCompletionRate('today'),
             'completion_rate_week' => $this->getCompletionRate('week'),
             'completion_rate_month' => $this->getCompletionRate('month'),
-            
+
             // Task statistics
             'most_used_proof_type' => $this->getMostUsedProofType($companyId, $selectedLocationId),
             'tasks_requiring_signature' => (clone $tasksQuery)->where('requires_signature', true)->count(),
@@ -102,6 +104,7 @@ class DashboardController extends Controller
                 }
             })
             ->where('status', 'completed')
+            ->whereHas('taskList', fn ($query) => $query->where('requires_review', true))
             ->latest()
             ->take(10)
             ->get();
@@ -146,9 +149,9 @@ class DashboardController extends Controller
             ->pluck('count', 'priority');
 
         return view('admin.dashboard', compact(
-            'stats', 
-            'recentSubmissions', 
-            'rejectedTasks', 
+            'stats',
+            'recentSubmissions',
+            'rejectedTasks',
             'teamPerformance',
             'dailyActivity',
             'listStats',
@@ -195,7 +198,7 @@ class DashboardController extends Controller
     private function getCompletionRate($period)
     {
         $query = Submission::query();
-        
+
         switch ($period) {
             case 'today':
                 $query->whereDate('created_at', today());
@@ -290,10 +293,10 @@ class DashboardController extends Controller
             })
             ->where(function ($query) {
                 $query->where('status', 'in_progress')
-                      ->orWhere(function ($subQuery) {
-                          $subQuery->whereNull('completed_at')
-                                   ->where('created_at', '>=', now()->subHours(4));
-                      });
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->whereNull('completed_at')
+                            ->where('created_at', '>=', now()->subHours(4));
+                    });
             })
             ->latest('updated_at')
             ->get()
@@ -302,9 +305,9 @@ class DashboardController extends Controller
                 $hasRecentTaskActivity = $submission->submissionTasks
                     ->where('updated_at', '>=', now()->subHours(2))
                     ->count() > 0;
-                
+
                 $isRecentlyCreated = $submission->created_at >= now()->subHours(2);
-                
+
                 return $hasRecentTaskActivity || $isRecentlyCreated;
             })
             ->map(fn ($submission) => $this->mapLiveActiveSession($submission))
@@ -319,15 +322,15 @@ class DashboardController extends Controller
                     $query->where('location_id', $selectedLocationId);
                 }
             })
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'reviewed'])
             ->where('completed_at', '>=', now()->subHours(2))
             ->latest('completed_at')
             ->take(5)
             ->get()
             ->map(function ($submission) {
-                $completionTime = $submission->started_at && $submission->completed_at ? 
+                $completionTime = $submission->started_at && $submission->completed_at ?
                     $submission->started_at->diffInMinutes($submission->completed_at) :
-                    ($submission->created_at && $submission->completed_at ? 
+                    ($submission->created_at && $submission->completed_at ?
                         $submission->created_at->diffInMinutes($submission->completed_at) : 0);
 
                 return [
@@ -364,7 +367,7 @@ class DashboardController extends Controller
             });
 
         $activeParticipantCount = $activeSessions->sum(function (array $session) {
-            if (!empty($session['is_team_submission']) && !empty($session['active_workers'])) {
+            if (! empty($session['is_team_submission']) && ! empty($session['active_workers'])) {
                 return count($session['active_workers']);
             }
 
@@ -382,7 +385,7 @@ class DashboardController extends Controller
                 'avg_progress' => round($activeSessions->avg('progress_percentage') ?? 0, 1),
                 'completed_last_2h' => $recentCompletions->count(),
                 'stale_sessions' => $staleUsers->count(),
-            ]
+            ],
         ]);
     }
 
@@ -445,7 +448,7 @@ class DashboardController extends Controller
             'completed_tasks' => $completedTasks,
             'current_task' => $currentTask
                 ? (strlen($currentTask->task->description) > 50
-                    ? substr($currentTask->task->description, 0, 50) . '...'
+                    ? substr($currentTask->task->description, 0, 50).'...'
                     : $currentTask->task->description)
                 : 'Aan het starten...',
             'status' => $status,
@@ -467,7 +470,7 @@ class DashboardController extends Controller
 
     private function liveSessionParticipantLabel(Submission $submission, $recentWorkers = null): string
     {
-        if (!$submission->is_team_submission) {
+        if (! $submission->is_team_submission) {
             return (string) ($submission->user->name ?? 'Medewerker');
         }
 
@@ -478,10 +481,10 @@ class DashboardController extends Controller
             ->values();
 
         if ($workers->isEmpty()) {
-            return 'Team · ' . ($submission->user->name ?? 'checklist');
+            return 'Team · '.($submission->user->name ?? 'checklist');
         }
 
-        return 'Team · ' . $workers->pluck('name')->join(', ');
+        return 'Team · '.$workers->pluck('name')->join(', ');
     }
 
     private function formatTimeActive($minutes)
@@ -489,14 +492,14 @@ class DashboardController extends Controller
         if ($minutes < 1) {
             return 'Net gestart';
         } elseif ($minutes < 60) {
-            return round($minutes) . ' min';
+            return round($minutes).' min';
         } else {
             $hours = floor($minutes / 60);
             $remainingMinutes = $minutes % 60;
             if ($remainingMinutes < 1) {
-                return $hours . 'u';
+                return $hours.'u';
             } else {
-                return $hours . 'u ' . round($remainingMinutes) . 'min';
+                return $hours.'u '.round($remainingMinutes).'min';
             }
         }
     }

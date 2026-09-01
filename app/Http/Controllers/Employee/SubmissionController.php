@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Employee;
 
+use App\Helpers\ProofFileHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Checklist\TaskList;
 use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
-use App\Models\Checklist\ListAssignment;
-use App\Services\ScheduleService;
-use App\Helpers\ProofFileHelper;
 use App\Services\CollaborativeSubmissionService;
+use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SubmissionController extends Controller
 {
     protected $scheduleService;
+
     protected $collaborativeSubmissionService;
 
     public function __construct(
@@ -32,7 +32,7 @@ class SubmissionController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        
+
         // Get assigned lists using ScheduleService (open/pending lists)
         $scheduledLists = $this->scheduleService->getScheduledTasksForUser($user);
         $completedLists = Submission::where('user_id', $user->id)
@@ -67,14 +67,15 @@ class SubmissionController extends Controller
         if ($request->filled('status') && $request->status === 'openstaand') {
             $assignedLists = $assignedLists->filter(function ($list) use ($user) {
                 $submission = $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list);
-                return !$submission || in_array($submission->status, ['in_progress', 'rejected', 'redo_requested']);
+
+                return ! $submission || in_array($submission->status, ['in_progress', 'rejected', 'redo_requested']);
             })->values();
         }
 
         $assignedLists = $assignedLists
             ->sortBy(fn ($list) => [$list->display_order ?? PHP_INT_MAX, $list->id])
             ->values();
-        
+
         return view('employee.lists.index', compact('assignedLists', 'categories'));
     }
 
@@ -84,29 +85,29 @@ class SubmissionController extends Controller
     public function show(TaskList $list)
     {
         $user = auth()->user();
-        
+
         // Ensure list belongs to same company
         if ($list->company_id !== $user->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
-        
+
         // Check if user has access to this list
-        if (!$this->userHasAccessToList($user, $list)) {
+        if (! $this->userHasAccessToList($user, $list)) {
             abort(403, 'You do not have access to this task list.');
         }
 
         // Load tasks with weekday filtering - tasks with weekday should only show on that day
         $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
-        
+
         // Always filter tasks by weekday - only show tasks for today or tasks without weekday (general tasks)
         $list->load(['tasks' => function ($query) use ($todayWeekday) {
             $query->where('is_active', true)
-                  ->where(function ($q) use ($todayWeekday) {
-                      $q->whereNull('weekday')      // General tasks (no specific day) - always show
+                ->where(function ($q) use ($todayWeekday) {
+                    $q->whereNull('weekday')      // General tasks (no specific day) - always show
                         ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
-                  });
+                });
         }]);
-        
+
         // Check if user has already started this list today
         $existingSubmission = $this->collaborativeSubmissionService->todaySubmissionForUser($user, $list);
 
@@ -119,14 +120,14 @@ class SubmissionController extends Controller
     public function start(Request $request, TaskList $list)
     {
         $user = auth()->user();
-        
+
         // Ensure list belongs to same company
         if ($list->company_id !== $user->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
-        
+
         // Check if user has access to this list
-        if (!$this->userHasAccessToList($user, $list)) {
+        if (! $this->userHasAccessToList($user, $list)) {
             abort(403, 'You do not have access to this task list.');
         }
 
@@ -154,25 +155,25 @@ class SubmissionController extends Controller
     public function edit(Submission $submission)
     {
         $user = auth()->user();
-        
+
         // Check if user can access this submission
-        if (!$this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
+        if (! $this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
             abort(403, 'You do not have access to this submission.');
         }
 
-    $submission->load(['taskList', 'submissionTasks.task']);
-    
-    // Check if there are tasks in the list that are not yet in the submission
-    $this->ensureSubmissionTasksExist($submission, $submission->taskList);
-    $submission->load(['taskList', 'submissionTasks.task']);
-    
-    // Laat ALLE taken zien die bij deze submission horen
-    $neighborLists = $this->neighborListUrls($user, $submission->taskList);
+        $submission->load(['taskList', 'submissionTasks.task']);
 
-    return view('employee.submissions.edit', array_merge(
-        compact('submission'),
-        $neighborLists
-    ));
+        // Check if there are tasks in the list that are not yet in the submission
+        $this->ensureSubmissionTasksExist($submission, $submission->taskList);
+        $submission->load(['taskList', 'submissionTasks.task']);
+
+        // Laat ALLE taken zien die bij deze submission horen
+        $neighborLists = $this->neighborListUrls($user, $submission->taskList);
+
+        return view('employee.submissions.edit', array_merge(
+            compact('submission'),
+            $neighborLists
+        ));
     }
 
     /**
@@ -186,7 +187,7 @@ class SubmissionController extends Controller
             abort(403, 'Unauthorized access to task list.');
         }
 
-        if (!$this->userHasAccessToList($user, $list)) {
+        if (! $this->userHasAccessToList($user, $list)) {
             abort(403, 'You do not have access to this task list.');
         }
 
@@ -207,12 +208,12 @@ class SubmissionController extends Controller
     {
         try {
             $user = auth()->user();
-            
-            if (!$this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
+
+            if (! $this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Je hebt geen toegang tot deze checklist.'
+                        'message' => 'Je hebt geen toegang tot deze checklist.',
                     ], 403);
                 }
                 abort(403, 'You do not have access to this submission.');
@@ -227,9 +228,10 @@ class SubmissionController extends Controller
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
                     ], 403);
                 }
+
                 return back()->with('error', $message);
             }
 
@@ -238,9 +240,10 @@ class SubmissionController extends Controller
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
                     ], 403);
                 }
+
                 return back()->with('error', $message);
             }
 
@@ -266,9 +269,9 @@ class SubmissionController extends Controller
                 'proof_files.*.max' => 'Bestanden mogen niet groter zijn dan :max KB.',
                 'proof_files.*.image' => 'Alleen afbeeldingen zijn toegestaan voor deze taak.',
                 'digital_signature.required' => 'Een digitale handtekening is vereist voor deze taak.',
-                'proof_text.required' => 'Tekst bewijs is vereist voor deze taak.'
+                'proof_text.required' => 'Tekst bewijs is vereist voor deze taak.',
             ];
-            
+
             if (in_array($task->required_proof_type, ['photo', 'video', 'file', 'any'])) {
                 if ($task->required_proof_type !== 'any' && empty($existingProofFiles)) {
                     $rules['proof_files'] = 'required|array|min:1';
@@ -282,13 +285,13 @@ class SubmissionController extends Controller
                 $rules['proof_files.*'] = 'image|max:5120'; // 5MB max for images
                 $messages['proof_files.required'] = 'Je hebt geen afbeelding toegevoegd aan de taak.';
             }
-            
+
             if ($task->required_proof_type === 'text') {
                 $rules['proof_text'] = 'required|string|min:3';
             }
 
             $validationRules = is_array($task->validation_rules) ? $task->validation_rules : [];
-            if (!empty($validationRules['metric'])) {
+            if (! empty($validationRules['metric'])) {
                 $rules['proof_text'] = 'required|string|min:1';
                 $messages['proof_text.required'] = 'Vul de meting in (temperatuur of pH).';
             }
@@ -297,7 +300,7 @@ class SubmissionController extends Controller
             if ($task->requires_signature && empty($submissionTask->digital_signature)) {
                 $rules['digital_signature'] = 'required|string';
             }
-            
+
             // Checklist progress (optional)
             $rules['checklist_progress'] = 'nullable|string';
 
@@ -326,13 +329,13 @@ class SubmissionController extends Controller
             ];
 
             // Add digital signature if provided
-            if (!empty($validated['digital_signature'])) {
+            if (! empty($validated['digital_signature'])) {
                 $updateData['digital_signature'] = $validated['digital_signature'];
                 $updateData['signature_date'] = now();
             }
-            
+
             // Add checklist progress if provided
-            if ($request->has('checklist_progress') && !empty($request->input('checklist_progress'))) {
+            if ($request->has('checklist_progress') && ! empty($request->input('checklist_progress'))) {
                 $checklistProgress = json_decode($request->input('checklist_progress'), true);
                 if (is_array($checklistProgress)) {
                     $updateData['checklist_progress'] = $checklistProgress;
@@ -342,7 +345,7 @@ class SubmissionController extends Controller
             $submissionTask->update($updateData);
 
             // Clear company storage cache when new files are uploaded
-            if (!empty($proofFiles)) {
+            if (! empty($proofFiles)) {
                 $submission->company?->clearStorageCache();
             }
 
@@ -359,41 +362,41 @@ class SubmissionController extends Controller
 
             return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
                 ->with('success', 'Taak succesvol afgerond!');
-                
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Task completion validation error', [
                 'user_id' => auth()->id(),
                 'submission_id' => $submission->id,
                 'task_id' => $taskId,
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ]);
-            
+
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validatie fout: ' . collect($e->errors())->flatten()->first(),
-                    'errors' => $e->errors()
+                    'message' => 'Validatie fout: '.collect($e->errors())->flatten()->first(),
+                    'errors' => $e->errors(),
                 ], 422);
             }
-            
+
             return back()->withErrors($e->errors())->withInput();
-            
+
         } catch (\Exception $e) {
             \Log::error('Task completion error', [
                 'user_id' => auth()->id(),
                 'submission_id' => $submission->id,
                 'task_id' => $taskId,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Er is een fout opgetreden bij het afronden van de taak. Probeer het opnieuw.'
+                    'message' => 'Er is een fout opgetreden bij het afronden van de taak. Probeer het opnieuw.',
                 ], 500);
             }
-            
+
             return back()->with('error', 'Er is een fout opgetreden bij het afronden van de taak. Probeer het opnieuw.');
         }
     }
@@ -405,13 +408,13 @@ class SubmissionController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             // Check if user can access this submission
-            if (!$this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
+            if (! $this->collaborativeSubmissionService->userCanAccessSubmission($user, $submission)) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Je hebt geen toegang tot deze checklist.'
+                        'message' => 'Je hebt geen toegang tot deze checklist.',
                     ], 403);
                 }
                 abort(403, 'You do not have access to this submission.');
@@ -430,7 +433,7 @@ class SubmissionController extends Controller
             if ($incompleteRequiredTasks > 0) {
                 $message = 'Voltooi eerst alle verplichte taken om de checklist in te dienen. ';
                 $hasRedoRequested = $submission->submissionTasks()
-                    ->whereHas('task', fn($q) => $q->where('is_required', true))
+                    ->whereHas('task', fn ($q) => $q->where('is_required', true))
                     ->where('status', 'redo_requested')
                     ->exists();
                 if ($hasRedoRequested) {
@@ -440,10 +443,10 @@ class SubmissionController extends Controller
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => $message
+                        'message' => $message,
                     ], 422);
                 }
-                
+
                 return redirect()->route('employee.submissions.edit', ['submission' => $submission->id, 'updated' => time()])
                     ->with('error', $message);
             }
@@ -453,9 +456,9 @@ class SubmissionController extends Controller
                 'employee_signature' => $submission->taskList->requires_signature ? 'required|string' : 'nullable|string',
                 'notes' => 'nullable|string',
             ];
-            
+
             $messages = [
-                'employee_signature.required' => 'Een digitale handtekening is vereist om de checklist in te dienen.'
+                'employee_signature.required' => 'Een digitale handtekening is vereist om de checklist in te dienen.',
             ];
 
             $validated = $request->validate($rules, $messages);
@@ -463,14 +466,14 @@ class SubmissionController extends Controller
             $submission->loadMissing(['taskList', 'user']);
             $neighborLists = $this->neighborListUrls($user, $submission->taskList);
             $redirectUrl = $neighborLists['nextListUrl'] ?? route('employee.dashboard');
-            $goingToNextList = !empty($neighborLists['nextListUrl']);
+            $goingToNextList = ! empty($neighborLists['nextListUrl']);
             $successMessage = $goingToNextList
                 ? 'Checklist ingediend. De volgende lijst wordt geopend.'
                 : '🎉 Gefeliciteerd! Je hebt je laatste checklist succesvol voltooid.';
 
             $submission->update([
                 'completed_at' => now(),
-                'status' => 'completed',
+                'status' => $submission->completedStatus(),
                 'employee_signature' => $validated['employee_signature'] ?? null,
                 'notes' => $validated['notes'] ?? null,
             ]);
@@ -500,39 +503,39 @@ class SubmissionController extends Controller
             }
 
             return redirect($redirectUrl)->with('success', $successMessage);
-                
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Submission completion validation error', [
                 'user_id' => auth()->id(),
                 'submission_id' => $submission->id,
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ]);
-            
+
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validatie fout: ' . collect($e->errors())->flatten()->first(),
-                    'errors' => $e->errors()
+                    'message' => 'Validatie fout: '.collect($e->errors())->flatten()->first(),
+                    'errors' => $e->errors(),
                 ], 422);
             }
-            
+
             return back()->withErrors($e->errors())->withInput();
-            
+
         } catch (\Exception $e) {
             \Log::error('Submission completion error', [
                 'user_id' => auth()->id(),
                 'submission_id' => $submission->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Er is een fout opgetreden bij het indienen van de checklist. Probeer het opnieuw.'
+                    'message' => 'Er is een fout opgetreden bij het indienen van de checklist. Probeer het opnieuw.',
                 ], 500);
             }
-            
+
             return back()->with('error', 'Er is een fout opgetreden bij het indienen van de checklist. Probeer het opnieuw.');
         }
     }

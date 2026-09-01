@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Models\Communication\Notification;
-use App\Models\Submissions\Submission;
 use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\Mobile\MobileTaskAccess;
 use App\Services\ScheduleService;
@@ -57,7 +57,7 @@ class SubmissionController extends MobileController
             ->where('company_id', $user->company_id)
             ->findOrFail($id);
 
-        if (!$this->taskAccess->userCanAccessSubmission($user, $submission)) {
+        if (! $this->taskAccess->userCanAccessSubmission($user, $submission)) {
             return $this->error('Geen toegang tot deze inzending.', 403);
         }
 
@@ -75,7 +75,7 @@ class SubmissionController extends MobileController
             ->where('company_id', $user->company_id)
             ->findOrFail($id);
 
-        if (!$this->taskAccess->userCanAccessSubmission($user, $submission)) {
+        if (! $this->taskAccess->userCanAccessSubmission($user, $submission)) {
             return $this->error('Geen toegang tot deze inzending.', 403);
         }
 
@@ -96,13 +96,13 @@ class SubmissionController extends MobileController
         ]);
 
         $metadata = is_array($submission->metadata) ? $submission->metadata : [];
-        if (!empty($validated['notes'])) {
+        if (! empty($validated['notes'])) {
             $metadata['employee_notes'] = $validated['notes'];
         }
 
         $submission->update([
             'completed_at' => now(),
-            'status' => 'completed',
+            'status' => $submission->completedStatus(),
             'employee_signature' => $validated['employee_signature'] ?? null,
             'notes' => $validated['notes'] ?? $submission->notes,
             'metadata' => $metadata,

@@ -4,14 +4,14 @@ namespace App\Models\Submissions;
 
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\BelongsToCompany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class Submission extends Model
 {
-    use HasFactory, BelongsToCompany;
+    use BelongsToCompany, HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -81,21 +81,31 @@ class Submission extends Model
     public function getCompletionPercentageAttribute()
     {
         $totalTasks = $this->submissionTasks()->count();
-        if ($totalTasks === 0) return 0;
-        
+        if ($totalTasks === 0) {
+            return 0;
+        }
+
         $completedTasks = $this->submissionTasks()->where('status', 'completed')->count();
+
         return round(($completedTasks / $totalTasks) * 100);
     }
 
     public function requiresSignature()
     {
-        return $this->taskList->requires_signature || 
+        return $this->taskList->requires_signature ||
                $this->taskList->tasks()->where('requires_signature', true)->exists();
     }
 
     public function hasDigitalSignature()
     {
-        return !empty($this->digital_signature);
+        return ! empty($this->digital_signature);
+    }
+
+    public function completedStatus(): string
+    {
+        $this->loadMissing('taskList');
+
+        return $this->taskList?->requires_review ? 'completed' : 'reviewed';
     }
 
     public function addDigitalSignature($signatureData)
@@ -142,7 +152,7 @@ class Submission extends Model
                 continue;
             }
 
-            if (!isset($summary[$userId])) {
+            if (! isset($summary[$userId])) {
                 $user = $submissionTask->completedBy;
                 $summary[$userId] = [
                     'id' => $userId,
@@ -165,22 +175,22 @@ class Submission extends Model
 
     public function participantLabel(): string
     {
-        if (!$this->is_team_submission) {
+        if (! $this->is_team_submission) {
             return (string) ($this->user?->name ?? 'Onbekend');
         }
 
         $contributors = $this->teamContributors();
 
         if ($contributors->isEmpty()) {
-            return 'Team · ' . ($this->user?->name ?? 'checklist');
+            return 'Team · '.($this->user?->name ?? 'checklist');
         }
 
         $names = $contributors->pluck('name')->filter()->values();
 
         if ($names->count() <= 2) {
-            return 'Team · ' . $names->join(', ');
+            return 'Team · '.$names->join(', ');
         }
 
-        return 'Team · ' . $names->take(2)->join(', ') . ' +' . ($names->count() - 2);
+        return 'Team · '.$names->take(2)->join(', ').' +'.($names->count() - 2);
     }
 }

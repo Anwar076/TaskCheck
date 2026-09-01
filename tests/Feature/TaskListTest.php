@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\Organisation\User;
-use App\Models\Checklist\TaskList;
-use App\Models\Checklist\Task;
 use App\Models\Checklist\ListAssignment;
+use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
+use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -283,6 +283,33 @@ class TaskListTest extends TestCase
         ]);
     }
 
+    public function test_submission_without_required_review_is_immediately_finalized(): void
+    {
+        $employee = User::where('role', 'employee')->firstOrFail();
+        $list = TaskList::where('company_id', $employee->company_id)->firstOrFail();
+        $list->update(['requires_review' => false]);
+        $task = $list->tasks()->firstOrFail();
+
+        $submission = Submission::query()->create([
+            'company_id' => $employee->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => now(),
+            'status' => 'in_progress',
+        ]);
+        $submission->submissionTasks()->create([
+            'task_id' => $task->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('employee.submissions.complete', $submission))
+            ->assertRedirect();
+
+        $this->assertSame('reviewed', $submission->fresh()->status);
+    }
+
     public function test_admin_can_review_submission(): void
     {
         $admin = User::where('role', 'admin')->first();
@@ -310,8 +337,8 @@ class TaskListTest extends TestCase
                 $task->id => [
                     'status' => 'approved',
                     'comment' => 'Well done!',
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $response->assertRedirect();
@@ -487,7 +514,7 @@ class TaskListTest extends TestCase
         $token = $employee->createToken('test')->plainTextToken;
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->get('/api/lists');
 
         $response->assertStatus(200);
@@ -500,8 +527,8 @@ class TaskListTest extends TestCase
                     'priority',
                     'category',
                     'tasks_count',
-                ]
-            ]
+                ],
+            ],
         ]);
     }
 
