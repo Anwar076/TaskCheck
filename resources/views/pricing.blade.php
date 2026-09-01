@@ -216,6 +216,10 @@
             min-height: 11rem
         }
 
+        .pricing-final-cta-wrap {
+            margin-top: 1.5rem
+        }
+
         .pricing-final-cta-media {
             display: block;
             min-height: 12rem
@@ -523,7 +527,7 @@
                     @endforeach
                 </div>
                 <div
-                    class="pricing-reveal mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
+                    class="pricing-reveal pricing-final-cta-wrap overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
                     <div class="pricing-final-cta grid items-center">
                         <div class="relative z-10 p-7 sm:p-9">
                             <h2 class="text-xl font-bold">Nog twijfels?</h2>
