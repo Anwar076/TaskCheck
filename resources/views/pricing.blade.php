@@ -172,7 +172,13 @@
 
         .pricing-plans-grid {
             min-width: 0;
-            margin-top: var(--pricing-section-gap)
+            margin-top: calc(var(--pricing-section-gap) - 1rem);
+            padding-top: 1rem;
+            overflow: visible
+        }
+
+        .pricing-plans-grid .price-card {
+            overflow: visible
         }
 
         .enterprise-panel {
