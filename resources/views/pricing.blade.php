@@ -94,9 +94,34 @@
         }
 
         .price-card-featured {
+            position: relative;
+            z-index: 1;
             border-color: #6680ff;
             box-shadow: 0 18px 44px -26px rgba(79, 107, 255, .45);
             animation: featured-glow 5s ease-in-out infinite
+        }
+
+        .featured-plan-badge {
+            position: absolute;
+            z-index: 10;
+            top: -.875rem;
+            left: 50%;
+            display: inline-flex;
+            min-height: 1.75rem;
+            transform: translateX(-50%);
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #4f6bff;
+            padding: .35rem 1.25rem;
+            color: #fff;
+            font-size: .625rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            box-shadow: 0 8px 20px -10px rgba(49, 87, 235, .8)
         }
 
         .price-button {
@@ -156,6 +181,11 @@
             min-height: 11rem
         }
 
+        .pricing-final-cta-media {
+            display: block;
+            min-height: 12rem
+        }
+
         @media (min-width: 900px) {
             .enterprise-grid {
                 grid-template-columns: minmax(0, 1.08fr) minmax(0, 1.24fr) minmax(0, 1fr)
@@ -167,9 +197,12 @@
             }
 
             .pricing-final-cta {
+                display: grid;
+                grid-template-columns: minmax(0, 1.25fr) minmax(20rem, .75fr);
                 height: 12rem;
                 min-height: 12rem
             }
+
         }
 
         .faq-card {
@@ -179,6 +212,16 @@
         .faq-card:hover {
             border-color: #cbd5e1;
             box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .3)
+        }
+
+        .pricing-faq-section {
+            padding-top: 4rem
+        }
+
+        @media (min-width: 640px) {
+            .pricing-faq-section {
+                padding-top: 5rem
+            }
         }
 
         .pricing-orb {
@@ -324,8 +367,7 @@
                         <article id="{{ $key }}" data-pricing-card
                             class="price-card {{ $featured ? 'price-card-featured relative border-2' : 'border border-slate-200' }} flex min-h-[31rem] flex-col rounded-2xl bg-white p-6 sm:p-7">
                             @if ($featured)
-                                <span
-                                    class="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#4f6bff] px-5 py-1.5 text-[10px] font-bold uppercase tracking-[.12em] text-white">Meest
+                                <span class="featured-plan-badge">Meest
                                     gekozen</span>
                             @endif
                             <h2 class="text-xl font-bold">{{ $planCopy[$key][0] }}</h2>
@@ -422,7 +464,7 @@
                 </article>
             </div>
         </section>
-        <section class="relative pb-20 pt-10 sm:pb-24">
+        <section class="pricing-faq-section relative pb-20 sm:pb-24">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="pricing-reveal">
                     <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Veelgestelde vragen</p>
@@ -448,7 +490,7 @@
                 </div>
                 <div
                     class="pricing-reveal mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
-                    <div class="pricing-final-cta grid items-center lg:grid-cols-[1.25fr_.75fr]">
+                    <div class="pricing-final-cta grid items-center">
                         <div class="relative z-10 p-7 sm:p-9">
                             <h2 class="text-xl font-bold">Nog twijfels?</h2>
                             <p class="mt-2 max-w-xl text-sm text-slate-500">We laten je graag in een kort gesprek zien
@@ -460,7 +502,7 @@
                                     class="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-6 py-3 text-xs font-bold text-slate-700 shadow-sm">Terug
                                     naar homepage</a></div>
                         </div>
-                        <div class="relative hidden h-full min-h-[11rem] overflow-hidden lg:block">
+                        <div class="pricing-final-cta-media relative h-full min-h-[11rem] overflow-hidden">
                             <img src="{{ asset('images/oplossing-taskcheck-multi-sector.png') }}"
                                 alt="TaskCheck in gebruik bij een operationeel team"
                                 class="absolute inset-0 h-full w-full object-cover object-center">
