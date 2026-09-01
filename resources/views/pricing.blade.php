@@ -1,17 +1,33 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     @php
         $seoTitle = 'Prijzen checklist app voor bedrijven en personeel | TaskCheck';
-        $seoDescription = 'Eerlijke prijzen voor TaskCheck. Starter, Professional, Business en Enterprise op aanvraag. Start 14 dagen gratis zonder creditcard.';
+        $seoDescription =
+            'Eerlijke prijzen voor TaskCheck. Starter, Professional, Business en Enterprise op aanvraag. Start 14 dagen gratis zonder creditcard.';
         $seoUrl = route('pricing');
         $seoImage = asset('images/taskcheck-dashboard-hero.webp');
         $displayPrice = static function (float $amount): string {
             $formatted = number_format($amount, 2, ',', '.');
-
             return str_ends_with($formatted, ',00') ? substr($formatted, 0, -3) : $formatted;
         };
-        $billingSuffix = static fn (array $plan): string => \App\Models\Organisation\Company::billingPeriod($plan['billing_period'] ?? 'monthly')['suffix'];
+        $billingSuffix = static fn(array $plan): string => \App\Models\Organisation\Company::billingPeriod(
+            $plan['billing_period'] ?? 'monthly',
+        )['suffix'];
+        $planCopy = [
+            'starter' => ['Starter', 'Voor kleine teams die willen starten met structuur.', null],
+            'professional' => [
+                'Professional',
+                'Voor teams die meer controle en automatisering willen.',
+                'Alles in Starter, plus:',
+            ],
+            'business' => [
+                'Business',
+                'Voor bedrijven met meerdere locaties en grotere teams.',
+                'Alles in Professional, plus:',
+            ],
+        ];
     @endphp
     <title>{{ $seoTitle }}</title>
     @include('components.head')
@@ -28,521 +44,398 @@
     <meta name="twitter:description" content="{{ $seoDescription }}">
     <meta name="twitter:image" content="{{ $seoImage }}">
     <style>
-        .pricing-scene { isolation: isolate; }
+        .price-card {
+            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease
+        }
+
+        .price-card:hover {
+            transform: translateY(-4px);
+            border-color: #cbd5e1;
+            box-shadow: 0 18px 42px -28px rgba(15, 23, 42, .28)
+        }
+
+        .price-card-featured {
+            border-color: #6680ff;
+            box-shadow: 0 18px 44px -26px rgba(79, 107, 255, .45);
+            animation: featured-glow 5s ease-in-out infinite
+        }
+
+        .price-button {
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease
+        }
+
+        .price-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px -12px rgba(37, 99, 235, .5)
+        }
+
+        .price-button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            left: -130%;
+            width: 65%;
+            background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .32), transparent);
+            transform: skewX(-18deg);
+            transition: left .55s ease
+        }
+
+        .price-button:hover::after {
+            left: 130%
+        }
+
+        .enterprise-panel {
+            background: radial-gradient(circle at 8% 92%, rgba(79, 107, 255, .07), transparent 30%), #fff;
+            box-shadow: 0 20px 50px -34px rgba(15, 23, 42, .3);
+            transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease
+        }
+
+        .enterprise-panel:hover {
+            transform: translateY(-3px);
+            border-color: #cbd5e1;
+            box-shadow: 0 28px 58px -34px rgba(15, 23, 42, .34)
+        }
+
+        .faq-card {
+            transition: border-color .2s ease, box-shadow .2s ease
+        }
+
+        .faq-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .3)
+        }
 
         .pricing-orb {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(56px);
+            border-radius: 9999px;
+            filter: blur(60px);
             pointer-events: none;
-            animation: pricing-orb-drift 20s ease-in-out infinite;
-        }
-        .pricing-orb--1 {
-            width: min(22rem, 55vw);
-            height: min(22rem, 55vw);
-            right: -8%;
-            top: 15%;
-            background: radial-gradient(circle at 35% 35%, rgba(37, 99, 235, 0.2), rgba(99, 102, 241, 0.08) 50%, transparent 70%);
-            animation-duration: 24s;
-        }
-        .pricing-orb--2 {
-            width: min(18rem, 45vw);
-            height: min(18rem, 45vw);
-            left: -5%;
-            top: 55%;
-            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.14), transparent 68%);
-            animation-duration: 18s;
-            animation-delay: -6s;
-        }
-        .pricing-orb--3 {
-            width: min(12rem, 30vw);
-            height: min(12rem, 30vw);
-            left: 40%;
-            top: 5%;
-            opacity: 0.55;
-            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.18), transparent 65%);
-            animation-duration: 15s;
-            animation-delay: -9s;
-        }
-        @keyframes pricing-orb-drift {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            40% { transform: translate(-12px, 14px) scale(1.03); }
-            70% { transform: translate(10px, -8px) scale(0.98); }
-        }
-
-        .pricing-float-y { animation: pricing-float-y 5.5s ease-in-out infinite; }
-        .pricing-float-y--2 { animation-delay: -1.6s; }
-        .pricing-float-y--3 { animation-delay: -3s; }
-        .pricing-float-y--4 { animation-delay: -4.2s; }
-        @keyframes pricing-float-y {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
+            animation: orb-drift 18s ease-in-out infinite
         }
 
         .pricing-reveal {
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(18px);
+            transition: opacity .65s cubic-bezier(.16, 1, .3, 1), transform .65s cubic-bezier(.16, 1, .3, 1)
         }
-        .pricing-reveal.visible {
+
+        .pricing-reveal.is-visible {
             opacity: 1;
-            transform: translateY(0);
-        }
-        .pricing-reveal-d1.visible { transition-delay: 0.05s; }
-        .pricing-reveal-d2.visible { transition-delay: 0.11s; }
-        .pricing-reveal-d3.visible { transition-delay: 0.17s; }
-        .pricing-reveal-d4.visible { transition-delay: 0.23s; }
-
-        .cta-btn {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #2563eb, #6366f1);
-            box-shadow: 0 12px 28px -8px rgba(37, 99, 235, 0.4);
-            transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease, box-shadow 0.25s ease;
-        }
-        .cta-btn::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            left: -120%;
-            width: 65%;
-            background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.32) 50%, transparent 100%);
-            transform: skewX(-16deg);
-            transition: left 0.55s ease;
-            pointer-events: none;
-        }
-        .cta-btn:hover {
-            background: linear-gradient(135deg, #1d4ed8, #4f46e5);
-            transform: translateY(-2px);
-            box-shadow: 0 16px 40px -10px rgba(37, 99, 235, 0.48);
-        }
-        .cta-btn:hover::after {
-            left: 120%;
+            transform: translateY(0)
         }
 
-        .pricing-btn-dark {
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.22s ease, box-shadow 0.25s ease, background 0.2s ease;
-        }
-        .pricing-btn-dark:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px -12px rgba(15, 23, 42, 0.35);
+        .pricing-reveal-delay-1.is-visible {
+            transition-delay: .08s
         }
 
-        .pricing-pill {
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease;
-        }
-        .pricing-pill:hover {
-            transform: translateY(-2px);
-            border-color: rgb(191 219 254);
-            box-shadow: 0 10px 28px -14px rgba(37, 99, 235, 0.18);
-        }
-        .pricing-pill::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(120deg, transparent 25%, rgba(255, 255, 255, 0.45) 50%, transparent 75%);
-            transform: translateX(-100%);
-            transition: transform 0.55s ease;
-            pointer-events: none;
-        }
-        .pricing-pill:hover::after {
-            transform: translateX(100%);
+        .pricing-reveal-delay-2.is-visible {
+            transition-delay: .16s
         }
 
-        .pricing-card {
-            position: relative;
-            transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.32s ease, border-color 0.25s ease;
-        }
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(99, 102, 241, 0.06), rgba(226, 232, 240, 0.9));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .pricing-card:hover::before {
-            opacity: 1;
-        }
-        .pricing-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 24px 56px -28px rgba(15, 23, 42, 0.14);
+        .pricing-reveal-delay-3.is-visible {
+            transition-delay: .24s
         }
 
-        .pricing-card--featured {
-            box-shadow: 0 24px 56px -24px rgba(37, 99, 235, 0.24);
-            animation: pricing-featured-glow 5s ease-in-out infinite;
+        .float-detail {
+            animation: float-detail 5.5s ease-in-out infinite
         }
-        .pricing-card--featured:hover {
-            box-shadow: 0 32px 64px -24px rgba(37, 99, 235, 0.32);
-        }
-        @keyframes pricing-featured-glow {
-            0%, 100% {
-                box-shadow: 0 24px 56px -24px rgba(37, 99, 235, 0.22);
+
+        @keyframes orb-drift {
+
+            0%,
+            100% {
+                transform: translate3d(0, 0, 0) scale(1)
             }
+
             50% {
-                box-shadow: 0 28px 62px -22px rgba(99, 102, 241, 0.3);
+                transform: translate3d(18px, -14px, 0) scale(1.05)
             }
         }
 
-        .pricing-badge-pop {
-            animation: pricing-badge-bob 3.5s ease-in-out infinite;
-        }
-        @keyframes pricing-badge-bob {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-3px); }
+        @keyframes featured-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 18px 44px -26px rgba(79, 107, 255, .38)
+            }
+
+            50% {
+                box-shadow: 0 24px 52px -24px rgba(79, 107, 255, .58)
+            }
         }
 
-        .pricing-faq-card {
-            transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.2s ease;
-        }
-        .pricing-faq-card:hover {
-            transform: translateY(-4px) scale(1.01);
-            border-color: rgb(203 213 225);
-            box-shadow: 0 16px 40px -24px rgba(37, 99, 235, 0.12);
+        @keyframes float-detail {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-6px)
+            }
         }
 
-        .pricing-cta-bottom {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, rgb(248 250 252) 0%, rgb(255 255 255) 45%, rgb(239 246 255 / 0.5) 100%);
-        }
-        .pricing-cta-bottom::before {
-            content: '';
-            position: absolute;
-            top: -40%;
-            right: -20%;
-            width: min(24rem, 80vw);
-            height: min(24rem, 80vw);
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 65%);
-            pointer-events: none;
-        }
+        @media(prefers-reduced-motion:reduce) {
 
-        .pricing-glass-btn {
-            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
-        }
-        .pricing-glass-btn:hover {
-            transform: translateY(-2px);
-            border-color: rgba(37, 99, 235, 0.25);
-            background: rgb(255 255 255);
-            box-shadow: 0 12px 32px -16px rgba(37, 99, 235, 0.15);
-        }
+            .price-card,
+            .price-button,
+            .enterprise-panel {
+                transition: none
+            }
 
-        @media (prefers-reduced-motion: reduce) {
+            .price-card:hover,
+            .price-button:hover,
+            .enterprise-panel:hover {
+                transform: none
+            }
+
+            .price-card-featured,
             .pricing-orb,
-            .pricing-float-y,
-            .pricing-float-y--2,
-            .pricing-float-y--3,
-            .pricing-float-y--4,
-            .pricing-card--featured,
-            .pricing-badge-pop {
-                animation: none !important;
+            .float-detail {
+                animation: none
             }
+
             .pricing-reveal {
                 opacity: 1;
                 transform: none;
-                transition: none;
+                transition: none
             }
-            .pricing-reveal-d1.visible,
-            .pricing-reveal-d2.visible,
-            .pricing-reveal-d3.visible,
-            .pricing-reveal-d4.visible {
-                transition-delay: 0s !important;
-            }
-            .cta-btn:hover,
-            .pricing-btn-dark:hover,
-            .pricing-card:hover,
-            .pricing-faq-card:hover,
-            .pricing-pill:hover,
-            .pricing-glass-btn:hover {
-                transform: none;
-            }
-            .cta-btn::after,
-            .pricing-pill::after {
-                display: none;
+
+            .price-button::after {
+                display: none
             }
         }
     </style>
 </head>
-<body class="min-h-screen overflow-x-hidden bg-white font-sans text-slate-900 antialiased">
+
+<body class="min-h-screen bg-white font-sans text-slate-900 antialiased">
     @include('components.header')
-
-    <div class="pricing-scene">
-        {{-- Hero --}}
-        <section class="relative overflow-hidden pt-28 pb-14 sm:pb-16">
-            <div class="pointer-events-none absolute inset-0">
-                <svg class="absolute inset-0 h-full w-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <defs>
-                        <pattern id="pricing-dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                            <circle cx="1" cy="1" r="1.2" fill="#334155"/>
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#pricing-dots)"/>
-                </svg>
-                <div class="absolute -right-[200px] -top-[300px] h-[800px] w-[800px] rounded-full bg-[radial-gradient(circle,rgba(99,102,241,0.1)_0%,transparent_65%)]"></div>
-                <div class="absolute -left-[100px] bottom-0 h-[400px] w-[400px] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.07)_0%,transparent_65%)]"></div>
-                <div class="pricing-orb pricing-orb--1 hidden sm:block" aria-hidden="true"></div>
-                <div class="pricing-orb pricing-orb--2 hidden md:block" aria-hidden="true"></div>
-                <div class="pricing-orb pricing-orb--3 hidden lg:block" aria-hidden="true"></div>
-            </div>
-
-            <div class="relative mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-                <div class="pricing-reveal mx-auto inline-flex items-center gap-2 rounded-full border border-blue-200/90 bg-blue-50/90 px-4 py-2 text-xs font-semibold text-blue-700 shadow-md shadow-blue-500/5 ring-1 ring-white/70 backdrop-blur-sm">
-                    <span class="relative flex h-1.5 w-1.5">
-                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50"></span>
-                        <span class="relative h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    </span>
-                    Transparante prijzen · 14 dagen gratis
+    <main class="relative overflow-hidden">
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-[48rem] overflow-hidden" aria-hidden="true">
+            <div class="pricing-orb -right-32 top-24 h-96 w-96 bg-blue-200/30"></div>
+            <div class="pricing-orb -left-32 top-80 h-80 w-80 bg-emerald-100/35" style="animation-delay:-7s"></div>
+            <div class="absolute inset-0 opacity-[.025]"
+                style="background-image:radial-gradient(#334155 1px,transparent 1px);background-size:24px 24px"></div>
+        </div>
+        <section class="relative pt-28 sm:pt-32">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div class="pricing-reveal text-center">
+                    <span
+                        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[.12em] text-slate-600 shadow-sm">14
+                        dagen gratis proberen <svg class="h-3.5 w-3.5 text-blue-600" fill="none"
+                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="9" />
+                            <path stroke-linecap="round" d="M12 8v4l2.5 1.5" />
+                        </svg></span>
+                    <h1
+                        class="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+                        Eerlijke prijzen,<span class="block text-[#4f6bff]">gemaakt voor elk team</span></h1>
+                    <p class="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-slate-500 sm:text-base">Kies het plan
+                        dat past bij jouw organisatie. Start direct — geen creditcard nodig voor je proefperiode.</p>
+                    <div
+                        class="mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-x-5 gap-y-3 text-left text-xs font-medium text-slate-500 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-9">
+                        @foreach (['14 dagen gratis', 'Geen creditcard nodig', 'Flexibel op- of afschalen', 'Altijd opzegbaar'] as $item)
+                            <span class="inline-flex items-center gap-2"><svg class="h-4 w-4 shrink-0 text-[#6680ff]"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+                                </svg>{{ $item }}</span>
+                        @endforeach
+                    </div>
                 </div>
-                <h1 class="pricing-reveal pricing-reveal-d1 mx-auto mt-7 max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.25rem]">
-                    Eerlijke prijzen voor
-                    <span class="mt-1 block bg-gradient-to-r from-[#2563eb] via-[#4f6af8] to-[#6366f1] bg-clip-text text-transparent">elk team</span>
-                </h1>
-                <p class="pricing-reveal pricing-reveal-d2 mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-500 sm:text-lg">
-                    Kies het plan dat past bij jouw organisatie. Start direct — geen creditcard nodig voor je proefperiode.
-                </p>
-                <div class="pricing-reveal pricing-reveal-d3 mx-auto mt-9 flex max-w-2xl flex-wrap justify-center gap-2.5 sm:gap-3">
-                    @foreach (['14 dagen gratis', 'Mollie-checkout', 'Flexibel schalen', 'excl. btw getoond'] as $i => $trust)
-                        <span class="pricing-pill pricing-float-y {{ $i === 1 ? 'pricing-float-y--2' : ($i === 2 ? 'pricing-float-y--3' : ($i === 3 ? 'pricing-float-y--4' : '')) }} inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/85 px-3.5 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-white/60 backdrop-blur-sm sm:text-sm">
-                            <svg class="h-3.5 w-3.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            {{ $trust }}
-                        </span>
+                <div class="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
+                    @foreach (['starter', 'professional', 'business'] as $key)
+                        @php $featured=$key==='professional'; @endphp
+                        <article data-pricing-card
+                            class="price-card {{ $featured ? 'price-card-featured relative border-2' : 'border border-slate-200' }} flex min-h-[31rem] flex-col rounded-2xl bg-white p-6 sm:p-7">
+                            @if ($featured)
+                                <span
+                                    class="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#4f6bff] px-5 py-1.5 text-[10px] font-bold uppercase tracking-[.12em] text-white">Meest
+                                    gekozen</span>
+                            @endif
+                            <h2 class="text-xl font-bold">{{ $planCopy[$key][0] }}</h2>
+                            <p class="mt-2 min-h-[2.75rem] text-sm leading-relaxed text-slate-500">
+                                {{ $planCopy[$key][1] }}</p>
+                            <div class="mt-6 flex items-baseline gap-1"><span
+                                    class="text-4xl font-extrabold tracking-tight {{ $featured ? 'text-[#4164f5]' : 'text-slate-900' }}">€{{ $displayPrice((float) $plans[$key]['billing_amount']) }}</span><span
+                                    class="text-xs font-semibold text-slate-500">/{{ $billingSuffix($plans[$key]) }}</span>
+                            </div>
+                            <p class="mt-1 text-[11px] text-slate-400">excl. 21% btw</p>
+                            @if ($planCopy[$key][2])
+                                <p class="mt-6 text-xs font-bold text-slate-600">{{ $planCopy[$key][2] }}</p>
+                            @endif
+                            <ul class="mt-5 flex-1 space-y-3 text-[13px] leading-snug text-slate-600">
+                                @foreach (\App\Models\Organisation\Company::planMarketingFeatures($key) as $item)
+                                    <li class="flex gap-2.5"><svg
+                                            class="mt-0.5 h-4 w-4 shrink-0 {{ $featured ? 'text-[#4f6bff]' : 'text-emerald-600' }}"
+                                            fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="8.5" />
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m8.5 12 2.2 2.2 4.8-5" />
+                                        </svg><span>{{ $item }}</span></li>
+                                @endforeach
+                            </ul>
+                            @auth <a href="{{ route('subscription.choose-plan') }}"
+                                    class="price-button mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs font-bold {{ $featured ? 'bg-[#4f6bff] text-white' : 'border border-slate-200 bg-white text-slate-800' }}">14
+                                    dagen gratis proberen</a>
+                            @else
+                                <a href="{{ route('register') }}"
+                                    class="price-button mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs font-bold {{ $featured ? 'bg-[#4f6bff] text-white' : 'border border-slate-200 bg-white text-slate-800' }}">14
+                                dagen gratis proberen</a> @endauth
+                        </article>
                     @endforeach
                 </div>
+                <article
+                    class="pricing-reveal enterprise-panel mt-7 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <div class="grid lg:grid-cols-[1.1fr_1.25fr_1fr]">
+                        <div class="flex flex-col p-7 sm:p-9 lg:min-h-[24rem]">
+                            <p class="text-xs font-bold uppercase tracking-[.13em] text-slate-500">Voor grotere
+                                organisaties</p>
+                            <h2 class="mt-5 text-4xl font-extrabold tracking-tight">Enterprise</h2>
+                            <p class="mt-3 max-w-sm text-sm leading-relaxed text-slate-500">Voor organisaties met
+                                meerdere teams, locaties of specifieke proceswensen.</p>
+                            <svg class="float-detail mt-8 h-auto w-60 max-w-full lg:mt-auto" viewBox="0 0 300 135"
+                                fill="none" aria-hidden="true">
+                                <circle cx="64" cy="78" r="53" fill="#EFF6FF" />
+                                <path d="M26 119V68h40v51M66 119V25h63v94M129 119V55h53v64M15 119h215" stroke="#94A3B8"
+                                    stroke-width="2" />
+                                <path d="M41 82h10m-10 17h10m49-56h13m-13 20h13m-13 20h13m-13 20h13m35-30h12m-12 20h12"
+                                    stroke="#CBD5E1" stroke-width="4" />
+                                <path d="m194 67 28-10 28 10v24c0 20-12 34-28 41-16-7-28-21-28-41V67Z" fill="white"
+                                    stroke="#3659D9" stroke-width="3" />
+                                <path d="m211 92 7 7 15-18" stroke="#3659D9" stroke-width="3" />
+                            </svg>
+                        </div>
+                        <div class="border-t border-slate-200 p-7 sm:p-9 lg:border-l lg:border-t-0">
+                            <ul>
+                                @foreach (['Onbeperkte admins & medewerkers', 'Dedicated accountmanager', 'SLA met uptime-garantie', 'Persoonlijke onboarding', 'Maatwerk integraties'] as $item)
+                                    <li
+                                        class="flex items-center gap-4 border-b border-slate-200 py-4 first:pt-0 last:border-0 last:pb-0">
+                                        <span
+                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700"><svg
+                                                class="h-4 w-4" fill="none" stroke="currentColor"
+                                                stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path d="m6 12 4 4 8-9" />
+                                            </svg></span><span
+                                            class="text-sm font-semibold text-slate-800">{{ $item }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <div class="border-t border-slate-200 p-7 sm:p-9 lg:border-l lg:border-t-0">
+                            <div class="flex items-start gap-4"><span
+                                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-blue-700"><svg
+                                        class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path d="M4.5 17V12a7.5 7.5 0 0 1 15 0v5M4.5 11H3v6h1.5m15-6H21v6h-1.5" />
+                                    </svg></span>
+                                <h3 class="pt-1 text-lg font-bold leading-snug">Persoonlijk advies voor jouw
+                                    organisatie</h3>
+                            </div>
+                            <p class="mt-6 text-sm leading-relaxed text-slate-500">Onze experts denken graag met je mee
+                                over de beste oplossing.</p><a href="{{ route('contact') }}"
+                                class="price-button mt-8 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#3659d9] px-5 py-4 text-sm font-bold text-white">Plan
+                                een adviesgesprek <span>→</span></a><a href="{{ route('contact') }}"
+                                class="mt-6 inline-flex items-center gap-3 text-sm font-bold text-blue-700"><svg
+                                    class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <path d="M7 3h7l4 4v14H7V3Zm7 0v5h4M10 13h5m-5 4h5" />
+                                </svg>Vraag offerte aan <span>›</span></a>
+                        </div>
+                    </div>
+                </article>
+                <p class="mt-7 text-center text-xs text-slate-400">Alle prijzen zijn exclusief 21% btw. Betaling
+                    verloopt veilig via Mollie.</p>
             </div>
         </section>
-
-        {{-- Plans --}}
-        <section class="relative pb-16 sm:pb-20">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="grid items-stretch gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-7">
-                    {{-- Starter --}}
-                    <article class="pricing-reveal pricing-reveal-d1 group pricing-card flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white/92 p-6 shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:p-7">
-                        <div class="pointer-events-none absolute -right-8 top-8 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.07),transparent_68%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden="true"></div>
-                        <div class="relative min-h-[5.25rem]">
-                            <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">Starter</h2>
-                            <p class="mt-1.5 text-sm leading-snug text-slate-500">Voor kleine teams die willen starten met structuur</p>
-                        </div>
-                        <div class="relative mt-5">
-                            <p class="text-4xl font-extrabold tabular-nums text-slate-900 sm:text-[2.35rem]">€{{ $displayPrice((float) $plans['starter']['billing_amount']) }}<span class="ml-1 text-lg font-semibold text-slate-500">/{{ $billingSuffix($plans['starter']) }}</span></p>
-                            <p class="mt-1 text-xs font-medium text-slate-400">excl. 21% btw</p>
-                        </div>
-                        <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Alles wat je nodig hebt om direct te beginnen met digitale checklists en controle.</p>
-                        <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (\App\Models\Organisation\Company::planMarketingFeatures('starter') as $item)
-                                <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
-                                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80">
-                                        <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                    </span>
-                                    <span>{{ $item }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                        <div class="relative mt-7">
-                            @auth
-                                <a href="{{ route('subscription.choose-plan') }}" class="pricing-btn-dark inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 py-3.5 text-sm font-semibold text-white">Start 14 dagen gratis</a>
-                            @else
-                                <a href="{{ route('register') }}" class="pricing-btn-dark inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 py-3.5 text-sm font-semibold text-white">Start 14 dagen gratis</a>
-                            @endauth
-                        </div>
-                    </article>
-
-                    {{-- Professional — featured --}}
-                    <article class="pricing-reveal pricing-reveal-d2 pricing-card pricing-card--featured group relative z-[1] flex h-full flex-col overflow-visible rounded-3xl border-2 border-blue-500/50 bg-white p-6 sm:p-7 md:-mt-1 md:mb-1 lg:mt-0 lg:mb-0">
-                        <span class="pricing-badge-pop absolute -top-3.5 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#2563eb] to-[#6366f1] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white shadow-lg shadow-blue-500/35 ring-2 ring-white">Meest gekozen</span>
-                        <div class="pointer-events-none absolute -left-12 top-1/3 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.12),transparent_68%)] blur-2xl" aria-hidden="true"></div>
-                        <div class="relative min-h-[5.25rem] pt-1">
-                            <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">Professional</h2>
-                            <p class="mt-1.5 text-sm leading-snug text-slate-500">Voor teams die meer controle en automatisering willen</p>
-                        </div>
-                        <div class="relative mt-5">
-                            <div class="flex flex-wrap items-baseline gap-1">
-                                <span class="bg-gradient-to-r from-[#2563eb] to-[#6366f1] bg-clip-text text-4xl font-extrabold tabular-nums text-transparent sm:text-[2.35rem]">€{{ $displayPrice((float) $plans['professional']['billing_amount']) }}</span>
-                                <span class="text-lg font-semibold text-slate-500">/{{ $billingSuffix($plans['professional']) }}</span>
-                            </div>
-                            <p class="mt-1 text-xs font-medium text-slate-400">excl. 21% btw</p>
-                        </div>
-                        <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Meer inzicht, minder handmatig werk en sneller schakelen dankzij AI en rapportages.</p>
-                        <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (\App\Models\Organisation\Company::planMarketingFeatures('professional') as $item)
-                                <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
-                                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 ring-1 ring-blue-100/90">
-                                        <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                    </span>
-                                    <span>{{ $item }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                        <div class="relative mt-7">
-                            @auth
-                                <a href="{{ route('subscription.choose-plan') }}" class="cta-btn inline-flex w-full items-center justify-center rounded-2xl py-3.5 text-sm font-bold text-white">Start 14 dagen gratis</a>
-                            @else
-                                <a href="{{ route('register') }}" class="cta-btn inline-flex w-full items-center justify-center rounded-2xl py-3.5 text-sm font-bold text-white">Start 14 dagen gratis</a>
-                            @endauth
-                        </div>
-                    </article>
-
-                    {{-- Business --}}
-                    <article class="pricing-reveal pricing-reveal-d3 group pricing-card flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white/92 p-6 shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:p-7">
-                        <div class="pointer-events-none absolute -right-6 top-24 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.1),transparent_68%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden="true"></div>
-                        <div class="relative min-h-[5.25rem]">
-                            <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">Business</h2>
-                            <p class="mt-1.5 text-sm leading-snug text-slate-500">Voor bedrijven met meerdere locaties en grotere teams</p>
-                        </div>
-                        <div class="relative mt-5">
-                            <p class="text-4xl font-extrabold tabular-nums text-slate-900 sm:text-[2.35rem]">€{{ $displayPrice((float) $plans['business']['billing_amount']) }}<span class="ml-1 text-lg font-semibold text-slate-500">/{{ $billingSuffix($plans['business']) }}</span></p>
-                            <p class="mt-1 text-xs font-medium text-slate-400">excl. 21% btw</p>
-                        </div>
-                        <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Volledige controle over meerdere locaties, met diep inzicht in prestaties en kwaliteit per vestiging.</p>
-                        <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (\App\Models\Organisation\Company::planMarketingFeatures('business') as $item)
-                                <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
-                                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100/80">
-                                        <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                    </span>
-                                    <span>{{ $item }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                        <div class="relative mt-7">
-                            @auth
-                                <a href="{{ route('subscription.choose-plan') }}" class="pricing-btn-dark inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 py-3.5 text-sm font-semibold text-white">Start 14 dagen gratis</a>
-                            @else
-                                <a href="{{ route('register') }}" class="pricing-btn-dark inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 py-3.5 text-sm font-semibold text-white">Start 14 dagen gratis</a>
-                            @endauth
-                        </div>
-                    </article>
-
-                    {{-- Enterprise --}}
-                    <article class="pricing-reveal pricing-reveal-d4 group pricing-card flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-gradient-to-b from-slate-50/95 to-white p-6 shadow-sm ring-1 ring-slate-100/80 sm:p-7">
-                        <div class="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent opacity-70" aria-hidden="true"></div>
-                        <div class="relative min-h-[5.25rem]">
-                            <h2 class="text-xl font-bold text-slate-900 sm:text-2xl">Enterprise</h2>
-                            <p class="mt-1.5 text-sm leading-snug text-slate-500">Voor grotere organisaties en ketens</p>
-                        </div>
-                        <div class="relative mt-5">
-                            <p class="text-3xl font-extrabold text-slate-900 sm:text-4xl">Op aanvraag</p>
-                            <p class="mt-1 text-xs font-medium text-slate-400">Maatwerk & contract</p>
-                        </div>
-                        <p class="relative mt-4 min-h-[3.5rem] text-sm leading-relaxed text-slate-600">Volledig op maat ingericht voor jouw organisatie, met maximale flexibiliteit en ondersteuning.</p>
-                        <ul class="relative mt-5 flex flex-1 flex-col gap-2.5 text-sm text-slate-600">
-                            @foreach (['Onbeperkte admins & medewerkers', 'Dedicated accountmanager', 'SLA met uptime-garantie', 'Persoonlijke onboarding', 'Maatwerk integraties'] as $item)
-                                <li class="flex gap-2.5 transition-[transform] duration-200 hover:translate-x-0.5">
-                                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100/90">
-                                        <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                    </span>
-                                    <span>{{ $item }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                        <a href="{{ route('contact') }}" class="pricing-glass-btn relative mt-7 inline-flex w-full items-center justify-center rounded-2xl border border-slate-200/95 bg-white/90 py-3.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur-sm">Vraag een offerte aan</a>
-                    </article>
+        <section class="relative pb-20 pt-16 sm:pb-24">
+            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div class="pricing-reveal">
+                    <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Veelgestelde vragen</p>
+                    <h2 class="mt-2 text-2xl font-bold">Alles wat je wilt weten</h2>
                 </div>
-
-                <p class="pricing-reveal mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-slate-500">
-                    Bij het afrekenen wordt <strong class="font-semibold text-slate-700">21% btw</strong> toegepast (standaardtarief Nederland). Betaling verloopt veilig via Mollie.
-                </p>
-            </div>
-        </section>
-
-        {{-- FAQ --}}
-        <section class="border-t border-slate-100 bg-slate-50/60 pb-20 pt-2 sm:pb-24">
-            <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-                <h2 class="pricing-reveal text-center text-2xl font-extrabold text-slate-900 sm:text-3xl">Veelgestelde vragen</h2>
-                <p class="pricing-reveal pricing-reveal-d1 mx-auto mt-2 max-w-lg text-center text-sm text-slate-500 sm:text-base">Alles wat je wilt weten vóór je een plan kiest.</p>
-                <div class="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-5">
-                    <div class="pricing-reveal pricing-reveal-d1 pricing-faq-card rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-                        <div class="flex gap-3">
-                            <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/10 text-blue-600" aria-hidden="true">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3 3.75h13.5M3.375 7.5h17.25"/></svg>
-                            </span>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Hoe werkt betalen?</h3>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-600">Na je plankeuze ga je naar een beveiligde Mollie-checkout. Je abonnement wordt direct geactiveerd na betaling.</p>
-                            </div>
+                <div class="mt-7 grid gap-4 md:grid-cols-2">
+                    @foreach ([['Hoe werkt betalen?', 'Na je proefperiode ga je naar een beveiligde Mollie-checkout. Je abonnement wordt direct geactiveerd na betaling.'], ['Kan ik tussentijds wisselen?', 'Ja, op- en afschalen kan vanuit je abonnementspagina. Je betaalt naar wat je gebruikt.'], ['Wat na 14 dagen gratis?', 'Je kiest pas daarna een plan. Geen automatische incasso zonder jouw akkoord.'], ['Korting op jaarbetaling?', 'Neem contact op — voor jaarabonnementen maken we graag maatwerk.']] as [$question, $answer])
+                        <div
+                            class="pricing-reveal faq-card flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5">
+                            <span
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4f6bff]"><svg
+                                    class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
+                                    viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="8" />
+                                    <path d="m9 12 2 2 4-5" />
+                                </svg></span>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-bold">{{ $question }}</h3>
+                                <p class="mt-1.5 text-xs leading-relaxed text-slate-500">{{ $answer }}</p>
+                            </div><span class="mt-2">›</span>
                         </div>
-                    </div>
-                    <div class="pricing-reveal pricing-reveal-d2 pricing-faq-card rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-                        <div class="flex gap-3">
-                            <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/10 text-blue-600" aria-hidden="true">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 7.5 3m9 0v4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                            </span>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Kan ik tussentijds wisselen?</h3>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-600">Ja, op- en afschalen kan vanuit je abonnementspagina. Je betaalt naar wat je gebruikt.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pricing-reveal pricing-reveal-d3 pricing-faq-card rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-                        <div class="flex gap-3">
-                            <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/10 text-emerald-700" aria-hidden="true">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </span>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Wat na 14 dagen gratis?</h3>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-600">Je kiest pas daarna een plan. Geen automatische incasso zonder jouw akkoord.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pricing-reveal pricing-reveal-d4 pricing-faq-card rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-                        <div class="flex gap-3">
-                            <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/15 to-fuchsia-500/10 text-violet-700" aria-hidden="true">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-                            </span>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Korting op jaarbetaling?</h3>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-600">Neem contact op — voor jaarabonnementen maken we graag maatwerk.</p>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
-
-                <div class="pricing-reveal pricing-cta-bottom relative mt-12 rounded-3xl border border-slate-200/90 p-8 text-center shadow-md sm:p-10">
-                    <p class="relative text-lg font-bold text-slate-900">Nog twijfels?</p>
-                    <p class="relative mx-auto mt-2 max-w-md text-sm text-slate-600">We laten je graag in een kort gesprek zien hoe TaskCheck in jouw processen past.</p>
-                    <div class="relative mt-6 flex flex-wrap justify-center gap-3">
-                        <a href="{{ route('contact') }}" class="cta-btn inline-flex items-center gap-2 rounded-2xl px-7 py-3.5 text-sm font-bold text-white">Plan een demo</a>
-                        <a href="{{ route('welcome') }}" class="pricing-glass-btn inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-7 py-3.5 text-sm font-bold text-slate-700 shadow-sm backdrop-blur-sm">Terug naar homepage</a>
+                <div
+                    class="pricing-reveal mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
+                    <div class="grid min-h-[11rem] items-center lg:grid-cols-[1.35fr_.65fr]">
+                        <div class="p-7 sm:p-9">
+                            <h2 class="text-xl font-bold">Nog twijfels?</h2>
+                            <p class="mt-2 max-w-xl text-sm text-slate-500">We laten je graag in een kort gesprek zien
+                                hoe TaskCheck in jouw processen past.</p>
+                            <div class="mt-6 flex flex-col gap-3 sm:flex-row"><a href="{{ route('contact') }}"
+                                    class="price-button inline-flex justify-center rounded-lg bg-[#4f6bff] px-6 py-3 text-xs font-bold text-white">Plan
+                                    een demo</a><a href="{{ route('welcome') }}"
+                                    class="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-6 py-3 text-xs font-bold text-slate-700 shadow-sm">Terug
+                                    naar homepage</a></div>
+                        </div>
+                        <div class="relative hidden h-full overflow-hidden lg:block"><svg
+                                class="absolute bottom-0 right-6 h-[92%] w-auto" viewBox="0 0 320 180"
+                                fill="none">
+                                <circle cx="213" cy="60" r="28" fill="#DBEAFE" />
+                                <circle cx="263" cy="66" r="25" fill="#E0E7FF" />
+                                <path d="M173 174c2-49 19-81 42-81s39 32 41 81h-83Z" fill="#BFDBFE" />
+                                <path d="M226 174c3-46 17-75 38-75 20 0 35 29 38 75h-76Z" fill="#C7D2FE" />
+                                <rect x="103" y="103" width="99" height="66" rx="6" fill="white"
+                                    stroke="#94A3B8" stroke-width="2" />
+                                <circle cx="153" cy="131" r="8" fill="#C7D2FE" />
+                                <path d="m149 131 3 3 6-7" stroke="#4F6BFF" stroke-width="2" />
+                            </svg></div>
                     </div>
                 </div>
             </div>
         </section>
-    </div>
-
+    </main>
     @include('components.footer')
-
     <script>
-        (function () {
-            var nodes = document.querySelectorAll('.pricing-reveal');
-            if (!nodes.length) return;
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                nodes.forEach(function (el) { el.classList.add('visible'); });
-                return;
-            }
-            if (!('IntersectionObserver' in window)) {
-                nodes.forEach(function (el) { el.classList.add('visible'); });
-                return;
-            }
-            var io = new IntersectionObserver(function (entries) {
-                entries.forEach(function (e) {
-                    if (!e.isIntersecting) return;
-                    e.target.classList.add('visible');
-                    io.unobserve(e.target);
+        (function() {
+            var reveals = document.querySelectorAll('.pricing-reveal');
+            var cards = document.querySelectorAll('[data-pricing-card]');
+            cards.forEach(function(card, index) {
+                card.classList.add('pricing-reveal', 'pricing-reveal-delay-' + Math.min(index + 1, 3));
+            });
+
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+                document.querySelectorAll('.pricing-reveal').forEach(function(element) {
+                    element.classList.add('is-visible');
                 });
-            }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
-            nodes.forEach(function (el) { io.observe(el); });
+                return;
+            }
+
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                });
+            }, {
+                threshold: .08,
+                rootMargin: '0px 0px -30px 0px'
+            });
+
+            document.querySelectorAll('.pricing-reveal').forEach(function(element) {
+                observer.observe(element);
+            });
         })();
     </script>
 </body>
+
 </html>
