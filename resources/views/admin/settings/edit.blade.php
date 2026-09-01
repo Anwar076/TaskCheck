@@ -22,6 +22,7 @@
                 'id' => $recipient->id, 'email' => $recipient->email, 'frequency' => $recipient->frequency,
                 'send_time' => substr((string) $recipient->send_time, 0, 5), 'weekly_day' => $recipient->weekly_day,
                 'delivery_format' => $recipient->delivery_format,
+                'sections' => $recipient->normalizedSections(),
             ])->all()));
         @endphp
         <div class="mb-6 sm:mb-8">
@@ -315,7 +316,7 @@
                 </svg>
                 Rapportage via e-mail
             </h2>
-            <p class="mb-4 text-sm text-gray-500">Maak per ontvanger een eigen dag- of weekrapportage en kies opgemaakte e-mail, PDF of beide.</p>
+            <p class="mb-4 text-sm text-gray-500">Maak per ontvanger een eigen dag- of weekrapportage en kies welke onderdelen relevant zijn.</p>
             <div id="report-recipient-list" class="space-y-3">
                 @foreach($reportRecipients as $index => $recipient)
                     @include('admin.settings.partials.report-recipient', ['index' => $index, 'recipient' => $recipient])

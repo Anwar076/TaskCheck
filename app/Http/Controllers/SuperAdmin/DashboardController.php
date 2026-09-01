@@ -4,26 +4,27 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\TaskCheckNotificationMail;
-use App\Models\Organisation\Company;
-use App\Models\Marketing\MarketingLinkCampaign;
-use App\Models\Platform\PlatformAlertLog;
-use App\Models\Platform\PlatformBroadcast;
-use App\Services\Platform\CompanyUsageService;
-use App\Services\Platform\CompanyDuplicationService;
-use App\Services\Billing\MollieService;
-use App\Services\Platform\PlatformAlertService;
-use App\Services\Platform\PlatformHealthService;
-use App\Models\Platform\IncidentTicket;
+use App\Models\Ai\AiUsageLog;
 use App\Models\Billing\Invoice;
 use App\Models\Billing\SubscriptionPlan;
-use App\Models\Communication\Notification;
-use App\Models\Submissions\Submission;
 use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskList;
-use App\Models\Ai\AiUsageLog;
+use App\Models\Communication\Notification;
+use App\Models\Marketing\MarketingLinkCampaign;
+use App\Models\Organisation\Company;
+use App\Models\Organisation\CompanyReportRecipient;
 use App\Models\Organisation\Location;
-use Carbon\Carbon;
 use App\Models\Organisation\User;
+use App\Models\Platform\IncidentTicket;
+use App\Models\Platform\PlatformAlertLog;
+use App\Models\Platform\PlatformBroadcast;
+use App\Models\Submissions\Submission;
+use App\Services\Billing\MollieService;
+use App\Services\Platform\CompanyDuplicationService;
+use App\Services\Platform\CompanyUsageService;
+use App\Services\Platform\PlatformAlertService;
+use App\Services\Platform\PlatformHealthService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,8 +38,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
@@ -169,6 +171,7 @@ class DashboardController extends Controller
             ->map(function (Company $company) {
                 $company->storage_used_gb = $company->getStorageUsedGb();
                 $company->billing_mode_label = $company->billing_required ? 'Maandelijks betalen' : 'Gratis toegang';
+
                 return $company;
             });
 
@@ -224,6 +227,7 @@ class DashboardController extends Controller
                 $itemCollection = $items instanceof \Illuminate\Support\Collection ? $items : collect([$items]);
                 /** @var Notification|null $first */
                 $first = $itemCollection->first();
+
                 return [
                     'title' => (string) ($first?->title ?? 'Platform melding'),
                     'message' => (string) ($first?->message ?? ''),
@@ -264,7 +268,7 @@ class DashboardController extends Controller
 
         $allowedTabs = ['overview', 'communications', 'companies', 'users', 'usage', 'monitoring', 'invoices', 'templates'];
         $activeDashboardTab = request()->query('tab', 'overview');
-        if (!in_array($activeDashboardTab, $allowedTabs, true)) {
+        if (! in_array($activeDashboardTab, $allowedTabs, true)) {
             $activeDashboardTab = 'overview';
         }
 
@@ -430,7 +434,7 @@ class DashboardController extends Controller
         ]);
 
         $billingRequired = (bool) ($validated['billing_required'] ?? false);
-        if (!$billingRequired && empty($validated['access_end_date'])) {
+        if (! $billingRequired && empty($validated['access_end_date'])) {
             return redirect()->back()->withErrors([
                 'access_end_date' => 'Bij gratis toegang is een einddatum verplicht.',
             ])->withInput();
@@ -587,16 +591,16 @@ class DashboardController extends Controller
         $billingRequired = (bool) ($validated['billing_required'] ?? false);
         $plan = $validated['subscription_plan'];
         $planConfig = Company::plan($plan) ?? Company::plan('starter');
-        $endDate = !empty($validated['subscription_ends_at'])
+        $endDate = ! empty($validated['subscription_ends_at'])
             ? Carbon::parse($validated['subscription_ends_at'])->endOfDay()
             : null;
-        $trialEndsAt = !empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at'])->endOfDay() : null;
-        $billingStartDate = !empty($validated['billing_start_date'])
+        $trialEndsAt = ! empty($validated['trial_ends_at']) ? Carbon::parse($validated['trial_ends_at'])->endOfDay() : null;
+        $billingStartDate = ! empty($validated['billing_start_date'])
             ? Carbon::parse($validated['billing_start_date'])->startOfDay()
             : $trialEndsAt?->copy()->startOfDay();
         $subscriptionStatus = $validated['subscription_status'];
 
-        if (!$billingRequired && $endDate) {
+        if (! $billingRequired && $endDate) {
             $subscriptionStatus = $endDate->isPast() ? 'expired' : 'active';
             $billingStartDate = null;
         }
@@ -604,12 +608,12 @@ class DashboardController extends Controller
         if ($billingRequired
             && $subscriptionStatus === 'active'
             && $trialEndsAt?->isFuture()
-            && !$company->mollie_subscription_id
-            && !$endDate) {
+            && ! $company->mollie_subscription_id
+            && ! $endDate) {
             $subscriptionStatus = 'trial';
         }
 
-        if (!$billingRequired && !$endDate && $validated['subscription_status'] === 'active') {
+        if (! $billingRequired && ! $endDate && $validated['subscription_status'] === 'active') {
             return redirect()->back()->withErrors([
                 'subscription_ends_at' => 'Bij gratis toegang is een einddatum verplicht voor actieve status.',
             ])->withInput();
@@ -619,7 +623,7 @@ class DashboardController extends Controller
         $mollieSubscriptionId = $company->mollie_subscription_id;
         if ($company->mollie_customer_id && $company->mollie_subscription_id) {
             try {
-                if (!$billingRequired || in_array($subscriptionStatus, ['cancelled', 'expired'], true)) {
+                if (! $billingRequired || in_array($subscriptionStatus, ['cancelled', 'expired'], true)) {
                     $mollieService->cancelSubscription((string) $company->mollie_customer_id, (string) $company->mollie_subscription_id);
                     $mollieSubscriptionId = null;
                 } else {
@@ -637,6 +641,7 @@ class DashboardController extends Controller
                 }
             } catch (\Throwable $exception) {
                 report($exception);
+
                 return back()->withInput()->with('error', 'De wijzigingen zijn niet opgeslagen, omdat Mollie het abonnement niet kon bijwerken: '.$exception->getMessage());
             }
         }
@@ -697,11 +702,11 @@ class DashboardController extends Controller
             $data[$field] = $request->boolean($field);
         }
 
-        if ($data['entra_enabled'] && (!$data['entra_tenant_id'] || !$data['entra_client_id'] || (!$request->filled('entra_client_secret') && !$company->entra_client_secret))) {
+        if ($data['entra_enabled'] && (! $data['entra_tenant_id'] || ! $data['entra_client_id'] || (! $request->filled('entra_client_secret') && ! $company->entra_client_secret))) {
             return back()->withErrors(['entra_enabled' => 'Tenant ID, client ID en client secret zijn verplicht om Entra te activeren.'])->withInput();
         }
 
-        if (!$request->filled('entra_client_secret')) {
+        if (! $request->filled('entra_client_secret')) {
             unset($data['entra_client_secret']);
         }
 
@@ -774,7 +779,7 @@ class DashboardController extends Controller
         }
 
         $payload = collect($validated)->except('password')->all();
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $payload['password'] = Hash::make($validated['password']);
         }
         $user->update($payload);
@@ -801,7 +806,7 @@ class DashboardController extends Controller
         abort_unless((int) $user->company_id === (int) $company->id, 404);
         abort_if($user->is(Auth::user()), 422, 'Je kunt je eigen account hier niet blokkeren.');
 
-        $user->update(['is_active' => !$user->is_active]);
+        $user->update(['is_active' => ! $user->is_active]);
 
         return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
             ->with('success', "Account van {$user->name} is ".($user->is_active ? 'geactiveerd.' : 'geblokkeerd.'));
@@ -817,12 +822,24 @@ class DashboardController extends Controller
             'report_recipients.*.send_time' => ['required', 'date_format:H:i'],
             'report_recipients.*.weekly_day' => ['nullable', 'integer', 'between:1,7'],
             'report_recipients.*.delivery_format' => ['required', Rule::in(['email', 'pdf', 'both'])],
+            'report_recipients.*.sections' => ['nullable', 'array'],
+            'report_recipients.*.sections.summary' => ['nullable', 'boolean'],
+            'report_recipients.*.sections.top_lists' => ['nullable', 'boolean'],
+            'report_recipients.*.sections.employee_performance' => ['nullable', 'boolean'],
         ]);
+
+        foreach ($validated['report_recipients'] ?? [] as $index => $recipient) {
+            if (! in_array(true, CompanyReportRecipient::normalizeSections($recipient['sections'] ?? null), true)) {
+                throw ValidationException::withMessages([
+                    "report_recipients.{$index}.sections" => 'Kies minimaal één onderdeel voor deze rapportage.',
+                ]);
+            }
+        }
 
         DB::transaction(function () use ($company, $validated) {
             $keptIds = [];
             foreach ($validated['report_recipients'] ?? [] as $row) {
-                $recipient = !empty($row['id']) ? $company->reportRecipients()->find($row['id']) : null;
+                $recipient = ! empty($row['id']) ? $company->reportRecipients()->find($row['id']) : null;
                 $recipient ??= $company->reportRecipients()->make();
                 $recipient->fill([
                     'email' => $row['email'],
@@ -830,6 +847,7 @@ class DashboardController extends Controller
                     'send_time' => $row['send_time'],
                     'weekly_day' => $row['frequency'] === 'weekly' ? ($row['weekly_day'] ?? 1) : null,
                     'delivery_format' => $row['delivery_format'],
+                    'sections' => CompanyReportRecipient::normalizeSections($row['sections'] ?? null),
                     'is_enabled' => true,
                 ])->save();
                 $keptIds[] = $recipient->id;
@@ -873,7 +891,7 @@ class DashboardController extends Controller
 
         $companies = Company::query()
             ->with(['users' => fn ($q) => $q->where('role', 'admin')->where('is_active', true)->orderBy('id')])
-            ->when(!$includeInactive, fn ($q) => $q->where('is_active', true))
+            ->when(! $includeInactive, fn ($q) => $q->where('is_active', true))
             ->get();
 
         $sent = 0;
@@ -881,8 +899,9 @@ class DashboardController extends Controller
 
         foreach ($companies as $company) {
             $recipient = $company->email ?: optional($company->users->first())->email;
-            if (!$recipient) {
+            if (! $recipient) {
                 $failed++;
+
                 continue;
             }
 
@@ -935,7 +954,7 @@ class DashboardController extends Controller
         $campaignId = (string) Str::uuid();
 
         $usersQuery = User::query()
-            ->when(!$includeInactive, fn ($q) => $q->where('is_active', true))
+            ->when(! $includeInactive, fn ($q) => $q->where('is_active', true))
             ->when(
                 $audience === 'admins',
                 fn ($q) => $q->whereIn('role', ['admin', 'super_admin'])
@@ -1005,7 +1024,7 @@ class DashboardController extends Controller
         ]);
 
         $occurredAt = null;
-        if (!empty($validated['error_occurred_at'])) {
+        if (! empty($validated['error_occurred_at'])) {
             try {
                 $occurredAt = Carbon::parse($validated['error_occurred_at']);
             } catch (\Throwable) {
@@ -1096,7 +1115,7 @@ class DashboardController extends Controller
         $apiKey = Config::get('services.openai.key');
         $model = Config::get('services.openai.model', 'gpt-4.1-mini');
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return response()->json([
                 'success' => false,
                 'message' => 'OPENAI_API_KEY ontbreekt.',
@@ -1143,14 +1162,14 @@ PROMPT;
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => 'Analyseer dit incident en geef concrete fix-richting: ' . json_encode($userPayload, JSON_UNESCAPED_UNICODE)],
+                    ['role' => 'user', 'content' => 'Analyseer dit incident en geef concrete fix-richting: '.json_encode($userPayload, JSON_UNESCAPED_UNICODE)],
                 ],
             ]);
 
-        if (!$response->ok()) {
+        if (! $response->ok()) {
             return response()->json([
                 'success' => false,
-                'message' => 'AI analyse mislukt: ' . $response->body(),
+                'message' => 'AI analyse mislukt: '.$response->body(),
             ], 500);
         }
 
@@ -1171,7 +1190,7 @@ PROMPT;
 
     public function exportInvoicesCsv(): StreamedResponse
     {
-        $filename = 'taskcheck-invoices-' . now()->timezone('Europe/Amsterdam')->format('Ymd-His') . '.csv';
+        $filename = 'taskcheck-invoices-'.now()->timezone('Europe/Amsterdam')->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function (): void {
             $handle = fopen('php://output', 'w');
@@ -1231,6 +1250,7 @@ PROMPT;
         if (str_contains($ua, 'ipad') || str_contains($ua, 'tablet')) {
             return 'tablet';
         }
+
         return 'desktop';
     }
 
@@ -1247,20 +1267,20 @@ PROMPT;
         foreach ($matches as $match) {
             $rawPath = $match[1] ?? null;
             $line = isset($match[2]) ? (int) $match[2] : null;
-            if (!$rawPath || !$line) {
+            if (! $rawPath || ! $line) {
                 continue;
             }
             $filePath = $this->resolveCodePath($rawPath);
-            if (!$filePath || isset($seen[$filePath . ':' . $line])) {
+            if (! $filePath || isset($seen[$filePath.':'.$line])) {
                 continue;
             }
-            $seen[$filePath . ':' . $line] = true;
-            if (!File::exists($filePath)) {
+            $seen[$filePath.':'.$line] = true;
+            if (! File::exists($filePath)) {
                 continue;
             }
 
             $allLines = @file($filePath);
-            if (!is_array($allLines) || empty($allLines)) {
+            if (! is_array($allLines) || empty($allLines)) {
                 continue;
             }
 
@@ -1269,7 +1289,7 @@ PROMPT;
             $chunk = [];
             for ($i = $start; $i <= $end; $i++) {
                 $prefix = $i === $line ? '>>' : '  ';
-                $chunk[] = $prefix . $i . ': ' . rtrim((string) ($allLines[$i - 1] ?? ''), "\r\n");
+                $chunk[] = $prefix.$i.': '.rtrim((string) ($allLines[$i - 1] ?? ''), "\r\n");
             }
 
             $snippets[] = [
@@ -1304,7 +1324,7 @@ PROMPT;
 
     private function collectHeuristicCodeContext(string $errorMessage, string $context): array
     {
-        $haystack = trim($errorMessage . "\n" . $context);
+        $haystack = trim($errorMessage."\n".$context);
         if ($haystack === '') {
             return [];
         }
@@ -1312,7 +1332,7 @@ PROMPT;
         preg_match_all('/\b([A-Z][A-Za-z0-9_]{4,})\b/', $haystack, $matches);
         $keywords = collect($matches[1] ?? [])
             ->map(fn (string $value) => trim($value))
-            ->filter(fn (string $value) => !in_array($value, ['Exception', 'Error', 'Class', 'Illuminate', 'Laravel'], true))
+            ->filter(fn (string $value) => ! in_array($value, ['Exception', 'Error', 'Class', 'Illuminate', 'Laravel'], true))
             ->unique()
             ->take(8)
             ->values();
@@ -1330,7 +1350,7 @@ PROMPT;
 
         $snippets = [];
         foreach ($searchRoots as $root) {
-            if (!File::isDirectory($root)) {
+            if (! File::isDirectory($root)) {
                 continue;
             }
 
@@ -1340,12 +1360,12 @@ PROMPT;
                 }
 
                 $contents = @file_get_contents($file->getPathname());
-                if (!is_string($contents) || $contents === '') {
+                if (! is_string($contents) || $contents === '') {
                     continue;
                 }
 
                 foreach ($keywords as $keyword) {
-                    if (!str_contains($contents, $keyword)) {
+                    if (! str_contains($contents, $keyword)) {
                         continue;
                     }
 
@@ -1370,7 +1390,7 @@ PROMPT;
         $candidates = ['ai_usage_logs', 'ai_usages', 'openai_usages'];
 
         foreach ($candidates as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 continue;
             }
 
@@ -1378,7 +1398,7 @@ PROMPT;
             $tokenColumn = collect(['total_tokens', 'tokens_total', 'tokens', 'token_count', 'prompt_tokens'])
                 ->first(fn ($col) => Schema::hasColumn($table, $col));
 
-            if (!$hasCompanyId || !$tokenColumn) {
+            if (! $hasCompanyId || ! $tokenColumn) {
                 continue;
             }
 
@@ -1406,12 +1426,12 @@ PROMPT;
     private function getParsedErrors(int $limit = 30): array
     {
         $logPath = storage_path('logs/laravel.log');
-        if (!File::exists($logPath)) {
+        if (! File::exists($logPath)) {
             return [];
         }
 
         $lines = @file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        if (!$lines) {
+        if (! $lines) {
             return [];
         }
 
@@ -1488,6 +1508,7 @@ PROMPT;
                 $latest['count'] = $items->count();
                 $latest['first_seen'] = $oldest['timestamp'] ?? null;
                 $latest['last_seen'] = $latest['timestamp'] ?? null;
+
                 return $latest;
             })
             ->take($limit)

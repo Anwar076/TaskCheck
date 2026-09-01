@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 class SendCompanyReportsCommand extends Command
 {
     protected $signature = 'reports:send-company {--force : Testverzending, negeert tijdstip en dubbele-check}';
+
     protected $description = 'Verstuur geplande dagelijkse en wekelijkse bedrijfsrapportages';
 
     public function handle(CompanyReportingService $reportingService): int
@@ -30,6 +31,7 @@ class SendCompanyReportsCommand extends Command
                 continue;
             }
             $report = $reportingService->buildReport($schedule->company, $schedule->frequency, $nowNl);
+            $report['sections'] = $schedule->normalizedSections();
             Mail::to($schedule->email)->send(new CompanyReportMail($schedule->company, $report, $schedule->delivery_format));
             $schedule->update(['last_sent_at' => now()]);
             $sent++;
@@ -37,6 +39,7 @@ class SendCompanyReportsCommand extends Command
         }
 
         $this->info("Totaal verstuurd: {$sent}");
+
         return self::SUCCESS;
     }
 
@@ -50,6 +53,7 @@ class SendCompanyReportsCommand extends Command
 
             return ! $lastSent || ! $lastSent->isSameWeek($nowNl);
         }
+
         return ! $lastSent || ! $lastSent->isSameDay($nowNl);
     }
 }

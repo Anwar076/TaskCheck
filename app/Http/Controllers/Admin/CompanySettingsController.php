@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organisation\Company;
-use Illuminate\Http\Request;
+use App\Models\Organisation\CompanyReportRecipient;
 use App\Services\Platform\AdminOnboardingService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -17,13 +18,14 @@ class CompanySettingsController extends Controller
     public function edit()
     {
         $company = auth()->user()->company;
-        
-        if (!$company) {
+
+        if (! $company) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'Geen organisatie gekoppeld.');
         }
 
         $company->load(['reportRecipients' => fn ($query) => $query->orderBy('id')]);
+
         return view('admin.settings.edit', compact('company'));
     }
 
@@ -34,7 +36,7 @@ class CompanySettingsController extends Controller
     {
         $company = auth()->user()->company;
 
-        if (!$company) {
+        if (! $company) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'Geen organisatie gekoppeld.');
         }
@@ -71,6 +73,10 @@ class CompanySettingsController extends Controller
             'report_recipients.*.send_time' => ['required', 'date_format:H:i'],
             'report_recipients.*.weekly_day' => ['nullable', 'integer', 'between:1,7'],
             'report_recipients.*.delivery_format' => ['required', 'in:email,pdf,both'],
+            'report_recipients.*.sections' => ['nullable', 'array'],
+            'report_recipients.*.sections.summary' => ['nullable', 'boolean'],
+            'report_recipients.*.sections.top_lists' => ['nullable', 'boolean'],
+            'report_recipients.*.sections.employee_performance' => ['nullable', 'boolean'],
             'logo' => [
                 'nullable',
                 'image',
@@ -79,6 +85,14 @@ class CompanySettingsController extends Controller
             ],
             'remove_logo' => ['nullable', 'boolean'],
         ]);
+
+        foreach ($validated['report_recipients'] ?? [] as $index => $recipient) {
+            if (! in_array(true, CompanyReportRecipient::normalizeSections($recipient['sections'] ?? null), true)) {
+                throw ValidationException::withMessages([
+                    "report_recipients.{$index}.sections" => 'Kies minimaal één onderdeel voor deze rapportage.',
+                ]);
+            }
+        }
 
         foreach (Company::WEEKDAYS as $day => $label) {
             $defaults = Company::defaultWorkingHours()[$day];
@@ -105,7 +119,7 @@ class CompanySettingsController extends Controller
         $validated['phone'] = preg_replace('/\D+/', '', (string) ($validated['phone'] ?? ''));
 
         $departmentInput = [];
-        if (!empty($validated['departments']) && is_array($validated['departments'])) {
+        if (! empty($validated['departments']) && is_array($validated['departments'])) {
             $departmentInput = $validated['departments'];
         } else {
             $departmentInput = preg_split('/\r\n|\r|\n/', (string) ($validated['departments_text'] ?? ''));
@@ -119,7 +133,7 @@ class CompanySettingsController extends Controller
             ->values()
             ->all();
 
-        $validated['departments'] = !empty($departments) ? $departments : null;
+        $validated['departments'] = ! empty($departments) ? $departments : null;
         $validated['working_hours'] = collect(Company::defaultWorkingHours())
             ->mapWithKeys(function (array $defaults, string $day) use ($validated) {
                 $input = $validated['working_hours'][$day] ?? [];
@@ -144,7 +158,7 @@ class CompanySettingsController extends Controller
         }
 
         // Handle logo upload
-        if (!$removeLogo && $request->hasFile('logo')) {
+        if (! $removeLogo && $request->hasFile('logo')) {
             // Delete old logo if exists
             if ($company->logo_path) {
                 Storage::disk('public')->delete($company->logo_path);
@@ -159,7 +173,7 @@ class CompanySettingsController extends Controller
         $company->update($validated);
         $keptIds = [];
         foreach ($recipientRows as $row) {
-            $recipient = !empty($row['id']) ? $company->reportRecipients()->find($row['id']) : null;
+            $recipient = ! empty($row['id']) ? $company->reportRecipients()->find($row['id']) : null;
             $recipient ??= $company->reportRecipients()->make();
             $recipient->fill([
                 'email' => $row['email'],
@@ -167,6 +181,7 @@ class CompanySettingsController extends Controller
                 'send_time' => $row['send_time'],
                 'weekly_day' => $row['frequency'] === Company::REPORTING_FREQUENCY_WEEKLY ? ($row['weekly_day'] ?? 1) : null,
                 'delivery_format' => $row['delivery_format'],
+                'sections' => CompanyReportRecipient::normalizeSections($row['sections'] ?? null),
                 'is_enabled' => true,
             ])->save();
             $keptIds[] = $recipient->id;

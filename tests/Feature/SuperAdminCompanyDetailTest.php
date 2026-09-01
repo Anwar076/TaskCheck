@@ -3,13 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\Checklist\TaskList;
-use App\Models\Organisation\Location;
 use App\Models\Organisation\Company;
+use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class SuperAdminCompanyDetailTest extends TestCase
@@ -598,13 +598,17 @@ class SuperAdminCompanyDetailTest extends TestCase
 
         $this->actingAs($admin)->put(route('super-admin.companies.reporting.update', $company), [
             'report_recipients' => [
-                ['email' => 'dag@example.test', 'frequency' => 'daily', 'send_time' => '18:00', 'delivery_format' => 'pdf'],
+                ['email' => 'dag@example.test', 'frequency' => 'daily', 'send_time' => '18:00', 'delivery_format' => 'pdf', 'sections' => ['summary' => 1, 'top_lists' => 1, 'employee_performance' => 0]],
                 ['email' => 'week@example.test', 'frequency' => 'weekly', 'weekly_day' => 1, 'send_time' => '20:00', 'delivery_format' => 'both'],
             ],
         ])->assertRedirect(route('super-admin.companies.show', ['company' => $company, 'section' => 'reporting']));
 
         $this->assertDatabaseHas('company_report_recipients', ['company_id' => $company->id, 'email' => 'dag@example.test', 'frequency' => 'daily', 'delivery_format' => 'pdf']);
         $this->assertDatabaseHas('company_report_recipients', ['company_id' => $company->id, 'email' => 'week@example.test', 'frequency' => 'weekly', 'weekly_day' => 1, 'delivery_format' => 'both']);
+        $this->assertSame(
+            ['summary' => true, 'top_lists' => true, 'employee_performance' => false],
+            $company->reportRecipients()->where('email', 'dag@example.test')->firstOrFail()->sections
+        );
 
         $this->actingAs($admin)
             ->get(route('super-admin.companies.show', ['company' => $company, 'section' => 'reporting']))

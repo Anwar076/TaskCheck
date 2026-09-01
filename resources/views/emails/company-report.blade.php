@@ -15,6 +15,7 @@
     $periodStart = $report['period_start'] ?? null;
     $periodEnd = $report['period_end'] ?? null;
     $periodGrowth = $summary['period_growth'] ?? 0;
+    $sections = \App\Models\Organisation\CompanyReportRecipient::normalizeSections($report['sections'] ?? null);
     $hasData = (bool) ($report['has_data'] ?? (($summary['total_lists'] ?? 0) > 0));
     $periodLabel = $periodStart?->locale('nl')->translatedFormat('d M Y');
     if ($periodStart && $periodEnd && ! $periodStart->isSameDay($periodEnd)) {
@@ -49,6 +50,7 @@
             </tr>
         </table>
     @else
+        @if($sections['summary'])
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 20px;background:#f8fafc;border-radius:8px;">
             <tr>
                 <td style="padding:12px 14px;color:#475569;">Lijsten ingediend</td>
@@ -93,8 +95,9 @@
             </tr>
             @endif
         </table>
+        @endif
 
-        @if(!empty($employeeOverview))
+        @if($sections['employee_performance'] && !empty($employeeOverview))
             <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Prestaties medewerkers</h2>
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 20px;font-size:13px;">
                 <tr>
@@ -117,7 +120,7 @@
             </table>
         @endif
 
-        @if(!empty($topLists))
+        @if($sections['top_lists'] && !empty($topLists))
             <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Meest gebruikte lijsten</h2>
             <ul style="margin:0 0 18px;padding-left:18px;color:#334155;">
                 @foreach($topLists as $item)
