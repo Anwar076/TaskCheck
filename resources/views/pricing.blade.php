@@ -502,11 +502,9 @@
                                     class="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-6 py-3 text-xs font-bold text-slate-700 shadow-sm">Terug
                                     naar homepage</a></div>
                         </div>
-                        <div class="pricing-final-cta-media relative h-full min-h-[11rem] overflow-hidden">
-                            <img src="{{ asset('images/oplossing-taskcheck-multi-sector.png') }}"
-                                alt="TaskCheck in gebruik bij een operationeel team"
-                                class="absolute inset-0 h-full w-full object-cover object-center">
-                            <div class="absolute inset-0 bg-gradient-to-r from-white via-white/35 to-transparent"></div>
+                        <div class="pricing-final-cta-media relative h-full overflow-hidden" role="img"
+                            aria-label="TaskCheck in gebruik bij een operationeel team"
+                            style="background-image:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.58) 32%,rgba(255,255,255,.08) 62%,rgba(255,255,255,0) 100%),url('{{ asset('images/oplossing-taskcheck-multi-sector.png') }}');background-position:center;background-size:cover;background-repeat:no-repeat">
                         </div>
                     </div>
                 </div>
