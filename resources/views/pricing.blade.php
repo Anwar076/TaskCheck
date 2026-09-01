@@ -198,6 +198,20 @@
             padding-bottom: .25rem
         }
 
+        .enterprise-benefits-column,
+        .enterprise-advice-column {
+            display: flex;
+            flex-direction: column
+        }
+
+        .enterprise-benefits-column {
+            justify-content: center
+        }
+
+        .enterprise-advice-column {
+            justify-content: center
+        }
+
         .pricing-final-cta {
             min-height: 11rem
         }
@@ -444,8 +458,8 @@
                                 <path d="m211 92 7 7 15-18" stroke="#3659D9" stroke-width="3" />
                             </svg>
                         </div>
-                        <div class="enterprise-column p-7 sm:p-9">
-                            <ul>
+                        <div class="enterprise-column enterprise-benefits-column p-7 sm:p-9">
+                            <ul class="w-full">
                                 @foreach (['Onbeperkte admins & medewerkers', 'Dedicated accountmanager', 'SLA met uptime-garantie', 'Persoonlijke onboarding', 'Maatwerk integraties'] as $item)
                                     <li class="enterprise-feature">
                                         <span
@@ -459,7 +473,7 @@
                                 @endforeach
                             </ul>
                         </div>
-                        <div class="enterprise-column p-7 sm:p-9">
+                        <div class="enterprise-column enterprise-advice-column p-7 sm:p-9">
                             <div class="flex items-start gap-4"><span
                                     class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-blue-700"><svg
                                         class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
