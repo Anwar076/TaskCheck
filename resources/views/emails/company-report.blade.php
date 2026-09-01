@@ -25,14 +25,13 @@
     }
 @endphp
 
-    <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#0f172a;">
-        {{ $report['title'] ?? 'Rapportage' }}
-    </h1>
-
-    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#334155;">
-        <strong>{{ $report['period_description'] ?? 'Periode' }}</strong>:
-        {{ $periodLabel }}
-    </p>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 22px;border-radius:12px;background-color:#eef2ff;border:1px solid #dbeafe;">
+        <tr><td style="padding:18px 20px;">
+            <p style="margin:0 0 5px;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#4f46e5;">{{ $report['period_description'] ?? 'Periode' }}</p>
+            <h1 style="margin:0 0 6px;font-size:22px;line-height:1.3;color:#0f172a;">{{ $report['title'] ?? 'Rapportage' }}</h1>
+            <p style="margin:0;font-size:14px;line-height:1.6;color:#64748b;">{{ $periodLabel }}</p>
+        </td></tr>
+    </table>
 
     @if(! $hasData)
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;border:1px solid #e2e8f0;border-radius:10px;background-color:#f8fafc;">
@@ -53,7 +52,8 @@
         </table>
     @else
         @if($sections['summary'])
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 20px;background:#f8fafc;border-radius:8px;">
+        <h2 style="margin:0 0 10px;padding-left:10px;border-left:4px solid #4f46e5;font-size:16px;color:#0f172a;">Samenvatting</h2>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0;margin:0 0 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
             <tr>
                 <td style="padding:12px 14px;color:#475569;">Lijsten ingediend</td>
                 <td style="padding:12px 14px;text-align:right;font-weight:700;color:#0f172a;">{{ $summary['total_lists'] ?? 0 }}</td>
@@ -100,8 +100,8 @@
         @endif
 
         @if($sections['employee_performance'] && !empty($employeeOverview))
-            <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Prestaties medewerkers</h2>
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 20px;font-size:13px;">
+            <h2 style="margin:0 0 10px;padding-left:10px;border-left:4px solid #4f46e5;font-size:16px;color:#0f172a;">Prestaties medewerkers</h2>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 24px;font-size:13px;border:1px solid #e2e8f0;border-radius:10px;">
                 <tr>
                     <th align="left" style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#64748b;">Medewerker</th>
                     <th align="right" style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#64748b;">Lijsten</th>
@@ -123,8 +123,8 @@
         @endif
 
         @if($sections['top_lists'] && !empty($topLists))
-            <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Meest gebruikte lijsten</h2>
-            <ul style="margin:0 0 18px;padding-left:18px;color:#334155;">
+            <h2 style="margin:0 0 10px;padding-left:10px;border-left:4px solid #4f46e5;font-size:16px;color:#0f172a;">Meest gebruikte lijsten</h2>
+            <ul style="margin:0 0 24px;padding:14px 18px 8px 36px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#334155;">
                 @foreach($topLists as $item)
                     <li style="margin:0 0 6px;">
                         {{ $item['title'] }} - <strong>{{ $item['submissions_count'] }}</strong> inzendingen
@@ -134,11 +134,11 @@
         @endif
 
         @if($sections['attention_points'])
-            <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Opmerkingen &amp; afwijkingen</h2>
+            <h2 style="margin:0 0 10px;padding-left:10px;border-left:4px solid #f59e0b;font-size:16px;color:#0f172a;">Opmerkingen &amp; afwijkingen</h2>
             @forelse($attentionPoints as $list)
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 12px;border:1px solid #e2e8f0;border-radius:8px;">
                     <tr>
-                        <td style="padding:10px 12px;background:#f8fafc;font-size:14px;font-weight:700;color:#0f172a;">
+                        <td style="padding:10px 12px;background:#fffbeb;font-size:14px;font-weight:700;color:#92400e;">
                             {{ $list['list_title'] }}
                             @if(!empty($list['employee_name']))<span style="font-weight:400;color:#64748b;"> · {{ $list['employee_name'] }}</span>@endif
                         </td>
@@ -146,7 +146,7 @@
                     @foreach($list['items'] as $item)
                         <tr><td style="padding:10px 12px;border-top:1px solid #e2e8f0;color:#334155;">
                             <strong>{{ $item['task_title'] }}</strong><br>
-                            <span style="color:#64748b;">{{ implode(' · ', $item['messages']) }}</span>
+                            <span style="color:#92400e;">{{ implode(' · ', $item['messages']) }}</span>
                         </td></tr>
                     @endforeach
                 </table>
@@ -157,10 +157,10 @@
 
 
         @if($sections['task_overview'])
-            <h2 style="margin:0 0 10px;font-size:16px;color:#0f172a;">Individuele taken</h2>
+            <h2 style="margin:0 0 10px;padding-left:10px;border-left:4px solid #4f46e5;font-size:16px;color:#0f172a;">Individuele taken</h2>
             @forelse($taskOverview as $list)
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 12px;border:1px solid #e2e8f0;border-radius:8px;">
-                    <tr><td colspan="2" style="padding:10px 12px;background:#f8fafc;font-size:14px;font-weight:700;color:#0f172a;">
+                    <tr><td colspan="2" style="padding:10px 12px;background:#eef2ff;font-size:14px;font-weight:700;color:#312e81;">
                         {{ $list['list_title'] }}
                         @if(!empty($list['employee_name']))<span style="font-weight:400;color:#64748b;"> · {{ $list['employee_name'] }}</span>@endif
                     </td></tr>
@@ -180,7 +180,7 @@
     @endif
 
     <p style="margin:0;">
-        <a href="{{ $report['overview_url'] ?? route('admin.dashboard') }}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:600;">
+        <a class="tc-btn" href="{{ $report['overview_url'] ?? route('admin.dashboard') }}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:9px;font-weight:700;box-shadow:0 6px 14px rgba(79,70,229,.18);">
             Bekijk volledig overzicht
         </a>
     </p>

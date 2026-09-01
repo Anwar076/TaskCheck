@@ -1,9 +1,11 @@
-<!doctype html><html lang="nl"><head><meta charset="utf-8"><style>body{font-family:DejaVu Sans,sans-serif;color:#0f172a;font-size:11px}h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b}.cards{width:100%;margin:22px 0;border-collapse:collapse}.cards td{width:25%;padding:12px;border:1px solid #e2e8f0}.value{font-size:20px;font-weight:bold;margin-top:5px}table.data{width:100%;border-collapse:collapse;margin-top:10px}table.data th,table.data td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}table.data th{background:#f8fafc;color:#475569}.right{text-align:right!important}</style></head><body>
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><style>
+@page{margin:28px 32px}body{font-family:DejaVu Sans,sans-serif;color:#172033;font-size:10.5px;line-height:1.45}.brand{background:#4f46e5;color:#fff;padding:18px 20px;margin:-28px -32px 24px}.brand h1{font-size:22px;margin:0 0 3px}.brand p{margin:0;color:#dbeafe}.muted{color:#64748b}h2{font-size:14px;margin:24px 0 8px;padding:7px 10px;border-left:4px solid #4f46e5;background:#eef2ff;color:#312e81}h3{font-size:11px;color:#172033}.cards{width:100%;margin:18px 0;border-collapse:separate;border-spacing:6px}.cards td{width:25%;padding:12px;border:1px solid #dbeafe;background:#f8faff;border-radius:7px}.value{font-size:20px;font-weight:bold;margin-top:5px;color:#4f46e5}table.data{width:100%;border-collapse:collapse;margin:6px 0 14px;border:1px solid #e2e8f0}table.data th,table.data td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}table.data th{background:#f1f5f9;color:#475569;font-size:9px;text-transform:uppercase;letter-spacing:.3px}.right{text-align:right!important}.ok{color:#059669;font-weight:bold}.open{color:#dc2626;font-weight:bold}.attention h2{border-color:#f59e0b;background:#fffbeb;color:#92400e}.footer{margin-top:26px;padding-top:10px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:9px}
+</style></head><body>
 @php
     $summary = $report['summary'] ?? [];
     $sections = \App\Models\Organisation\CompanyReportRecipient::normalizeSections($report['sections'] ?? null);
 @endphp
-<h1>{{ $report['title'] }} — {{ $company->name }}</h1><p class="muted">{{ $report['period_start']->format('d-m-Y') }} t/m {{ $report['period_end']->format('d-m-Y') }}</p>
+<div class="brand"><h1>TaskCheck · {{ $report['title'] }}</h1><p>{{ $company->name }} &nbsp;|&nbsp; {{ $report['period_start']->format('d-m-Y') }} t/m {{ $report['period_end']->format('d-m-Y') }}</p></div>
 @if($sections['summary'])
 <table class="cards"><tr>@foreach([['Ingediend',$summary['total_lists'] ?? 0],['Afgerond',$summary['finished'] ?? 0],['Nog bezig',$summary['in_progress'] ?? 0],['Voltooiing',($summary['completion_rate'] ?? 0).'%']] as [$label,$value])<td><span class="muted">{{ $label }}</span><div class="value">{{ $value }}</div></td>@endforeach</tr></table>
 <h2>Samenvatting</h2><table class="data"><tbody><tr><td>Voltooid</td><td class="right">{{ $summary['completed'] ?? 0 }}</td><td>Beoordeeld</td><td class="right">{{ $summary['reviewed'] ?? 0 }}</td></tr><tr><td>Afgekeurd</td><td class="right">{{ $summary['rejected'] ?? 0 }}</td><td>Actieve medewerkers</td><td class="right">{{ $summary['active_employees'] ?? 0 }} / {{ $summary['total_employees'] ?? 0 }}</td></tr><tr><td>Gemiddeld per medewerker</td><td class="right">{{ $summary['avg_lists_per_employee'] ?? 0 }}</td><td>Productiviteit</td><td class="right">{{ $summary['productivity_score'] ?? '-' }}</td></tr></tbody></table>
@@ -15,6 +17,7 @@
 <h2>Meest gebruikte lijsten</h2><table class="data"><thead><tr><th>Lijst</th><th class="right">Inzendingen</th></tr></thead><tbody>@forelse($report['top_lists'] ?? [] as $item)<tr><td>{{ $item['title'] }}</td><td class="right">{{ $item['submissions_count'] }}</td></tr>@empty<tr><td colspan="2">Geen gegevens in deze periode.</td></tr>@endforelse</tbody></table>
 @endif
 @if($sections['attention_points'])
+<div class="attention">
 <h2>Opmerkingen &amp; afwijkingen</h2>
 @forelse($report['attention_points'] ?? [] as $list)
 <h3 style="margin-bottom:3px">{{ $list['list_title'] }}@if(!empty($list['employee_name'])) <span class="muted">· {{ $list['employee_name'] }}</span>@endif</h3>
@@ -22,14 +25,15 @@
 @empty
 <p class="muted">Geen opmerkingen of afwijkingen in deze periode.</p>
 @endforelse
+</div>
 @endif
 @if($sections['task_overview'])
 <h2>Individuele taken</h2>
 @forelse($report['task_overview'] ?? [] as $list)
 <h3 style="margin-bottom:3px">{{ $list['list_title'] }}@if(!empty($list['employee_name'])) <span class="muted">· {{ $list['employee_name'] }}</span>@endif</h3>
-<table class="data"><thead><tr><th>Taak</th><th class="right">Status</th></tr></thead><tbody>@forelse($list['tasks'] as $task)<tr><td>{{ $task['title'] }}</td><td class="right">{{ $task['status_label'] }}</td></tr>@empty<tr><td colspan="2">Geen taken gevonden.</td></tr>@endforelse</tbody></table>
+<table class="data"><thead><tr><th>Taak</th><th class="right">Status</th></tr></thead><tbody>@forelse($list['tasks'] as $task)<tr><td>{{ $task['title'] }}</td><td class="right {{ $task['is_finished'] ? 'ok' : 'open' }}">{{ $task['is_finished'] ? '✓' : '!' }} {{ $task['status_label'] }}</td></tr>@empty<tr><td colspan="2">Geen taken gevonden.</td></tr>@endforelse</tbody></table>
 @empty
 <p class="muted">Geen taken in deze periode.</p>
 @endforelse
 @endif
-<p class="muted" style="margin-top:24px">Gegenereerd door TaskCheck op {{ $report['generated_at']->format('d-m-Y H:i') }}</p></body></html>
+<p class="footer">Gegenereerd door TaskCheck op {{ $report['generated_at']->format('d-m-Y H:i') }}</p></body></html>
