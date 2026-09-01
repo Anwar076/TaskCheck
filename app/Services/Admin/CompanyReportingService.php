@@ -60,7 +60,7 @@ class CompanyReportingService
         $employeeOverview = $this->weeklyOverviewService->buildEmployeeOverview($companyId, $periodStart, $periodEnd);
         $topLists = $this->weeklyOverviewService->buildTopLists($companyId, $periodStart, $periodEnd, null, 10);
         $attentionPoints = $this->weeklyOverviewService->buildAttentionPoints($companyId, $periodStart, $periodEnd);
-        $taskOverview = $this->weeklyOverviewService->buildTaskOverview($companyId, $periodStart, $periodEnd);
+        $taskSummary = $this->weeklyOverviewService->buildTaskSummary($companyId, $periodStart, $periodEnd);
 
         $totalEmployees = User::query()
             ->where('company_id', $companyId)
@@ -74,6 +74,9 @@ class CompanyReportingService
         $summary['avg_lists_per_employee'] = $activeEmployees > 0
             ? round($summary['total_lists'] / $activeEmployees, 1)
             : 0;
+        $summary['total_tasks'] = $taskSummary['total'];
+        $summary['finished_tasks'] = $taskSummary['finished'];
+        $summary['unfinished_tasks'] = $taskSummary['unfinished'];
 
         if ($frequency === Company::REPORTING_FREQUENCY_DAILY) {
             $previousDayStart = $periodStart->copy()->subDay()->startOfDay();
@@ -106,7 +109,6 @@ class CompanyReportingService
             ),
             'top_lists' => $topLists,
             'attention_points' => $attentionPoints,
-            'task_overview' => $taskOverview,
             'overview_url' => route('admin.weekly-overview', [
                 'start_date' => $periodStart->toDateString(),
                 'end_date' => $periodEnd->toDateString(),

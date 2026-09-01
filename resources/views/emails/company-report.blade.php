@@ -13,7 +13,6 @@
     $employeeOverview = $report['employee_overview'] ?? [];
     $topLists = $report['top_lists'] ?? [];
     $attentionPoints = $report['attention_points'] ?? [];
-    $taskOverview = $report['task_overview'] ?? [];
     $periodStart = $report['period_start'] ?? null;
     $periodEnd = $report['period_end'] ?? null;
     $periodGrowth = $summary['period_growth'] ?? 0;
@@ -90,6 +89,14 @@
                 <td style="padding:12px 14px;color:#475569;">Actieve medewerkers</td>
                 <td style="padding:12px 14px;text-align:right;font-weight:700;color:#0f172a;">{{ $summary['active_employees'] ?? 0 }} van {{ $summary['total_employees'] ?? 0 }}</td>
             </tr>
+            <tr>
+                <td style="padding:12px 14px;color:#475569;border-top:1px solid #e2e8f0;">Taken afgerond</td>
+                <td style="padding:12px 14px;text-align:right;font-weight:700;color:#059669;border-top:1px solid #e2e8f0;">{{ $summary['finished_tasks'] ?? 0 }} van {{ $summary['total_tasks'] ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td style="padding:12px 14px;color:#475569;">Taken niet afgerond</td>
+                <td style="padding:12px 14px;text-align:right;font-weight:700;color:#dc2626;">{{ $summary['unfinished_tasks'] ?? 0 }}</td>
+            </tr>
             @if($periodGrowth != 0)
             <tr>
                 <td style="padding:12px 14px;color:#475569;">Verschil t.o.v. vorige periode</td>
@@ -152,29 +159,6 @@
                 </table>
             @empty
                 <p style="margin:0 0 20px;font-size:14px;color:#64748b;">Geen opmerkingen of afwijkingen in deze periode.</p>
-            @endforelse
-        @endif
-
-
-        @if($sections['task_overview'])
-            <h2 style="margin:0 0 10px;padding-left:10px;border-left:4px solid #4f46e5;font-size:16px;color:#0f172a;">Individuele taken</h2>
-            @forelse($taskOverview as $list)
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 12px;border:1px solid #e2e8f0;border-radius:8px;">
-                    <tr><td colspan="2" style="padding:10px 12px;background:#eef2ff;font-size:14px;font-weight:700;color:#312e81;">
-                        {{ $list['list_title'] }}
-                        @if(!empty($list['employee_name']))<span style="font-weight:400;color:#64748b;"> · {{ $list['employee_name'] }}</span>@endif
-                    </td></tr>
-                    @forelse($list['tasks'] as $task)
-                        <tr>
-                            <td style="padding:8px 12px;border-top:1px solid #e2e8f0;color:#334155;">{{ $task['title'] }}</td>
-                            <td align="right" style="padding:8px 12px;border-top:1px solid #e2e8f0;font-weight:600;color:{{ $task['is_finished'] ? '#059669' : '#dc2626' }};">{{ $task['status_label'] }}</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="2" style="padding:8px 12px;color:#64748b;">Geen taken gevonden.</td></tr>
-                    @endforelse
-                </table>
-            @empty
-                <p style="margin:0 0 20px;font-size:14px;color:#64748b;">Geen taken in deze periode.</p>
             @endforelse
         @endif
     @endif

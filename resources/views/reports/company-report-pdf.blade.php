@@ -8,7 +8,7 @@
 <div class="brand"><h1>TaskCheck · {{ $report['title'] }}</h1><p>{{ $company->name }} &nbsp;|&nbsp; {{ $report['period_start']->format('d-m-Y') }} t/m {{ $report['period_end']->format('d-m-Y') }}</p></div>
 @if($sections['summary'])
 <table class="cards"><tr>@foreach([['Ingediend',$summary['total_lists'] ?? 0],['Afgerond',$summary['finished'] ?? 0],['Nog bezig',$summary['in_progress'] ?? 0],['Voltooiing',($summary['completion_rate'] ?? 0).'%']] as [$label,$value])<td><span class="muted">{{ $label }}</span><div class="value">{{ $value }}</div></td>@endforeach</tr></table>
-<h2>Samenvatting</h2><table class="data"><tbody><tr><td>Voltooid</td><td class="right">{{ $summary['completed'] ?? 0 }}</td><td>Beoordeeld</td><td class="right">{{ $summary['reviewed'] ?? 0 }}</td></tr><tr><td>Afgekeurd</td><td class="right">{{ $summary['rejected'] ?? 0 }}</td><td>Actieve medewerkers</td><td class="right">{{ $summary['active_employees'] ?? 0 }} / {{ $summary['total_employees'] ?? 0 }}</td></tr><tr><td>Gemiddeld per medewerker</td><td class="right">{{ $summary['avg_lists_per_employee'] ?? 0 }}</td><td>Productiviteit</td><td class="right">{{ $summary['productivity_score'] ?? '-' }}</td></tr></tbody></table>
+<h2>Samenvatting</h2><table class="data"><tbody><tr><td>Voltooide lijsten</td><td class="right">{{ $summary['completed'] ?? 0 }}</td><td>Beoordeelde lijsten</td><td class="right">{{ $summary['reviewed'] ?? 0 }}</td></tr><tr><td>Afgekeurde lijsten</td><td class="right">{{ $summary['rejected'] ?? 0 }}</td><td>Actieve medewerkers</td><td class="right">{{ $summary['active_employees'] ?? 0 }} / {{ $summary['total_employees'] ?? 0 }}</td></tr><tr><td>Taken afgerond</td><td class="right ok">{{ $summary['finished_tasks'] ?? 0 }} / {{ $summary['total_tasks'] ?? 0 }}</td><td>Taken niet afgerond</td><td class="right open">{{ $summary['unfinished_tasks'] ?? 0 }}</td></tr><tr><td>Gemiddeld per medewerker</td><td class="right">{{ $summary['avg_lists_per_employee'] ?? 0 }}</td><td>Productiviteit</td><td class="right">{{ $summary['productivity_score'] ?? '-' }}</td></tr></tbody></table>
 @endif
 @if($sections['employee_performance'])
 <h2>Prestaties medewerkers</h2><table class="data"><thead><tr><th>Medewerker</th><th class="right">Lijsten</th><th class="right">Afgerond</th><th class="right">Bezig</th><th class="right">Afgekeurd</th><th class="right">Voltooiing</th></tr></thead><tbody>@forelse($report['employee_overview'] ?? [] as $employee)<tr><td>{{ $employee['name'] }}</td><td class="right">{{ $employee['total_submissions'] }}</td><td class="right">{{ $employee['finished'] }}</td><td class="right">{{ $employee['in_progress'] }}</td><td class="right">{{ $employee['rejected'] }}</td><td class="right">{{ $employee['completion_rate'] }}%</td></tr>@empty<tr><td colspan="6">Geen gegevens in deze periode.</td></tr>@endforelse</tbody></table>
@@ -26,14 +26,5 @@
 <p class="muted">Geen opmerkingen of afwijkingen in deze periode.</p>
 @endforelse
 </div>
-@endif
-@if($sections['task_overview'])
-<h2>Individuele taken</h2>
-@forelse($report['task_overview'] ?? [] as $list)
-<h3 style="margin-bottom:3px">{{ $list['list_title'] }}@if(!empty($list['employee_name'])) <span class="muted">· {{ $list['employee_name'] }}</span>@endif</h3>
-<table class="data"><thead><tr><th>Taak</th><th class="right">Status</th></tr></thead><tbody>@forelse($list['tasks'] as $task)<tr><td>{{ $task['title'] }}</td><td class="right {{ $task['is_finished'] ? 'ok' : 'open' }}">{{ $task['is_finished'] ? '✓' : '!' }} {{ $task['status_label'] }}</td></tr>@empty<tr><td colspan="2">Geen taken gevonden.</td></tr>@endforelse</tbody></table>
-@empty
-<p class="muted">Geen taken in deze periode.</p>
-@endforelse
 @endif
 <p class="footer">Gegenereerd door TaskCheck op {{ $report['generated_at']->format('d-m-Y H:i') }}</p></body></html>
