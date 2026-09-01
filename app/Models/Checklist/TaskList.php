@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @property int $id
  */
@@ -9,13 +10,13 @@ use App\Models\Organisation\Company;
 use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\BelongsToCompany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class TaskList extends Model
 {
-    use HasFactory, BelongsToCompany;
+    use BelongsToCompany, HasFactory;
 
     protected $table = 'lists';
 
@@ -35,6 +36,7 @@ class TaskList extends Model
         'policy_reference',
         'requires_signature',
         'requires_review',
+        'auto_accept_without_review',
         'is_template',
         'is_active',
         'template_id',
@@ -51,6 +53,7 @@ class TaskList extends Model
             'due_date' => 'datetime',
             'requires_signature' => 'boolean',
             'requires_review' => 'boolean',
+            'auto_accept_without_review' => 'boolean',
             'is_template' => 'boolean',
             'is_active' => 'boolean',
         ];
@@ -151,16 +154,17 @@ class TaskList extends Model
     public function scopeForToday($query)
     {
         $today = strtolower(now()->format('l')); // 'monday', 'tuesday', etc.
-        return $query->where(function($q) use ($today) {
+
+        return $query->where(function ($q) use ($today) {
             // Include one-time lists
             $q->where('schedule_type', 'once')
               // Include daily lists
-              ->orWhere('schedule_type', 'daily')
+                ->orWhere('schedule_type', 'daily')
               // Include weekly/custom lists that are scheduled for today
-              ->orWhere(function($subQ) use ($today) {
-                  $subQ->whereIn('schedule_type', ['weekly', 'custom'])
-                       ->whereRaw("JSON_CONTAINS(JSON_EXTRACT(schedule_config, '$.show_on_days'), ?)", ['"'.$today.'"']);
-              });
+                ->orWhere(function ($subQ) use ($today) {
+                    $subQ->whereIn('schedule_type', ['weekly', 'custom'])
+                        ->whereRaw("JSON_CONTAINS(JSON_EXTRACT(schedule_config, '$.show_on_days'), ?)", ['"'.$today.'"']);
+                });
         });
     }
 
@@ -177,16 +181,17 @@ class TaskList extends Model
 
     public function isDailySubList()
     {
-        return !is_null($this->parent_list_id) && !is_null($this->weekday);
+        return ! is_null($this->parent_list_id) && ! is_null($this->weekday);
     }
 
     public function getTodaySubList()
     {
-        if (!$this->isMainList()) {
+        if (! $this->isMainList()) {
             return null;
         }
 
         $today = strtolower(now()->format('l'));
+
         return $this->subLists()->where('weekday', $today)->first();
     }
 
@@ -196,24 +201,25 @@ class TaskList extends Model
     public function isAvailableOnDay($day)
     {
         $day = strtolower($day);
-        
+
         // One-time lists are always available
         if ($this->schedule_type === 'once') {
             return true;
         }
-        
+
         // Daily lists are available every day
         if ($this->schedule_type === 'daily') {
             return true;
         }
-        
+
         // Weekly and custom lists check schedule_config
         if (in_array($this->schedule_type, ['weekly', 'custom'])) {
             $config = is_array($this->schedule_config) ? $this->schedule_config : [];
             $showOnDays = $config['show_on_days'] ?? $config['days'] ?? [];
+
             return in_array($day, $showOnDays);
         }
-        
+
         if ($this->schedule_type === 'monthly') {
             return true;
         }
@@ -229,12 +235,13 @@ class TaskList extends Model
         if ($this->schedule_type === 'daily') {
             return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         }
-        
+
         if (in_array($this->schedule_type, ['weekly', 'custom'])) {
             $config = is_array($this->schedule_config) ? $this->schedule_config : [];
+
             return $config['show_on_days'] ?? $config['days'] ?? [];
         }
-        
+
         return [];
     }
 
@@ -244,19 +251,20 @@ class TaskList extends Model
     public function isAvailableToday()
     {
         $today = strtolower(now()->format('l'));
+
         return $this->isAvailableOnDay($today);
     }
 
     public function createDailySubLists()
     {
         $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        
+
         foreach ($weekdays as $weekday) {
             $existingSubList = $this->subLists()->where('weekday', $weekday)->first();
-            
-            if (!$existingSubList) {
+
+            if (! $existingSubList) {
                 $this->subLists()->create([
-                    'title' => $this->title . ' – ' . ucfirst($weekday),
+                    'title' => $this->title.' – '.ucfirst($weekday),
                     'description' => $this->description,
                     'weekday' => $weekday,
                     'schedule_type' => 'daily',
@@ -275,19 +283,22 @@ class TaskList extends Model
     public function hasWeeklyStructure()
     {
         $config = is_array($this->schedule_config) ? $this->schedule_config : [];
-        return isset($config['weekly_structure']['enabled']) && 
+
+        return isset($config['weekly_structure']['enabled']) &&
                $config['weekly_structure']['enabled'];
     }
 
     public function getWeeklyStructure()
     {
         $config = is_array($this->schedule_config) ? $this->schedule_config : [];
+
         return $config['weekly_structure'] ?? null;
     }
 
     public function getSelectedDays()
     {
         $config = is_array($this->schedule_config) ? $this->schedule_config : [];
+
         return $config['weekly_structure']['selected_days'] ?? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     }
 
@@ -300,11 +311,11 @@ class TaskList extends Model
     {
         $tasksByDay = [];
         $selectedDays = $this->getSelectedDays();
-        
+
         foreach ($selectedDays as $day) {
             $tasksByDay[$day] = $this->getTasksForDay($day);
         }
-        
+
         return $tasksByDay;
     }
 }

@@ -283,11 +283,11 @@ class TaskListTest extends TestCase
         ]);
     }
 
-    public function test_submission_without_required_review_is_immediately_finalized(): void
+    public function test_submission_without_required_review_can_be_automatically_accepted(): void
     {
         $employee = User::where('role', 'employee')->firstOrFail();
         $list = TaskList::where('company_id', $employee->company_id)->firstOrFail();
-        $list->update(['requires_review' => false]);
+        $list->update(['requires_review' => false, 'auto_accept_without_review' => true]);
         $task = $list->tasks()->firstOrFail();
 
         $submission = Submission::query()->create([
@@ -308,6 +308,26 @@ class TaskListTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame('reviewed', $submission->fresh()->status);
+
+        $list->update(['auto_accept_without_review' => false]);
+        $regularSubmission = Submission::query()->create([
+            'company_id' => $employee->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => now(),
+            'status' => 'in_progress',
+        ]);
+        $regularSubmission->submissionTasks()->create([
+            'task_id' => $task->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($employee)
+            ->post(route('employee.submissions.complete', $regularSubmission))
+            ->assertRedirect();
+
+        $this->assertSame('completed', $regularSubmission->fresh()->status);
     }
 
     public function test_admin_can_review_submission(): void

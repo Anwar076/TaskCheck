@@ -70,6 +70,10 @@
                 <td style="padding:12px 14px;text-align:right;color:#0f172a;">{{ $summary['completed'] ?? 0 }}</td>
             </tr>
             <tr>
+                <td style="padding:12px 14px;color:#475569;">&nbsp;&nbsp;Afgerond zonder controle</td>
+                <td style="padding:12px 14px;text-align:right;color:#0f172a;">{{ $summary['finalized_without_review'] ?? 0 }}</td>
+            </tr>
+            <tr>
                 <td style="padding:12px 14px;color:#475569;">Nog bezig</td>
                 <td style="padding:12px 14px;text-align:right;font-weight:700;color:#0f172a;">{{ $summary['in_progress'] ?? 0 }}</td>
             </tr>

@@ -105,7 +105,9 @@ class Submission extends Model
     {
         $this->loadMissing('taskList');
 
-        return $this->taskList?->requires_review ? 'completed' : 'reviewed';
+        return ! $this->taskList?->requires_review && $this->taskList?->auto_accept_without_review
+            ? 'reviewed'
+            : 'completed';
     }
 
     public function addDigitalSignature($signatureData)

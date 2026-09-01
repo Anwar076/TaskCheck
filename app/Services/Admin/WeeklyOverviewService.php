@@ -20,11 +20,14 @@ class WeeklyOverviewService
         $submissions = $this->periodSubmissions($companyId, $start, $end, $locationId);
 
         $total = $submissions->count();
-        $completed = $submissions->where('status', 'completed')->count();
+        $completed = $submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
+            && (bool) $submission->taskList?->requires_review)->count();
+        $finalizedWithoutReview = $submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
+            && ! (bool) $submission->taskList?->requires_review)->count();
         $reviewed = $submissions->where('status', 'reviewed')->count();
         $inProgress = $submissions->where('status', 'in_progress')->count();
         $rejected = $submissions->where('status', 'rejected')->count();
-        $finished = $completed + $reviewed;
+        $finished = $completed + $finalizedWithoutReview + $reviewed;
 
         $completionRate = $total > 0 ? round(($finished / $total) * 100, 1) : 0;
 
@@ -59,6 +62,7 @@ class WeeklyOverviewService
         return [
             'total_lists' => $total,
             'completed' => $completed,
+            'finalized_without_review' => $finalizedWithoutReview,
             'reviewed' => $reviewed,
             'finished' => $finished,
             'in_progress' => $inProgress,
@@ -86,7 +90,7 @@ class WeeklyOverviewService
                     ->when($locationId, function ($submissionQuery) use ($locationId) {
                         $submissionQuery->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId));
                     })
-                    ->with(['taskList:id,title']);
+                    ->with(['taskList:id,title,requires_review']);
             }])
             ->orderBy('name')
             ->get();
@@ -99,11 +103,14 @@ class WeeklyOverviewService
                 continue;
             }
 
-            $completed = $employee->submissions->where('status', 'completed')->count();
+            $completed = $employee->submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
+                && (bool) $submission->taskList?->requires_review)->count();
+            $finalizedWithoutReview = $employee->submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
+                && ! (bool) $submission->taskList?->requires_review)->count();
             $reviewed = $employee->submissions->where('status', 'reviewed')->count();
             $inProgress = $employee->submissions->where('status', 'in_progress')->count();
             $rejected = $employee->submissions->where('status', 'rejected')->count();
-            $finished = $completed + $reviewed;
+            $finished = $completed + $finalizedWithoutReview + $reviewed;
 
             $overview[] = [
                 'employee' => $employee,
@@ -111,6 +118,7 @@ class WeeklyOverviewService
                 'department' => $employee->department,
                 'total_submissions' => $totalSubmissions,
                 'completed' => $completed,
+                'finalized_without_review' => $finalizedWithoutReview,
                 'reviewed' => $reviewed,
                 'finished' => $finished,
                 'in_progress' => $inProgress,
@@ -296,6 +304,7 @@ class WeeklyOverviewService
     {
         return $this->scopedQuery($companyId, $locationId)
             ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->with('taskList:id,requires_review')
             ->get();
     }
 

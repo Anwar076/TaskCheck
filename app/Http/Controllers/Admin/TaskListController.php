@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Checklist\TaskList;
 use App\Models\Checklist\ListAssignment;
-use App\Models\Submissions\Submission;
-use App\Models\Submissions\SubmissionTask;
-use App\Models\Communication\Notification;
-use App\Models\Organisation\Location;
-use App\Models\Organisation\Company;
 use App\Models\Checklist\Task;
+use App\Models\Checklist\TaskList;
 use App\Models\Checklist\TaskTemplate;
+use App\Models\Communication\Notification;
+use App\Models\Organisation\Company;
+use App\Models\Organisation\Location;
+use App\Models\Submissions\Submission;
 use App\Services\Admin\ListCalendarService;
 use App\Services\Admin\WeeklyOverviewService;
 use App\Services\Ai\AiUsageLogger;
@@ -20,8 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class TaskListController extends Controller
 {
@@ -124,6 +123,7 @@ class TaskListController extends Controller
             'parent_list_id' => 'nullable|exists:task_lists,id',
             'requires_signature' => 'boolean',
             'requires_review' => 'boolean',
+            'auto_accept_without_review' => 'boolean',
             'is_template' => 'boolean',
             'is_active' => 'boolean',
             'schedule_config' => 'nullable|array',
@@ -171,6 +171,8 @@ class TaskListController extends Controller
         $validatedData['created_by'] = auth()->id();
         $validatedData['company_id'] = auth()->user()->company_id;
         $validatedData['requires_review'] = $request->boolean('requires_review');
+        $validatedData['auto_accept_without_review'] = ! $validatedData['requires_review']
+            && $request->boolean('auto_accept_without_review');
 
         $scheduleConfig = $validatedData['schedule_config'] ?? [];
 
@@ -226,25 +228,25 @@ class TaskListController extends Controller
         $taskList = TaskList::create($validatedData);
 
         // If a template was selected, copy its tasks as independent tasks into the new list
-        if (!empty($usedTemplateId)) {
+        if (! empty($usedTemplateId)) {
             $template = \App\Models\Checklist\TaskTemplate::find($usedTemplateId);
             if ($template) {
                 foreach ($template->templateTasks as $templateTask) {
                     \App\Models\Checklist\Task::create([
-                        'list_id'             => $taskList->id,
-                        'title'               => $templateTask->title,
-                        'description'         => $templateTask->description,
-                        'instructions'        => $templateTask->instructions,
-                        'checklist_items'     => $templateTask->checklist_items,
+                        'list_id' => $taskList->id,
+                        'title' => $templateTask->title,
+                        'description' => $templateTask->description,
+                        'instructions' => $templateTask->instructions,
+                        'checklist_items' => $templateTask->checklist_items,
                         'required_proof_type' => $templateTask->required_proof_type,
-                        'is_required'         => $templateTask->is_required,
-                        'attachments'         => $templateTask->attachments,
-                        'validation_rules'    => $templateTask->validation_rules,
-                        'start_time'          => $templateTask->start_time,
-                        'end_time'            => $templateTask->end_time,
-                        'order_index'         => $templateTask->sort_order,
-                        'created_by'          => auth()->id(),
-                        'weekday'             => null,
+                        'is_required' => $templateTask->is_required,
+                        'attachments' => $templateTask->attachments,
+                        'validation_rules' => $templateTask->validation_rules,
+                        'start_time' => $templateTask->start_time,
+                        'end_time' => $templateTask->end_time,
+                        'order_index' => $templateTask->sort_order,
+                        'created_by' => auth()->id(),
+                        'weekday' => null,
                     ]);
                 }
             }
@@ -259,7 +261,7 @@ class TaskListController extends Controller
                 $order = $orderBase + 1;
 
                 foreach ($decoded as $taskData) {
-                    if (!is_array($taskData)) {
+                    if (! is_array($taskData)) {
                         continue;
                     }
                     $title = isset($taskData['title']) ? trim((string) $taskData['title']) : '';
@@ -298,7 +300,7 @@ class TaskListController extends Controller
         }
 
         return redirect()->route('admin.lists.show', $taskList)
-            ->with('success', 'Takenlijst succesvol aangemaakt!' . ($usedTemplateId ? ' Taken uit template zijn toegevoegd.' : '') . ($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
+            ->with('success', 'Takenlijst succesvol aangemaakt!'.($usedTemplateId ? ' Taken uit template zijn toegevoegd.' : '').($aiTasksRaw ? ' AI-voorgestelde taken zijn toegevoegd.' : ''));
     }
 
     public function show(Request $request, TaskList $list)
@@ -309,14 +311,14 @@ class TaskListController extends Controller
             'submissions',
             'location',
         ]);
-        
+
         // Get all users for the assignment modal (zelfde bedrijf; bij null company_id alle gebruikers)
         $companyId = auth()->user()->company_id;
         $users = \App\Models\Organisation\User::query()
-            ->when($companyId !== null, fn($q) => $q->where('company_id', $companyId))
+            ->when($companyId !== null, fn ($q) => $q->where('company_id', $companyId))
             ->whereIn('role', ['employee', 'admin'])
             ->where('is_active', true)
-            ->when($list->location_id, fn($q) => $q->where('location_id', $list->location_id))
+            ->when($list->location_id, fn ($q) => $q->where('location_id', $list->location_id))
             ->orderBy('name')
             ->get();
 
@@ -325,12 +327,12 @@ class TaskListController extends Controller
             ->filter(fn ($item) => is_string($item) && trim($item) !== '')
             ->values()
             ->all();
-        
+
         // Ensure list belongs to same company
         if ($list->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
-        
+
         return view('admin.lists.show', compact('list', 'users', 'departments'));
     }
 
@@ -614,7 +616,7 @@ class TaskListController extends Controller
         if ($list->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
-        
+
         $locations = Location::where('is_active', true)
             ->orWhere('id', $list->location_id)
             ->orderBy('name')
@@ -633,7 +635,7 @@ class TaskListController extends Controller
         if ($list->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
-        
+
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -646,6 +648,7 @@ class TaskListController extends Controller
             'parent_list_id' => 'nullable|exists:task_lists,id',
             'requires_signature' => 'boolean',
             'requires_review' => 'boolean',
+            'auto_accept_without_review' => 'boolean',
             'is_template' => 'boolean',
             'is_active' => 'boolean',
             'schedule_config' => 'nullable|array',
@@ -724,6 +727,8 @@ class TaskListController extends Controller
         unset($validatedData['default_time_slot_enabled'], $validatedData['default_time_slot_start'], $validatedData['default_time_slot_end']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
         $validatedData['requires_review'] = $request->boolean('requires_review');
+        $validatedData['auto_accept_without_review'] = ! $validatedData['requires_review']
+            && $request->boolean('auto_accept_without_review');
 
         // Update the task list
         $list->update($validatedData);
@@ -744,17 +749,17 @@ class TaskListController extends Controller
         $apiKey = Config::get('services.openai.key');
         $model = Config::get('services.openai.model', 'gpt-4.1-mini');
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return response()->json([
                 'success' => false,
                 'message' => 'AI is niet geconfigureerd (OPENAI_API_KEY ontbreekt).',
             ], 422);
         }
 
-        $hasPrompt = !empty($validated['prompt']);
+        $hasPrompt = ! empty($validated['prompt']);
         $hasFile = $request->hasFile('source_file');
 
-        if (!$hasPrompt && !$hasFile) {
+        if (! $hasPrompt && ! $hasFile) {
             return response()->json([
                 'success' => false,
                 'message' => 'Geef een korte beschrijving of upload een bestand.',
@@ -769,7 +774,7 @@ class TaskListController extends Controller
             $fileType = strtolower($file->getClientOriginalExtension());
 
             // Voor nu ondersteunen we alleen echte afbeeldingen voor AI-visie
-            if (!in_array($fileType, ['jpg', 'jpeg', 'png', 'webp'])) {
+            if (! in_array($fileType, ['jpg', 'jpeg', 'png', 'webp'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Alleen afbeeldingsbestanden (jpg, jpeg, png, webp) worden momenteel ondersteund voor AI-lijstbouw. PDF/Word volgt later.',
@@ -787,7 +792,7 @@ class TaskListController extends Controller
             }
 
             $path = $file->store('ai-list-sources', 'public');
-            $fileUrl = asset('storage/' . $path);
+            $fileUrl = asset('storage/'.$path);
         }
 
         $systemPrompt = <<<'PROMPT'
@@ -818,10 +823,10 @@ PROMPT;
 
         $userParts = [];
         if ($hasPrompt) {
-            $userParts[] = "Beschrijving van de lijst:\n" . $validated['prompt'];
+            $userParts[] = "Beschrijving van de lijst:\n".$validated['prompt'];
         }
         if ($hasFile && $fileUrl) {
-            $userParts[] = "Gebruik ook de informatie van de meegestuurde foto van een checklist.";
+            $userParts[] = 'Gebruik ook de informatie van de meegestuurde foto van een checklist.';
         }
 
         $messages = [
@@ -860,10 +865,10 @@ PROMPT;
                     'messages' => $messages,
                 ]);
 
-            if (!$response->ok()) {
+            if (! $response->ok()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'AI-verzoek mislukt: ' . $response->body(),
+                    'message' => 'AI-verzoek mislukt: '.$response->body(),
                 ], 500);
             }
 
@@ -878,7 +883,7 @@ PROMPT;
             $content = $response->json('choices.0.message.content');
             $decoded = is_string($content) ? json_decode($content, true) : null;
 
-            if (!is_array($decoded)) {
+            if (! is_array($decoded)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Ongeldig AI-antwoord ontvangen.',
@@ -901,14 +906,14 @@ PROMPT;
 
             return response()->json([
                 'success' => false,
-                'message' => 'AI-verzoek is mislukt: ' . $e->getMessage(),
+                'message' => 'AI-verzoek is mislukt: '.$e->getMessage(),
             ], 500);
         }
     }
 
     public function aiImportPage(?Company $company = null)
     {
-        if (!$company) {
+        if (! $company) {
             $this->ensurePlanFeatureAvailable('ai');
         }
 
@@ -917,7 +922,7 @@ PROMPT;
 
     public function aiImportGenerate(Request $request, ?Company $company = null)
     {
-        if (!$company) {
+        if (! $company) {
             $this->ensurePlanFeatureAvailable('ai');
         }
 
@@ -932,7 +937,7 @@ PROMPT;
         $apiKey = Config::get('services.openai.key');
         $model = Config::get('services.openai.model', 'gpt-4.1-mini');
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return response()->json([
                 'success' => false,
                 'message' => 'AI is niet geconfigureerd (OPENAI_API_KEY ontbreekt).',
@@ -996,11 +1001,11 @@ PROMPT,
 
         $userParts = [];
         if ($prompt !== '') {
-            $userParts[] = "Extra context van gebruiker:\n" . $prompt;
+            $userParts[] = "Extra context van gebruiker:\n".$prompt;
         }
 
         $content = [];
-        if (!empty($userParts)) {
+        if (! empty($userParts)) {
             $content[] = [
                 'type' => 'text',
                 'text' => implode("\n\n", $userParts),
@@ -1017,7 +1022,7 @@ PROMPT,
 
             $content[] = [
                 'type' => 'text',
-                'text' => "DOCUMENT ".($index + 1)." — gewenste lijstnaam: {$title}",
+                'text' => 'DOCUMENT '.($index + 1)." — gewenste lijstnaam: {$title}",
             ];
 
             if ($isImage) {
@@ -1026,7 +1031,7 @@ PROMPT,
                 $content[] = [
                     'type' => 'image_url',
                     'image_url' => [
-                        'url' => 'data:' . $mime . ';base64,' . base64_encode($bytes),
+                        'url' => 'data:'.$mime.';base64,'.base64_encode($bytes),
                     ],
                 ];
                 $content[] = [
@@ -1043,7 +1048,7 @@ PROMPT,
                 }
                 $content[] = [
                     'type' => 'text',
-                    'text' => "Tekst van document ".($index + 1).":\n" . mb_substr($extractedText, 0, 12000),
+                    'text' => 'Tekst van document '.($index + 1).":\n".mb_substr($extractedText, 0, 12000),
                 ];
             }
         }
@@ -1072,10 +1077,10 @@ PROMPT,
                     'messages' => $messages,
                 ]);
 
-            if (!$response->ok()) {
+            if (! $response->ok()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'AI-verzoek mislukt: ' . $response->body(),
+                    'message' => 'AI-verzoek mislukt: '.$response->body(),
                 ], 500);
             }
 
@@ -1090,14 +1095,14 @@ PROMPT,
             $contentText = $response->json('choices.0.message.content');
             $decoded = is_string($contentText) ? json_decode($contentText, true) : null;
 
-            if (!is_array($decoded) || !isset($decoded['lists']) || !is_array($decoded['lists'])) {
+            if (! is_array($decoded) || ! isset($decoded['lists']) || ! is_array($decoded['lists'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'AI gaf geen geldig lijst-formaat terug.',
                 ], 500);
             }
 
-            if (!empty($documentTitles) && count($decoded['lists']) !== count($documentTitles)) {
+            if (! empty($documentTitles) && count($decoded['lists']) !== count($documentTitles)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'AI maakte niet voor ieder bestand precies één lijst. Probeer het opnieuw of upload minder bestanden tegelijk.',
@@ -1136,7 +1141,7 @@ PROMPT,
 
     public function aiImportStore(Request $request, ?Company $company = null)
     {
-        if (!$company) {
+        if (! $company) {
             $this->ensurePlanFeatureAvailable('ai');
         }
 
@@ -1147,7 +1152,7 @@ PROMPT,
         ]);
 
         $payload = json_decode($validated['import_payload'], true);
-        if (!is_array($payload) || !isset($payload['lists']) || !is_array($payload['lists'])) {
+        if (! is_array($payload) || ! isset($payload['lists']) || ! is_array($payload['lists'])) {
             return redirect()->back()->with('error', 'Ongeldige import-payload.');
         }
 
@@ -1159,7 +1164,7 @@ PROMPT,
         $createdTasks = 0;
 
         foreach ($validated['selected_indices'] as $idx) {
-            if (!isset($payload['lists'][$idx]) || !is_array($payload['lists'][$idx])) {
+            if (! isset($payload['lists'][$idx]) || ! is_array($payload['lists'][$idx])) {
                 continue;
             }
             $item = $payload['lists'][$idx];
@@ -1193,7 +1198,7 @@ PROMPT,
             $tasks = is_array($item['tasks'] ?? null) ? $item['tasks'] : [];
             $order = 1;
             foreach ($tasks as $taskItem) {
-                if (!is_array($taskItem)) {
+                if (! is_array($taskItem)) {
                     continue;
                 }
                 $taskTitle = trim((string) ($taskItem['title'] ?? ''));
@@ -1237,7 +1242,7 @@ PROMPT,
     {
         $ext = strtolower($file->getClientOriginalExtension());
         $path = $file->getRealPath();
-        if (!$path) {
+        if (! $path) {
             return '';
         }
 
@@ -1265,13 +1270,13 @@ PROMPT,
 
         $normalized = [];
         foreach ($lists as $list) {
-            if (!is_array($list)) {
+            if (! is_array($list)) {
                 continue;
             }
 
             $tasks = [];
             foreach (array_slice((array) ($list['tasks'] ?? []), 0, 40) as $task) {
-                if (!is_array($task)) {
+                if (! is_array($task)) {
                     continue;
                 }
                 $title = trim((string) ($task['title'] ?? ''));
@@ -1306,7 +1311,7 @@ PROMPT,
 
     private function normalizeChecklistItems($items): ?array
     {
-        if (!is_array($items)) {
+        if (! is_array($items)) {
             return null;
         }
 
@@ -1328,16 +1333,17 @@ PROMPT,
         $chunks = $matches[1] ?? [];
         $text = implode(' ', $chunks);
         $text = preg_replace('/\s+/', ' ', (string) $text);
+
         return trim((string) $text);
     }
 
     private function extractDocxText(string $path): string
     {
-        if (!class_exists(\ZipArchive::class)) {
+        if (! class_exists(\ZipArchive::class)) {
             return '';
         }
 
-        $zip = new \ZipArchive();
+        $zip = new \ZipArchive;
         if ($zip->open($path) !== true) {
             return '';
         }
@@ -1352,16 +1358,17 @@ PROMPT,
         $text = html_entity_decode(strip_tags($xml), ENT_QUOTES | ENT_XML1, 'UTF-8');
         $text = preg_replace('/[ \t]+/', ' ', (string) $text);
         $text = preg_replace('/\s*\n\s*/', "\n", (string) $text);
+
         return trim((string) $text);
     }
 
     private function extractXlsxText(string $path): string
     {
-        if (!class_exists(\ZipArchive::class)) {
+        if (! class_exists(\ZipArchive::class)) {
             return '';
         }
 
-        $zip = new \ZipArchive();
+        $zip = new \ZipArchive;
         if ($zip->open($path) !== true) {
             return '';
         }
@@ -1384,7 +1391,7 @@ PROMPT,
                 continue;
             }
             $sheet = @simplexml_load_string($sheetXml);
-            if (!$sheet || !isset($sheet->sheetData->row)) {
+            if (! $sheet || ! isset($sheet->sheetData->row)) {
                 continue;
             }
             foreach ($sheet->sheetData->row as $row) {
@@ -1407,6 +1414,7 @@ PROMPT,
         $zip->close();
         $text = implode("\n", array_filter($textParts));
         $text = preg_replace('/\s+/', ' ', (string) $text);
+
         return trim((string) $text);
     }
 
@@ -1416,7 +1424,7 @@ PROMPT,
         if ($list->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
-        
+
         try {
             \Log::info('Attempting to delete task list', [
                 'list_id' => $list->id,
@@ -1437,17 +1445,17 @@ PROMPT,
                 'tasks' => $tasksCount,
                 'all_assignments' => $allAssignmentsCount,
                 'submissions' => $submissionsCount,
-                'child_lists' => $childListsCount
+                'child_lists' => $childListsCount,
             ]);
 
             // First, handle related records in correct order to avoid foreign key violations
-            
+
             // 1. Handle child lists (sublists) - set parent_list_id to null or delete them
             if ($childListsCount > 0) {
                 $list->subLists()->update(['parent_list_id' => null]);
                 \Log::info('Updated child lists to remove parent reference');
             }
-            
+
             // 2. Handle submissions FIRST - delete them and their tasks to avoid foreign key constraint
             if ($submissionsCount > 0) {
                 // First delete submission_tasks that reference the tasks
@@ -1459,51 +1467,51 @@ PROMPT,
                 $list->submissions()->delete();
                 \Log::info('Deleted submissions and their tasks');
             }
-            
+
             // 3. Delete ALL assignments (both active and inactive) to avoid foreign key constraint
             if ($allAssignmentsCount > 0) {
                 \App\Models\Checklist\ListAssignment::where('list_id', $list->id)->delete();
                 \Log::info('Deleted all assignments');
             }
-            
+
             // 4. Delete tasks LAST (after submission_tasks are gone)
             if ($tasksCount > 0) {
                 $list->tasks()->delete();
                 \Log::info('Deleted associated tasks');
             }
-            
+
             // Now delete the list
             $list->delete();
-            
+
             \Log::info('Task list deleted successfully', ['list_id' => $list->id]);
-            
+
             // Check if it's an AJAX request
             if (request()->ajax() || request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Takenlijst succesvol verwijderd.'
+                    'message' => 'Takenlijst succesvol verwijderd.',
                 ]);
             }
-            
+
             return redirect()->route('admin.lists.index')->with('success', 'Takenlijst succesvol verwijderd.');
-            
+
         } catch (\Exception $e) {
             \Log::error('Failed to delete task list', [
                 'list_id' => $list->id ?? 'unknown',
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             // Check if it's an AJAX request
             if (request()->ajax() || request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Er is een fout opgetreden bij het verwijderen: ' . $e->getMessage()
+                    'message' => 'Er is een fout opgetreden bij het verwijderen: '.$e->getMessage(),
                 ], 500);
             }
-            
+
             return redirect()->route('admin.lists.index')
-                ->with('error', 'Er is een fout opgetreden bij het verwijderen: ' . $e->getMessage());
+                ->with('error', 'Er is een fout opgetreden bij het verwijderen: '.$e->getMessage());
         }
     }
 
@@ -1520,7 +1528,7 @@ PROMPT,
         try {
             \Log::info('Assignment request received', [
                 'list_id' => $list->id,
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
             ]);
 
             $validationRules = [
@@ -1557,7 +1565,7 @@ PROMPT,
                         ->where('is_active', true)
                         ->first();
 
-                    if (!$selectedUser) {
+                    if (! $selectedUser) {
                         throw ValidationException::withMessages([
                             'user_ids' => 'Een of meer geselecteerde medewerkers zijn ongeldig voor jouw bedrijf.',
                         ]);
@@ -1565,7 +1573,7 @@ PROMPT,
 
                     if ($list->location_id && (int) $selectedUser->location_id !== (int) $list->location_id) {
                         throw ValidationException::withMessages([
-                            'user_ids' => $selectedUser->name . ' hoort niet bij de locatie van deze takenlijst.',
+                            'user_ids' => $selectedUser->name.' hoort niet bij de locatie van deze takenlijst.',
                         ]);
                     }
 
@@ -1574,7 +1582,7 @@ PROMPT,
                         ->where('is_active', true)
                         ->first();
 
-                    if (!$existingAssignment) {
+                    if (! $existingAssignment) {
                         $assignment = \App\Models\Checklist\ListAssignment::create([
                             'list_id' => $list->id,
                             'user_id' => $userId,
@@ -1605,7 +1613,7 @@ PROMPT,
                     ->where('is_active', true)
                     ->first();
 
-                if (!$existingAssignment) {
+                if (! $existingAssignment) {
                     $assignment = \App\Models\Checklist\ListAssignment::create([
                         'list_id' => $list->id,
                         'user_id' => null,
@@ -1640,9 +1648,9 @@ PROMPT,
                 }
             }
 
-            $message = 'Takenlijst succesvol toegewezen aan ' . count($assignments) . ' toewijzing(en).';
+            $message = 'Takenlijst succesvol toegewezen aan '.count($assignments).' toewijzing(en).';
             if ($skippedAssignments > 0) {
-                $message .= ' ' . $skippedAssignments . ' duplicaat toewijzing(en) overgeslagen.';
+                $message .= ' '.$skippedAssignments.' duplicaat toewijzing(en) overgeslagen.';
             }
 
             if (count($assignments) > 0) {
@@ -1678,7 +1686,7 @@ PROMPT,
                     'success' => true,
                     'message' => $message,
                     'assignments_created' => count($assignments),
-                    'assignments_skipped' => $skippedAssignments
+                    'assignments_skipped' => $skippedAssignments,
                 ]);
             }
 
@@ -1687,34 +1695,34 @@ PROMPT,
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Assignment validation failed', ['errors' => $e->errors()]);
-            
+
             // Check if it's an AJAX request
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validatie mislukt. Controleer je invoer.',
-                    'errors' => $e->errors()
+                    'errors' => $e->errors(),
                 ], 422);
             }
-            
+
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput()
                 ->with('error', 'Validatie mislukt. Controleer je invoer.');
         } catch (\Exception $e) {
             \Log::error('Assignment failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            
+
             // Check if it's an AJAX request
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Er is een fout opgetreden bij het toewijzen van de lijst: ' . $e->getMessage()
+                    'message' => 'Er is een fout opgetreden bij het toewijzen van de lijst: '.$e->getMessage(),
                 ], 500);
             }
-            
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Er is een fout opgetreden bij het toewijzen van de lijst: ' . $e->getMessage());
+                ->with('error', 'Er is een fout opgetreden bij het toewijzen van de lijst: '.$e->getMessage());
         }
     }
 
@@ -1722,36 +1730,36 @@ PROMPT,
     {
         try {
             \Log::info('Removing assignment', ['assignment_id' => $assignment->id]);
-            
+
             $assignment->update(['is_active' => false]);
-            
+
             // Check if it's an AJAX request
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Toewijzing succesvol verwijderd.'
+                    'message' => 'Toewijzing succesvol verwijderd.',
                 ]);
             }
-            
+
             return redirect()->back()
                 ->with('success', 'Toewijzing succesvol verwijderd.');
-                
+
         } catch (\Exception $e) {
             \Log::error('Failed to remove assignment', [
                 'assignment_id' => $assignment->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             // Check if it's an AJAX request
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Er is een fout opgetreden bij het verwijderen van de toewijzing: ' . $e->getMessage()
+                    'message' => 'Er is een fout opgetreden bij het verwijderen van de toewijzing: '.$e->getMessage(),
                 ], 500);
             }
-            
+
             return redirect()->back()
-                ->with('error', 'Er is een fout opgetreden bij het verwijderen van de toewijzing: ' . $e->getMessage());
+                ->with('error', 'Er is een fout opgetreden bij het verwijderen van de toewijzing: '.$e->getMessage());
         }
     }
 
@@ -1760,14 +1768,14 @@ PROMPT,
         $submission->load(['user', 'taskList.assignments', 'submissionTasks.task', 'submissionTasks.completedBy', 'submissionTasks.correctiveActionOwner', 'submissionTasks.verifier', 'submissionTasks.auditEvents.actor']);
         $correctiveActionOwners = \App\Models\Organisation\User::where('company_id', auth()->user()->company_id)
             ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        
+
         return view('admin.submissions.show', compact('submission', 'correctiveActionOwners'));
     }
 
     public function aiReviewSubmission(Request $request, \App\Models\Submissions\Submission $submission, \App\Services\Ai\SubmissionReviewService $ai)
     {
         try {
-            if (!$ai->isEnabled()) {
+            if (! $ai->isEnabled()) {
                 return redirect()->back()
                     ->with('error', 'AI-review is niet geconfigureerd. Voeg een OPENAI_API_KEY toe aan je .env bestand.');
             }
@@ -1795,7 +1803,7 @@ PROMPT,
             ]);
 
             return redirect()->back()
-                ->with('error', 'AI-review is mislukt: ' . $e->getMessage());
+                ->with('error', 'AI-review is mislukt: '.$e->getMessage());
         }
     }
 
@@ -1853,7 +1861,7 @@ PROMPT,
             );
 
             // Safety net: if model-level helper failed to return/create, create notification here as backup.
-            if (!$created) {
+            if (! $created) {
                 $created = Notification::createTaskRejected(
                     app(\App\Services\CollaborativeSubmissionService::class)->notifyUserIdForTask($submissionTask),
                     $submissionTask->task->title,
@@ -1891,7 +1899,7 @@ PROMPT,
         $notification = DB::transaction(function () use ($submissionTask, $validatedData) {
             $created = $submissionTask->requestRedo(auth()->id(), $validatedData['redo_reason']);
 
-            if (!$created) {
+            if (! $created) {
                 $created = Notification::createRedoRequested(
                     $submissionTask->submission->user_id,
                     $submissionTask->task->title,
@@ -2026,7 +2034,7 @@ PROMPT,
 
         $reviewedStatuses = ['approved', 'rejected'];
         $allReviewed = $tasks->every(fn ($t) => in_array($t->status, $reviewedStatuses));
-        if (!$allReviewed) {
+        if (! $allReviewed) {
             return;
         }
 
@@ -2127,7 +2135,7 @@ PROMPT,
     {
         // This method would create daily sublists for weekly lists
         // Implementation depends on your specific business logic
-        
+
         return redirect()->back()
             ->with('success', 'Dagelijkse sublijsten succesvol aangemaakt.');
     }
@@ -2140,7 +2148,7 @@ PROMPT,
 
         // Create a day-specific sublist
         $dayList = TaskList::create([
-            'title' => $list->title . ' - ' . ucfirst($validatedData['day']),
+            'title' => $list->title.' - '.ucfirst($validatedData['day']),
             'description' => $list->description,
             'category' => $list->category,
             'priority' => $list->priority,
@@ -2162,7 +2170,7 @@ PROMPT,
             abort(403, 'Unauthorized access to task list.');
         }
 
-        if (!$list->template_id) {
+        if (! $list->template_id) {
             return redirect()->route('admin.lists.show', $list)
                 ->with('error', 'Deze takenlijst is niet gekoppeld aan een template.');
         }
@@ -2173,7 +2181,7 @@ PROMPT,
             ->with('templateTasks')
             ->first();
 
-        if (!$template) {
+        if (! $template) {
             return redirect()->route('admin.lists.show', $list)
                 ->with('error', 'Gekoppeld template niet gevonden.');
         }

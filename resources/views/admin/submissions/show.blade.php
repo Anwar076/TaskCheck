@@ -74,7 +74,7 @@
                     </div>
                     <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
                         @php
-                            $statusLabels = ['in_progress' => 'Bezig', 'completed' => 'Afgerond', 'reviewed' => 'Beoordeeld', 'rejected' => 'Afgewezen'];
+                            $statusLabels = ['in_progress' => 'Bezig', 'completed' => ($submission->taskList?->requires_review ? 'Wacht op beoordeling' : 'Afgerond'), 'reviewed' => 'Geaccepteerd', 'rejected' => 'Afgewezen'];
                             $statusColors = ['completed' => 'bg-amber-100 text-amber-800 border-amber-200', 'reviewed' => 'bg-emerald-100 text-emerald-800 border-emerald-200', 'rejected' => 'bg-red-100 text-red-800 border-red-200', 'in_progress' => 'bg-blue-100 text-blue-800 border-blue-200'];
                             $s = $submission->status;
                         @endphp
