@@ -167,18 +167,20 @@
         }
 
         .pricing-hero-section {
-            padding-top: 4.5rem
+            padding-top: 5.5rem
+        }
+
+        .pricing-trial-badge {
+            position: relative;
+            z-index: 2;
+            box-sizing: border-box;
+            line-height: 1.25;
+            box-shadow: 0 7px 18px -12px rgba(15, 23, 42, .35)
         }
 
         .pricing-plans-grid {
             min-width: 0;
-            margin-top: calc(var(--pricing-section-gap) - 1rem);
-            padding-top: 1rem;
-            overflow: visible
-        }
-
-        .pricing-plans-grid .price-card {
-            overflow: visible
+            margin-top: var(--pricing-section-gap)
         }
 
         .enterprise-panel {
@@ -297,7 +299,7 @@
             }
 
             .pricing-hero-section {
-                padding-top: 5rem
+                padding-top: 6rem
             }
         }
 
@@ -417,7 +419,7 @@
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="pricing-reveal text-center">
                     <span
-                        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[.12em] text-slate-600 shadow-sm">14
+                        class="pricing-trial-badge inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[.12em] text-slate-600 shadow-sm">14
                         dagen gratis proberen <svg class="h-3.5 w-3.5 text-blue-600" fill="none"
                             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="9" />
