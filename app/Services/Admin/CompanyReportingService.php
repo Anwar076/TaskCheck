@@ -2,15 +2,38 @@
 
 namespace App\Services\Admin;
 
+use App\Mail\CompanyReportMail;
 use App\Models\Organisation\Company;
+use App\Models\Organisation\CompanyReportRecipient;
 use App\Models\Organisation\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class CompanyReportingService
 {
     public function __construct(
         private WeeklyOverviewService $weeklyOverviewService
     ) {}
+
+    /** @return array<string, mixed> */
+    public function sendNow(CompanyReportRecipient $recipient, ?Carbon $referenceTime = null): array
+    {
+        $recipient->loadMissing('company');
+        $report = $this->buildReport(
+            $recipient->company,
+            $recipient->frequency,
+            $referenceTime ?? now('Europe/Amsterdam'),
+        );
+        $report['sections'] = $recipient->normalizedSections();
+
+        Mail::to($recipient->email)->send(new CompanyReportMail(
+            $recipient->company,
+            $report,
+            $recipient->delivery_format,
+        ));
+
+        return $report;
+    }
 
     /**
      * @return array<string, mixed>

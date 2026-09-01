@@ -2,13 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Mail\CompanyReportMail;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\CompanyReportRecipient;
 use App\Services\Admin\CompanyReportingService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 class SendCompanyReportsCommand extends Command
 {
@@ -30,9 +28,7 @@ class SendCompanyReportsCommand extends Command
             if (! $schedule->company || (! $force && ! $this->shouldSendNow($schedule, $nowNl))) {
                 continue;
             }
-            $report = $reportingService->buildReport($schedule->company, $schedule->frequency, $nowNl);
-            $report['sections'] = $schedule->normalizedSections();
-            Mail::to($schedule->email)->send(new CompanyReportMail($schedule->company, $report, $schedule->delivery_format));
+            $reportingService->sendNow($schedule, $nowNl);
             $schedule->update(['last_sent_at' => now()]);
             $sent++;
             $this->info("Rapportage verstuurd: {$schedule->company->name} ({$schedule->email})");

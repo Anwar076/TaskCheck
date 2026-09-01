@@ -367,6 +367,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/reports/export/pdf', [ReportExportController::class, 'pdf'])->name('reports.export.pdf');
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
+    Route::post('/settings/reporting/{recipient}/send-now', [CompanySettingsController::class, 'sendReportNow'])->name('settings.reporting.send-now');
     Route::get('/settings/identity', [IdentitySettingsController::class, 'edit'])->name('settings.identity.edit');
     Route::put('/settings/identity', [IdentitySettingsController::class, 'update'])->name('settings.identity.update');
     Route::post('/settings/identity/scim-token', [IdentitySettingsController::class, 'rotateScimToken'])->name('settings.identity.scim-token');
@@ -423,6 +424,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::put('/companies/{company}/users/{user}/toggle', [SuperAdminDashboardController::class, 'toggleCompanyUser'])->name('companies.users.toggle');
     Route::post('/companies/{company}/users/{user}/login-as', [ImpersonationController::class, 'start'])->name('companies.users.impersonate');
     Route::put('/companies/{company}/reporting', [SuperAdminDashboardController::class, 'updateCompanyReporting'])->name('companies.reporting.update');
+    Route::post('/companies/{company}/reporting/{recipient}/send-now', [SuperAdminDashboardController::class, 'sendCompanyReportNow'])->name('companies.reporting.send-now');
     Route::put('/companies/{company}/subscription', [SuperAdminDashboardController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
     Route::get('/errors/feed', [SuperAdminDashboardController::class, 'errorsFeed'])->name('errors.feed');
     Route::post('/incidents', [SuperAdminDashboardController::class, 'createIncidentTicket'])->name('incidents.store');

@@ -19,6 +19,7 @@ use App\Models\Platform\IncidentTicket;
 use App\Models\Platform\PlatformAlertLog;
 use App\Models\Platform\PlatformBroadcast;
 use App\Models\Submissions\Submission;
+use App\Services\Admin\CompanyReportingService;
 use App\Services\Billing\MollieService;
 use App\Services\Platform\CompanyDuplicationService;
 use App\Services\Platform\CompanyUsageService;
@@ -810,6 +811,21 @@ class DashboardController extends Controller
 
         return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'users'])
             ->with('success', "Account van {$user->name} is ".($user->is_active ? 'geactiveerd.' : 'geblokkeerd.'));
+    }
+
+    public function sendCompanyReportNow(
+        Company $company,
+        CompanyReportRecipient $recipient,
+        CompanyReportingService $reportingService,
+    ): JsonResponse {
+        abort_unless((int) $recipient->company_id === (int) $company->id, 404);
+
+        $reportingService->sendNow($recipient);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$recipient->frequencyLabel()} verstuurd naar {$recipient->email}.",
+        ]);
     }
 
     public function updateCompanyReporting(Request $request, Company $company): RedirectResponse

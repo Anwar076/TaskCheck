@@ -23,6 +23,7 @@
                 'send_time' => substr((string) $recipient->send_time, 0, 5), 'weekly_day' => $recipient->weekly_day,
                 'delivery_format' => $recipient->delivery_format,
                 'sections' => $recipient->normalizedSections(),
+                'send_url' => route('admin.settings.reporting.send-now', $recipient),
             ])->all()));
         @endphp
         <div class="mb-6 sm:mb-8">
@@ -559,6 +560,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     reportRecipientList?.addEventListener('click', function (event) {
+        const sendButton = event.target.closest('.send-report-now');
+        if (sendButton) {
+            const original = sendButton.textContent;
+            sendButton.disabled = true;
+            sendButton.textContent = 'Bezig met versturen…';
+            fetch(sendButton.dataset.sendUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+            })
+                .then(async response => {
+                    const body = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(body.message || 'Versturen is mislukt.');
+                    alert(body.message);
+                })
+                .catch(error => alert(error.message))
+                .finally(() => {
+                    sendButton.disabled = false;
+                    sendButton.textContent = original;
+                });
+            return;
+        }
+
         const removeButton = event.target.closest('.remove-report-recipient');
         if (removeButton) removeButton.closest('.report-recipient')?.remove();
     });

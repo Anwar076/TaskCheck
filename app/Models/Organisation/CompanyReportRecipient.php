@@ -44,4 +44,11 @@ class CompanyReportRecipient extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function frequencyLabel(): string
+    {
+        return $this->frequency === Company::REPORTING_FREQUENCY_WEEKLY
+            ? 'Weekrapportage'
+            : 'Dagrapportage';
+    }
 }

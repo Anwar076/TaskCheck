@@ -5,13 +5,28 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\CompanyReportRecipient;
+use App\Services\Admin\CompanyReportingService;
 use App\Services\Platform\AdminOnboardingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class CompanySettingsController extends Controller
 {
+    public function sendReportNow(CompanyReportRecipient $recipient, CompanyReportingService $reportingService): JsonResponse
+    {
+        $company = auth()->user()->company;
+        abort_unless($company && (int) $recipient->company_id === (int) $company->id, 404);
+
+        $reportingService->sendNow($recipient);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$recipient->frequencyLabel()} verstuurd naar {$recipient->email}.",
+        ]);
+    }
+
     /**
      * Show the company settings form.
      */

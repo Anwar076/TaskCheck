@@ -7,6 +7,7 @@
         'weekly_day' => $recipient->weekly_day,
         'delivery_format' => $recipient->delivery_format,
         'sections' => $recipient->normalizedSections(),
+        'send_url' => route('super-admin.companies.reporting.send-now', [$company, $recipient]),
     ])->all()));
 @endphp
 <form method="POST" action="{{ route('super-admin.companies.reporting.update', $company) }}" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">@csrf @method('PUT')
@@ -24,6 +25,19 @@ document.addEventListener('DOMContentLoaded', function () {
     list?.querySelectorAll('.report-recipient').forEach(sync);
     document.getElementById('super-add-report-recipient')?.addEventListener('click', function () { const html = template?.innerHTML.replaceAll('__INDEX__', String(index++)); if (!html || !list) return; list.insertAdjacentHTML('beforeend', html); sync(list.lastElementChild); list.lastElementChild?.querySelector('input[type="email"]')?.focus(); });
     list?.addEventListener('change', event => { if (event.target.closest('.report-frequency')) sync(event.target.closest('.report-recipient')); });
-    list?.addEventListener('click', event => event.target.closest('.remove-report-recipient')?.closest('.report-recipient')?.remove());
+    list?.addEventListener('click', event => {
+        const sendButton = event.target.closest('.send-report-now');
+        if (sendButton) {
+            const original = sendButton.textContent;
+            sendButton.disabled = true;
+            sendButton.textContent = 'Bezig met versturen…';
+            fetch(sendButton.dataset.sendUrl, { method: 'POST', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' } })
+                .then(async response => { const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.message || 'Versturen is mislukt.'); alert(body.message); })
+                .catch(error => alert(error.message))
+                .finally(() => { sendButton.disabled = false; sendButton.textContent = original; });
+            return;
+        }
+        event.target.closest('.remove-report-recipient')?.closest('.report-recipient')?.remove();
+    });
 });
 </script>

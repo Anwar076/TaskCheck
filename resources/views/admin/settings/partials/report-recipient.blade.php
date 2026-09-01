@@ -1,5 +1,6 @@
 @php($recipient = (array) $recipient)
 @php($sections = \App\Models\Organisation\CompanyReportRecipient::normalizeSections($recipient['sections'] ?? null))
+@php($sendUrl = $sendUrl ?? ($recipient['send_url'] ?? null))
 <article class="report-recipient rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
     @if(!empty($recipient['id']))<input type="hidden" name="report_recipients[{{ $index }}][id]" value="{{ $recipient['id'] }}">@endif
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
@@ -27,5 +28,15 @@
         </div>
         @error("report_recipients.{$index}.sections")<p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p>@enderror
     </fieldset>
-    <div class="mt-3 flex items-center justify-between"><p class="text-xs text-slate-500">Tijdzone: Nederland (Europe/Amsterdam)</p><button type="button" class="remove-report-recipient text-xs font-semibold text-red-600 hover:text-red-800">Ontvanger verwijderen</button></div>
+    <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-xs text-slate-500">Tijdzone: Nederland (Europe/Amsterdam)</p>
+        <div class="flex flex-wrap items-center gap-3">
+            @if($sendUrl)
+                <button type="button" data-send-url="{{ $sendUrl }}" class="send-report-now rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:cursor-wait disabled:opacity-60">Rapportage nu versturen</button>
+            @else
+                <span class="text-xs text-slate-400">Sla eerst op om een rapportage te versturen.</span>
+            @endif
+            <button type="button" class="remove-report-recipient text-xs font-semibold text-red-600 hover:text-red-800">Ontvanger verwijderen</button>
+        </div>
+    </div>
 </article>
