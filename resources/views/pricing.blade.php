@@ -83,8 +83,18 @@
     <meta name="twitter:image" content="{{ $seoImage }}">
     <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <style>
+        :root {
+            --pricing-section-gap: 4rem
+        }
+
         .price-card {
+            min-width: 0;
             transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease
+        }
+
+        .price-card li span:last-child {
+            min-width: 0;
+            overflow-wrap: anywhere
         }
 
         .price-card:hover {
@@ -156,7 +166,17 @@
             box-shadow: 0 10px 24px -14px rgba(49, 87, 235, .65)
         }
 
+        .pricing-hero-section {
+            padding-top: 4.5rem
+        }
+
+        .pricing-plans-grid {
+            min-width: 0;
+            margin-top: var(--pricing-section-gap)
+        }
+
         .enterprise-panel {
+            margin-top: var(--pricing-section-gap);
             background: radial-gradient(circle at 8% 92%, rgba(79, 107, 255, .07), transparent 30%), #fff;
             box-shadow: 0 20px 50px -34px rgba(15, 23, 42, .3);
             transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease
@@ -170,7 +190,14 @@
 
         .enterprise-grid {
             display: grid;
+            min-width: 0;
             grid-template-columns: 1fr
+        }
+
+        .enterprise-column,
+        .enterprise-feature-copy {
+            min-width: 0;
+            overflow-wrap: anywhere
         }
 
         .enterprise-column + .enterprise-column {
@@ -217,7 +244,7 @@
         }
 
         .pricing-final-cta-wrap {
-            margin-top: 1.5rem
+            margin-top: var(--pricing-section-gap)
         }
 
         .pricing-final-cta-media {
@@ -254,11 +281,16 @@
         }
 
         .pricing-faq-section {
-            padding-top: 4rem
+            padding-top: var(--pricing-section-gap);
+            padding-bottom: var(--pricing-section-gap)
         }
 
         @media (min-width: 640px) {
-            .pricing-faq-section {
+            :root {
+                --pricing-section-gap: 5rem
+            }
+
+            .pricing-hero-section {
                 padding-top: 5rem
             }
         }
@@ -375,7 +407,7 @@
             <div class="absolute inset-0 opacity-[.025]"
                 style="background-image:radial-gradient(#334155 1px,transparent 1px);background-size:24px 24px"></div>
         </div>
-        <section class="relative pt-28 sm:pt-32">
+        <section class="pricing-hero-section relative">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="pricing-reveal text-center">
                     <span
@@ -400,7 +432,7 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
+                <div class="pricing-plans-grid grid items-stretch gap-5 lg:grid-cols-3">
                     @foreach (['starter', 'professional', 'business'] as $key)
                         @php $featured=$key==='professional'; @endphp
                         <article id="{{ $key }}" data-pricing-card
@@ -442,7 +474,7 @@
                     @endforeach
                 </div>
                 <article
-                    class="pricing-reveal enterprise-panel mt-7 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    class="pricing-reveal enterprise-panel overflow-hidden rounded-2xl border border-slate-200 bg-white">
                     <div class="enterprise-grid">
                         <div class="enterprise-column flex flex-col p-7 sm:p-9 lg:min-h-[24rem]">
                             <p class="text-xs font-bold uppercase tracking-[.13em] text-slate-500">Voor grotere
@@ -502,7 +534,7 @@
                 </article>
             </div>
         </section>
-        <section class="pricing-faq-section relative pb-20 sm:pb-24">
+        <section class="pricing-faq-section relative">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="pricing-reveal">
                     <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Veelgestelde vragen</p>
