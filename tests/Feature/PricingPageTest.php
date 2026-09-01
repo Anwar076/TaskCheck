@@ -39,8 +39,10 @@ class PricingPageTest extends TestCase
             ->assertSee('images/taskcheck-pricing-social.png', false)
             ->assertSee('<script type="application/ld+json">', false)
             ->assertSee('"price":"49.00"', false)
-            ->assertSee('<details', false)
-            ->assertSeeText('Welk abonnement past bij');
+            ->assertSee('enterprise-grid', false)
+            ->assertSee('primary-action', false)
+            ->assertSeeText('Na je proefperiode ga je naar een beveiligde Mollie-checkout.')
+            ->assertDontSeeText('Welk abonnement past bij mij?');
 
         $this->assertSame(1, substr_count($response->getContent(), '<meta name="description"'));
     }

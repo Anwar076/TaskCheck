@@ -313,7 +313,7 @@
 </section>
 
 <section class="border-y border-slate-100 bg-white py-20 sm:py-24">
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <div class="mb-20 grid items-center gap-10 lg:grid-cols-5 lg:gap-16">
             <div class="lg:col-span-3">

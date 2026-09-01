@@ -1,7 +1,7 @@
 <!-- Footer -->
 <footer class="relative overflow-hidden bg-white border-t border-slate-100">
 
-    <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-8">
+    <div class="relative mx-auto max-w-7xl px-4 pb-8 pt-14 sm:px-6 lg:px-8">
 
         {{-- Main columns --}}
         <div class="grid sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8 pb-10 border-b border-slate-100">

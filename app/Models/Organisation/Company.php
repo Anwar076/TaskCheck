@@ -196,24 +196,22 @@ class Company extends Model
     {
         $plans = self::PLANS;
 
-        if (! \Illuminate\Support\Facades\Schema::hasTable('subscription_plans')) {
-            return $plans;
-        }
-
-        foreach (SubscriptionPlan::query()->get() as $override) {
-            $plans[$override->plan_key] = [
-                'name' => $override->name,
-                'billing_period' => $override->billing_period,
-                'billing_amount' => (float) ($override->billing_amount ?? ($override->billing_period === 'annual' ? $override->price_annual : $override->price_monthly)),
-                'trial_duration_value' => (int) $override->trial_duration_value,
-                'trial_duration_unit' => $override->trial_duration_unit,
-                'price_monthly' => (float) $override->price_monthly,
-                'price_annual' => (float) $override->price_annual,
-                'max_users' => $override->max_users,
-                'max_locations' => $override->max_locations,
-                'max_storage_gb' => $override->max_storage_gb,
-                'features' => $override->features ?? self::defaultPlanFeatures($override->plan_key),
-            ];
+        if (\Illuminate\Support\Facades\Schema::hasTable('subscription_plans')) {
+            foreach (SubscriptionPlan::query()->get() as $override) {
+                $plans[$override->plan_key] = [
+                    'name' => $override->name,
+                    'billing_period' => $override->billing_period,
+                    'billing_amount' => (float) ($override->billing_amount ?? ($override->billing_period === 'annual' ? $override->price_annual : $override->price_monthly)),
+                    'trial_duration_value' => (int) $override->trial_duration_value,
+                    'trial_duration_unit' => $override->trial_duration_unit,
+                    'price_monthly' => (float) $override->price_monthly,
+                    'price_annual' => (float) $override->price_annual,
+                    'max_users' => $override->max_users,
+                    'max_locations' => $override->max_locations,
+                    'max_storage_gb' => $override->max_storage_gb,
+                    'features' => $override->features ?? self::defaultPlanFeatures($override->plan_key),
+                ];
+            }
         }
 
         foreach ($plans as $key => &$plan) {

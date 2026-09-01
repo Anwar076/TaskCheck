@@ -125,6 +125,12 @@
             left: 130%
         }
 
+        .primary-action {
+            color: #fff !important;
+            background: linear-gradient(135deg, #3157eb, #5b6ff5) !important;
+            box-shadow: 0 10px 24px -14px rgba(49, 87, 235, .65)
+        }
+
         .enterprise-panel {
             background: radial-gradient(circle at 8% 92%, rgba(79, 107, 255, .07), transparent 30%), #fff;
             box-shadow: 0 20px 50px -34px rgba(15, 23, 42, .3);
@@ -137,6 +143,35 @@
             box-shadow: 0 28px 58px -34px rgba(15, 23, 42, .34)
         }
 
+        .enterprise-grid {
+            display: grid;
+            grid-template-columns: 1fr
+        }
+
+        .enterprise-column + .enterprise-column {
+            border-top: 1px solid #e2e8f0
+        }
+
+        .pricing-final-cta {
+            min-height: 11rem
+        }
+
+        @media (min-width: 900px) {
+            .enterprise-grid {
+                grid-template-columns: minmax(0, 1.08fr) minmax(0, 1.24fr) minmax(0, 1fr)
+            }
+
+            .enterprise-column + .enterprise-column {
+                border-top: 0;
+                border-left: 1px solid #e2e8f0
+            }
+
+            .pricing-final-cta {
+                height: 12rem;
+                min-height: 12rem
+            }
+        }
+
         .faq-card {
             transition: border-color .2s ease, box-shadow .2s ease
         }
@@ -144,18 +179,6 @@
         .faq-card:hover {
             border-color: #cbd5e1;
             box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .3)
-        }
-
-        .faq-card summary::-webkit-details-marker {
-            display: none
-        }
-
-        .faq-card[open] .faq-chevron {
-            transform: rotate(90deg)
-        }
-
-        .faq-chevron {
-            transition: transform .2s ease
         }
 
         .pricing-orb {
@@ -167,13 +190,12 @@
         }
 
         .pricing-reveal {
-            opacity: 0;
+            opacity: 1;
             transform: translateY(18px);
-            transition: opacity .65s cubic-bezier(.16, 1, .3, 1), transform .65s cubic-bezier(.16, 1, .3, 1)
+            transition: transform .65s cubic-bezier(.16, 1, .3, 1)
         }
 
         .pricing-reveal.is-visible {
-            opacity: 1;
             transform: translateY(0)
         }
 
@@ -272,7 +294,7 @@
                 style="background-image:radial-gradient(#334155 1px,transparent 1px);background-size:24px 24px"></div>
         </div>
         <section class="relative pt-28 sm:pt-32">
-            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="pricing-reveal text-center">
                     <span
                         class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[.12em] text-slate-600 shadow-sm">14
@@ -329,19 +351,19 @@
                                 @endforeach
                             </ul>
                             @auth <a href="{{ route('subscription.choose-plan') }}"
-                                    class="price-button mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs font-bold {{ $featured ? 'bg-[#4f6bff] text-white' : 'border border-slate-200 bg-white text-slate-800' }}">14
+                                    class="price-button {{ $featured ? 'primary-action' : '' }} mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs font-bold {{ $featured ? 'bg-[#4f6bff] text-white' : 'border border-slate-200 bg-white text-slate-800' }}">14
                                     dagen gratis proberen</a>
                             @else
                                 <a href="{{ route('register') }}"
-                                    class="price-button mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs font-bold {{ $featured ? 'bg-[#4f6bff] text-white' : 'border border-slate-200 bg-white text-slate-800' }}">14
+                                    class="price-button {{ $featured ? 'primary-action' : '' }} mt-7 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-xs font-bold {{ $featured ? 'bg-[#4f6bff] text-white' : 'border border-slate-200 bg-white text-slate-800' }}">14
                                 dagen gratis proberen</a> @endauth
                         </article>
                     @endforeach
                 </div>
                 <article
                     class="pricing-reveal enterprise-panel mt-7 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                    <div class="grid lg:grid-cols-[1.1fr_1.25fr_1fr]">
-                        <div class="flex flex-col p-7 sm:p-9 lg:min-h-[24rem]">
+                    <div class="enterprise-grid">
+                        <div class="enterprise-column flex flex-col p-7 sm:p-9 lg:min-h-[24rem]">
                             <p class="text-xs font-bold uppercase tracking-[.13em] text-slate-500">Voor grotere
                                 organisaties</p>
                             <h2 class="mt-5 text-4xl font-extrabold tracking-tight">Enterprise</h2>
@@ -359,7 +381,7 @@
                                 <path d="m211 92 7 7 15-18" stroke="#3659D9" stroke-width="3" />
                             </svg>
                         </div>
-                        <div class="border-t border-slate-200 p-7 sm:p-9 lg:border-l lg:border-t-0">
+                        <div class="enterprise-column p-7 sm:p-9">
                             <ul>
                                 @foreach (['Onbeperkte admins & medewerkers', 'Dedicated accountmanager', 'SLA met uptime-garantie', 'Persoonlijke onboarding', 'Maatwerk integraties'] as $item)
                                     <li
@@ -375,7 +397,7 @@
                                 @endforeach
                             </ul>
                         </div>
-                        <div class="border-t border-slate-200 p-7 sm:p-9 lg:border-l lg:border-t-0">
+                        <div class="enterprise-column p-7 sm:p-9">
                             <div class="flex items-start gap-4"><span
                                     class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-blue-700"><svg
                                         class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"
@@ -387,7 +409,7 @@
                             </div>
                             <p class="mt-6 text-sm leading-relaxed text-slate-500">Onze experts denken graag met je mee
                                 over de beste oplossing.</p><a href="{{ route('contact', ['subject' => 'demo']) }}"
-                                class="price-button mt-8 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#3659d9] px-5 py-4 text-sm font-bold text-white">Plan
+                                class="price-button primary-action mt-8 inline-flex w-full items-center justify-center gap-3 rounded-xl px-5 py-4 text-sm font-bold">Plan
                                 een adviesgesprek <span>→</span></a><a
                                 href="{{ route('contact', ['subject' => 'sales']) }}"
                                 class="mt-6 inline-flex items-center gap-3 text-sm font-bold text-blue-700"><svg
@@ -398,97 +420,52 @@
                         </div>
                     </div>
                 </article>
-                <p class="mt-7 text-center text-xs text-slate-400">Alle prijzen zijn exclusief 21% btw. Betaling
-                    verloopt veilig via Mollie.</p>
-
-                <div class="pricing-reveal mx-auto mt-14 max-w-5xl text-center">
-                    <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Welk abonnement past bij
-                        mij?</p>
-                    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">Kies op basis van hoe je team
-                        werkt</h2>
-                    <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">Begin klein en schaal op
-                        wanneer je meer medewerkers, automatisering of locaties toevoegt. Je kunt tussentijds van
-                        abonnement wisselen.</p>
-                    <div class="mt-7 grid gap-4 text-left md:grid-cols-3">
-                        <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                            <h3 class="font-bold text-slate-900">Eén klein team</h3>
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">Starter geeft je de basis voor
-                                duidelijke taken, bewijs en realtime voortgang.</p>
-                            <a href="{{ route('seo.takenlijst-personeel') }}"
-                                class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Bekijk
-                                takenlijsten voor personeel →</a>
-                        </div>
-                        <div class="rounded-2xl border border-blue-200 bg-blue-50/40 p-5">
-                            <h3 class="font-bold text-slate-900">Meer controle en automatisering</h3>
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">Professional past bij teams die
-                                AI-import, rapportages en extra ondersteuning willen.</p>
-                            <a href="{{ route('seo.werkcontrole-app') }}"
-                                class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Ontdek
-                                de werkcontrole-app →</a>
-                        </div>
-                        <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                            <h3 class="font-bold text-slate-900">Meerdere locaties</h3>
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">Business brengt prestaties,
-                                kwaliteit en rapportages van verschillende vestigingen samen.</p>
-                            <a href="{{ route('seo.checklist-app-voor-bedrijven') }}"
-                                class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Bekijk
-                                TaskCheck voor bedrijven →</a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
-        <section class="relative pb-20 pt-16 sm:pb-24">
-            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <section class="relative pb-20 pt-10 sm:pb-24">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="pricing-reveal">
                     <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Veelgestelde vragen</p>
                     <h2 class="mt-2 text-2xl font-bold">Alles wat je wilt weten</h2>
                 </div>
                 <div class="mt-7 grid gap-4 md:grid-cols-2">
                     @foreach ([['Hoe werkt betalen?', 'Na je proefperiode ga je naar een beveiligde Mollie-checkout. Je abonnement wordt direct geactiveerd na betaling.'], ['Kan ik tussentijds wisselen?', 'Ja, op- en afschalen kan vanuit je abonnementspagina. Je betaalt naar wat je gebruikt.'], ['Wat na 14 dagen gratis?', 'Je kiest pas daarna een plan. Geen automatische incasso zonder jouw akkoord.'], ['Korting op jaarbetaling?', 'Neem contact op — voor jaarabonnementen maken we graag maatwerk.']] as [$question, $answer])
-                        <details class="pricing-reveal faq-card group rounded-xl border border-slate-200 bg-white">
-                            <summary class="flex cursor-pointer list-none items-start gap-4 p-5">
-                                <span
+                        <div class="pricing-reveal faq-card flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5">
+                            <span
                                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4f6bff]"><svg
                                         class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
                                         <circle cx="12" cy="12" r="8" />
                                         <path d="m9 12 2 2 4-5" />
-                                    </svg></span>
-                                <h3 class="flex-1 pt-2 text-sm font-bold">{{ $question }}</h3>
-                                <span class="faq-chevron mt-2" aria-hidden="true">›</span>
-                            </summary>
-                            <p class="px-5 pb-5 pl-[5.75rem] text-xs leading-relaxed text-slate-500">
-                                {{ $answer }}</p>
-                        </details>
+                                </svg></span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-sm font-bold text-slate-900">{{ $question }}</h3>
+                                <p class="mt-1.5 text-xs leading-relaxed text-slate-500">{{ $answer }}</p>
+                            </div>
+                            <span class="mt-2 text-slate-700" aria-hidden="true">›</span>
+                        </div>
                     @endforeach
                 </div>
                 <div
                     class="pricing-reveal mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
-                    <div class="grid min-h-[11rem] items-center lg:grid-cols-[1.35fr_.65fr]">
-                        <div class="p-7 sm:p-9">
+                    <div class="pricing-final-cta grid items-center lg:grid-cols-[1.25fr_.75fr]">
+                        <div class="relative z-10 p-7 sm:p-9">
                             <h2 class="text-xl font-bold">Nog twijfels?</h2>
                             <p class="mt-2 max-w-xl text-sm text-slate-500">We laten je graag in een kort gesprek zien
                                 hoe TaskCheck in jouw processen past.</p>
                             <div class="mt-6 flex flex-col gap-3 sm:flex-row"><a
                                     href="{{ route('contact', ['subject' => 'demo']) }}"
-                                    class="price-button inline-flex justify-center rounded-lg bg-[#4f6bff] px-6 py-3 text-xs font-bold text-white">Plan
+                                    class="price-button primary-action inline-flex justify-center rounded-lg px-6 py-3 text-xs font-bold">Plan
                                     een demo</a><a href="{{ route('welcome') }}"
                                     class="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-6 py-3 text-xs font-bold text-slate-700 shadow-sm">Terug
                                     naar homepage</a></div>
                         </div>
-                        <div class="relative hidden h-full overflow-hidden lg:block"><svg
-                                class="absolute bottom-0 right-6 h-[92%] w-auto" viewBox="0 0 320 180"
-                                fill="none">
-                                <circle cx="213" cy="60" r="28" fill="#DBEAFE" />
-                                <circle cx="263" cy="66" r="25" fill="#E0E7FF" />
-                                <path d="M173 174c2-49 19-81 42-81s39 32 41 81h-83Z" fill="#BFDBFE" />
-                                <path d="M226 174c3-46 17-75 38-75 20 0 35 29 38 75h-76Z" fill="#C7D2FE" />
-                                <rect x="103" y="103" width="99" height="66" rx="6" fill="white"
-                                    stroke="#94A3B8" stroke-width="2" />
-                                <circle cx="153" cy="131" r="8" fill="#C7D2FE" />
-                                <path d="m149 131 3 3 6-7" stroke="#4F6BFF" stroke-width="2" />
-                            </svg></div>
+                        <div class="relative hidden h-full min-h-[11rem] overflow-hidden lg:block">
+                            <img src="{{ asset('images/oplossing-taskcheck-multi-sector.png') }}"
+                                alt="TaskCheck in gebruik bij een operationeel team"
+                                class="absolute inset-0 h-full w-full object-cover object-center">
+                            <div class="absolute inset-0 bg-gradient-to-r from-white via-white/35 to-transparent"></div>
+                        </div>
                     </div>
                 </div>
             </div>

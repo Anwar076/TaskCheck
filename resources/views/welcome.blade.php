@@ -256,7 +256,7 @@
      TRUST BAR
 ══════════════════════════════════════ --}}
 <section class="border-y border-slate-100 bg-slate-50 py-7">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
         <p class="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-5">Vertrouwd door operationele teams in Nederland</p>
         <div class="flex flex-wrap justify-center gap-2.5">
             @foreach(['Horeca','Restaurants','Schoonmaak','Facilitair','Logistiek','Retail','Technisch beheer'] as $s)

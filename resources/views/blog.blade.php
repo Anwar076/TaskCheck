@@ -210,7 +210,7 @@
 
     {{-- Hero --}}
     <section class="relative border-b border-slate-200/80 bg-white/55 pt-24 pb-12 backdrop-blur-[2px] sm:pt-28 sm:pb-14 lg:pt-32">
-        <div class="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="blog-reveal inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50/90 px-3 py-1.5 text-[11px] font-semibold text-blue-800 shadow-sm ring-1 ring-white/60 sm:px-4 sm:text-xs">
                 <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgb(52,211,153,0.6)]"></span>
                 Tips &amp; nieuws voor operationele teams
@@ -230,7 +230,7 @@
         </div>
     </section>
 
-    <main class="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+    <main class="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
 
         {{-- Uitgelicht --}}
         <article class="blog-reveal blog-reveal-d4 group mb-12 border-b border-slate-100 pb-12 sm:mb-14 sm:pb-14 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
