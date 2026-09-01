@@ -560,16 +560,16 @@
                                     <select
                                         id="subject"
                                         name="subject"
-                                        @class(['contact-select', 'contact-select--has-value' => filled(old('subject'))])
+                                        @class(['contact-select', 'contact-select--has-value' => filled(old('subject', request('subject')))])
                                         data-contact-select
                                         autocomplete="off"
                                     >
-                                        <option value="" @selected(old('subject') === '')>Kies een onderwerp</option>
-                                        <option value="demo" @selected(old('subject') === 'demo')>Demo aanvragen</option>
-                                        <option value="sales" @selected(old('subject') === 'sales')>Verkoopvraag</option>
-                                        <option value="support" @selected(old('subject') === 'support')>Technische ondersteuning</option>
-                                        <option value="billing" @selected(old('subject') === 'billing')>Facturatie</option>
-                                        <option value="other" @selected(old('subject') === 'other')>Overig</option>
+                                        <option value="" @selected(old('subject', request('subject')) === '')>Kies een onderwerp</option>
+                                        <option value="demo" @selected(old('subject', request('subject')) === 'demo')>Demo aanvragen</option>
+                                        <option value="sales" @selected(old('subject', request('subject')) === 'sales')>Verkoopvraag</option>
+                                        <option value="support" @selected(old('subject', request('subject')) === 'support')>Technische ondersteuning</option>
+                                        <option value="billing" @selected(old('subject', request('subject')) === 'billing')>Facturatie</option>
+                                        <option value="other" @selected(old('subject', request('subject')) === 'other')>Overig</option>
                                     </select>
                                     <label for="subject" class="contact-select-label">Onderwerp</label>
                                     <span class="contact-select-chevron" aria-hidden="true">

@@ -28,9 +28,20 @@ class PricingPageTest extends TestCase
             'features' => [],
         ]);
 
-        $this->get(route('pricing'))
+        $response = $this->get(route('pricing'));
+
+        $response
             ->assertOk()
             ->assertSee('€49', false)
-            ->assertDontSee('€39', false);
+            ->assertDontSee('€39', false)
+            ->assertSee('<link rel="canonical" href="'.route('pricing').'">', false)
+            ->assertSee('TaskCheck prijzen en abonnementen | 14 dagen gratis')
+            ->assertSee('images/taskcheck-pricing-social.png', false)
+            ->assertSee('<script type="application/ld+json">', false)
+            ->assertSee('"price":"49.00"', false)
+            ->assertSee('<details', false)
+            ->assertSeeText('Welk abonnement past bij');
+
+        $this->assertSame(1, substr_count($response->getContent(), '<meta name="description"'));
     }
 }

@@ -3,11 +3,11 @@
 
 <head>
     @php
-        $seoTitle = 'Prijzen checklist app voor bedrijven en personeel | TaskCheck';
+        $seoTitle = 'TaskCheck prijzen en abonnementen | 14 dagen gratis';
         $seoDescription =
-            'Eerlijke prijzen voor TaskCheck. Starter, Professional, Business en Enterprise op aanvraag. Start 14 dagen gratis zonder creditcard.';
+            'Bekijk de prijzen van TaskCheck voor kleine teams, meerdere locaties en grotere organisaties. Probeer alle functies 14 dagen gratis, zonder creditcard.';
         $seoUrl = route('pricing');
-        $seoImage = asset('images/taskcheck-dashboard-hero.webp');
+        $seoImage = asset('images/taskcheck-pricing-social.png');
         $displayPrice = static function (float $amount): string {
             $formatted = number_format($amount, 2, ',', '.');
             return str_ends_with($formatted, ',00') ? substr($formatted, 0, -3) : $formatted;
@@ -28,9 +28,47 @@
                 'Alles in Professional, plus:',
             ],
         ];
+        $publicPlanKeys = ['starter', 'professional', 'business'];
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => $seoTitle,
+            'description' => $seoDescription,
+            'url' => $seoUrl,
+            'inLanguage' => 'nl-NL',
+            'mainEntity' => [
+                '@type' => 'ItemList',
+                'name' => 'TaskCheck abonnementen',
+                'itemListElement' => array_map(
+                    static function (string $key, int $index) use ($plans, $planCopy, $seoUrl): array {
+                        return [
+                            '@type' => 'ListItem',
+                            'position' => $index + 1,
+                            'item' => [
+                                '@type' => 'SoftwareApplication',
+                                'name' => 'TaskCheck ' . $planCopy[$key][0],
+                                'applicationCategory' => 'BusinessApplication',
+                                'operatingSystem' => 'Web, iOS, Android',
+                                'description' => $planCopy[$key][1],
+                                'url' => $seoUrl . '#' . $key,
+                                'offers' => [
+                                    '@type' => 'Offer',
+                                    'price' => number_format((float) $plans[$key]['billing_amount'], 2, '.', ''),
+                                    'priceCurrency' => 'EUR',
+                                    'availability' => 'https://schema.org/InStock',
+                                    'url' => $seoUrl . '#' . $key,
+                                ],
+                            ],
+                        ];
+                    },
+                    $publicPlanKeys,
+                    array_keys($publicPlanKeys),
+                ),
+            ],
+        ];
     @endphp
     <title>{{ $seoTitle }}</title>
-    @include('components.head')
+    @include('components.head', ['includeDefaultMetaDescription' => false])
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <link rel="canonical" href="{{ $seoUrl }}">
@@ -43,6 +81,7 @@
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     <meta name="twitter:image" content="{{ $seoImage }}">
+    <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <style>
         .price-card {
             transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease
@@ -105,6 +144,18 @@
         .faq-card:hover {
             border-color: #cbd5e1;
             box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .3)
+        }
+
+        .faq-card summary::-webkit-details-marker {
+            display: none
+        }
+
+        .faq-card[open] .faq-chevron {
+            transform: rotate(90deg)
+        }
+
+        .faq-chevron {
+            transition: transform .2s ease
         }
 
         .pricing-orb {
@@ -248,7 +299,7 @@
                 <div class="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
                     @foreach (['starter', 'professional', 'business'] as $key)
                         @php $featured=$key==='professional'; @endphp
-                        <article data-pricing-card
+                        <article id="{{ $key }}" data-pricing-card
                             class="price-card {{ $featured ? 'price-card-featured relative border-2' : 'border border-slate-200' }} flex min-h-[31rem] flex-col rounded-2xl bg-white p-6 sm:p-7">
                             @if ($featured)
                                 <span
@@ -335,9 +386,10 @@
                                     organisatie</h3>
                             </div>
                             <p class="mt-6 text-sm leading-relaxed text-slate-500">Onze experts denken graag met je mee
-                                over de beste oplossing.</p><a href="{{ route('contact') }}"
+                                over de beste oplossing.</p><a href="{{ route('contact', ['subject' => 'demo']) }}"
                                 class="price-button mt-8 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#3659d9] px-5 py-4 text-sm font-bold text-white">Plan
-                                een adviesgesprek <span>→</span></a><a href="{{ route('contact') }}"
+                                een adviesgesprek <span>→</span></a><a
+                                href="{{ route('contact', ['subject' => 'sales']) }}"
                                 class="mt-6 inline-flex items-center gap-3 text-sm font-bold text-blue-700"><svg
                                     class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
@@ -348,6 +400,42 @@
                 </article>
                 <p class="mt-7 text-center text-xs text-slate-400">Alle prijzen zijn exclusief 21% btw. Betaling
                     verloopt veilig via Mollie.</p>
+
+                <div class="pricing-reveal mx-auto mt-14 max-w-5xl text-center">
+                    <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Welk abonnement past bij
+                        mij?</p>
+                    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">Kies op basis van hoe je team
+                        werkt</h2>
+                    <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">Begin klein en schaal op
+                        wanneer je meer medewerkers, automatisering of locaties toevoegt. Je kunt tussentijds van
+                        abonnement wisselen.</p>
+                    <div class="mt-7 grid gap-4 text-left md:grid-cols-3">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                            <h3 class="font-bold text-slate-900">Eén klein team</h3>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-500">Starter geeft je de basis voor
+                                duidelijke taken, bewijs en realtime voortgang.</p>
+                            <a href="{{ route('seo.takenlijst-personeel') }}"
+                                class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Bekijk
+                                takenlijsten voor personeel →</a>
+                        </div>
+                        <div class="rounded-2xl border border-blue-200 bg-blue-50/40 p-5">
+                            <h3 class="font-bold text-slate-900">Meer controle en automatisering</h3>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-500">Professional past bij teams die
+                                AI-import, rapportages en extra ondersteuning willen.</p>
+                            <a href="{{ route('seo.werkcontrole-app') }}"
+                                class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Ontdek
+                                de werkcontrole-app →</a>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                            <h3 class="font-bold text-slate-900">Meerdere locaties</h3>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-500">Business brengt prestaties,
+                                kwaliteit en rapportages van verschillende vestigingen samen.</p>
+                            <a href="{{ route('seo.checklist-app-voor-bedrijven') }}"
+                                class="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">Bekijk
+                                TaskCheck voor bedrijven →</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
         <section class="relative pb-20 pt-16 sm:pb-24">
@@ -358,20 +446,21 @@
                 </div>
                 <div class="mt-7 grid gap-4 md:grid-cols-2">
                     @foreach ([['Hoe werkt betalen?', 'Na je proefperiode ga je naar een beveiligde Mollie-checkout. Je abonnement wordt direct geactiveerd na betaling.'], ['Kan ik tussentijds wisselen?', 'Ja, op- en afschalen kan vanuit je abonnementspagina. Je betaalt naar wat je gebruikt.'], ['Wat na 14 dagen gratis?', 'Je kiest pas daarna een plan. Geen automatische incasso zonder jouw akkoord.'], ['Korting op jaarbetaling?', 'Neem contact op — voor jaarabonnementen maken we graag maatwerk.']] as [$question, $answer])
-                        <div
-                            class="pricing-reveal faq-card flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5">
-                            <span
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4f6bff]"><svg
-                                    class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
-                                    viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="8" />
-                                    <path d="m9 12 2 2 4-5" />
-                                </svg></span>
-                            <div class="flex-1">
-                                <h3 class="text-sm font-bold">{{ $question }}</h3>
-                                <p class="mt-1.5 text-xs leading-relaxed text-slate-500">{{ $answer }}</p>
-                            </div><span class="mt-2">›</span>
-                        </div>
+                        <details class="pricing-reveal faq-card group rounded-xl border border-slate-200 bg-white">
+                            <summary class="flex cursor-pointer list-none items-start gap-4 p-5">
+                                <span
+                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4f6bff]"><svg
+                                        class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="8" />
+                                        <path d="m9 12 2 2 4-5" />
+                                    </svg></span>
+                                <h3 class="flex-1 pt-2 text-sm font-bold">{{ $question }}</h3>
+                                <span class="faq-chevron mt-2" aria-hidden="true">›</span>
+                            </summary>
+                            <p class="px-5 pb-5 pl-[5.75rem] text-xs leading-relaxed text-slate-500">
+                                {{ $answer }}</p>
+                        </details>
                     @endforeach
                 </div>
                 <div
@@ -381,7 +470,8 @@
                             <h2 class="text-xl font-bold">Nog twijfels?</h2>
                             <p class="mt-2 max-w-xl text-sm text-slate-500">We laten je graag in een kort gesprek zien
                                 hoe TaskCheck in jouw processen past.</p>
-                            <div class="mt-6 flex flex-col gap-3 sm:flex-row"><a href="{{ route('contact') }}"
+                            <div class="mt-6 flex flex-col gap-3 sm:flex-row"><a
+                                    href="{{ route('contact', ['subject' => 'demo']) }}"
                                     class="price-button inline-flex justify-center rounded-lg bg-[#4f6bff] px-6 py-3 text-xs font-bold text-white">Plan
                                     een demo</a><a href="{{ route('welcome') }}"
                                     class="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-6 py-3 text-xs font-bold text-slate-700 shadow-sm">Terug
@@ -407,7 +497,6 @@
     @include('components.footer')
     <script>
         (function() {
-            var reveals = document.querySelectorAll('.pricing-reveal');
             var cards = document.querySelectorAll('[data-pricing-card]');
             cards.forEach(function(card, index) {
                 card.classList.add('pricing-reveal', 'pricing-reveal-delay-' + Math.min(index + 1, 3));
