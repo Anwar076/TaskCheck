@@ -177,6 +177,27 @@
             border-top: 1px solid #e2e8f0
         }
 
+        .enterprise-feature {
+            display: flex;
+            align-items: center;
+            gap: 1rem
+        }
+
+        .enterprise-feature-copy {
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.15rem 0
+        }
+
+        .enterprise-feature:first-child .enterprise-feature-copy {
+            padding-top: .25rem
+        }
+
+        .enterprise-feature:last-child .enterprise-feature-copy {
+            border-bottom: 0;
+            padding-bottom: .25rem
+        }
+
         .pricing-final-cta {
             min-height: 11rem
         }
@@ -426,15 +447,14 @@
                         <div class="enterprise-column p-7 sm:p-9">
                             <ul>
                                 @foreach (['Onbeperkte admins & medewerkers', 'Dedicated accountmanager', 'SLA met uptime-garantie', 'Persoonlijke onboarding', 'Maatwerk integraties'] as $item)
-                                    <li
-                                        class="flex items-center gap-4 border-b border-slate-200 py-4 first:pt-0 last:border-0 last:pb-0">
+                                    <li class="enterprise-feature">
                                         <span
                                             class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700"><svg
                                                 class="h-4 w-4" fill="none" stroke="currentColor"
                                                 stroke-width="2.5" viewBox="0 0 24 24">
                                                 <path d="m6 12 4 4 8-9" />
                                             </svg></span><span
-                                            class="text-sm font-semibold text-slate-800">{{ $item }}</span>
+                                            class="enterprise-feature-copy text-sm font-semibold text-slate-800">{{ $item }}</span>
                                     </li>
                                 @endforeach
                             </ul>
