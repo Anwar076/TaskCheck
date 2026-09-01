@@ -159,14 +159,14 @@
                             <span class="pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
                         </span>
                     </label>
-                    <label class="ml-4 flex items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/50 p-4 cursor-pointer">
+                    <label data-auto-accept-wrapper class="ml-4 flex items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/50 p-4 cursor-pointer">
                         <span>
                             <span class="block text-sm font-medium text-slate-800">Automatisch accepteren na indienen</span>
                             <span class="block mt-0.5 text-sm text-slate-500">Alleen van toepassing als deze lijst niet gecontroleerd hoeft te worden.</span>
                         </span>
                         <input type="hidden" name="auto_accept_without_review" value="0">
                         <span class="relative inline-flex h-6 w-11 flex-shrink-0">
-                            <input type="checkbox" name="auto_accept_without_review" value="1" {{ old('auto_accept_without_review', $list->auto_accept_without_review) ? 'checked' : '' }} class="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0">
+                            <input data-auto-accept-input type="checkbox" name="auto_accept_without_review" value="1" {{ old('auto_accept_without_review', $list->auto_accept_without_review) ? 'checked' : '' }} class="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0">
                             <span class="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-blue-600"></span>
                             <span class="pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
                         </span>
@@ -220,3 +220,7 @@
 </div>
 
 @endsection
+
+@push('scripts')
+    @include('admin.lists.partials.auto-accept-toggle-script', ['reviewInputId' => 'requires_review_edit'])
+@endpush
