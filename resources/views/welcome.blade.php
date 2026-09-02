@@ -1089,7 +1089,8 @@
             render();
             advanceTimer = window.setTimeout(function () {
                 advance();
-                scheduleCycle(1850);
+                // De nieuwe actieve taak wordt direct na de schuifbeweging afgevinkt.
+                scheduleCycle(850);
             }, 1150);
         }, delay);
     }
@@ -1098,12 +1099,12 @@
     window.addEventListener('resize', render, { passive: true });
 
     if (!reducedMotion) {
-        scheduleCycle(3000);
+        scheduleCycle(850);
         document.addEventListener('visibilitychange', function () {
             clearCycle();
             if (!document.hidden) {
                 normalizeTrack();
-                scheduleCycle(1200);
+                scheduleCycle(850);
             }
         });
     }
