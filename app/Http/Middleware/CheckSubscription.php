@@ -15,7 +15,7 @@ class CheckSubscription
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login');
         }
 
@@ -25,7 +25,7 @@ class CheckSubscription
             return $next($request);
         }
 
-        if (!$user->company_id) {
+        if (! $user->company_id) {
             if ($this->isAllowedWhileLocked($request)) {
                 return $next($request);
             }
@@ -35,7 +35,7 @@ class CheckSubscription
 
         $company = $user->company;
 
-        if (!$company) {
+        if (! $company) {
             return $this->deny($request, 'Je bedrijfsaccount is niet gevonden. Neem contact op met support.', 'subscription.choose-plan');
         }
 
@@ -43,7 +43,7 @@ class CheckSubscription
             return $next($request);
         }
 
-        if (!$company->canAccess()) {
+        if (! $company->canAccess()) {
             $redirectRoute = $user->isAdmin()
                 ? 'admin.settings.edit'
                 : 'employee.settings.edit';
@@ -57,12 +57,12 @@ class CheckSubscription
 
         if ($company->isOnTrial() && $company->trialDaysRemaining() <= 3) {
             $message = $company->isManagedAccount()
-                ? "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Het abonnement {$company->getPlanDetails()['name']} is al toegewezen; op {$company->billing_start_date?->format('d-m-Y')} ontvang je de betaallink."
+                ? "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Het abonnement {$company->getPlanDisplayName()} is al toegewezen; op {$company->billing_start_date?->format('d-m-Y')} ontvang je de betaallink."
                 : "Je proefperiode eindigt over {$company->trialDaysRemaining()} dag(en). Kies een abonnement om door te gaan.";
             $request->session()->flash('trial_warning', [
                 'message' => $message,
                 'days_remaining' => $company->trialDaysRemaining(),
-                'choose_plan' => !$company->isManagedAccount(),
+                'choose_plan' => ! $company->isManagedAccount(),
             ]);
         }
 

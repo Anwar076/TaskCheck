@@ -51,4 +51,23 @@ class SendFirstPaymentInvitationsCommandTest extends TestCase
         $this->artisan('subscriptions:send-first-payment-invitations')->assertSuccessful();
         Mail::assertNothingSent();
     }
+
+    public function test_payment_invitation_renders_for_a_legacy_plan_without_current_plan_details(): void
+    {
+        $company = Company::query()->create([
+            'name' => 'Legacy klant',
+            'email' => 'legacy@example.test',
+            'subscription_plan' => 'kwalitaria_plus',
+            'subscription_status' => 'trial',
+            'signup_source' => Company::SIGNUP_SOURCE_MANAGED,
+            'billing_required' => true,
+            'billing_start_date' => today(),
+            'is_active' => true,
+        ]);
+
+        $html = (new FirstPaymentInvitationMail($company, 'https://example.test/betalen'))->render();
+
+        $this->assertStringContainsString('Kwalitaria plus', $html);
+        $this->assertStringContainsString('https://example.test/betalen', $html);
+    }
 }

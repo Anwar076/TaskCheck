@@ -8,7 +8,7 @@
 @section('email-body')
     <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#0f172a;">Rond je eerste betaling af</h1>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#334155;">
-        Je proefperiode is afgelopen en het abonnement <strong>{{ $company->getPlanDetails()['name'] }}</strong> staat al voor je klaar.
+        Je proefperiode is afgelopen en het abonnement <strong>{{ $company->getPlanDisplayName() }}</strong> staat al voor je klaar.
         Rond eenmalig de eerste betaling via Mollie af. Daarmee geef je ook het mandaat voor de volgende incasso's.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;border:1px solid #e2e8f0;border-radius:12px;background-color:#f8fafc;"><tr><td style="padding:16px 18px;">

@@ -5,9 +5,9 @@ namespace App\Models\Organisation;
 use App\Models\Billing\Invoice;
 use App\Models\Billing\SubscriptionPlan;
 use App\Models\Submissions\SubmissionTask;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Company extends Model
 {
@@ -67,19 +67,31 @@ class Company extends Model
     ];
 
     public const ONBOARDING_STEP_WELCOME = 'welcome';
+
     public const ONBOARDING_STEP_ORGANIZATION = 'organization';
+
     public const ONBOARDING_STEP_USERS = 'users';
+
     public const ONBOARDING_STEP_STARTER_PACK = 'starter_pack';
+
     public const ONBOARDING_STEP_LIST_CHOICE = 'list_choice';
+
     public const ONBOARDING_STEP_LIST_CREATE = 'list_create';
+
     public const ONBOARDING_STEP_ASSIGN = 'assign';
+
     public const ONBOARDING_STEP_COMPLETED = 'completed';
 
     public const CALENDAR_TIME_MODE_WORKING_HOURS = 'working_hours';
+
     public const CALENDAR_TIME_MODE_24_HOURS = '24_hours';
+
     public const REPORTING_FREQUENCY_DAILY = 'daily';
+
     public const REPORTING_FREQUENCY_WEEKLY = 'weekly';
+
     public const SIGNUP_SOURCE_SELF_SERVICE = 'self_service';
+
     public const SIGNUP_SOURCE_MANAGED = 'managed';
 
     protected $casts = [
@@ -358,9 +370,9 @@ class Company extends Model
     // Check if subscription is active
     public function hasActiveSubscription(): bool
     {
-        return $this->subscription_status === 'active' 
-            && !$this->isAwaitingFirstPayment()
-            && (!$this->subscription_ends_at || $this->subscription_ends_at->isFuture());
+        return $this->subscription_status === 'active'
+            && ! $this->isAwaitingFirstPayment()
+            && (! $this->subscription_ends_at || $this->subscription_ends_at->isFuture());
     }
 
     /**
@@ -373,8 +385,8 @@ class Company extends Model
         return (bool) ($this->billing_required
             && in_array($this->subscription_status, ['trial', 'active'], true)
             && $this->trial_ends_at
-            && !$this->mollie_subscription_id
-            && !$this->subscription_ends_at);
+            && ! $this->mollie_subscription_id
+            && ! $this->subscription_ends_at);
     }
 
     public function hasCancelledButStillActiveAccess(): bool
@@ -422,7 +434,7 @@ class Company extends Model
     // Get days remaining in trial
     public function trialDaysRemaining(): int
     {
-        if (!$this->isOnTrial()) {
+        if (! $this->isOnTrial()) {
             return 0;
         }
 
@@ -463,7 +475,7 @@ class Company extends Model
     // Get plan details
     public function getPlanDetails(): array
     {
-        if (!$this->subscription_plan) {
+        if (! $this->subscription_plan) {
             return [];
         }
 
@@ -481,6 +493,23 @@ class Company extends Model
         }
 
         return $details;
+    }
+
+    public function getPlanDisplayName(): string
+    {
+        $name = $this->getPlanDetails()['name'] ?? null;
+
+        if (filled($name)) {
+            return (string) $name;
+        }
+
+        if (filled($this->custom_subscription_name)) {
+            return (string) $this->custom_subscription_name;
+        }
+
+        return filled($this->subscription_plan)
+            ? ucfirst(str_replace(['-', '_'], ' ', (string) $this->subscription_plan))
+            : 'TaskCheck';
     }
 
     // Check if user limit is reached
@@ -543,9 +572,10 @@ class Company extends Model
                 $q->where('company_id', $this->id);
             })->get()
                 ->sum(function ($st) {
-                    if (!$st->proof_files || !is_array($st->proof_files)) {
+                    if (! $st->proof_files || ! is_array($st->proof_files)) {
                         return 0;
                     }
+
                     return collect($st->proof_files)->sum('size');
                 });
         });
@@ -659,7 +689,7 @@ class Company extends Model
 
     public function needsOnboarding(): bool
     {
-        return !$this->hasCompletedOnboarding();
+        return ! $this->hasCompletedOnboarding();
     }
 
     public function advanceOnboardingTo(string $step): void
