@@ -160,6 +160,10 @@ class SendCompanyReportsCommandTest extends TestCase
             'list_id' => $list->id,
             'status' => 'completed',
         ]);
+        $submission->forceFill([
+            'created_at' => now()->subDays(3),
+            'completed_at' => now(),
+        ])->saveQuietly();
 
         SubmissionTask::query()->create(['submission_id' => $submission->id, 'task_id' => $normalTask->id, 'status' => 'completed']);
         SubmissionTask::query()->create([
@@ -188,6 +192,13 @@ class SendCompanyReportsCommandTest extends TestCase
         $this->assertSame(['Frituurvet was op'], $result[0]['items'][0]['messages']);
         $this->assertStringContainsString('Afwijkende meting: 9 °C', $result[0]['items'][1]['messages'][0]);
         $this->assertNotContains('Werkbank reinigen', array_column($result[0]['items'], 'task_title'));
+
+        $summary = app(WeeklyOverviewService::class)->buildSummary(
+            $company->id,
+            now()->subDay(),
+            now()->addDay(),
+        );
+        $this->assertSame(1, $summary['total_lists']);
 
         $taskSummary = app(WeeklyOverviewService::class)->buildTaskSummary(
             $company->id,

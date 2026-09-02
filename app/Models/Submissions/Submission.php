@@ -77,6 +77,23 @@ class Submission extends Model
         return $query->where('status', 'reviewed');
     }
 
+    public function scopeInReportingPeriod($query, $start, $end)
+    {
+        return $query->where(function ($periodQuery) use ($start, $end) {
+            $periodQuery
+                ->whereBetween('completed_at', [$start, $end])
+                ->orWhere(function ($openQuery) use ($start, $end) {
+                    $openQuery->whereNull('completed_at')
+                        ->whereBetween('created_at', [$start, $end]);
+                });
+        });
+    }
+
+    public function reportingTimestamp()
+    {
+        return $this->completed_at ?? $this->created_at;
+    }
+
     // Helper methods
     public function getCompletionPercentageAttribute()
     {

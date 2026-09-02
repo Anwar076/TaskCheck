@@ -32,11 +32,11 @@ class WeeklyOverviewService
         $completionRate = $total > 0 ? round(($finished / $total) * 100, 1) : 0;
 
         $today = $this->scopedQuery($companyId, $locationId)
-            ->whereDate('created_at', today())
+            ->inReportingPeriod(today()->startOfDay(), today()->endOfDay())
             ->count();
 
         $yesterday = $this->scopedQuery($companyId, $locationId)
-            ->whereDate('created_at', today()->subDay())
+            ->inReportingPeriod(today()->subDay()->startOfDay(), today()->subDay()->endOfDay())
             ->count();
 
         $growthRate = $yesterday > 0
@@ -44,11 +44,11 @@ class WeeklyOverviewService
             : 0;
 
         $thisWeekTotal = $this->scopedQuery($companyId, $locationId)
-            ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->inReportingPeriod(now()->startOfWeek(), now()->endOfWeek())
             ->count();
 
         $lastWeekTotal = $this->scopedQuery($companyId, $locationId)
-            ->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
+            ->inReportingPeriod(now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek())
             ->count();
 
         $weeklyGrowth = $lastWeekTotal > 0
@@ -86,7 +86,7 @@ class WeeklyOverviewService
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
             ->with(['submissions' => function ($query) use ($start, $end, $locationId) {
-                $query->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                $query->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
                     ->when($locationId, function ($submissionQuery) use ($locationId) {
                         $submissionQuery->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId));
                     })
@@ -139,15 +139,15 @@ class WeeklyOverviewService
     {
         return TaskList::query()
             ->withCount(['submissions as period_submissions_count' => function ($query) use ($start, $end) {
-                $query->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()]);
+                $query->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay());
             }])
             ->where('company_id', $companyId)
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
-            ->whereHas('submissions', fn ($query) => $query->whereBetween('created_at', [
+            ->whereHas('submissions', fn ($query) => $query->inReportingPeriod(
                 $start->copy()->startOfDay(),
                 $end->copy()->endOfDay(),
-            ]))
+            ))
             ->orderByDesc('period_submissions_count')
             ->orderBy('title')
             ->take($limit)
@@ -171,13 +171,13 @@ class WeeklyOverviewService
         $tasks = SubmissionTask::query()
             ->whereHas('submission', function ($query) use ($companyId, $start, $end, $locationId) {
                 $query->where('company_id', $companyId)
-                    ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                    ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
                     ->when($locationId, fn ($submissionQuery) => $submissionQuery->whereHas(
                         'taskList',
                         fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId)
                     ));
             })
-            ->with(['task:id,list_id,title,validation_rules', 'submission:id,list_id,user_id,created_at', 'submission.taskList:id,title', 'submission.user:id,name'])
+            ->with(['task:id,list_id,title,validation_rules', 'submission:id,list_id,user_id,created_at,completed_at', 'submission.taskList:id,title', 'submission.user:id,name'])
             ->orderBy('submission_id')
             ->orderBy('id')
             ->get()
@@ -208,7 +208,7 @@ class WeeklyOverviewService
                     'submission_id' => (int) $submissionTask->submission_id,
                     'list_title' => $submissionTask->submission?->taskList?->title ?? 'Onbekende lijst',
                     'employee_name' => $submissionTask->submission?->user?->name,
-                    'submitted_at' => $submissionTask->submission?->created_at,
+                    'submitted_at' => $submissionTask->submission?->reportingTimestamp(),
                     'task_title' => $submissionTask->task?->title ?? 'Onbekend punt',
                     'messages' => $messages->all(),
                 ];
@@ -240,7 +240,7 @@ class WeeklyOverviewService
         $statuses = SubmissionTask::query()
             ->whereHas('submission', function ($query) use ($companyId, $start, $end, $locationId) {
                 $query->where('company_id', $companyId)
-                    ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                    ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
                     ->when($locationId, fn ($submissionQuery) => $submissionQuery->whereHas(
                         'taskList',
                         fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId)
@@ -282,7 +282,7 @@ class WeeklyOverviewService
         $rows = [];
 
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-            $daySubs = $submissions->filter(fn (Submission $submission) => $submission->created_at->isSameDay($date));
+            $daySubs = $submissions->filter(fn (Submission $submission) => $submission->reportingTimestamp()?->isSameDay($date));
             $dayTotal = $daySubs->count();
             $dayFinished = $daySubs->whereIn('status', ['completed', 'reviewed'])->count();
 
@@ -303,7 +303,7 @@ class WeeklyOverviewService
     private function periodSubmissions(int $companyId, Carbon $start, Carbon $end, ?int $locationId): Collection
     {
         return $this->scopedQuery($companyId, $locationId)
-            ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
             ->with('taskList:id,requires_review')
             ->get();
     }
