@@ -11,11 +11,14 @@ use Illuminate\Support\Str;
 
 class ListCalendarService
 {
+    public function __construct(private ?WorkingHoursService $workingHoursService = null) {}
+
     public const DAY_START_HOUR = 6;
 
     public const DAY_END_HOUR = 21;
 
     public const DEFAULT_TASK_DURATION_MINUTES = 30;
+
     public const LIST_COLORS = [
         ['border' => 'border-blue-600', 'bg' => 'bg-blue-50', 'text' => 'text-blue-900', 'hover' => 'hover:bg-blue-100'],
         ['border' => 'border-violet-600', 'bg' => 'bg-violet-50', 'text' => 'text-violet-900', 'hover' => 'hover:bg-violet-100'],
@@ -24,6 +27,7 @@ class ListCalendarService
         ['border' => 'border-rose-600', 'bg' => 'bg-rose-50', 'text' => 'text-rose-900', 'hover' => 'hover:bg-rose-100'],
         ['border' => 'border-cyan-600', 'bg' => 'bg-cyan-50', 'text' => 'text-cyan-900', 'hover' => 'hover:bg-cyan-100'],
     ];
+
     public const WEEKDAY_LABELS = [
         'monday' => 'Ma',
         'tuesday' => 'Di',
@@ -91,8 +95,8 @@ class ListCalendarService
             'week_start' => $weekStart->format('Y-m-d'),
             'week_end' => $weekEnd->format('Y-m-d'),
             'week_label' => $weekStart->locale('nl')->translatedFormat('d M')
-                . ' – '
-                . $weekEnd->locale('nl')->translatedFormat('d M Y'),
+                .' – '
+                .$weekEnd->locale('nl')->translatedFormat('d M Y'),
             'title' => $weekStart->locale('nl')->translatedFormat('F Y'),
             'prev' => $weekStart->copy()->subWeek()->format('Y-m-d'),
             'next' => $weekStart->copy()->addWeek()->format('Y-m-d'),
@@ -204,10 +208,10 @@ class ListCalendarService
 
         if ($list->schedule_type === 'once') {
             if ($list->due_date) {
-                return $base . ' · uiterlijk ' . $list->due_date->locale('nl')->translatedFormat('d M Y');
+                return $base.' · uiterlijk '.$list->due_date->locale('nl')->translatedFormat('d M Y');
             }
 
-            return $base . ' · één keer invullen';
+            return $base.' · één keer invullen';
         }
 
         if (in_array($list->schedule_type, ['weekly', 'custom'], true)) {
@@ -215,19 +219,19 @@ class ListCalendarService
             if ($days !== []) {
                 $names = array_map(fn ($d) => self::WEEKDAY_LABELS[$d] ?? $d, $days);
 
-                return $base . ': ' . implode(', ', $names);
+                return $base.': '.implode(', ', $names);
             }
         }
 
         if ($list->schedule_type === 'monthly') {
             $dom = (int) (is_array($list->schedule_config) ? ($list->schedule_config['day_of_month'] ?? 1) : 1);
 
-            return $base . ': elke ' . $dom . 'e van de maand';
+            return $base.': elke '.$dom.'e van de maand';
         }
 
         $default = $this->getDefaultTimeSlot($list);
         if ($default !== null) {
-            return $base . ' · ' . $this->formatSlotTimeLabel($default);
+            return $base.' · '.$this->formatSlotTimeLabel($default);
         }
 
         return $base;
@@ -287,8 +291,8 @@ class ListCalendarService
             'week_start' => $weekStart->format('Y-m-d'),
             'week_end' => $weekEnd->format('Y-m-d'),
             'week_label' => $weekStart->locale('nl')->translatedFormat('d M')
-                . ' – '
-                . $weekEnd->locale('nl')->translatedFormat('d M Y'),
+                .' – '
+                .$weekEnd->locale('nl')->translatedFormat('d M Y'),
             'title' => $weekStart->locale('nl')->translatedFormat('F Y'),
             'prev' => $weekStart->copy()->subWeek()->format('Y-m-d'),
             'next' => $weekStart->copy()->addWeek()->format('Y-m-d'),
@@ -885,6 +889,7 @@ class ListCalendarService
     /**
      * @param  Collection<int, TaskList>  $lists
      * @return array{all_day_tasks: Collection, timed_tasks: Collection<int, array<string, mixed>>}
+     *
      * @deprecated Use aggregateListDaySchedule for agenda views.
      */
     public function aggregateCompanyDaySchedule(Collection $lists, string $dayKey): array
@@ -931,38 +936,17 @@ class ListCalendarService
      */
     public function timeAxisHours(?array $axis = null): array
     {
-        $axis ??= $this->defaultTimeAxis();
-        $hours = [];
-        for ($hour = (int) $axis['start_hour']; $hour < (int) $axis['end_hour']; $hour++) {
-            $hours[] = sprintf('%02d:00', $hour);
-        }
-
-        return $hours;
+        return $this->workingHours()->timeAxisHours($axis ?? $this->workingHours()->defaultTimeAxis());
     }
 
     public function timeAxisForCompany(?Company $company, array $dayKeys): array
     {
-        if ($company?->calendar_time_mode === Company::CALENDAR_TIME_MODE_24_HOURS) {
-            return [
-                'start_hour' => 0,
-                'end_hour' => 24,
-                'start_minutes' => 0,
-                'end_minutes' => 24 * 60,
-            ];
-        }
-
-        if ($company) {
-            return $company->workingHoursForDays($dayKeys);
-        }
-
-        return $this->defaultTimeAxis();
+        return $this->workingHours()->timeAxisForCompany($company, $dayKeys);
     }
 
     private function workingHoursForDay(?Company $company, string $dayKey): array
     {
-        return $company?->normalizedWorkingHours()[$dayKey]
-            ?? Company::defaultWorkingHours()[$dayKey]
-            ?? ['enabled' => true, 'start' => '06:00', 'end' => '21:00'];
+        return $this->workingHours()->hoursForDay($company, $dayKey);
     }
 
     /**
@@ -970,32 +954,7 @@ class ListCalendarService
      */
     private function nonWorkingRangesForDay(?Company $company, string $dayKey, array $axis): array
     {
-        $hours = $this->workingHoursForDay($company, $dayKey);
-        $gridStart = (int) ($axis['start_minutes'] ?? (self::DAY_START_HOUR * 60));
-        $gridEnd = (int) ($axis['end_minutes'] ?? (self::DAY_END_HOUR * 60));
-        $totalMinutes = max(1, $gridEnd - $gridStart);
-
-        if (! (bool) ($hours['enabled'] ?? true)) {
-            return [$this->nonWorkingRange($gridStart, $gridEnd, $gridStart, $totalMinutes)];
-        }
-
-        $workStart = $this->timeToMinutes($this->normalizeTime($hours['start'] ?? '06:00'));
-        $workEnd = $this->timeToMinutes($this->normalizeTime($hours['end'] ?? '21:00'));
-
-        if ($workEnd <= $workStart) {
-            return [];
-        }
-
-        $ranges = [];
-        if ($workStart > $gridStart) {
-            $ranges[] = $this->nonWorkingRange($gridStart, min($workStart, $gridEnd), $gridStart, $totalMinutes);
-        }
-
-        if ($workEnd < $gridEnd) {
-            $ranges[] = $this->nonWorkingRange(max($workEnd, $gridStart), $gridEnd, $gridStart, $totalMinutes);
-        }
-
-        return array_values(array_filter($ranges, fn (array $range) => $range['height_percent'] > 0));
+        return $this->workingHours()->nonWorkingRanges($company, $dayKey, $axis);
     }
 
     /**
@@ -1018,12 +977,12 @@ class ListCalendarService
 
     private function defaultTimeAxis(): array
     {
-        return [
-            'start_hour' => self::DAY_START_HOUR,
-            'end_hour' => self::DAY_END_HOUR,
-            'start_minutes' => self::DAY_START_HOUR * 60,
-            'end_minutes' => self::DAY_END_HOUR * 60,
-        ];
+        return $this->workingHours()->defaultTimeAxis();
+    }
+
+    private function workingHours(): WorkingHoursService
+    {
+        return $this->workingHoursService ??= new WorkingHoursService;
     }
 
     /**
