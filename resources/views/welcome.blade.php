@@ -599,7 +599,7 @@
         </div>
 
         <div class="fade-up text-center">
-            <span class="inline-flex items-center gap-3 text-sm font-bold text-slate-900"><span class="h-px w-7 bg-slate-200"></span>TaskCheck brengt alles samen<span class="h-px w-7 bg-slate-200"></span></span>
+            <span class="inline-flex items-center gap-3 text-sm font-bold text-white"><span class="h-px w-7 bg-slate-600"></span>TaskCheck brengt alles samen<span class="h-px w-7 bg-slate-600"></span></span>
         </div>
     </div>
 </section>
