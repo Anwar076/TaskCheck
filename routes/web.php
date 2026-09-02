@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AiChecklistImportController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\IdentitySettingsController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\StarterPackController;
 use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
 use App\Http\Controllers\Admin\SubmissionReviewController;
 use App\Http\Controllers\Admin\TaskController;
+use App\Http\Controllers\Admin\TaskListAssignmentController;
 use App\Http\Controllers\Admin\TaskListController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\UserController;
@@ -325,9 +327,9 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/submissions', [AdminSubmissionController::class, 'index'])->name('submissions.index');
 
     // AI import routes must come before resource route with {list}
-    Route::get('/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('lists.ai-import');
-    Route::post('/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
-    Route::post('/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('lists.ai-import.store');
+    Route::get('/lists/ai-import', [AiChecklistImportController::class, 'aiImportPage'])->name('lists.ai-import');
+    Route::post('/lists/ai-import/generate', [AiChecklistImportController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
+    Route::post('/lists/ai-import/store', [AiChecklistImportController::class, 'aiImportStore'])->name('lists.ai-import.store');
     Route::get('/lists/calendar', [TaskListController::class, 'calendar'])->name('lists.calendar');
     Route::post('/lists/reorder', [TaskListController::class, 'reorder'])->name('lists.reorder');
     Route::put('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'updateScheduleTimeSlot'])->name('lists.schedule-slot.update');
@@ -351,9 +353,9 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     // Individual admin routes
 
     // Additional admin routes
-    Route::post('/lists/{list}/assign', [TaskListController::class, 'assign'])->name('lists.assign');
+    Route::post('/lists/{list}/assign', [TaskListAssignmentController::class, 'assign'])->name('lists.assign');
     Route::post('/lists/{list}/tasks/reorder', [TaskController::class, 'reorder'])->name('lists.tasks.reorder');
-    Route::delete('/assignments/{assignment}', [TaskListController::class, 'removeAssignment'])->name('assignments.destroy');
+    Route::delete('/assignments/{assignment}', [TaskListAssignmentController::class, 'removeAssignment'])->name('assignments.destroy');
     Route::get('/submissions/{submission}', [SubmissionReviewController::class, 'show'])->name('submissions.show');
     Route::post('/submissions/{submission}/review', [SubmissionReviewController::class, 'review'])->name('submissions.review');
     Route::post('/submissions/{submission}/ai-review', [SubmissionReviewController::class, 'aiReview'])->name('submissions.ai-review');
@@ -376,7 +378,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::post('/lists/{list}/create-day-list', [TaskListController::class, 'createDayList'])->name('lists.create-day-list');
     Route::post('/lists/{list}/sync-template', [TaskListController::class, 'syncTemplate'])->name('lists.sync-template');
     Route::post('/tasks/ai-suggest', [TaskController::class, 'aiSuggest'])->name('tasks.ai-suggest');
-    Route::post('/lists/ai-generate', [TaskListController::class, 'aiGenerate'])->name('lists.ai-generate');
+    Route::post('/lists/ai-generate', [AiChecklistImportController::class, 'aiGenerate'])->name('lists.ai-generate');
     Route::get('/notifications/realtime-feed', [AdminNotificationController::class, 'realtimeFeed'])->name('notifications.realtime-feed');
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/create', [AdminNotificationController::class, 'create'])->name('notifications.create');
@@ -413,9 +415,9 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/companies/{company}/duplicate', [SuperAdminDashboardController::class, 'duplicateCompany'])->name('companies.duplicate');
     Route::get('/companies/{company}', [SuperAdminDashboardController::class, 'showCompany'])->name('companies.show');
     Route::delete('/companies/{company}', [SuperAdminDashboardController::class, 'destroyCompany'])->name('companies.destroy');
-    Route::get('/companies/{company}/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('companies.lists.ai-import');
-    Route::post('/companies/{company}/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
-    Route::post('/companies/{company}/lists/ai-import/store', [TaskListController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');
+    Route::get('/companies/{company}/lists/ai-import', [AiChecklistImportController::class, 'aiImportPage'])->name('companies.lists.ai-import');
+    Route::post('/companies/{company}/lists/ai-import/generate', [AiChecklistImportController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
+    Route::post('/companies/{company}/lists/ai-import/store', [AiChecklistImportController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');
     Route::put('/companies/{company}/profile', [SuperAdminDashboardController::class, 'updateCompanyProfile'])->name('companies.profile.update');
     Route::put('/companies/{company}/identity', [SuperAdminDashboardController::class, 'updateCompanyIdentity'])->name('companies.identity.update');
     Route::post('/companies/{company}/identity/scim-token', [SuperAdminDashboardController::class, 'rotateCompanyScimToken'])->name('companies.identity.scim-token');
