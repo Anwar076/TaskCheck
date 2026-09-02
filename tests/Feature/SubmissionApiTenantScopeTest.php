@@ -145,13 +145,13 @@ class SubmissionApiTenantScopeTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('total', 4)
-            ->assertJsonPath('meta.to_review_count', 2)
-            ->assertJsonPath('data.3.progress_percentage', 100);
+            ->assertJsonPath('meta.to_review_count', 2);
 
         $this->assertSame(
             [$olderCompleted->id, $newerCompleted->id, $inProgress->id, $reviewed->id],
             collect($response->json('data'))->pluck('id')->all()
         );
+        $this->assertSame(100, collect($response->json('data'))->firstWhere('id', $reviewed->id)['progress_percentage']);
         $this->assertNotContains($excluded->id, collect($response->json('data'))->pluck('id'));
     }
 

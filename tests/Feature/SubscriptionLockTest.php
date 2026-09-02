@@ -90,7 +90,7 @@ class SubscriptionLockTest extends TestCase
         $this->actingAs($employee)
             ->get(route('employee.settings.edit'))
             ->assertOk()
-            ->assertSee('Je hebt geen actief abonnement');
+            ->assertSee('Je abonnement is verlopen');
     }
 
     /**

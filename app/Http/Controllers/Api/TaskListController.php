@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskList;
 use App\Models\Checklist\TaskTemplate;
-use App\Models\Checklist\Task;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TaskListController extends Controller
 {
@@ -18,6 +18,8 @@ class TaskListController extends Controller
     {
         try {
             $query = TaskList::with(['creator', 'tasks', 'template'])
+                ->where('company_id', $request->user()->company_id)
+                ->withCount('tasks')
                 ->withCount('submissions');
 
             // Search functionality
@@ -25,8 +27,8 @@ class TaskListController extends Controller
                 $searchTerm = $request->get('search');
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('title', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%")
-                      ->orWhere('category', 'like', "%{$searchTerm}%");
+                        ->orWhere('description', 'like', "%{$searchTerm}%")
+                        ->orWhere('category', 'like', "%{$searchTerm}%");
                 });
             }
 
@@ -44,13 +46,19 @@ class TaskListController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $lists,
-                'message' => 'Task lists retrieved successfully'
+                'data' => $lists->items(),
+                'meta' => [
+                    'current_page' => $lists->currentPage(),
+                    'last_page' => $lists->lastPage(),
+                    'per_page' => $lists->perPage(),
+                    'total' => $lists->total(),
+                ],
+                'message' => 'Task lists retrieved successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve task lists: ' . $e->getMessage()
+                'message' => 'Failed to retrieve task lists: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -89,20 +97,20 @@ class TaskListController extends Controller
             $list = TaskList::create($validated);
 
             // Copy tasks from template as independent tasks (no live link to template)
-            if (!empty($usedTemplateId)) {
+            if (! empty($usedTemplateId)) {
                 $template = TaskTemplate::with('templateTasks')->find($usedTemplateId);
                 if ($template) {
                     foreach ($template->templateTasks as $templateTask) {
                         Task::create([
-                            'list_id'             => $list->id,
-                            'title'               => $templateTask->title,
-                            'description'         => $templateTask->description,
-                            'instructions'        => $templateTask->instructions,
+                            'list_id' => $list->id,
+                            'title' => $templateTask->title,
+                            'description' => $templateTask->description,
+                            'instructions' => $templateTask->instructions,
                             'required_proof_type' => $templateTask->required_proof_type,
-                            'is_required'         => $templateTask->is_required,
-                            'attachments'         => $templateTask->attachments,
-                            'validation_rules'    => $templateTask->validation_rules,
-                            'order_index'         => $templateTask->sort_order,
+                            'is_required' => $templateTask->is_required,
+                            'attachments' => $templateTask->attachments,
+                            'validation_rules' => $templateTask->validation_rules,
+                            'order_index' => $templateTask->sort_order,
                         ]);
                     }
                 }
@@ -116,21 +124,23 @@ class TaskListController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $list,
-                'message' => 'Task list created successfully with ' . $list->tasks()->count() . ' tasks'
+                'message' => 'Task list created successfully with '.$list->tasks()->count().' tasks',
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \DB::rollback();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \DB::rollback();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create task list: ' . $e->getMessage()
+                'message' => 'Failed to create task list: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -148,12 +158,12 @@ class TaskListController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $list,
-                'message' => 'Task list retrieved successfully'
+                'message' => 'Task list retrieved successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Task list not found: ' . $e->getMessage()
+                'message' => 'Task list not found: '.$e->getMessage(),
             ], 404);
         }
     }
@@ -172,12 +182,12 @@ class TaskListController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $templates,
-                'message' => 'Templates retrieved successfully'
+                'message' => 'Templates retrieved successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve templates: ' . $e->getMessage()
+                'message' => 'Failed to retrieve templates: '.$e->getMessage(),
             ], 500);
         }
     }

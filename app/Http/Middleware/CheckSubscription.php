@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckSubscription
@@ -40,6 +41,11 @@ class CheckSubscription
         }
 
         if ($this->isAllowedWhileLocked($request)) {
+            if (! $company->canAccess()) {
+                View::share('subscriptionLocked', true);
+                View::share('subscriptionLockMessage', $company->accessLockMessage() ?? 'Je hebt geen actief abonnement.');
+            }
+
             return $next($request);
         }
 

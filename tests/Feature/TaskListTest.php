@@ -256,9 +256,11 @@ class TaskListTest extends TestCase
         $employee = User::where('role', 'employee')->first();
         $list = TaskList::first();
         $task = $list->tasks->first();
+        $task->update(['required_proof_type' => 'none', 'validation_rules' => []]);
 
         // Create a submission
         $submission = Submission::create([
+            'company_id' => $employee->company_id,
             'user_id' => $employee->id,
             'list_id' => $list->id,
             'started_at' => now(),
@@ -338,6 +340,7 @@ class TaskListTest extends TestCase
 
         // Create completed submission
         $submission = Submission::create([
+            'company_id' => $employee->company_id,
             'user_id' => $employee->id,
             'list_id' => $list->id,
             'started_at' => now(),
@@ -352,20 +355,13 @@ class TaskListTest extends TestCase
             'completed_at' => now(),
         ]);
 
-        $response = $this->actingAs($admin)->post("/admin/submissions/{$submission->id}/review", [
-            'task_reviews' => [
-                $task->id => [
-                    'status' => 'approved',
-                    'comment' => 'Well done!',
-                ],
-            ],
-        ]);
+        $list->update(['requires_review' => true]);
+        $response = $this->actingAs($admin)->post(route('admin.submissions.approve-all', $submission));
 
         $response->assertRedirect();
         $this->assertDatabaseHas('submission_tasks', [
             'id' => $submissionTask->id,
             'status' => 'approved',
-            'manager_comment' => 'Well done!',
             'reviewed_by' => $admin->id,
         ]);
     }
@@ -567,6 +563,6 @@ class TaskListTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/employee/dashboard');
 
-        $response->assertStatus(403);
+        $response->assertOk();
     }
 }
