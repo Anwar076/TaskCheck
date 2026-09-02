@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
+use App\Enums\SubmissionStatus;
 use App\Http\Controllers\Api\Mobile\MobileController;
 use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
@@ -51,10 +52,10 @@ class WeeklyOverviewController extends MobileController
 
         foreach ($employees as $employee) {
             $total = $employee->submissions->count();
-            $completed = $employee->submissions->where('status', 'completed')->count();
-            $reviewed = $employee->submissions->where('status', 'reviewed')->count();
-            $inProgress = $employee->submissions->where('status', 'in_progress')->count();
-            $rejected = $employee->submissions->where('status', 'rejected')->count();
+            $completed = $employee->submissions->where('status', SubmissionStatus::COMPLETED->value)->count();
+            $reviewed = $employee->submissions->where('status', SubmissionStatus::REVIEWED->value)->count();
+            $inProgress = $employee->submissions->where('status', SubmissionStatus::IN_PROGRESS->value)->count();
+            $rejected = $employee->submissions->where('status', SubmissionStatus::REJECTED->value)->count();
             $rate = $total > 0 ? round((($completed + $reviewed) / $total) * 100, 1) : 0;
 
             $overview[] = [

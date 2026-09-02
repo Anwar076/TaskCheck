@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
-use App\Models\Submissions\Submission;
-use App\Models\Submissions\SubmissionTask;
 use App\Models\Checklist\TaskList;
+use App\Services\CollaborativeSubmissionService;
 use App\Services\Mobile\MobileSerializer;
 use App\Services\Mobile\MobileTaskAccess;
-use App\Services\CollaborativeSubmissionService;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 
@@ -41,7 +39,7 @@ class TaskListController extends MobileController
             $submission = $this->taskAccess->todaySubmission($user, $list);
 
             if ($requestStatus = request()->get('status')) {
-                if ($requestStatus === 'completed' && (!$submission || !in_array($submission->status, ['completed', 'reviewed'], true))) {
+                if ($requestStatus === 'completed' && (! $submission || ! in_array($submission->status, ['completed', 'reviewed'], true))) {
                     return null;
                 }
                 if ($requestStatus === 'open' && $submission && in_array($submission->status, ['completed', 'reviewed'], true)) {
@@ -60,7 +58,7 @@ class TaskListController extends MobileController
         $user = $request->user();
         $list = TaskList::where('company_id', $user->company_id)->findOrFail($id);
 
-        if (!$this->taskAccess->userCanAccessList($user, $list)) {
+        if (! $this->taskAccess->userCanAccessList($user, $list)) {
             return $this->error('Geen toegang tot deze takenlijst.', 403);
         }
 
@@ -82,7 +80,7 @@ class TaskListController extends MobileController
         $user = $request->user();
         $list = TaskList::where('company_id', $user->company_id)->findOrFail($id);
 
-        if (!$this->taskAccess->userCanAccessList($user, $list)) {
+        if (! $this->taskAccess->userCanAccessList($user, $list)) {
             return $this->error('Geen toegang tot deze takenlijst.', 403);
         }
 

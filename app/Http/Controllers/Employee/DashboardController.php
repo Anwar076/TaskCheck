@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Employee;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Checklist\TaskList;
-use App\Models\Checklist\ListAssignment;
 use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
-use App\Models\Communication\Notification;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 
@@ -23,37 +22,37 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        
+
         // Get assigned lists for today using the new ScheduleService
         $todaysLists = $this->scheduleService->getScheduledTasksForUser($user, today());
-        
+
         // Load tasks with proper filtering - tasks with weekday should only show on that day
         $todayWeekday = strtolower(now()->format('l')); // monday, tuesday, etc.
-        
+
         // Get completed task IDs for today's submissions
         $completedTaskIds = SubmissionTask::whereHas('submission', function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->whereDate('created_at', today());
-        })->where('status', 'completed')
-          ->pluck('task_id')
-          ->toArray();
-        
+                ->whereDate('created_at', today());
+        })->whereIn('status', SubmissionTaskStatus::finishedValues())
+            ->pluck('task_id')
+            ->toArray();
+
         $todaysLists->each(function ($list) use ($todayWeekday, $completedTaskIds) {
             // Always filter tasks by weekday - only show tasks for today or tasks without weekday (general tasks)
             $list->load(['tasks' => function ($query) use ($todayWeekday) {
                 $query->where('is_active', true)
-                      ->where(function ($q) use ($todayWeekday) {
-                          $q->whereNull('weekday')      // General tasks (no specific day) - always show
+                    ->where(function ($q) use ($todayWeekday) {
+                        $q->whereNull('weekday')      // General tasks (no specific day) - always show
                             ->orWhere('weekday', $todayWeekday); // Tasks for today's weekday
-                      });
+                    });
             }]);
-            
+
             // Mark tasks as completed
             $list->tasks->each(function ($task) use ($completedTaskIds) {
                 $task->is_completed = in_array($task->id, $completedTaskIds);
             });
         });
-        
+
         // Get recent submissions
         $recentSubmissions = Submission::with(['taskList'])
             ->where('user_id', $user->id)
@@ -66,7 +65,7 @@ class DashboardController extends Controller
             ->whereHas('submission', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->where('status', 'rejected')
+            ->where('status', SubmissionTaskStatus::REJECTED->value)
             ->latest()
             ->take(10)
             ->get();
@@ -76,7 +75,7 @@ class DashboardController extends Controller
             ->whereHas('submission', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->where('status', 'redo_requested')
+            ->where('status', SubmissionTaskStatus::REDO_REQUESTED->value)
             ->latest()
             ->get();
 
@@ -93,7 +92,7 @@ class DashboardController extends Controller
             $q->where('user_id', $user->id)
                 ->whereDate('created_at', today());
         })
-            ->whereIn('status', ['completed', 'approved'])
+            ->whereIn('status', SubmissionTaskStatus::finishedValues())
             ->whereDate('completed_at', today())
             ->count();
 
@@ -108,10 +107,10 @@ class DashboardController extends Controller
             'remaining_tasks_today' => $remainingTasksToday,
             'total_tasks_today' => $totalTasksToday,
             'total_completed' => Submission::where('user_id', $user->id)
-                ->where('status', 'completed')
+                ->whereIn('status', SubmissionStatus::finishedValues())
                 ->count(),
             'in_progress' => Submission::where('user_id', $user->id)
-                ->where('status', 'in_progress')
+                ->where('status', SubmissionStatus::IN_PROGRESS->value)
                 ->count(),
             'rejected_tasks' => $rejectedTasks->count(),
             'redo_tasks' => $redoTasks->count(),
@@ -120,8 +119,6 @@ class DashboardController extends Controller
 
         return view('employee.dashboard', compact('todaysLists', 'recentSubmissions', 'rejectedTasks', 'redoTasks', 'notifications', 'stats'));
     }
-
-    
 
     public function markNotificationAsRead($notificationId)
     {

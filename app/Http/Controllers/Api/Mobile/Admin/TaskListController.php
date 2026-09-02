@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
 use App\Models\Checklist\ListAssignment;
-use App\Models\Communication\Notification;
 use App\Models\Checklist\TaskList;
+use App\Models\Communication\Notification;
 use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
@@ -79,7 +79,7 @@ class TaskListController extends MobileController
             $scheduleConfig = $validated['schedule_config'] ?? [];
             if ($validated['schedule_type'] === 'daily') {
                 $scheduleConfig['show_on_days'] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-            } elseif ($validated['schedule_type'] === 'weekly' && !empty($validated['selected_days'])) {
+            } elseif ($validated['schedule_type'] === 'weekly' && ! empty($validated['selected_days'])) {
                 $scheduleConfig['show_on_days'] = $validated['selected_days'];
             }
             $validated['schedule_config'] = $scheduleConfig;
@@ -172,7 +172,7 @@ class TaskListController extends MobileController
                     ->where('is_active', true)
                     ->first();
 
-                if (!$selectedUser) {
+                if (! $selectedUser) {
                     throw ValidationException::withMessages(['user_ids' => 'Ongeldige medewerker geselecteerd.']);
                 }
 
@@ -181,7 +181,7 @@ class TaskListController extends MobileController
                     ->where('is_active', true)
                     ->exists();
 
-                if (!$exists) {
+                if (! $exists) {
                     ListAssignment::create(array_merge($payload, ['user_id' => $selectedUser->id]));
                     if ($selectedUser->isEmployee()) {
                         Notification::createListAssigned($selectedUser->id, $list->id, $list->title, 'user');

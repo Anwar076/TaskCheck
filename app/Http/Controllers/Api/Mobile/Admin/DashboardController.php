@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
+use App\Enums\SubmissionStatus;
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\Organisation\Location;
-use App\Models\Submissions\Submission;
 use App\Models\Checklist\TaskList;
+use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
 use Illuminate\Http\Request;
 
 class DashboardController extends MobileController
@@ -38,16 +39,16 @@ class DashboardController extends MobileController
             'total_lists' => (clone $listQuery)->count(),
             'active_lists' => (clone $listQuery)->where('is_active', true)->count(),
             'total_submissions' => (clone $submissionQuery)->count(),
-            'pending_review' => (clone $submissionQuery)->where('status', 'completed')->count(),
-            'in_progress' => (clone $submissionQuery)->where('status', 'in_progress')->count(),
-            'reviewed' => (clone $submissionQuery)->where('status', 'reviewed')->count(),
-            'rejected' => (clone $submissionQuery)->where('status', 'rejected')->count(),
+            'pending_review' => (clone $submissionQuery)->where('status', SubmissionStatus::COMPLETED->value)->count(),
+            'in_progress' => (clone $submissionQuery)->where('status', SubmissionStatus::IN_PROGRESS->value)->count(),
+            'reviewed' => (clone $submissionQuery)->where('status', SubmissionStatus::REVIEWED->value)->count(),
+            'rejected' => (clone $submissionQuery)->where('status', SubmissionStatus::REJECTED->value)->count(),
             'completed_today' => (clone $submissionQuery)->whereDate('completed_at', today())->count(),
         ];
 
         $recent = (clone $submissionQuery)
             ->with(['user', 'taskList'])
-            ->where('status', 'completed')
+            ->where('status', SubmissionStatus::COMPLETED->value)
             ->latest()
             ->limit(10)
             ->get()

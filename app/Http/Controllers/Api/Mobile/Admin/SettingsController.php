@@ -11,7 +11,7 @@ class SettingsController extends MobileController
     {
         $company = $request->user()->company;
 
-        if (!$company) {
+        if (! $company) {
             return $this->error('Geen organisatie gekoppeld.', 404);
         }
 
@@ -22,7 +22,7 @@ class SettingsController extends MobileController
     {
         $company = $request->user()->company;
 
-        if (!$company) {
+        if (! $company) {
             return $this->error('Geen organisatie gekoppeld.', 404);
         }
 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
 use App\Services\Mobile\MobileSerializer;
@@ -50,19 +52,19 @@ class DashboardController extends MobileController
 
         $completedToday = SubmissionTask::query()
             ->whereHas('submission', fn ($q) => $q->where('user_id', $user->id)->whereDate('created_at', today()))
-            ->whereIn('status', ['completed', 'approved'])
+            ->whereIn('status', SubmissionTaskStatus::finishedValues())
             ->whereDate('completed_at', today())
             ->count();
 
-        $pendingReview = Submission::where('user_id', $user->id)->where('status', 'completed')->count();
-        $inProgress = Submission::where('user_id', $user->id)->where('status', 'in_progress')->count();
+        $pendingReview = Submission::where('user_id', $user->id)->where('status', SubmissionStatus::COMPLETED->value)->count();
+        $inProgress = Submission::where('user_id', $user->id)->where('status', SubmissionStatus::IN_PROGRESS->value)->count();
 
         $rejectedTasks = SubmissionTask::whereHas('submission', fn ($q) => $q->where('user_id', $user->id))
-            ->where('status', 'rejected')
+            ->where('status', SubmissionTaskStatus::REJECTED->value)
             ->count();
 
         $redoTasks = SubmissionTask::whereHas('submission', fn ($q) => $q->where('user_id', $user->id))
-            ->where('status', 'redo_requested')
+            ->where('status', SubmissionTaskStatus::REDO_REQUESTED->value)
             ->count();
 
         return $this->success([

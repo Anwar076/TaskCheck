@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
 use App\Http\Controllers\Api\Mobile\MobileController;
-use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
 use App\Services\Mobile\MobileSerializer;
 use Illuminate\Http\Request;
@@ -62,7 +61,7 @@ class UserController extends MobileController
             ],
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = bcrypt($validated['password']);
         } else {
             $validated['password'] = Str::password(32);
@@ -102,7 +101,7 @@ class UserController extends MobileController
             ],
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = bcrypt($validated['password']);
         } else {
             unset($validated['password']);

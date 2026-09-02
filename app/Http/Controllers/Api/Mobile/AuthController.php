@@ -20,13 +20,13 @@ class AuthController extends MobileController
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['De inloggegevens zijn onjuist.'],
             ]);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return $this->error('Account is gedeactiveerd.', 403);
         }
 

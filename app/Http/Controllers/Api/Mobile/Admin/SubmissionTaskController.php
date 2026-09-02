@@ -88,7 +88,7 @@ class SubmissionTaskController extends MobileController
 
         $reviewedStatuses = ['approved', 'rejected'];
         $allReviewed = $tasks->every(fn ($t) => in_array($t->status, $reviewedStatuses, true));
-        if (!$allReviewed) {
+        if (! $allReviewed) {
             return;
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Helpers\ProofFileHelper;
 use App\Services\Mobile\MobileTaskAccess;
 use Illuminate\Http\Request;
+
 class TaskController extends MobileController
 {
     public function __construct(
@@ -15,7 +16,7 @@ class TaskController extends MobileController
     {
         $submissionTask = $this->taskAccess->findOwnedSubmissionTask($request, $id);
 
-        if (!$submissionTask) {
+        if (! $submissionTask) {
             return $this->error('Taak niet gevonden.', 404);
         }
 
@@ -58,7 +59,7 @@ class TaskController extends MobileController
             'redo_requested' => false,
         ];
 
-        if (!empty($validated['digital_signature'])) {
+        if (! empty($validated['digital_signature'])) {
             $update['digital_signature'] = $validated['digital_signature'];
             $update['signature_date'] = now();
         }
@@ -72,7 +73,7 @@ class TaskController extends MobileController
     {
         $submissionTask = $this->taskAccess->findOwnedSubmissionTask($request, $id);
 
-        if (!$submissionTask) {
+        if (! $submissionTask) {
             return $this->error('Taak niet gevonden.', 404);
         }
 
@@ -92,5 +93,4 @@ class TaskController extends MobileController
 
         return $this->success(null, 'Bewijs geüpload.');
     }
-
 }

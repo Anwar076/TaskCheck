@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\Location;
@@ -70,11 +72,11 @@ class DashboardController extends Controller
             // Submissions stats
             'total_submissions' => (clone $submissionQuery)->count(),
             'pending_submissions' => (clone $submissionQuery)
-                ->where('status', 'completed')
+                ->where('status', SubmissionStatus::COMPLETED->value)
                 ->whereHas('taskList', fn ($query) => $query->where('requires_review', true))
                 ->count(),
-            'approved_submissions' => (clone $submissionQuery)->where('status', 'reviewed')->count(),
-            'rejected_submissions' => (clone $submissionQuery)->where('status', 'rejected')->count(),
+            'approved_submissions' => (clone $submissionQuery)->where('status', SubmissionStatus::REVIEWED->value)->count(),
+            'rejected_submissions' => (clone $submissionQuery)->where('status', SubmissionStatus::REJECTED->value)->count(),
 
             // Today's activity
             'completed_today' => (clone $submissionQuery)->whereDate('completed_at', today())->count(),
@@ -103,7 +105,7 @@ class DashboardController extends Controller
                     $query->where('location_id', $selectedLocationId);
                 }
             })
-            ->where('status', 'completed')
+            ->where('status', SubmissionStatus::COMPLETED->value)
             ->whereHas('taskList', fn ($query) => $query->where('requires_review', true))
             ->latest()
             ->take(10)
@@ -111,7 +113,7 @@ class DashboardController extends Controller
 
         // Most rejected tasks (for improvement insights)
         $rejectedTasks = SubmissionTask::with(['task'])
-            ->where('status', 'rejected')
+            ->where('status', SubmissionTaskStatus::REJECTED->value)
             ->selectRaw('task_id, count(*) as rejection_count')
             ->groupBy('task_id')
             ->orderByDesc('rejection_count')
@@ -212,7 +214,7 @@ class DashboardController extends Controller
         }
 
         $total = $query->count();
-        $completed = $query->where('status', 'completed')->count();
+        $completed = $query->whereIn('status', SubmissionStatus::finishedValues())->count();
 
         return $total > 0 ? round(($completed / $total) * 100, 1) : 0;
     }
@@ -246,7 +248,7 @@ class DashboardController extends Controller
             });
 
         $total = (clone $query)->count();
-        $completed = (clone $query)->whereIn('status', ['completed', 'reviewed'])->count();
+        $completed = (clone $query)->whereIn('status', SubmissionStatus::finishedValues())->count();
 
         return $total > 0 ? round(($completed / $total) * 100, 1) : 0.0;
     }
@@ -254,7 +256,7 @@ class DashboardController extends Controller
     private function getHorecaCriticalDeviationsCount(int $companyId, ?int $selectedLocationId = null): int
     {
         return SubmissionTask::query()
-            ->whereIn('status', ['rejected', 'redo_requested'])
+            ->whereIn('status', [SubmissionTaskStatus::REJECTED->value, SubmissionTaskStatus::REDO_REQUESTED->value])
             ->whereHas('task', function ($taskQuery) use ($companyId, $selectedLocationId) {
                 $taskQuery->whereHas('taskList', function ($taskListQuery) use ($companyId, $selectedLocationId) {
                     $taskListQuery->where('company_id', $companyId)
@@ -292,7 +294,7 @@ class DashboardController extends Controller
                 }
             })
             ->where(function ($query) {
-                $query->where('status', 'in_progress')
+                $query->where('status', SubmissionStatus::IN_PROGRESS->value)
                     ->orWhere(function ($subQuery) {
                         $subQuery->whereNull('completed_at')
                             ->where('created_at', '>=', now()->subHours(4));
@@ -322,7 +324,7 @@ class DashboardController extends Controller
                     $query->where('location_id', $selectedLocationId);
                 }
             })
-            ->whereIn('status', ['completed', 'reviewed'])
+            ->whereIn('status', SubmissionStatus::finishedValues())
             ->where('completed_at', '>=', now()->subHours(2))
             ->latest('completed_at')
             ->take(5)
@@ -351,7 +353,7 @@ class DashboardController extends Controller
                     $query->where('location_id', $selectedLocationId);
                 }
             })
-            ->where('status', '!=', 'completed')
+            ->whereNotIn('status', SubmissionStatus::finishedValues())
             ->where('created_at', '>=', now()->subHours(1))
             ->where('updated_at', '<', now()->subMinutes(30))
             ->latest('updated_at')
@@ -393,14 +395,14 @@ class DashboardController extends Controller
     {
         $totalTasks = $submission->submissionTasks->count();
         $completedTasks = $submission->submissionTasks
-            ->whereIn('status', ['completed', 'approved'])
+            ->whereIn('status', SubmissionTaskStatus::finishedValues())
             ->count();
         $progressPercentage = $totalTasks > 0
             ? (int) round(($completedTasks / $totalTasks) * 100)
             : 0;
 
         $currentTask = $submission->submissionTasks
-            ->whereIn('status', ['in_progress', 'pending'])
+            ->whereIn('status', ['in_progress', SubmissionTaskStatus::PENDING->value])
             ->first();
 
         $status = 'Active';
