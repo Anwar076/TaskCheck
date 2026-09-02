@@ -2,10 +2,11 @@
 
 namespace App\Models\Submissions;
 
+use App\Enums\SubmissionTaskStatus;
 use App\Models\Checklist\Task;
 use App\Models\Organisation\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class SubmissionTask extends Model
 {
@@ -164,27 +165,33 @@ class SubmissionTask extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', SubmissionTaskStatus::PENDING->value);
     }
 
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', SubmissionTaskStatus::COMPLETED->value);
     }
 
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', SubmissionTaskStatus::APPROVED->value);
     }
 
     public function scopeRejected($query)
     {
-        return $query->where('status', 'rejected');
+        return $query->where('status', SubmissionTaskStatus::REJECTED->value);
     }
 
     public function scopeRedoRequested($query)
     {
-        return $query->where('status', 'redo_requested');
+        return $query->where('status', SubmissionTaskStatus::REDO_REQUESTED->value);
+
+    }
+
+    public function scopeFinished($query)
+    {
+        return $query->whereIn('status', SubmissionTaskStatus::finishedValues());
     }
 
     // Helper methods

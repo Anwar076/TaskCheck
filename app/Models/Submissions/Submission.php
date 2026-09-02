@@ -2,6 +2,8 @@
 
 namespace App\Models\Submissions;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\User;
 use App\Traits\BelongsToCompany;
@@ -64,17 +66,38 @@ class Submission extends Model
 
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', SubmissionStatus::COMPLETED->value);
     }
 
     public function scopeInProgress($query)
     {
-        return $query->where('status', 'in_progress');
+        return $query->where('status', SubmissionStatus::IN_PROGRESS->value);
     }
 
     public function scopeReviewed($query)
     {
-        return $query->where('status', 'reviewed');
+        return $query->where('status', SubmissionStatus::REVIEWED->value);
+    }
+
+    public function scopeAwaitingReview($query)
+    {
+        return $query->where('status', SubmissionStatus::COMPLETED->value)
+            ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true));
+    }
+
+    public function scopeFinished($query)
+    {
+        return $query->whereIn('status', SubmissionStatus::finishedValues());
+    }
+
+    public function scopeAccepted($query)
+    {
+        return $query->where('status', SubmissionStatus::REVIEWED->value);
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->whereIn('status', SubmissionStatus::closedValues());
     }
 
     public function scopeInReportingPeriod($query, $start, $end)
@@ -102,7 +125,7 @@ class Submission extends Model
             return 0;
         }
 
-        $completedTasks = $this->submissionTasks()->where('status', 'completed')->count();
+        $completedTasks = $this->submissionTasks()->whereIn('status', SubmissionTaskStatus::finishedValues())->count();
 
         return round(($completedTasks / $totalTasks) * 100);
     }
@@ -122,9 +145,9 @@ class Submission extends Model
     {
         $this->loadMissing('taskList');
 
-        return ! $this->taskList?->requires_review && $this->taskList?->auto_accept_without_review
-            ? 'reviewed'
-            : 'completed';
+        return app(\App\Services\Submissions\SubmissionWorkflowService::class)
+            ->statusAfterEmployeeCompletion($this->taskList)
+            ->value;
     }
 
     public function addDigitalSignature($signatureData)
@@ -137,12 +160,12 @@ class Submission extends Model
 
     public function hasRejectedTasks()
     {
-        return $this->submissionTasks()->where('status', 'rejected')->exists();
+        return $this->submissionTasks()->where('status', SubmissionTaskStatus::REJECTED->value)->exists();
     }
 
     public function getRejectedTasksAttribute()
     {
-        return $this->submissionTasks()->where('status', 'rejected')->with('task')->get();
+        return $this->submissionTasks()->where('status', SubmissionTaskStatus::REJECTED->value)->with('task')->get();
     }
 
     public function teamContributors(): Collection
@@ -181,7 +204,7 @@ class Submission extends Model
                 ];
             }
 
-            if (in_array($submissionTask->status, ['completed', 'approved'], true)) {
+            if (in_array($submissionTask->status, SubmissionTaskStatus::finishedValues(), true)) {
                 $summary[$userId]['completed_tasks']++;
             }
         }

@@ -2,16 +2,21 @@
 
 namespace App\Services\Admin;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Helpers\MetricValidationHelper;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
 use App\Models\Submissions\SubmissionTask;
+use App\Services\Submissions\SubmissionWorkflowService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class WeeklyOverviewService
 {
+    public function __construct(private SubmissionWorkflowService $workflow) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -20,13 +25,12 @@ class WeeklyOverviewService
         $submissions = $this->periodSubmissions($companyId, $start, $end, $locationId);
 
         $total = $submissions->count();
-        $completed = $submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
-            && (bool) $submission->taskList?->requires_review)->count();
-        $finalizedWithoutReview = $submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
-            && ! (bool) $submission->taskList?->requires_review)->count();
-        $reviewed = $submissions->where('status', 'reviewed')->count();
-        $inProgress = $submissions->where('status', 'in_progress')->count();
-        $rejected = $submissions->where('status', 'rejected')->count();
+        $completed = $submissions->filter(fn (Submission $submission) => $this->workflow->isAwaitingReview($submission))->count();
+        $finalizedWithoutReview = $submissions->filter(fn (Submission $submission) => $submission->status === SubmissionStatus::COMPLETED->value
+            && ! $this->workflow->isAwaitingReview($submission))->count();
+        $reviewed = $submissions->where('status', SubmissionStatus::REVIEWED->value)->count();
+        $inProgress = $submissions->where('status', SubmissionStatus::IN_PROGRESS->value)->count();
+        $rejected = $submissions->where('status', SubmissionStatus::REJECTED->value)->count();
         $finished = $completed + $finalizedWithoutReview + $reviewed;
 
         $completionRate = $total > 0 ? round(($finished / $total) * 100, 1) : 0;
@@ -108,13 +112,12 @@ class WeeklyOverviewService
                 continue;
             }
 
-            $completed = $employee->submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
-                && (bool) $submission->taskList?->requires_review)->count();
-            $finalizedWithoutReview = $employee->submissions->filter(fn (Submission $submission) => $submission->status === 'completed'
-                && ! (bool) $submission->taskList?->requires_review)->count();
-            $reviewed = $employee->submissions->where('status', 'reviewed')->count();
-            $inProgress = $employee->submissions->where('status', 'in_progress')->count();
-            $rejected = $employee->submissions->where('status', 'rejected')->count();
+            $completed = $employee->submissions->filter(fn (Submission $submission) => $this->workflow->isAwaitingReview($submission))->count();
+            $finalizedWithoutReview = $employee->submissions->filter(fn (Submission $submission) => $submission->status === SubmissionStatus::COMPLETED->value
+                && ! $this->workflow->isAwaitingReview($submission))->count();
+            $reviewed = $employee->submissions->where('status', SubmissionStatus::REVIEWED->value)->count();
+            $inProgress = $employee->submissions->where('status', SubmissionStatus::IN_PROGRESS->value)->count();
+            $rejected = $employee->submissions->where('status', SubmissionStatus::REJECTED->value)->count();
             $finished = $completed + $finalizedWithoutReview + $reviewed;
 
             $overview[] = [
@@ -265,7 +268,7 @@ class WeeklyOverviewService
             })
             ->pluck('status');
 
-        $finished = $statuses->filter(fn (string $status) => in_array($status, ['completed', 'approved'], true))->count();
+        $finished = $statuses->filter(fn (string $status) => in_array($status, SubmissionTaskStatus::finishedValues(), true))->count();
 
         return [
             'total' => $statuses->count(),
@@ -301,7 +304,7 @@ class WeeklyOverviewService
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
             $daySubs = $submissions->filter(fn (Submission $submission) => $submission->reportingTimestamp()?->isSameDay($date));
             $dayTotal = $daySubs->count();
-            $dayFinished = $daySubs->whereIn('status', ['completed', 'reviewed'])->count();
+            $dayFinished = $daySubs->whereIn('status', SubmissionStatus::finishedValues())->count();
 
             $rows[] = [
                 'date' => $date->locale('nl')->translatedFormat('d M'),

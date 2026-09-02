@@ -1,30 +1,30 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
-use App\Http\Controllers\Admin\TaskListController;
-use App\Http\Controllers\Admin\TaskController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\TaskTemplateController;
-use App\Http\Controllers\Admin\StarterPackController;
-use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\CompanySettingsController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\IdentitySettingsController;
+use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\OnboardingController;
-use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
 use App\Http\Controllers\Admin\ReportExportController;
-use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
-use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
-use App\Http\Controllers\SuperAdmin\ImpersonationController;
-use App\Services\Ai\SubmissionReviewService;
+use App\Http\Controllers\Admin\StarterPackController;
+use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
+use App\Http\Controllers\Admin\SubmissionReviewController;
+use App\Http\Controllers\Admin\TaskController;
+use App\Http\Controllers\Admin\TaskListController;
+use App\Http\Controllers\Admin\TaskTemplateController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\NotificationController as EmployeeNotificationController;
-use App\Http\Controllers\Employee\SubmissionController;
 use App\Http\Controllers\Employee\SettingsController as EmployeeSettingsController;
+use App\Http\Controllers\Employee\SubmissionController;
 use App\Http\Controllers\NativePushSubscriptionController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
+use App\Http\Controllers\SuperAdmin\ImpersonationController;
+use App\Http\Controllers\SuperAdmin\TemplateController as SuperAdminTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -291,7 +291,7 @@ Route::post('/dashboard/switch', function (\Illuminate\Http\Request $request) {
     $user = auth()->user();
     $targetMode = $request->string('mode')->toString();
 
-    if (!$user || !$user->isAdmin() || $user->isSuperAdmin()) {
+    if (! $user || ! $user->isAdmin() || $user->isSuperAdmin()) {
         abort(403);
     }
 
@@ -313,16 +313,16 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/live-monitoring', [AdminDashboardController::class, 'liveMonitoring'])->name('live-monitoring');
     Route::get('/team-performance', [AdminDashboardController::class, 'teamPerformance'])->name('team-performance');
-    
+
     // API-powered routes
     Route::get('/lists', [TaskListController::class, 'index'])->name('lists.index');
-    
-    Route::get('/users', function() {
+
+    Route::get('/users', function () {
         return view('admin.users.index-api');
     })->name('users.index');
-    
+
     Route::get('/submissions', [AdminSubmissionController::class, 'index'])->name('submissions.index');
-    
+
     // AI import routes must come before resource route with {list}
     Route::get('/lists/ai-import', [TaskListController::class, 'aiImportPage'])->name('lists.ai-import');
     Route::post('/lists/ai-import/generate', [TaskListController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
@@ -345,22 +345,22 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::delete('/starter-packs/{slug}/deactivate', [StarterPackController::class, 'deactivate'])->name('starter-packs.deactivate');
     Route::resource('locations', LocationController::class)->except(['show']);
     Route::resource('users', UserController::class)->except(['index']);
-        Route::resource('submissions', SubmissionController::class)->except(['index']);
+    Route::resource('submissions', SubmissionController::class)->except(['index']);
 
     // Individual admin routes
-    
+
     // Additional admin routes
     Route::post('/lists/{list}/assign', [TaskListController::class, 'assign'])->name('lists.assign');
     Route::post('/lists/{list}/tasks/reorder', [TaskController::class, 'reorder'])->name('lists.tasks.reorder');
     Route::delete('/assignments/{assignment}', [TaskListController::class, 'removeAssignment'])->name('assignments.destroy');
-    Route::get('/submissions/{submission}', [TaskListController::class, 'showSubmission'])->name('submissions.show');
-    Route::post('/submissions/{submission}/review', [TaskListController::class, 'reviewSubmission'])->name('submissions.review');
-    Route::post('/submissions/{submission}/ai-review', [TaskListController::class, 'aiReviewSubmission'])->name('submissions.ai-review');
-    Route::post('/submissions/{submission}/approve-all', [TaskListController::class, 'approveAllTasks'])->name('submissions.approve-all');
-    Route::post('/submission-tasks/{submissionTask}/approve', [TaskListController::class, 'approveTask'])->name('submission-tasks.approve');
-    Route::post('/submission-tasks/{submissionTask}/reject', [TaskListController::class, 'rejectTask'])->name('submission-tasks.reject');
-    Route::post('/submission-tasks/{submissionTask}/redo', [TaskListController::class, 'requestRedo'])->name('submission-tasks.redo');
-    
+    Route::get('/submissions/{submission}', [SubmissionReviewController::class, 'show'])->name('submissions.show');
+    Route::post('/submissions/{submission}/review', [SubmissionReviewController::class, 'review'])->name('submissions.review');
+    Route::post('/submissions/{submission}/ai-review', [SubmissionReviewController::class, 'aiReview'])->name('submissions.ai-review');
+    Route::post('/submissions/{submission}/approve-all', [SubmissionReviewController::class, 'approveAll'])->name('submissions.approve-all');
+    Route::post('/submission-tasks/{submissionTask}/approve', [SubmissionReviewController::class, 'approveTask'])->name('submission-tasks.approve');
+    Route::post('/submission-tasks/{submissionTask}/reject', [SubmissionReviewController::class, 'rejectTask'])->name('submission-tasks.reject');
+    Route::post('/submission-tasks/{submissionTask}/redo', [SubmissionReviewController::class, 'requestRedo'])->name('submission-tasks.redo');
+
     // Weekly overview and daily sub-lists
     Route::get('/weekly-overview', [TaskListController::class, 'weeklyOverview'])->name('weekly-overview');
     Route::get('/reports/export/excel', [ReportExportController::class, 'excel'])->name('reports.export.excel');
@@ -382,14 +382,14 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::post('/notifications', [AdminNotificationController::class, 'store'])->name('notifications.store');
     Route::post('/notifications/{notification}/mark-read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    
+
     // Template routes
     Route::post('/templates/{template}/create-list', [TaskTemplateController::class, 'createFromTemplate'])->name('templates.create-list');
     Route::post('/templates/global/{template}/import', [TaskTemplateController::class, 'importGlobalTemplate'])->name('templates.global.import');
     Route::post('/templates/{template}/apply-global-update', [TaskTemplateController::class, 'applyGlobalTemplateUpdate'])->name('templates.apply-global-update');
-    
+
     // Debug routes
-    Route::get('/debug/test-assignment', function() {
+    Route::get('/debug/test-assignment', function () {
         return view('debug.test-assignment');
     })->name('debug.test-assignment');
 });
@@ -453,7 +453,7 @@ Route::middleware(['auth', 'verified', 'subscription', 'employee'])->prefix('emp
     Route::put('/submissions/{submission}', [SubmissionController::class, 'update'])->name('submissions.update');
     Route::post('/submissions/{submission}/complete', [SubmissionController::class, 'complete'])->name('submissions.complete');
     Route::post('/submissions/{submission}/tasks/{task}', [SubmissionController::class, 'completeTask'])->name('submissions.tasks.complete');
-    
+
     // Notification routes
     Route::get('/notifications', [EmployeeNotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/mark-read', [EmployeeNotificationController::class, 'markAsRead'])->name('notifications.mark-read');

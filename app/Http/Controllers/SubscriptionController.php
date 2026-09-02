@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Organisation\Company;
 use App\Models\Billing\Invoice;
+use App\Models\Organisation\Company;
 use App\Services\Billing\MollieService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 
 class SubscriptionController extends Controller
 {
@@ -23,8 +23,7 @@ class SubscriptionController extends Controller
 
     public function __construct(
         private readonly MollieService $mollieService
-    ) {
-    }
+    ) {}
 
     /**
      * Show subscription plans
@@ -55,8 +54,8 @@ class SubscriptionController extends Controller
     public function show(): View|RedirectResponse
     {
         $company = Auth::user()->company;
-        
-        if (!$company) {
+
+        if (! $company) {
             return redirect()->route('subscription.choose-plan');
         }
 
@@ -88,9 +87,14 @@ class SubscriptionController extends Controller
             $pendingPlanDetails = Company::plan($company->pending_subscription_plan);
         }
 
+        $planDetails = array_replace([
+            'name' => $company->getPlanDisplayName(),
+            'price_monthly' => 0,
+        ], $company->getPlanDetails());
+
         return view('subscription.show', [
             'company' => $company,
-            'planDetails' => $company->getPlanDetails(),
+            'planDetails' => $planDetails,
             'nextBillingDate' => $nextBillingDate,
             'daysUntilNextBilling' => $daysUntilNextBilling,
             'pendingPlanDetails' => $pendingPlanDetails,
@@ -106,7 +110,7 @@ class SubscriptionController extends Controller
 
         $company = Auth::user()->company;
 
-        if (!$company) {
+        if (! $company) {
             return redirect()->route('subscription.choose-plan')
                 ->with('error', 'Organisatie niet gevonden.');
         }
@@ -128,7 +132,7 @@ class SubscriptionController extends Controller
             $webhookUrl = $this->resolveWebhookUrl();
 
             if ($company->hasActiveSubscription()) {
-                if ($company->subscription_plan === $request->plan && !$company->pending_subscription_plan) {
+                if ($company->subscription_plan === $request->plan && ! $company->pending_subscription_plan) {
                     return redirect()->route('subscription.show')
                         ->with('success', 'Dit is al je huidige abonnement.');
                 }
@@ -161,7 +165,7 @@ class SubscriptionController extends Controller
                 }
             }
 
-            if (!$company->mollie_customer_id) {
+            if (! $company->mollie_customer_id) {
                 $customer = $this->mollieService->createCustomer(
                     $company->name,
                     $billingEmail
@@ -200,7 +204,7 @@ class SubscriptionController extends Controller
             $checkoutUrl = data_get($payment, '_links.checkout.href');
             $paymentId = trim((string) ($payment['id'] ?? ''));
 
-            if (!$checkoutUrl || $paymentId === '') {
+            if (! $checkoutUrl || $paymentId === '') {
                 throw new RuntimeException('Checkout URL of payment-id ontbreekt in Mollie response.');
             }
 
@@ -210,6 +214,7 @@ class SubscriptionController extends Controller
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return redirect()->route('subscription.choose-plan')
                 ->with('error', 'Mollie checkout kon niet worden gestart: '.$e->getMessage());
         }
@@ -224,7 +229,7 @@ class SubscriptionController extends Controller
     {
         $company = Auth::user()->company;
 
-        if (!$company) {
+        if (! $company) {
             return redirect()->route('subscription.choose-plan');
         }
 
@@ -285,7 +290,7 @@ class SubscriptionController extends Controller
                         $openPaymentId = trim((string) ($payment['id'] ?? ''));
                         $status = strtolower(trim((string) ($payment['status'] ?? '')));
 
-                        if ($openPaymentId === '' || !in_array($status, ['open', 'pending', 'authorized'], true)) {
+                        if ($openPaymentId === '' || ! in_array($status, ['open', 'pending', 'authorized'], true)) {
                             continue;
                         }
 
@@ -309,6 +314,7 @@ class SubscriptionController extends Controller
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return redirect()->route('subscription.show')
                 ->with('error', 'Opzeggen via Mollie is mislukt: '.$e->getMessage());
         }
@@ -320,7 +326,7 @@ class SubscriptionController extends Controller
     public function paymentReturn(): RedirectResponse
     {
         $company = Auth::user()->company;
-        if (!$company) {
+        if (! $company) {
             return redirect()->route('subscription.choose-plan');
         }
 
@@ -332,7 +338,7 @@ class SubscriptionController extends Controller
                 ->with('success', 'Betaling bevestigd. Je abonnement is nu actief.');
         }
 
-        if (!$company->mollie_payment_id) {
+        if (! $company->mollie_payment_id) {
             return redirect()->route('subscription.show')
                 ->with('success', 'Betaling gestart. Zodra Mollie bevestigt, wordt je abonnement actief.');
         }
@@ -377,14 +383,14 @@ class SubscriptionController extends Controller
             $status = $payment['status'] ?? null;
 
             $company = Company::where('mollie_payment_id', $paymentId)->first();
-            if (!$company) {
+            if (! $company) {
                 $companyId = (int) data_get($payment, 'metadata.company_id', 0);
                 if ($companyId > 0) {
                     $company = Company::find($companyId);
                 }
             }
 
-            if (!$company) {
+            if (! $company) {
                 return response('ok', 200);
             }
 
@@ -393,9 +399,10 @@ class SubscriptionController extends Controller
                     return response('ok', 200);
                 }
                 $this->sendPaymentReceiptEmail($company, $payment);
-                if (!$this->isActivationPayment($company, $paymentId, $payment)) {
+                if (! $this->isActivationPayment($company, $paymentId, $payment)) {
                     // Recurring charge for already-active subscription: extend the access window.
                     $this->extendSubscriptionEndDate($company);
+
                     return response('ok', 200);
                 }
                 $this->finalizePaidPayment($company, $payment);
@@ -410,6 +417,7 @@ class SubscriptionController extends Controller
                 return response('ok', 200);
             }
             report($e);
+
             return response('error', 500);
         }
 
@@ -420,8 +428,8 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
         if (
-            !$user
-            || (!$user->isSuperAdmin() && (int) $user->company_id !== (int) $invoice->company_id)
+            ! $user
+            || (! $user->isSuperAdmin() && (int) $user->company_id !== (int) $invoice->company_id)
         ) {
             abort(403);
         }
@@ -430,7 +438,7 @@ class SubscriptionController extends Controller
 
         return response($pdf)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="' . $invoice->invoice_number . '.pdf"');
+            ->header('Content-Disposition', 'inline; filename="'.$invoice->invoice_number.'.pdf"');
     }
 
     private function resolveWebhookUrl(): string
@@ -457,8 +465,7 @@ class SubscriptionController extends Controller
         array $paymentPayload,
         string $billingEmail,
         bool $requireRecurring = false
-    ): array
-    {
+    ): array {
         $payloadWithoutMethod = $paymentPayload;
         unset($payloadWithoutMethod['method']);
 
@@ -539,7 +546,7 @@ class SubscriptionController extends Controller
         // Prevent double activation when webhook and paymentReturn fire simultaneously
         // for the same Mollie payment (race condition → duplicate subscriptions).
         $lock = Cache::lock("finalize_payment:{$company->id}:{$paymentId}", 60);
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             return;
         }
 
@@ -548,12 +555,12 @@ class SubscriptionController extends Controller
             $company->refresh();
 
             // If the company was already activated for this payment, skip.
-            if ($company->hasActiveSubscription() && !$company->pending_subscription_plan && !$company->mollie_payment_id) {
+            if ($company->hasActiveSubscription() && ! $company->pending_subscription_plan && ! $company->mollie_payment_id) {
                 return;
             }
 
             $plan = $this->resolvePlanFromPayment($company, $payment);
-            if (!$plan || !Company::plan($plan)) {
+            if (! $plan || ! Company::plan($plan)) {
                 throw new RuntimeException('Kon abonnement niet activeren: ongeldig plan in betaalmetadata.');
             }
 
@@ -568,7 +575,7 @@ class SubscriptionController extends Controller
                 'billing_start_date' => $firstPaidAt->toDateString(),
             ];
 
-            if ($company->mollie_customer_id && !$company->mollie_subscription_id) {
+            if ($company->mollie_customer_id && ! $company->mollie_subscription_id) {
                 try {
                     $billingEmail = (string) optional($company->users()->orderBy('id')->first())->email;
                     $fallbackAmount = $this->shouldUseStarterTestOverride($billingEmail, $plan)
@@ -622,14 +629,15 @@ class SubscriptionController extends Controller
         // checkout/plan-change flow, never auto-reactivate from old paid payments.
         if (
             $company->subscription_status === 'cancelled'
-            && !$company->mollie_payment_id
-            && !$company->pending_subscription_plan
+            && ! $company->mollie_payment_id
+            && ! $company->pending_subscription_plan
         ) {
             return;
         }
 
         if ($company->hasActiveSubscription()) {
             $this->ensureRecurringSubscriptionExists($company);
+
             return;
         }
 
@@ -644,9 +652,11 @@ class SubscriptionController extends Controller
                             'mollie_payment_id' => null,
                             'pending_subscription_plan' => null,
                         ]);
+
                         return;
                     }
                     $this->finalizePaidPayment($company, $payment);
+
                     return;
                 }
 
@@ -677,18 +687,19 @@ class SubscriptionController extends Controller
                     ]);
                 }
                 report($e);
+
                 // On API error: don't fall through to the historical scan — too risky.
                 return;
             }
         }
 
-        if (!$company->mollie_customer_id) {
+        if (! $company->mollie_customer_id) {
             return;
         }
 
         // Only reconcile historical customer payments when we are in an
         // explicit activation flow (pending plan or payment id present).
-        if (!$company->mollie_payment_id && !$company->pending_subscription_plan) {
+        if (! $company->mollie_payment_id && ! $company->pending_subscription_plan) {
             return;
         }
 
@@ -698,7 +709,7 @@ class SubscriptionController extends Controller
                 return ($payment['status'] ?? null) === 'paid';
             });
 
-            if (!$paidPayment) {
+            if (! $paidPayment) {
                 return;
             }
 
@@ -708,6 +719,7 @@ class SubscriptionController extends Controller
                     'mollie_payment_id' => null,
                     'pending_subscription_plan' => null,
                 ]);
+
                 return;
             }
 
@@ -835,7 +847,7 @@ class SubscriptionController extends Controller
 
     private function findExistingReusableSubscriptionId(Company $company): ?string
     {
-        if (!$company->mollie_customer_id) {
+        if (! $company->mollie_customer_id) {
             return null;
         }
 
@@ -870,7 +882,7 @@ class SubscriptionController extends Controller
             return true;
         }
 
-        if (!$company->hasActiveSubscription() && strtolower((string) data_get($payment, 'sequenceType', '')) === 'first') {
+        if (! $company->hasActiveSubscription() && strtolower((string) data_get($payment, 'sequenceType', '')) === 'first') {
             return true;
         }
 
@@ -881,12 +893,12 @@ class SubscriptionController extends Controller
 
     private function ensureRecurringSubscriptionExists(Company $company): void
     {
-        if (!$company->hasActiveSubscription() || $company->mollie_subscription_id || !$company->mollie_customer_id) {
+        if (! $company->hasActiveSubscription() || $company->mollie_subscription_id || ! $company->mollie_customer_id) {
             return;
         }
 
         $plan = (string) $company->subscription_plan;
-        if (!Company::plan($plan)) {
+        if (! Company::plan($plan)) {
             return;
         }
 
@@ -940,12 +952,12 @@ class SubscriptionController extends Controller
             : now()->timezone('Europe/Amsterdam')->format('d-m-Y H:i');
 
         $body = "We hebben je betaling ontvangen.\n\n"
-            . "Factuurnummer: {$invoice->invoice_number}\n"
-            . "Betaling ID: {$paymentId}\n"
-            . "Omschrijving: {$description}\n"
-            . "Bedrag: {$currency} {$amount}\n"
-            . "Betaald op: {$paidAt}\n\n"
-            . "De factuur zit als PDF bij deze e-mail.";
+            ."Factuurnummer: {$invoice->invoice_number}\n"
+            ."Betaling ID: {$paymentId}\n"
+            ."Omschrijving: {$description}\n"
+            ."Bedrag: {$currency} {$amount}\n"
+            ."Betaald op: {$paidAt}\n\n"
+            .'De factuur zit als PDF bij deze e-mail.';
 
         try {
             $pdfBytes = $this->renderInvoicePdf($invoice);
@@ -953,7 +965,7 @@ class SubscriptionController extends Controller
 
             Mail::to($recipient)->send(
                 (new \App\Mail\TaskCheckNotificationMail(
-                    subjectLine: 'Factuur - ' . $description,
+                    subjectLine: 'Factuur - '.$description,
                     greetingName: $company->name,
                     title: 'Factuur en betaling bevestigd',
                     bodyText: $body,
@@ -961,7 +973,7 @@ class SubscriptionController extends Controller
                     ctaUrl: $invoicesUrl,
                     metaText: 'Dit is je officiële factuurmail van TaskCheck.',
                     showMarketing: false
-                ))->attachData($pdfBytes, $invoice->invoice_number . '.pdf', [
+                ))->attachData($pdfBytes, $invoice->invoice_number.'.pdf', [
                     'mime' => 'application/pdf',
                 ])
             );
@@ -1014,8 +1026,8 @@ class SubscriptionController extends Controller
             $companyCode = 'COMP';
         }
 
-        $prefix = 'TC-' . $datePart . '-' . $companyCode . '-';
-        $latest = Invoice::where('invoice_number', 'like', $prefix . '%')
+        $prefix = 'TC-'.$datePart.'-'.$companyCode.'-';
+        $latest = Invoice::where('invoice_number', 'like', $prefix.'%')
             ->orderByDesc('id')
             ->value('invoice_number');
 
@@ -1025,7 +1037,7 @@ class SubscriptionController extends Controller
             $next = $lastSerial + 1;
         }
 
-        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -1034,7 +1046,7 @@ class SubscriptionController extends Controller
      */
     private function extendSubscriptionEndDate(Company $company): void
     {
-        if (!$company->hasActiveSubscription()) {
+        if (! $company->hasActiveSubscription()) {
             return;
         }
 
