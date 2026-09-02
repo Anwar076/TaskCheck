@@ -105,13 +105,23 @@
         }
         @keyframes hero-v-shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
         .hero-color-reveal {
+            position:relative;
+            display:inline-block;
             color:#0f172a;
+        }
+        .hero-color-reveal::after {
+            content:attr(data-text);
+            position:absolute;
+            inset:0;
+            color:transparent;
             background:linear-gradient(90deg,#2563eb 0%,#7c3aed 48%,#38bdf8 100%);
-            background-size:0% 100%; background-repeat:no-repeat;
-            -webkit-background-clip:text;background-clip:text;
+            -webkit-background-clip:text;
+            background-clip:text;
+            clip-path:inset(0 100% 0 0);
+            will-change:clip-path;
             animation:hero-color-reveal 1.15s .3s cubic-bezier(.22,.75,.2,1) forwards;
         }
-        @keyframes hero-color-reveal { to { background-size:100% 100%; color:transparent; } }
+        @keyframes hero-color-reveal { to { clip-path:inset(0 0 0 0); } }
         .hero-drawn-line { stroke-dasharray:310; stroke-dashoffset:310; animation:hero-draw-line .9s 1.15s cubic-bezier(.25,.8,.25,1) forwards; }
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
         .task-stream { position:relative; height:440px; perspective:1000px; }
@@ -135,7 +145,7 @@
             .hero-v-fill{ width:var(--v-bar,100%) !important; }
             .hero-v-card{ transform:none; }
             .hero-v-orbit::after{ display:none; }
-            .hero-color-reveal{animation:none;color:transparent;background-size:100% 100%}
+            .hero-color-reveal::after{animation:none;clip-path:inset(0)}
             .hero-drawn-line{animation:none;stroke-dashoffset:0}
             .task-stream{height:auto;padding-top:3rem}
             .task-stream::before{display:none}
@@ -187,7 +197,7 @@
                 <h1 class="text-4xl font-extrabold leading-[1.02] tracking-[-.045em] text-slate-900 sm:text-6xl xl:text-[4.8rem]">
                     Nooit meer discussie over
                     <span class="relative mt-1 inline-block">
-                        <span class="hero-color-reveal">uitgevoerd werk</span>
+                        <span class="hero-color-reveal" data-text="uitgevoerd werk">uitgevoerd werk</span>
                         <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" preserveAspectRatio="none" style="height:5px" aria-hidden="true">
                             <path class="hero-drawn-line" d="M1 6 C75 1, 225 1, 299 6" stroke="url(#ul)" stroke-width="3" stroke-linecap="round" fill="none"/>
                             <defs><linearGradient id="ul" x1="0" y1="0" x2="300" y2="0"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>
