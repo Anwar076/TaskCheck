@@ -23,3 +23,7 @@ composer.phar
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Temporary UI prototype
+/app 2/
+/*_Agent_TaskCheck UI Inventory.zip
