@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\SubmissionStatus;
 use App\Enums\SubmissionTaskStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ApproveSubmissionTaskRequest;
+use App\Http\Requests\RejectSubmissionTaskRequest;
+use App\Http\Requests\ReviewSubmissionRequest;
 use App\Models\Communication\Notification;
 use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
@@ -13,7 +16,6 @@ use App\Services\Ai\SubmissionReviewService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
 
 class SubmissionReviewController extends Controller
 {
@@ -53,12 +55,9 @@ class SubmissionReviewController extends Controller
         }
     }
 
-    public function review(Request $request, Submission $submission)
+    public function review(ReviewSubmissionRequest $request, Submission $submission)
     {
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(SubmissionStatus::closedValues())],
-            'admin_notes' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
         $submission->update([
             'status' => $validated['status'],
             'admin_notes' => $validated['admin_notes'],
@@ -69,14 +68,9 @@ class SubmissionReviewController extends Controller
         return redirect()->back()->with('success', 'Inzending succesvol beoordeeld.');
     }
 
-    public function rejectTask(Request $request, SubmissionTask $submissionTask)
+    public function rejectTask(RejectSubmissionTaskRequest $request, SubmissionTask $submissionTask)
     {
-        $validated = $request->validate([
-            'rejection_reason' => 'required|string',
-            'corrective_action' => 'required|string|max:2000',
-            'corrective_action_owner_id' => ['required', Rule::exists('users', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id))],
-            'corrective_action_due_at' => 'required|date|after_or_equal:today',
-        ]);
+        $validated = $request->validated();
 
         $notification = DB::transaction(function () use ($submissionTask, $validated) {
             $submissionTask->update([
@@ -125,14 +119,9 @@ class SubmissionReviewController extends Controller
         return redirect()->back()->with('success', 'Opnieuw doen aangevraagd. De medewerker kan deze taak opnieuw uitvoeren en is op de hoogte gebracht.');
     }
 
-    public function approveTask(Request $request, SubmissionTask $submissionTask)
+    public function approveTask(ApproveSubmissionTaskRequest $request, SubmissionTask $submissionTask)
     {
-        $rules = ['manager_comment' => 'nullable|string', 'verification_note' => 'nullable|string|max:2000', 'confirm_corrective_action_closed' => 'boolean'];
-        if ($submissionTask->corrective_action) {
-            $rules['verification_note'] = 'required|string|max:2000';
-            $rules['confirm_corrective_action_closed'] = 'required|accepted';
-        }
-        $validated = $request->validate($rules);
+        $validated = $request->validated();
 
         $submissionTask->approve(auth()->id(), $validated['manager_comment'] ?? null);
         if ($submissionTask->corrective_action) {
