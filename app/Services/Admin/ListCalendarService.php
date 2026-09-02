@@ -11,7 +11,10 @@ use Illuminate\Support\Str;
 
 class ListCalendarService
 {
-    public function __construct(private ?WorkingHoursService $workingHoursService = null) {}
+    public function __construct(
+        private ?WorkingHoursService $workingHoursService = null,
+        private ?CalendarLayoutService $calendarLayoutService = null,
+    ) {}
 
     public const DAY_START_HOUR = 6;
 
@@ -363,104 +366,7 @@ class ListCalendarService
      */
     public function layoutTimedListColumns(Collection $entries): Collection
     {
-        if ($entries->isEmpty()) {
-            return $entries;
-        }
-
-        $items = $entries->values()->all();
-        $groups = [];
-
-        foreach ($items as $item) {
-            $placed = false;
-
-            foreach ($groups as &$group) {
-                foreach ($group as $existing) {
-                    if ($this->timeRangesOverlap($item, $existing)) {
-                        $group[] = $item;
-                        $placed = true;
-                        break 2;
-                    }
-                }
-            }
-            unset($group);
-
-            if (! $placed) {
-                $groups[] = [$item];
-            }
-        }
-
-        $groups = $this->mergeOverlappingGroups($groups);
-        $laidOut = collect();
-
-        foreach ($groups as $group) {
-            $count = count($group);
-            foreach (array_values($group) as $index => $entry) {
-                $entry['column_index'] = $index;
-                $entry['column_count'] = $count;
-                $entry['width_percent'] = 100 / $count;
-                $entry['left_percent'] = ($index / $count) * 100;
-                $laidOut->push($entry);
-            }
-        }
-
-        return $laidOut->sortBy('start_minutes')->values();
-    }
-
-    /**
-     * @param  array<int, array<int, array<string, mixed>>>  $groups
-     * @return array<int, array<int, array<string, mixed>>>
-     */
-    private function mergeOverlappingGroups(array $groups): array
-    {
-        $merged = true;
-
-        while ($merged) {
-            $merged = false;
-
-            for ($i = 0; $i < count($groups); $i++) {
-                for ($j = $i + 1; $j < count($groups); $j++) {
-                    if ($this->groupsOverlap($groups[$i], $groups[$j])) {
-                        $groups[$i] = array_merge($groups[$i], $groups[$j]);
-                        array_splice($groups, $j, 1);
-                        $merged = true;
-                        break 2;
-                    }
-                }
-            }
-        }
-
-        return $groups;
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $groupA
-     * @param  array<int, array<string, mixed>>  $groupB
-     */
-    private function groupsOverlap(array $groupA, array $groupB): bool
-    {
-        foreach ($groupA as $a) {
-            foreach ($groupB as $b) {
-                if ($this->timeRangesOverlap($a, $b)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param  array<string, mixed>  $a
-     * @param  array<string, mixed>  $b
-     */
-    private function timeRangesOverlap(array $a, array $b): bool
-    {
-        $aStart = (int) ($a['start_minutes'] ?? 0);
-        $aEnd = (int) ($a['end_minutes'] ?? ($aStart + self::DEFAULT_TASK_DURATION_MINUTES));
-        $bStart = (int) ($b['start_minutes'] ?? 0);
-        $bEnd = (int) ($b['end_minutes'] ?? ($bStart + self::DEFAULT_TASK_DURATION_MINUTES));
-
-        return $aStart < $bEnd && $bStart < $aEnd;
+        return $this->layout()->layoutTimedColumns($entries, self::DEFAULT_TASK_DURATION_MINUTES);
     }
 
     /**
@@ -983,6 +889,11 @@ class ListCalendarService
     private function workingHours(): WorkingHoursService
     {
         return $this->workingHoursService ??= new WorkingHoursService;
+    }
+
+    private function layout(): CalendarLayoutService
+    {
+        return $this->calendarLayoutService ??= new CalendarLayoutService;
     }
 
     /**
