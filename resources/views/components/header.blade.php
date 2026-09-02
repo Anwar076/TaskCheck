@@ -4,9 +4,9 @@
     $taskcheckLogoVersion = file_exists($taskcheckLogoPath) ? filemtime($taskcheckLogoPath) : time();
 @endphp
 
-<nav id="siteHeader" class="fixed top-0 z-50 w-full border-b border-slate-200/60 bg-white/80 shadow-[0_1px_0_rgba(15,23,42,0.02)] backdrop-blur-2xl transition-all duration-300">
+<nav id="siteHeader" class="fixed top-0 z-50 w-full border-b border-slate-200/70 bg-white/90 backdrop-blur-2xl transition-all duration-300">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 items-center justify-between sm:h-20">
+        <div id="siteHeaderShell" class="flex h-16 items-center justify-between sm:h-20">
             <a href="{{ url('/') }}" class="flex items-center gap-3 group">
                 <img
                     src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
@@ -15,26 +15,25 @@
                     height="160"
                     fetchpriority="high"
                     decoding="async"
-                    class="h-12 w-auto shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03] sm:h-14"
+                    class="h-auto w-64 shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03] sm:w-80"
                 >
             </a>
 
             <!-- Desktop Navigation -->
-            <div class="hidden items-center gap-7 md:flex">
-                <div class="relative flex items-center gap-8 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-slate-200/80">
+            <div class="hidden items-center gap-5 md:flex">
+                <div class="flex items-center gap-1 rounded-xl bg-slate-50/80 p-1">
                     @foreach ([['Home', route('welcome'), request()->is('/')], ['Prijzen', route('pricing'), request()->is('pricing')], ['Blog', route('blog'), request()->is('blog*')], ['Contact', route('contact'), request()->is('contact')]] as [$label, $href, $active])
-                        <a href="{{ $href }}" class="group relative z-10 py-3 text-sm font-semibold tracking-[-.01em] transition-all duration-300 hover:-translate-y-px {{ $active ? 'text-blue-700' : 'text-slate-600 hover:text-slate-950' }}">
-                            <span @if($active) style="background:linear-gradient(90deg,#1d4ed8,#4f46e5);-webkit-background-clip:text;background-clip:text;color:transparent" @endif>{{ $label }}</span>
-                            <span class="absolute inset-x-0 bottom-0 h-0.5 origin-left rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
+                        <a href="{{ $href }}" class="group relative rounded-lg px-3.5 py-2 text-sm font-semibold tracking-[-.01em] transition-all duration-200 {{ $active ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950' }}">
+                            <span>{{ $label }}</span>
+                            <span class="absolute inset-x-3 bottom-1 h-px origin-left rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
                         </a>
                     @endforeach
                 </div>
                 @if (Route::has('login'))
-                    <span class="h-7 w-px bg-slate-200" aria-hidden="true"></span>
                     @auth
-                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="group inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-blue-700">Dashboard <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="group inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition-all hover:-translate-y-px hover:bg-blue-700">Dashboard <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
                     @else
-                        <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">Inloggen <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
+                        <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-px hover:shadow-blue-600/30">Inloggen <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
                     @endauth
                 @endif
             </div>
@@ -76,6 +75,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
 
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            document.querySelectorAll('[data-tc-text-reveal-load]').forEach(function(element) {
+                element.classList.add('is-visible');
+            });
+        });
+    });
+
+    const textReveals = document.querySelectorAll('[data-tc-text-reveal]');
+    if (textReveals.length) {
+        if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            textReveals.forEach(function(element) { element.classList.add('is-visible'); });
+        } else {
+            const textRevealObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-visible');
+                    textRevealObserver.unobserve(entry.target);
+                });
+            }, { threshold: 0.55 });
+            textReveals.forEach(function(element) { textRevealObserver.observe(element); });
+        }
+    }
+
     if (mobileMenuBtn && mobileMenu) {
         mobileMenuBtn.addEventListener('click', function() {
             mobileMenu.classList.toggle('hidden');
@@ -99,8 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isScrolled = window.scrollY > 16;
             if (isScrolled !== lastScrolledState) {
                 siteHeader.classList.toggle('bg-white/95', isScrolled);
-                siteHeader.classList.toggle('shadow-sm', isScrolled);
-                siteHeader.classList.toggle('bg-white/70', !isScrolled);
+                siteHeader.classList.toggle('shadow-md', isScrolled);
                 lastScrolledState = isScrolled;
             }
             ticking = false;

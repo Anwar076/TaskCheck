@@ -101,9 +101,14 @@
             .product-showcase-fade { right:-4%; bottom:-20px; left:-4%; height:110px; }
         }
         @media (prefers-reduced-motion:reduce) { .product-chip { animation:none; } }
-        .problem-compact { padding:64px 0 68px; background:#f7f8fa; }
+        .problem-compact { padding:64px 0 68px; background:#030712; }
+        .problem-compact .problem-kicker { color:#7da7ff; }
+        .problem-compact .problem-kicker span { background:#4979ea; }
+        .problem-compact .problem-heading { color:#fff; }
+        .problem-compact .tc-text-reveal-base { color:#fff; }
+        .problem-compact .problem-lead { color:#aab4c5; }
         .problem-chaos { position:relative; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); align-items:start; gap:22px; max-width:1000px; margin:34px auto 0; padding:16px 0 36px; }
-        .problem-card { position:relative; z-index:2; width:auto; min-width:0; overflow:hidden; border:1px solid #e6e8ec; background:#fff; box-shadow:0 2px 6px rgba(10,12,18,.05),0 12px 32px -8px rgba(10,12,18,.10); }
+        .problem-card { position:relative; z-index:2; width:auto; min-width:0; overflow:hidden; border:1px solid rgba(125,167,255,.22); background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.18),0 24px 60px -18px rgba(37,99,235,.38); }
         .problem-card--chat { top:8px; left:4%; width:215px; transform:rotate(-2deg); border-radius:14px; }
         .problem-card--sheet { top:2px; right:5%; width:205px; transform:rotate(2deg); border-radius:14px; }
         .problem-card--paper { bottom:6px; left:11%; width:190px; transform:rotate(1.5deg); border-radius:6px; padding:12px 14px; background:#fffefa; }
@@ -141,6 +146,7 @@
         .problem-manager-quote { margin-top:8px; color:#0a0a0b; font-size:12.5px; font-weight:550; font-style:italic; }
         .problem-manager-note { margin-top:6px; color:#dc2626; }
         .problem-chaos > svg { position:absolute; z-index:0; inset:0; display:block; width:100%; height:100%; pointer-events:none; }
+        .problem-chaos > svg path { stroke:#2a3851; }
         @media (max-width:900px) {
             .problem-chaos { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:620px; }
             .problem-card--chat,.problem-card--sheet,.problem-card--paper,.problem-card--manager { transform:none; }
@@ -151,6 +157,10 @@
             .problem-chaos { grid-template-columns:1fr; max-width:420px; gap:12px; margin-top:28px; }
         }
         .how-accordion { padding:76px 0 84px; background:#fff; }
+        .how-accordion .how-kicker { color:#2563eb; }
+        .how-accordion .how-kicker span { background:#93b4ff; }
+        .how-accordion .how-heading { color:#020617; }
+        .how-accordion .how-lead { color:#64748b; }
         .how-accordion-grid { display:grid; grid-template-columns:minmax(300px,.82fr) minmax(0,1.35fr); align-items:stretch; gap:clamp(42px,6vw,88px); margin-top:52px; }
         .how-steps { display:flex; min-height:100%; flex-direction:column; }
         .how-step { position:relative; flex:0 0 auto; border-top:1px solid #e6e8ec; transition:flex-grow .45s cubic-bezier(.22,.61,.21,1); }
@@ -190,6 +200,20 @@
         .how-trial-link:hover svg { transform:translateX(4px); }
         .new-feature-section { padding:88px 0; }
         .new-feature-section.is-soft { background:#f7f8fa; }
+        .new-ai-section { overflow:hidden; background:#030712; }
+        .new-ai-section .new-feature-kicker { color:#7da7ff; }
+        .new-ai-section .new-feature-kicker::before { background:#4979ea; }
+        .new-ai-section .new-feature-title { color:#fff; }
+        .new-ai-section .tc-text-reveal-base { color:#fff; }
+        .new-ai-section .new-feature-lead { color:#aab4c5; }
+        .new-ai-section .new-doc { border-color:rgba(148,163,184,.2); background:rgba(255,255,255,.07); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+        .new-ai-section .new-doc-icon { background:rgba(255,255,255,.08); }
+        .new-ai-section .new-doc strong { color:#f8fafc; }
+        .new-ai-section .new-doc small { color:#8f9aab; }
+        .new-ai-section .new-doc svg { color:#71819a; }
+        .new-ai-section .new-ai-flow::before { background:rgba(96,165,250,.35); }
+        .new-ai-section .new-ai-beam span { background:#2563eb; box-shadow:0 0 28px rgba(37,99,235,.45); }
+        .new-ai-section .new-ai-caption { color:#71819a; }
         .new-feature-wrap { width:100%; max-width:1200px; margin:0 auto; padding:0 24px; }
         .new-feature-head { max-width:720px; }
         .new-feature-head.is-center { margin:0 auto; text-align:center; }
@@ -200,6 +224,7 @@
         .new-feature-title-line { display:block; }
         .new-feature-lead { margin:17px 0 0; color:#62666d; font-size:17px; line-height:1.65; }
         .new-feature-grid { display:grid; grid-template-columns:minmax(300px,5fr) minmax(0,7fr); align-items:center; gap:clamp(36px,6vw,80px); }
+        .new-feature-grid.is-visual-left { grid-template-columns:minmax(0,7fr) minmax(300px,5fr); }
         .new-browser { overflow:hidden; border:1px solid #e6e8ec; border-radius:16px; background:#fff; box-shadow:0 2px 6px rgba(10,12,18,.04),0 24px 64px -16px rgba(23,43,99,.16); }
         .new-browser-bar { display:flex; align-items:center; gap:7px; padding:9px 12px; border-bottom:1px solid #eef0f3; background:#fbfcfd; }
         .new-browser-bar i { width:8px; height:8px; border-radius:50%; background:#e8eaee; }
@@ -259,13 +284,14 @@
         .new-compare-card.is-new .new-compare-label { color:#1d4ed8; }
         .new-compare-list { display:grid; gap:4px; margin-top:18px; }
         .new-compare-item { display:flex; align-items:center; gap:10px; padding:9px 2px; color:#62666d; font-size:14.5px; }
-        .new-compare-x { width:19px; flex:none; color:#c9ced6; text-align:center; }
+        .new-compare-x { width:19px; flex:none; color:#ef4444; text-align:center; }
+        .new-compare-card:not(.is-new) .new-compare-item { text-decoration-line:line-through; text-decoration-color:rgba(239,68,68,.62); text-decoration-thickness:1.5px; }
         .new-compare-card.is-new .new-compare-item { color:#0a0a0b; font-weight:600; }
         .new-value-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:72px; }
         .new-value { padding-top:16px; border-top:2px solid #0a0a0b; }
         .new-value strong { display:block; margin-top:9px; font-size:16px; }
         .new-value p { margin-top:5px; color:#62666d; font-size:13px; line-height:1.55; }
-        @media(max-width:900px){.new-feature-grid{grid-template-columns:1fr}.new-ai-flow{grid-template-columns:1fr;gap:22px}.new-ai-flow::before,.new-ai-flow::after{display:none}.new-ai-beam{width:2px;height:48px;margin:auto;background:#dfe9ff}.new-ai-result{transform:none}.new-industry-grid{grid-template-columns:1fr 1fr}.new-industry,.new-industry:nth-child(-n+2){grid-column:span 1}.new-value-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:900px){.new-feature-grid,.new-feature-grid.is-visual-left{grid-template-columns:1fr}.new-ai-flow{grid-template-columns:1fr;gap:22px}.new-ai-flow::before,.new-ai-flow::after{display:none}.new-ai-beam{width:2px;height:48px;margin:auto;background:#dfe9ff}.new-ai-result{transform:none}.new-industry-grid{grid-template-columns:1fr 1fr}.new-industry,.new-industry:nth-child(-n+2){grid-column:span 1}.new-value-grid{grid-template-columns:1fr 1fr}}
         @media(max-width:600px){.new-feature-section{padding:64px 0}.new-feature-wrap{padding:0 16px}.new-industry-grid,.new-compare,.new-value-grid{grid-template-columns:1fr}.new-float-chip{position:relative!important;inset:auto!important;margin-top:10px}}
         @media (max-width:900px) {
             .how-accordion-grid { grid-template-columns:1fr; gap:34px; }
@@ -536,9 +562,9 @@
 <section class="problem-compact">
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="fade-up text-center">
-            <p class="inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.2em] text-blue-600"><span class="h-px w-6 bg-blue-300"></span>Het probleem</p>
-            <h2 class="mx-auto mt-4 max-w-2xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] text-slate-950 sm:text-4xl lg:text-5xl">Je kunt niet <x-text-reveal text="managen" /><br>wat je niet kunt zien.</h2>
-            <p class="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-500 sm:text-lg">Zonder controle en bewijs loopt kwaliteit weg — en je weet het pas als er een klacht is.</p>
+            <p class="problem-kicker inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.2em]"><span class="h-px w-6"></span>Het probleem</p>
+            <h2 class="problem-heading mx-auto mt-4 max-w-2xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] sm:text-4xl lg:text-5xl">Je kunt niet <x-text-reveal text="managen" /><br>wat je niet kunt zien.</h2>
+            <p class="problem-lead mx-auto mt-4 max-w-2xl text-base leading-relaxed sm:text-lg">Zonder controle en bewijs loopt kwaliteit weg — en je weet het pas als er een klacht is.</p>
         </div>
 
         <div class="problem-chaos fade-up delay-1">
@@ -582,9 +608,9 @@
 <section class="how-accordion" data-how-accordion>
     <div class="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
         <div class="fade-up text-center">
-            <p class="inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.2em] text-blue-600"><span class="h-px w-6 bg-blue-300"></span>Zo werkt het</p>
-            <h2 class="mx-auto mt-4 max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] text-slate-950 sm:text-4xl lg:text-5xl">Van taak naar bewijs.<br>Van bewijs naar controle.</h2>
-            <p class="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-500 sm:text-lg">Maak checklists, laat je team taken uitvoeren en houd realtime controle over kwaliteit en bewijs.</p>
+            <p class="how-kicker inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.2em]"><span class="h-px w-6"></span>Zo werkt het</p>
+            <h2 class="how-heading mx-auto mt-4 max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] sm:text-4xl lg:text-5xl">Van taak naar bewijs.<br>Van bewijs naar controle.</h2>
+            <p class="how-lead mx-auto mt-4 max-w-2xl text-base leading-relaxed sm:text-lg">Maak checklists, laat je team taken uitvoeren en houd realtime controle over kwaliteit en bewijs.</p>
         </div>
 
         <div class="how-accordion-grid">
@@ -1164,18 +1190,18 @@
 </section>
 
 <section class="new-feature-section is-soft">
-    <div class="new-feature-wrap new-feature-grid">
+    <div class="new-feature-wrap new-feature-grid is-visual-left">
+        <div class="new-shot fade-up"><p class="mb-3 text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">● Locatiekaart · live</p><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/instellingen/locaties</span></div><img src="{{ asset('images/product-locations.jpg') }}" alt="TaskCheck locatiekaart — vestigingen in Rotterdam op de kaart"></div><div class="new-float-chip" style="left:-18px;top:48%"><span>⌖</span><span><strong>Rotterdam Centrum</strong><small>HAVENSTRAAT 12 · 3011 AA</small></span></div><div class="new-float-chip" style="right:-10px;bottom:16%"><span class="new-check">✓</span><span><strong>2 van 2 locaties in gebruik</strong><small>CENTRUM · NOORD</small></span></div></div>
         <div class="fade-up"><div class="new-feature-head"><span class="new-feature-kicker">Multi-locatie</span><h2 class="new-feature-title"><span class="new-feature-title-line"><x-text-reveal text="Eén standaard." /></span>Iedere locatie.</h2><p class="new-feature-lead">Gebouwd voor franchises, ketens en organisaties met meerdere vestigingen — van 2 tot 200 locaties.</p></div>
             <div class="new-number-list">@foreach([['Centraal aanmaken','Bouw processen één keer en rol ze uit naar elke vestiging.'],['Lokaal uitvoeren','Elke locatie werkt volgens dezelfde standaard, met eigen planning.'],['Globaal monitoren','Vergelijk locaties in één dashboard en stuur bij waar nodig.']] as $index => [$title,$copy])<div class="new-number-row"><span class="new-number">0{{ $index+1 }}</span><div><strong>{{ $title }}</strong><p>{{ $copy }}</p></div></div>@endforeach</div>
         </div>
-        <div class="new-shot fade-up"><p class="mb-3 text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">● Locatiekaart · live</p><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/instellingen/locaties</span></div><img src="{{ asset('images/product-locations.jpg') }}" alt="TaskCheck locatiekaart — vestigingen in Rotterdam op de kaart"></div><div class="new-float-chip" style="left:-18px;top:48%"><span>⌖</span><span><strong>Rotterdam Centrum</strong><small>HAVENSTRAAT 12 · 3011 AA</small></span></div><div class="new-float-chip" style="right:-10px;bottom:16%"><span class="new-check">✓</span><span><strong>2 van 2 locaties in gebruik</strong><small>CENTRUM · NOORD</small></span></div></div>
     </div>
 </section>
 
-<section class="new-feature-section">
+<section class="new-feature-section new-ai-section">
     <div class="new-feature-wrap"><div class="new-feature-head is-center fade-up"><span class="new-feature-kicker">AI checklist-generator</span><h2 class="new-feature-title">Je bestaande werkwijze. <x-text-reveal text="Binnen minuten digitaal" />.</h2><p class="new-feature-lead">Upload een PDF, Excel of Word-document. TaskCheck AI zet het om naar een werkende checklist — jij controleert en publiceert.</p></div>
         <div class="new-ai-flow fade-up"><div class="new-docs">@foreach([['PDF','HACCP-handboek.pdf','2,4 MB','#c0392b'],['XLS','Opening-checklist.xlsx','84 KB','#107c41'],['DOC','Schoonmaakprotocol.docx','312 KB','#1d4ed8']] as [$icon,$name,$meta,$color])<div class="new-doc"><span class="new-doc-icon" style="color:{{ $color }};font-size:{{ $icon === 'PDF' ? '11px' : '9px' }}">{{ $icon }}</span><span><strong>{{ $name }}</strong><small>{{ $meta }}</small></span><svg class="ml-auto h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M5 16v3h14v-3"/></svg></div>@endforeach</div><div class="new-ai-beam"><span>✦ TaskCheck AI</span></div><div class="new-ai-result"><img src="{{ asset('images/product-ai-checklist.jpg') }}" alt="TaskCheck-checklist Opening keuken, actief op locatie Rotterdam Centrum"></div></div>
-        <p class="mt-8 text-center text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">AI als versneller — jij houdt de regie</p>
+        <p class="new-ai-caption mt-8 text-center text-[10px] font-bold uppercase tracking-[.12em]">AI als versneller — jij houdt de regie</p>
     </div>
 </section>
 
