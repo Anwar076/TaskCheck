@@ -107,7 +107,9 @@
         .hero-color-reveal {
             position:relative;
             display:inline-block;
+            padding-right:.08em;
             padding-bottom:.14em;
+            margin-right:-.08em;
             margin-bottom:-.14em;
             color:#0f172a;
             animation:hero-base-hide 0s 1.45s forwards;
