@@ -15,21 +15,12 @@ async function login(page, email) {
   await page.locator('#email').fill(email);
   await page.locator('#password').fill('password');
   await Promise.all([page.waitForLoadState('networkidle'), page.locator('#email').locator('xpath=ancestor::form').locator('button[type="submit"]').click()]);
+  await page.evaluate(() => localStorage.setItem('taskcheck:push-prompt-dismissed', '1'));
 }
 
 async function capture(page, path, filename) {
   await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
-  await hideNotificationPrompt(page);
   await page.screenshot({ path: `${output}${filename}`, fullPage: true });
-}
-
-async function hideNotificationPrompt(page) {
-  await page.evaluate(() => {
-    const label = [...document.querySelectorAll('*')].find((element) => element.children.length === 0 && element.textContent?.trim().startsWith('Meldingen'));
-    let node = label;
-    while (node && (!node.querySelector?.('button') || (node.textContent?.length ?? 0) > 500)) node = node.parentElement;
-    if (node) node.style.display = 'none';
-  });
 }
 
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
@@ -45,7 +36,6 @@ const employeeContext = await browser.newContext({ viewport: { width: 1440, heig
 const employee = await employeeContext.newPage();
 await login(employee, 'keuken@taskcheck.test');
 await employee.goto(`${base}/employee/submissions/4`, { waitUntil: 'networkidle' });
-await hideNotificationPrompt(employee);
 await employee.getByText('Temperatuur levering', { exact: true })
   .locator('xpath=ancestor::*[.//button][1]').locator('button').last().click({ timeout: 2000 }).catch(() => {});
 await employee.waitForTimeout(300);

@@ -26,6 +26,10 @@ class HorecaScreenshotSeeder extends Seeder
             'address' => 'Havenstraat 12, 3011 AA Rotterdam', 'street' => 'Havenstraat', 'house_number' => '12',
             'postal_code' => '3011 AA', 'city' => 'Rotterdam', 'is_active' => true,
         ]);
+        Location::updateOrCreate(['company_id' => $company->id, 'name' => 'Rotterdam Noord'], [
+            'address' => 'Bergweg 86, 3036 BD Rotterdam', 'street' => 'Bergweg', 'house_number' => '86',
+            'postal_code' => '3036 BD', 'city' => 'Rotterdam', 'notes' => 'Tweede restaurantlocatie', 'is_active' => true,
+        ]);
         $admin = User::updateOrCreate(['email' => 'horeca@taskcheck.test'], [
             'company_id' => $company->id, 'location_id' => $location->id, 'name' => 'Sophie de Vries',
             'password' => Hash::make('password'), 'role' => 'admin', 'department' => 'Management', 'is_active' => true,
