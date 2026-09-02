@@ -107,6 +107,8 @@
         .hero-color-reveal {
             position:relative;
             display:inline-block;
+            padding-bottom:.14em;
+            margin-bottom:-.14em;
             color:#0f172a;
             animation:hero-base-hide 0s 1.45s forwards;
         }
@@ -115,7 +117,7 @@
             position:absolute;
             inset:0;
             color:transparent;
-            background:linear-gradient(90deg,#2563eb 0%,#7c3aed 48%,#38bdf8 100%);
+            background:linear-gradient(90deg,#2563eb 0%,#315bea 52%,#4f46e5 100%);
             -webkit-background-clip:text;
             background-clip:text;
             clip-path:inset(0 100% 0 0);
