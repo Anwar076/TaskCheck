@@ -92,7 +92,21 @@ class MollieService
 
     public function cancelSubscription(string $customerId, string $subscriptionId): void
     {
-        $this->request('delete', "/customers/{$customerId}/subscriptions/{$subscriptionId}");
+        try {
+            $this->request('delete', "/customers/{$customerId}/subscriptions/{$subscriptionId}");
+        } catch (RuntimeException $exception) {
+            $message = strtolower($exception->getMessage());
+            $alreadyCancelled = str_contains($message, 'mollie api fout (404)')
+                || (str_contains($message, 'mollie api fout (422)')
+                    && (str_contains($message, 'subscription has been cancelled')
+                        || str_contains($message, 'subscription has been canceled')
+                        || str_contains($message, 'already cancelled')
+                        || str_contains($message, 'already canceled')));
+
+            if (! $alreadyCancelled) {
+                throw $exception;
+            }
+        }
     }
 
     private function request(string $method, string $endpoint, array $payload = []): array
@@ -113,7 +127,7 @@ class MollieService
         $options = [];
         $normalizedMethod = strtolower($method);
         if (in_array($normalizedMethod, ['get', 'delete'], true)) {
-            if (!empty($payload)) {
+            if (! empty($payload)) {
                 $options['query'] = $payload;
             }
         } else {

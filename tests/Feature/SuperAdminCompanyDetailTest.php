@@ -81,6 +81,59 @@ class SuperAdminCompanyDetailTest extends TestCase
         $this->assertDatabaseMissing('locations', ['company_id' => $company->id]);
     }
 
+    public function test_company_deletion_continues_when_mollie_subscription_was_already_cancelled(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        config()->set('services.mollie.key', 'test_key');
+        $company = Company::query()->create([
+            'name' => 'Al opgezegde klant',
+            'mollie_customer_id' => 'cst_cancelled',
+            'mollie_subscription_id' => 'sub_cancelled',
+            'subscription_status' => 'cancelled',
+            'is_active' => true,
+        ]);
+
+        Http::fake([
+            'https://api.mollie.com/v2/customers/cst_cancelled/subscriptions/sub_cancelled' => Http::response([
+                'status' => 422,
+                'title' => 'Unprocessable Entity',
+                'detail' => 'The subscription has been cancelled',
+            ], 422),
+        ]);
+
+        $this->actingAs($admin)->delete(route('super-admin.companies.destroy', $company), [
+            'confirmation_name' => $company->name,
+        ])->assertRedirect(route('super-admin.dashboard', ['tab' => 'companies']));
+
+        $this->assertDatabaseMissing('companies', ['id' => $company->id]);
+    }
+
+    public function test_company_deletion_still_stops_for_a_real_mollie_error(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+        config()->set('services.mollie.key', 'test_key');
+        $company = Company::query()->create([
+            'name' => 'Klant met Mollie-fout',
+            'mollie_customer_id' => 'cst_failure',
+            'mollie_subscription_id' => 'sub_failure',
+            'is_active' => true,
+        ]);
+
+        Http::fake([
+            'https://api.mollie.com/v2/customers/cst_failure/subscriptions/sub_failure' => Http::response([
+                'detail' => 'Invalid customer state',
+            ], 422),
+        ]);
+
+        $this->actingAs($admin)->delete(route('super-admin.companies.destroy', $company), [
+            'confirmation_name' => $company->name,
+        ])->assertSessionHas('error');
+
+        $this->assertDatabaseHas('companies', ['id' => $company->id]);
+    }
+
     public function test_company_deletion_requires_the_exact_company_name(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
