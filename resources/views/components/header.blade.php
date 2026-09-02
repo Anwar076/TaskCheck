@@ -47,26 +47,37 @@
         </div>
     </div>
 
-    <!-- Mobile Navigation Menu -->
-    <div id="mobileMenu" class="hidden border-t border-slate-200/70 bg-white/95 shadow-xl backdrop-blur-2xl md:hidden">
-        <div class="mx-auto max-w-7xl space-y-1 px-4 py-4 sm:px-6">
-            <a href="{{ route('welcome') }}" class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->is('/') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">Home</a>
-            <a href="{{ route('pricing') }}" class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->is('pricing') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">Prijzen</a>
-            <a href="{{ route('blog') }}" class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->is('blog*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">Blog</a>
-            <a href="{{ route('contact') }}" class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->is('contact') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">Contact</a>
-
-            <div class="pt-3">
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="block text-center px-4 py-2.5 rounded-lg text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 transition">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="block text-center px-4 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition">Inloggen</a>
-                    @endauth
-                @endif
-            </div>
-        </div>
-    </div>
 </nav>
+
+<!-- Mobile offcanvas navigation -->
+<div id="mobileMenu" class="pointer-events-none fixed inset-0 z-[60] md:hidden" aria-hidden="true">
+        <button id="mobileMenuBackdrop" type="button" class="absolute inset-0 bg-slate-950/55 opacity-0 backdrop-blur-sm transition-opacity duration-300" aria-label="Sluit menu"></button>
+        <aside id="mobileMenuPanel" class="absolute inset-y-0 right-0 flex translate-x-full flex-col border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-out" style="width:min(88vw,400px)">
+            <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6" style="padding-top:env(safe-area-inset-top)">
+                <span class="text-xs font-bold uppercase tracking-[.18em] text-blue-600">Menu</span>
+                <button id="mobileMenuClose" type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-0 text-slate-700 transition hover:border-blue-200 hover:bg-blue-50" aria-label="Sluit menu">
+                    <svg class="block h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </button>
+            </div>
+            <div class="flex flex-1 flex-col overflow-y-auto px-5 py-6" style="padding-bottom:max(24px,env(safe-area-inset-bottom))">
+                <div class="space-y-2">
+                    <a href="{{ route('welcome') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('/') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Home</a>
+                    <a href="{{ route('pricing') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('pricing') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Prijzen</a>
+                    <a href="{{ route('blog') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('blog*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Blog</a>
+                    <a href="{{ route('contact') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('contact') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Contact</a>
+                </div>
+                <div class="mt-auto border-t border-slate-100 pt-5">
+                    @if (Route::has('login'))
+                        @auth
+                            <a href="{{ auth()->user()->homeDashboardUrl() }}" class="block rounded-xl bg-slate-950 px-4 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-blue-700">Dashboard</a>
+                        @else
+                            <a href="{{ route('login') }}" class="block rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3.5 text-center text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition">Inloggen →</a>
+                        @endauth
+                    @endif
+                </div>
+            </div>
+        </aside>
+    </div>
 
 <script>
 // Mobile menu functionality
@@ -74,6 +85,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const siteHeader = document.getElementById('siteHeader');
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+    const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+    const mobileMenuClose = document.getElementById('mobileMenuClose');
 
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
@@ -99,18 +113,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.addEventListener('click', function() {
-            mobileMenu.classList.toggle('hidden');
-            mobileMenuBtn.setAttribute('aria-expanded', String(!mobileMenu.classList.contains('hidden')));
-        });
+    if (mobileMenuBtn && mobileMenu && mobileMenuPanel && mobileMenuBackdrop) {
+        const setMobileMenu = function(open) {
+            mobileMenu.classList.toggle('pointer-events-none', !open);
+            mobileMenuPanel.classList.toggle('translate-x-full', !open);
+            mobileMenuBackdrop.classList.toggle('opacity-0', !open);
+            mobileMenuBackdrop.classList.toggle('opacity-100', open);
+            mobileMenu.setAttribute('aria-hidden', String(!open));
+            mobileMenuBtn.setAttribute('aria-expanded', String(open));
+            document.documentElement.classList.toggle('overflow-hidden', open);
+            if (open) mobileMenuClose?.focus();
+        };
 
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-                mobileMenu.classList.add('hidden');
+        mobileMenuBtn.addEventListener('click', function() { setMobileMenu(true); });
+        mobileMenuClose?.addEventListener('click', function() {
+            setMobileMenu(false);
+            mobileMenuBtn.focus();
+        });
+        mobileMenuBackdrop.addEventListener('click', function() { setMobileMenu(false); });
+        mobileMenuPanel.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() { setMobileMenu(false); });
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && mobileMenu.getAttribute('aria-hidden') === 'false') {
+                setMobileMenu(false);
+                mobileMenuBtn.focus();
             }
         });
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768 && mobileMenu.getAttribute('aria-hidden') === 'false') {
+                setMobileMenu(false);
+            }
+        }, { passive: true });
     }
 
     // Subtle solid header on scroll for readability

@@ -154,8 +154,9 @@
         }
         @media (max-width:760px) {
             .problem-compact { padding:50px 0 54px; }
-            .problem-chaos { grid-template-columns:1fr; max-width:420px; gap:12px; margin-top:28px; }
+            .problem-chaos { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:460px; gap:12px; margin-top:28px; }
         }
+        @media (max-width:400px) { .problem-chaos { grid-template-columns:1fr; max-width:360px; } }
         .how-accordion { padding:76px 0 84px; background:#fff; }
         .how-accordion .how-kicker { color:#2563eb; }
         .how-accordion .how-kicker span { background:#93b4ff; }
@@ -206,8 +207,8 @@
         .new-ai-section .new-feature-title { color:#fff; }
         .new-ai-section .tc-text-reveal-base { color:#fff; }
         .new-ai-section .new-feature-lead { color:#aab4c5; }
-        .new-ai-section .new-doc { border-color:rgba(148,163,184,.2); background:rgba(255,255,255,.07); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
-        .new-ai-section .new-doc-icon { background:rgba(255,255,255,.08); }
+        .new-ai-section .new-doc { border-color:#263247; background:#111827; box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 28px -20px rgba(0,0,0,.8); }
+        .new-ai-section .new-doc-icon { background:#1c2535; }
         .new-ai-section .new-doc strong { color:#f8fafc; }
         .new-ai-section .new-doc small { color:#8f9aab; }
         .new-ai-section .new-doc svg { color:#71819a; }
@@ -258,8 +259,8 @@
         .new-ai-beam { position:relative; z-index:2; display:grid; place-items:center; }
         .new-ai-beam span { white-space:nowrap; padding:6px 11px; border-radius:999px; background:#0a0a0b; color:#fff; font-size:10px; font-weight:700; }
         .new-docs,.new-ai-result { position:relative; z-index:2; }
-        .new-ai-result { position:relative; width:min(420px,100%); margin:0 auto; overflow:hidden; transform:rotate(1.4deg); border:1px solid #dfe9ff; border-radius:16px; background:#fff; box-shadow:0 4px 12px rgba(10,12,18,.05),0 28px 70px -22px rgba(37,99,235,.28); }
-        .new-ai-result img { display:block; width:420px; max-width:100%; height:auto; }
+        .new-ai-result { position:relative; width:100%; min-width:0; margin:0; overflow:hidden; transform:rotate(1.4deg); border:1px solid #dfe9ff; border-radius:16px; background:#fff; box-shadow:0 4px 12px rgba(10,12,18,.05),0 28px 70px -22px rgba(37,99,235,.28); }
+        .new-ai-result img { display:block; width:100%; height:auto; }
         .new-industry-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-top:48px; }
         .new-industry { grid-column:span 2; display:flex; flex-direction:column; padding:21px; border:1px solid #e6e8ec; border-radius:16px; background:#fff; transition:.3s ease; }
         .new-industry:nth-child(-n+2) { grid-column:span 3; }
@@ -288,11 +289,12 @@
         .new-compare-card:not(.is-new) .new-compare-item { text-decoration-line:line-through; text-decoration-color:rgba(239,68,68,.62); text-decoration-thickness:1.5px; }
         .new-compare-card.is-new .new-compare-item { color:#0a0a0b; font-weight:600; }
         .new-value-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:72px; }
-        .new-value { padding-top:16px; border-top:2px solid #0a0a0b; }
+        .new-value { padding-top:16px; border-top:2px solid #2563eb; }
         .new-value strong { display:block; margin-top:9px; font-size:16px; }
         .new-value p { margin-top:5px; color:#62666d; font-size:13px; line-height:1.55; }
         @media(max-width:900px){.new-feature-grid,.new-feature-grid.is-visual-left{grid-template-columns:1fr}.new-ai-flow{grid-template-columns:1fr;gap:22px}.new-ai-flow::before,.new-ai-flow::after{display:none}.new-ai-beam{width:2px;height:48px;margin:auto;background:#dfe9ff}.new-ai-result{transform:none}.new-industry-grid{grid-template-columns:1fr 1fr}.new-industry,.new-industry:nth-child(-n+2){grid-column:span 1}.new-value-grid{grid-template-columns:1fr 1fr}}
-        @media(max-width:600px){.new-feature-section{padding:64px 0}.new-feature-wrap{padding:0 16px}.new-industry-grid,.new-compare,.new-value-grid{grid-template-columns:1fr}.new-float-chip{position:relative!important;inset:auto!important;margin-top:10px}}
+        @media(max-width:600px){.new-feature-section{padding:56px 0}.new-feature-wrap{padding:0 16px}.new-industry-grid,.new-compare{grid-template-columns:1fr}.new-value-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px;margin-top:48px}.new-float-chip{position:relative!important;inset:auto!important;margin-top:10px}.new-feature-lead{font-size:16px;line-height:1.6}.new-compare{margin-top:40px}.new-compare-card{padding:22px 18px}}
+        @media(max-width:400px){.new-value-grid{grid-template-columns:1fr}}
         @media (max-width:900px) {
             .how-accordion-grid { grid-template-columns:1fr; gap:34px; }
             .how-steps { display:block; }
@@ -598,8 +600,8 @@
             </svg>
         </div>
 
-        <div class="fade-up text-center">
-            <span class="inline-flex items-center gap-3 text-sm font-bold text-white"><span class="h-px w-7 bg-slate-600"></span>TaskCheck brengt alles samen<span class="h-px w-7 bg-slate-600"></span></span>
+        <div class="fade-up flex w-full justify-center text-center">
+            <span class="grid w-full min-w-0 max-w-md grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 text-sm font-bold text-white"><span class="h-px min-w-0 bg-slate-600"></span><span class="whitespace-nowrap">TaskCheck brengt alles samen</span><span class="h-px min-w-0 bg-slate-600"></span></span>
         </div>
     </div>
 </section>
@@ -1264,21 +1266,21 @@
 {{-- ══════════════════════════════════════
      SEO TEKST
 ══════════════════════════════════════ --}}
-<section class="py-14 sm:py-20 bg-slate-50 border-t border-slate-100">
+<section class="py-10 sm:py-12 bg-slate-50 border-t border-slate-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-3 gap-10 lg:gap-16 items-start fade-up">
+        <div class="grid lg:grid-cols-3 gap-8 lg:gap-12 items-start fade-up">
 
             {{-- Tekst --}}
             <div class="lg:col-span-2">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight mb-5">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight mb-3">
                     Checklist app voor bedrijven die werkcontrole serieus nemen
                 </h2>
-                <div class="text-slate-500 leading-relaxed space-y-4 text-[15px]">
+                <div class="text-slate-500 leading-relaxed space-y-3 text-[15px]">
                     <p>Veel bedrijven worstelen dagelijks met dezelfde vraag: hoe weet je zeker dat het werk goed is gedaan? TaskCheck geeft operationele teams een eenvoudig antwoord. Met duidelijke checklists, verplicht bewijs per taak en een realtime dashboard hoef je niet meer op goed geloof te vertrouwen.</p>
                     <p>Voor de horeca biedt TaskCheck een complete <a href="{{ route('seo.horeca-checklist-app') }}" class="text-blue-600 font-semibold underline-offset-2 hover:underline">horeca checklist app</a> waarmee opening, HACCP-controles en sluitrondes gestandaardiseerd worden. Schoonmaakbedrijven profiteren van een <a href="{{ route('seo.schoonmaak-checklist-app') }}" class="text-blue-600 font-semibold underline-offset-2 hover:underline">checklist app voor schoonmaak</a> met bewijs per locatie en rapportages richting opdrachtgevers.</p>
                     <p>Ook buiten horeca en schoonmaak is de <a href="{{ route('seo.werkcontrole-app') }}" class="text-blue-600 font-semibold underline-offset-2 hover:underline">werkcontrole app</a> van TaskCheck breed inzetbaar. Met de <a href="{{ route('seo.takenlijst-personeel') }}" class="text-blue-600 font-semibold underline-offset-2 hover:underline">takenlijst voor personeel</a> weet iedereen precies wat er verwacht wordt.</p>
                 </div>
-                <div class="mt-7 flex flex-wrap gap-3">
+                <div class="mt-5 flex flex-wrap gap-3">
                     <a href="{{ route('blog') }}"
                        class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 border border-slate-200 bg-white rounded-lg px-4 py-2 hover:bg-slate-50 transition-colors">
                         <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/></svg>
@@ -1293,7 +1295,7 @@
             </div>
 
             {{-- Quick links --}}
-            <div class="lg:pt-8">
+            <div class="lg:pt-3">
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Specifiek voor jouw branche</p>
                 <div class="space-y-2">
                     @foreach([
@@ -1303,7 +1305,7 @@
                         ['Takenlijst personeel',    route('seo.takenlijst-personeel'),     '#059669'],
                     ] as [$label,$url,$col])
                     <a href="{{ $url }}"
-                       class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group">
+                       class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group">
                         <div class="flex items-center gap-3">
                             <span class="w-2 h-2 rounded-full shrink-0" style="background:{{ $col }}"></span>
                             <span class="text-sm font-semibold text-slate-800">{{ $label }}</span>
@@ -1321,7 +1323,7 @@
 {{-- ══════════════════════════════════════
      FAQ
 ══════════════════════════════════════ --}}
-<section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-t border-slate-100">
+<section class="pt-8 pb-14 sm:pt-10 sm:pb-20 bg-slate-50 border-t border-slate-100">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8 sm:mb-12 fade-up">
             <h2 class="text-3xl font-extrabold text-slate-900">Veelgestelde vragen</h2>
