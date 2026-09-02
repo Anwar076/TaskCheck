@@ -1013,6 +1013,9 @@
     var activeIndex = 2;
     var checked = false;
     var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var checkTimer = null;
+    var advanceTimer = null;
+    var recycleTimer = null;
 
     function metrics() {
         var styles = getComputedStyle(stream);
@@ -1042,9 +1045,8 @@
         render();
 
         if (activeIndex >= baseCount + 2) {
-            track.addEventListener('transitionend', function resetContinuousTrack(event) {
-                if (event.target !== track || event.propertyName !== 'transform') return;
-                track.removeEventListener('transitionend', resetContinuousTrack);
+            window.clearTimeout(recycleTimer);
+            recycleTimer = window.setTimeout(function recycleContinuousTrack() {
                 track.classList.add('is-resetting');
                 track.appendChild(track.firstElementChild);
                 activeIndex -= baseCount;
@@ -1056,19 +1058,54 @@
                         track.classList.remove('is-resetting');
                     });
                 });
-            });
+            }, 900);
         }
+    }
+
+    function clearCycle() {
+        window.clearTimeout(checkTimer);
+        window.clearTimeout(advanceTimer);
+        window.clearTimeout(recycleTimer);
+        checkTimer = advanceTimer = recycleTimer = null;
+    }
+
+    function normalizeTrack() {
+        track.classList.add('is-resetting');
+        while (activeIndex >= baseCount + 2) {
+            track.appendChild(track.firstElementChild);
+            activeIndex -= baseCount;
+        }
+        items = Array.from(stream.querySelectorAll('[data-task-stream-item]'));
+        checked = false;
+        render();
+        track.getBoundingClientRect();
+        requestAnimationFrame(function () { track.classList.remove('is-resetting'); });
+    }
+
+    function scheduleCycle(delay) {
+        checkTimer = window.setTimeout(function () {
+            if (document.hidden) return;
+            checked = true;
+            render();
+            advanceTimer = window.setTimeout(function () {
+                advance();
+                scheduleCycle(1850);
+            }, 1150);
+        }, delay);
     }
 
     render();
     window.addEventListener('resize', render, { passive: true });
 
     if (!reducedMotion) {
-        window.setInterval(function () {
-            checked = true;
-            render();
-            window.setTimeout(advance, 1150);
-        }, 3000);
+        scheduleCycle(3000);
+        document.addEventListener('visibilitychange', function () {
+            clearCycle();
+            if (!document.hidden) {
+                normalizeTrack();
+                scheduleCycle(1200);
+            }
+        });
     }
 })();
 
