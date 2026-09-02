@@ -139,8 +139,13 @@
         .task-stream-item.is-adjacent { opacity:.7;transform:scaleX(.985); }
         .task-stream-item.is-active { opacity:1;transform:scaleX(1.045);border-color:rgba(96,165,250,.72);box-shadow:0 24px 52px -28px rgba(37,99,235,.42); }
         .task-stream-check { display:grid;height:34px;width:34px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:10px;color:transparent;background:white;transform:scale(.92);transition:all .35s ease; }
+        .task-stream-check path { stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .32s .08s ease; }
         .task-stream-item.is-done .task-stream-check { color:#fff;background:#10b981;border-color:transparent;transform:scale(.94); }
-        .task-stream-item.is-active.is-checked .task-stream-check { color:#fff;background:linear-gradient(135deg,#2563eb,#4f46e5);border-color:transparent;transform:scale(1); }
+        .task-stream-item.is-done .task-stream-check path,.task-stream-item.is-active.is-checked .task-stream-check path { stroke-dashoffset:0; }
+        .task-stream-item.is-active.is-checked .task-stream-check { color:#fff;background:linear-gradient(135deg,#2563eb,#4f46e5);border-color:transparent;transform:scale(1);animation:task-check-pop .58s cubic-bezier(.2,.85,.25,1); }
+        @keyframes task-check-pop { 0%{transform:scale(.78) rotate(-7deg);box-shadow:0 0 0 0 rgba(37,99,235,.32)} 48%{transform:scale(1.18) rotate(2deg);box-shadow:0 0 0 8px rgba(37,99,235,.12)} 100%{transform:scale(1) rotate(0);box-shadow:0 0 0 0 rgba(37,99,235,0)} }
+        .task-stream-meta { border:1px solid #e2e8f0;border-radius:999px;background:#f8fafc;padding:3px 8px;color:#64748b;transition:all .35s ease; }
+        .task-stream-item.is-done .task-stream-meta,.task-stream-item.is-active.is-checked .task-stream-meta { border-color:#a7f3d0;background:#ecfdf5;color:#047857;box-shadow:0 4px 12px -8px rgba(5,150,105,.45); }
         @media (max-width:639px) {
             .task-stream{--task-step:66px;--task-start:14px;height:340px}
             .task-stream::before{inset:7% 5%}
@@ -276,7 +281,7 @@
                                             <span class="block truncate text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
                                             <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
                                         </span>
-                                        <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
+                                        <span class="task-stream-meta hidden shrink-0 text-[11px] font-semibold sm:block">{{ $meta }}</span>
                                     </div>
                                 @endforeach
                             </div>
