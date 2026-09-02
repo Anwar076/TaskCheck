@@ -86,11 +86,16 @@ class WeeklyOverviewService
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
             ->with(['submissions' => function ($query) use ($start, $end, $locationId) {
-                $query->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
+                $query->withoutGlobalScope('company')
+                    ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
                     ->when($locationId, function ($submissionQuery) use ($locationId) {
-                        $submissionQuery->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId));
+                        $submissionQuery->whereHas('taskList', fn ($taskListQuery) => $taskListQuery
+                            ->withoutGlobalScope('company')
+                            ->where('location_id', $locationId));
                     })
-                    ->with(['taskList:id,title,requires_review']);
+                    ->with(['taskList' => fn ($taskListQuery) => $taskListQuery
+                        ->withoutGlobalScope('company')
+                        ->select(['id', 'title', 'requires_review'])]);
             }])
             ->orderBy('name')
             ->get();
@@ -137,17 +142,17 @@ class WeeklyOverviewService
      */
     public function buildTopLists(int $companyId, Carbon $start, Carbon $end, ?int $locationId = null, int $limit = 12): array
     {
-        return TaskList::query()
+        return TaskList::withoutGlobalScope('company')
             ->withCount(['submissions as period_submissions_count' => function ($query) use ($start, $end) {
-                $query->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay());
+                $query->withoutGlobalScope('company')
+                    ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay());
             }])
             ->where('company_id', $companyId)
             ->where('is_active', true)
             ->when($locationId, fn ($query) => $query->where('location_id', $locationId))
-            ->whereHas('submissions', fn ($query) => $query->inReportingPeriod(
-                $start->copy()->startOfDay(),
-                $end->copy()->endOfDay(),
-            ))
+            ->whereHas('submissions', fn ($query) => $query
+                ->withoutGlobalScope('company')
+                ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay()))
             ->orderByDesc('period_submissions_count')
             ->orderBy('title')
             ->take($limit)
@@ -170,14 +175,23 @@ class WeeklyOverviewService
     {
         $tasks = SubmissionTask::query()
             ->whereHas('submission', function ($query) use ($companyId, $start, $end, $locationId) {
-                $query->where('company_id', $companyId)
+                $query->withoutGlobalScope('company')
+                    ->where('company_id', $companyId)
                     ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
                     ->when($locationId, fn ($submissionQuery) => $submissionQuery->whereHas(
                         'taskList',
-                        fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId)
+                        fn ($taskListQuery) => $taskListQuery
+                            ->withoutGlobalScope('company')
+                            ->where('location_id', $locationId)
                     ));
             })
-            ->with(['task:id,list_id,title,validation_rules', 'submission:id,list_id,user_id,created_at,completed_at', 'submission.taskList:id,title', 'submission.user:id,name'])
+            ->with([
+                'task:id,list_id,title,validation_rules',
+                'submission' => fn ($query) => $query->withoutGlobalScope('company')
+                    ->select(['id', 'list_id', 'user_id', 'created_at', 'completed_at']),
+                'submission.taskList' => fn ($query) => $query->withoutGlobalScope('company')->select(['id', 'title']),
+                'submission.user:id,name',
+            ])
             ->orderBy('submission_id')
             ->orderBy('id')
             ->get()
@@ -239,11 +253,14 @@ class WeeklyOverviewService
     {
         $statuses = SubmissionTask::query()
             ->whereHas('submission', function ($query) use ($companyId, $start, $end, $locationId) {
-                $query->where('company_id', $companyId)
+                $query->withoutGlobalScope('company')
+                    ->where('company_id', $companyId)
                     ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
                     ->when($locationId, fn ($submissionQuery) => $submissionQuery->whereHas(
                         'taskList',
-                        fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId)
+                        fn ($taskListQuery) => $taskListQuery
+                            ->withoutGlobalScope('company')
+                            ->where('location_id', $locationId)
                     ));
             })
             ->pluck('status');
@@ -304,16 +321,20 @@ class WeeklyOverviewService
     {
         return $this->scopedQuery($companyId, $locationId)
             ->inReportingPeriod($start->copy()->startOfDay(), $end->copy()->endOfDay())
-            ->with('taskList:id,requires_review')
+            ->with(['taskList' => fn ($query) => $query
+                ->withoutGlobalScope('company')
+                ->select(['id', 'requires_review'])])
             ->get();
     }
 
     private function scopedQuery(int $companyId, ?int $locationId)
     {
-        return Submission::query()
+        return Submission::withoutGlobalScope('company')
             ->where('company_id', $companyId)
             ->when($locationId, function ($query) use ($locationId) {
-                $query->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('location_id', $locationId));
+                $query->whereHas('taskList', fn ($taskListQuery) => $taskListQuery
+                    ->withoutGlobalScope('company')
+                    ->where('location_id', $locationId));
             });
     }
 }

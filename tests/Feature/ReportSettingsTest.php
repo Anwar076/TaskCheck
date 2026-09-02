@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Mail\CompanyReportMail;
+use App\Models\Checklist\TaskList;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\CompanyReportRecipient;
 use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
+use App\Services\Admin\CompanyReportingService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -87,5 +91,56 @@ class ReportSettingsTest extends TestCase
         Mail::assertSent(CompanyReportMail::class, fn (CompanyReportMail $mail) => $mail->hasTo('week@example.test')
             && $mail->report['frequency'] === Company::REPORTING_FREQUENCY_WEEKLY
         );
+    }
+
+    public function test_super_admin_report_uses_selected_company_instead_of_logged_in_company_scope(): void
+    {
+        $viewerCompany = Company::query()->create([
+            'name' => 'Platformbeheer',
+            'email' => 'platform@example.test',
+            'is_active' => true,
+        ]);
+        $targetCompany = Company::query()->create([
+            'name' => 'Kwalitaria Papendrecht',
+            'email' => 'papendrecht@example.test',
+            'is_active' => true,
+        ]);
+        $superAdmin = User::factory()->create([
+            'company_id' => $viewerCompany->id,
+            'role' => 'admin',
+        ]);
+        $employee = User::factory()->create([
+            'company_id' => $targetCompany->id,
+            'role' => 'employee',
+            'is_active' => true,
+        ]);
+        $list = TaskList::withoutGlobalScope('company')->create([
+            'company_id' => $targetCompany->id,
+            'created_by' => $employee->id,
+            'title' => 'Openingslijst',
+            'is_active' => true,
+            'requires_review' => false,
+        ]);
+        Submission::withoutGlobalScope('company')->create([
+            'company_id' => $targetCompany->id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'started_at' => Carbon::parse('2026-09-01 08:15:58', 'Europe/Amsterdam'),
+            'completed_at' => Carbon::parse('2026-09-01 10:04:14', 'Europe/Amsterdam'),
+            'status' => 'completed',
+        ]);
+
+        $this->actingAs($superAdmin);
+
+        $report = app(CompanyReportingService::class)->buildReport(
+            $targetCompany,
+            Company::REPORTING_FREQUENCY_DAILY,
+            Carbon::parse('2026-09-02 11:00:00', 'Europe/Amsterdam'),
+        );
+
+        $this->assertSame(1, $report['summary']['total_lists']);
+        $this->assertSame(1, $report['summary']['finished']);
+        $this->assertSame('Openingslijst', $report['top_lists'][0]['title']);
+        $this->assertSame(1, $report['employee_overview'][0]['total_submissions']);
     }
 }
