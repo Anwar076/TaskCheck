@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SubmissionReviewController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TaskListAssignmentController;
 use App\Http\Controllers\Admin\TaskListController;
+use App\Http\Controllers\Admin\TaskListScheduleController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
@@ -330,12 +331,12 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
     Route::get('/lists/ai-import', [AiChecklistImportController::class, 'aiImportPage'])->name('lists.ai-import');
     Route::post('/lists/ai-import/generate', [AiChecklistImportController::class, 'aiImportGenerate'])->name('lists.ai-import.generate');
     Route::post('/lists/ai-import/store', [AiChecklistImportController::class, 'aiImportStore'])->name('lists.ai-import.store');
-    Route::get('/lists/calendar', [TaskListController::class, 'calendar'])->name('lists.calendar');
+    Route::get('/lists/calendar', [TaskListScheduleController::class, 'calendar'])->name('lists.calendar');
     Route::post('/lists/reorder', [TaskListController::class, 'reorder'])->name('lists.reorder');
-    Route::put('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'updateScheduleTimeSlot'])->name('lists.schedule-slot.update');
-    Route::delete('/lists/{list}/schedule-slot/{slot}', [TaskListController::class, 'destroyScheduleTimeSlot'])->name('lists.schedule-slot.destroy');
-    Route::post('/lists/{list}/schedule-day', [TaskListController::class, 'scheduleDay'])->name('lists.schedule-day');
-    Route::post('/lists/{list}/schedule-slot', [TaskListController::class, 'scheduleTimeSlot'])->name('lists.schedule-slot');
+    Route::put('/lists/{list}/schedule-slot/{slot}', [TaskListScheduleController::class, 'updateScheduleTimeSlot'])->name('lists.schedule-slot.update');
+    Route::delete('/lists/{list}/schedule-slot/{slot}', [TaskListScheduleController::class, 'destroyScheduleTimeSlot'])->name('lists.schedule-slot.destroy');
+    Route::post('/lists/{list}/schedule-day', [TaskListScheduleController::class, 'scheduleDay'])->name('lists.schedule-day');
+    Route::post('/lists/{list}/schedule-slot', [TaskListScheduleController::class, 'scheduleTimeSlot'])->name('lists.schedule-slot');
     Route::post('/lists/{list}/tasks/quick', [TaskController::class, 'quickStore'])->name('lists.tasks.quick-store');
     Route::get('/tasks/{task}/form-data', [TaskController::class, 'formData'])->name('tasks.form-data');
 
