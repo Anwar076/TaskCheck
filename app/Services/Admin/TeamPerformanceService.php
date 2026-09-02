@@ -2,6 +2,8 @@
 
 namespace App\Services\Admin;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Models\Organisation\User;
 use App\Models\Submissions\Submission;
 use App\Services\CollaborativeSubmissionService;
@@ -67,7 +69,7 @@ class TeamPerformanceService
 
             $openListIds = $scheduledLists->pluck('id')->unique();
             $finishedListIds = $relevantSubmissions
-                ->whereIn('status', ['completed', 'reviewed'])
+                ->whereIn('status', SubmissionStatus::finishedValues())
                 ->pluck('list_id')
                 ->unique();
             $inProgressSubmissions = $relevantSubmissions->whereIn('status', ['in_progress', 'redo_requested']);
@@ -182,13 +184,13 @@ class TeamPerformanceService
                 $teamSubmissionsByListId
             );
 
-            if ($submission && !$submissions->contains('id', $submission->id)) {
+            if ($submission && ! $submissions->contains('id', $submission->id)) {
                 $submissions->push($submission);
             }
         }
 
         foreach ($personalSubmissions as $submission) {
-            if (!$submissions->contains('id', $submission->id)) {
+            if (! $submissions->contains('id', $submission->id)) {
                 $submissions->push($submission);
             }
         }
@@ -231,7 +233,7 @@ class TeamPerformanceService
                     ->where('updated_at', '>=', $recentThreshold)
                     ->isNotEmpty();
 
-                if (!$recentTaskByEmployee) {
+                if (! $recentTaskByEmployee) {
                     continue;
                 }
 
@@ -284,7 +286,7 @@ class TeamPerformanceService
             return 0;
         }
 
-        $done = $tasks->whereIn('status', ['completed', 'approved'])->count();
+        $done = $tasks->whereIn('status', SubmissionTaskStatus::finishedValues())->count();
 
         return round(($done / $total) * 100, 1);
     }

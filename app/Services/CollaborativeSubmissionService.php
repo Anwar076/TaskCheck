@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\SubmissionStatus;
 use App\Models\Checklist\ListAssignment;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\User;
@@ -61,7 +62,7 @@ class CollaborativeSubmissionService
             return false;
         }
 
-        if (!$submission->is_team_submission) {
+        if (! $submission->is_team_submission) {
             return (int) $submission->user_id === (int) $user->id;
         }
 
@@ -145,7 +146,7 @@ class CollaborativeSubmissionService
     {
         $query = Submission::query()
             ->where('list_id', $list->id)
-            ->whereIn('status', ['completed', 'reviewed']);
+            ->whereIn('status', SubmissionStatus::finishedValues());
 
         if ($this->usesTeamSubmission($list)) {
             $query->where('is_team_submission', true);

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Employee;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Helpers\ProofFileHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Checklist\TaskList;
@@ -37,7 +39,7 @@ class SubmissionController extends Controller
         $scheduledLists = $this->scheduleService->getScheduledTasksForUser($user);
         $completedLists = Submission::where('user_id', $user->id)
             ->whereDate('created_at', today())
-            ->whereIn('status', ['completed', 'reviewed'])
+            ->whereIn('status', SubmissionStatus::finishedValues())
             ->with('taskList')
             ->get()
             ->pluck('taskList')
@@ -223,7 +225,7 @@ class SubmissionController extends Controller
                 ->where('task_id', $taskId)
                 ->firstOrFail();
 
-            if (in_array($submission->status, ['completed', 'reviewed'], true)) {
+            if (in_array($submission->status, SubmissionStatus::finishedValues(), true)) {
                 $message = 'Deze lijst is al ingediend. Taken kunnen niet meer worden bewerkt.';
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
@@ -427,7 +429,7 @@ class SubmissionController extends Controller
                 ->whereHas('task', function ($query) {
                     $query->where('is_required', true);
                 })
-                ->whereNotIn('status', ['completed', 'approved'])
+                ->whereNotIn('status', SubmissionTaskStatus::finishedValues())
                 ->count();
 
             if ($incompleteRequiredTasks > 0) {

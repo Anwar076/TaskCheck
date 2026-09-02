@@ -2,14 +2,15 @@
 
 namespace App\Services\Mobile;
 
+use App\Enums\SubmissionTaskStatus;
 use App\Helpers\ProofFileHelper;
-use App\Models\Organisation\Location;
-use App\Models\Communication\Notification;
-use App\Models\Submissions\Submission;
-use App\Models\Submissions\SubmissionTask;
 use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskList;
+use App\Models\Communication\Notification;
+use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
 use Illuminate\Support\Collection;
 
 class MobileSerializer
@@ -68,7 +69,7 @@ class MobileSerializer
             $submission->loadMissing('submissionTasks');
             $total = max($submission->submissionTasks->count(), 1);
             $completed = $submission->submissionTasks
-                ->whereIn('status', ['completed', 'approved'])
+                ->whereIn('status', SubmissionTaskStatus::finishedValues())
                 ->count();
             $progress = $totalTasks > 0
                 ? (int) round(($completed / $total) * 100)
@@ -144,7 +145,7 @@ class MobileSerializer
 
         $totalTasks = $submission->submissionTasks->count();
         $completedTasks = $submission->submissionTasks
-            ->whereIn('status', ['completed', 'approved'])
+            ->whereIn('status', SubmissionTaskStatus::finishedValues())
             ->count();
         $progress = $totalTasks > 0
             ? (int) round(($completedTasks / $totalTasks) * 100)
@@ -232,7 +233,7 @@ class MobileSerializer
 
         $totalTasks = $submission->submissionTasks->count();
         $completedTasks = $submission->submissionTasks
-            ->whereIn('status', ['completed', 'approved'])
+            ->whereIn('status', SubmissionTaskStatus::finishedValues())
             ->count();
 
         return [

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Checklist\TaskList;
 use App\Models\Submissions\Submission;
@@ -34,7 +36,7 @@ class ReportExportController extends Controller
             || filled($task->rejection_reason)
             || filled($task->redo_reason));
         $fullyCompleted = $submissions->filter(fn ($submission) => $submission->submissionTasks->isNotEmpty()
-            && $submission->submissionTasks->every(fn ($task) => in_array($task->status, ['completed', 'approved'], true)));
+            && $submission->submissionTasks->every(fn ($task) => in_array($task->status, SubmissionTaskStatus::finishedValues(), true)));
         $openDeviations = $deviations->filter(fn ($task) => $task->verified_at === null);
         $closedDeviations = $deviations->filter(fn ($task) => $task->verified_at !== null);
         $finished = $fullyCompleted->count();
@@ -47,7 +49,7 @@ class ReportExportController extends Controller
             return [
                 'task' => $task,
                 'executions' => $executions->count(),
-                'completed' => $executions->whereIn('status', ['completed', 'approved'])->count(),
+                'completed' => $executions->whereIn('status', SubmissionTaskStatus::finishedValues())->count(),
                 'exceptions' => $executions->filter(fn ($row) => in_array($row->status, ['pending', 'rejected', 'redo_requested'], true))->count(),
                 'latest_result' => $executions->sortByDesc('completed_at')->first()?->proof_text,
                 'acceptance' => $task->acceptance_criteria ?: $this->acceptanceLabel($rules),
@@ -59,7 +61,7 @@ class ReportExportController extends Controller
             'in_progress' => $submissions->where('status', 'in_progress')->count(),
             'rejected' => $submissions->where('status', 'rejected')->count(),
             'completion_rate' => $submissions->isNotEmpty() ? round(($finished / $submissions->count()) * 100, 1) : 0,
-            'tasks_completed' => $taskRows->whereIn('status', ['completed', 'approved'])->count(),
+            'tasks_completed' => $taskRows->whereIn('status', SubmissionTaskStatus::finishedValues())->count(),
             'tasks_total' => $taskRows->count(),
             'deviations' => $deviations->count(),
             'open_deviations' => $openDeviations->count(),
@@ -81,7 +83,7 @@ class ReportExportController extends Controller
             ->map(fn ($items, $date) => [
                 'date' => Carbon::parse($date),
                 'total' => $items->count(),
-                'finished' => $items->whereIn('status', ['completed', 'reviewed'])->count(),
+                'finished' => $items->whereIn('status', SubmissionStatus::finishedValues())->count(),
             ])->values();
 
         return Pdf::loadView('admin.reports.list-pdf', compact(
@@ -148,6 +150,7 @@ class ReportExportController extends Controller
             for ($month = $start->copy()->startOfMonth(); $month->lte($effectiveEnd); $month->addMonth()) {
                 $dates->push($month->copy());
             }
+
             return $dates;
         }
 
