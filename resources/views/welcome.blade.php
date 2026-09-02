@@ -212,11 +212,6 @@
 
             {{-- LINKS: tekst --}}
             <div class="min-w-0">
-                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-left leading-snug">Werkcontrole voor operationele teams</span>
-                </div>
-
                 <h1 class="text-4xl font-extrabold leading-[1.02] tracking-[-.045em] text-slate-900 sm:text-6xl xl:text-[4.3rem]">
                     Nooit meer discussie over
                     <span class="relative mt-1 inline-block whitespace-nowrap">
