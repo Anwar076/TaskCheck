@@ -7,13 +7,11 @@ use App\Models\Organisation\Company;
 use App\Services\Billing\InvoiceService;
 use App\Services\Billing\MollieService;
 use App\Services\Billing\RecurringSubscriptionService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
@@ -928,153 +926,4 @@ class SubscriptionController extends Controller
     /**
      * Send a billing receipt/invoice e-mail once per paid payment.
      */
-    private function sendPaymentReceiptEmail(Company $company, array $payment): void
-    {
-        $paymentId = trim((string) ($payment['id'] ?? ''));
-        if ($paymentId === '') {
-            return;
-        }
-
-        $sentCacheKey = "billing_receipt_sent:{$paymentId}";
-        $invoice = $this->createOrUpdateInvoiceFromPayment($company, $payment);
-
-        if (Cache::has($sentCacheKey)) {
-            return;
-        }
-
-        $recipient = trim((string) ($company->email ?: optional($company->users()->orderBy('id')->first())->email));
-        if ($recipient === '') {
-            return;
-        }
-
-        $amount = (string) data_get($payment, 'amount.value', '0.00');
-        $currency = (string) data_get($payment, 'amount.currency', 'EUR');
-        $description = (string) data_get($payment, 'description', 'TaskCheck betaling');
-        $paidAtRaw = (string) data_get($payment, 'paidAt', '');
-        $paidAt = $paidAtRaw !== ''
-            ? Carbon::parse($paidAtRaw)->timezone('Europe/Amsterdam')->format('d-m-Y H:i')
-            : now()->timezone('Europe/Amsterdam')->format('d-m-Y H:i');
-
-        $body = "We hebben je betaling ontvangen.\n\n"
-            ."Factuurnummer: {$invoice->invoice_number}\n"
-            ."Betaling ID: {$paymentId}\n"
-            ."Omschrijving: {$description}\n"
-            ."Bedrag: {$currency} {$amount}\n"
-            ."Betaald op: {$paidAt}\n\n"
-            .'De factuur zit als PDF bij deze e-mail.';
-
-        try {
-            $pdfBytes = $this->renderInvoicePdf($invoice);
-            $invoicesUrl = route('subscription.show');
-
-            Mail::to($recipient)->send(
-                (new \App\Mail\TaskCheckNotificationMail(
-                    subjectLine: 'Factuur - '.$description,
-                    greetingName: $company->name,
-                    title: 'Factuur en betaling bevestigd',
-                    bodyText: $body,
-                    ctaLabel: 'Bekijk al je facturen',
-                    ctaUrl: $invoicesUrl,
-                    metaText: 'Dit is je officiële factuurmail van TaskCheck.',
-                    showMarketing: false
-                ))->attachData($pdfBytes, $invoice->invoice_number.'.pdf', [
-                    'mime' => 'application/pdf',
-                ])
-            );
-
-            Cache::put($sentCacheKey, true, now()->addDays(7));
-        } catch (\Throwable $e) {
-            report($e);
-        }
-    }
-
-    private function createOrUpdateInvoiceFromPayment(Company $company, array $payment): Invoice
-    {
-        $paymentId = trim((string) ($payment['id'] ?? ''));
-        $paidAtRaw = (string) data_get($payment, 'paidAt', '');
-        $paidAt = $paidAtRaw !== '' ? Carbon::parse($paidAtRaw) : now();
-        $datePart = $paidAt->timezone('Europe/Amsterdam')->format('Ym');
-        $grossAmount = (float) data_get($payment, 'amount.value', 0);
-        $vatRate = 21.00;
-        $amountExVat = round($grossAmount / (1 + ($vatRate / 100)), 2);
-        $vatAmount = round($grossAmount - $amountExVat, 2);
-
-        $existing = Invoice::where('payment_id', $paymentId)->first();
-        $invoiceNumber = $existing?->invoice_number ?: $this->generateInvoiceNumber($datePart, $company);
-
-        return Invoice::updateOrCreate(
-            ['payment_id' => $paymentId],
-            [
-                'company_id' => $company->id,
-                'invoice_number' => $invoiceNumber,
-                'description' => (string) data_get($payment, 'description', 'TaskCheck abonnement'),
-                'currency' => (string) data_get($payment, 'amount.currency', 'EUR'),
-                'amount' => $grossAmount,
-                'vat_rate' => $vatRate,
-                'amount_ex_vat' => $amountExVat,
-                'vat_amount' => $vatAmount,
-                'paid_at' => $paidAt,
-                'meta' => [
-                    'payment_id' => $paymentId,
-                    'method' => (string) data_get($payment, 'method', ''),
-                    'status' => (string) data_get($payment, 'status', ''),
-                ],
-            ]
-        );
-    }
-
-    private function generateInvoiceNumber(string $datePart, Company $company): string
-    {
-        $companyCode = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', (string) ($company->name ?? 'COMP')), 0, 4));
-        if ($companyCode === '') {
-            $companyCode = 'COMP';
-        }
-
-        $prefix = 'TC-'.$datePart.'-'.$companyCode.'-';
-        $latest = Invoice::where('invoice_number', 'like', $prefix.'%')
-            ->orderByDesc('id')
-            ->value('invoice_number');
-
-        $next = 1;
-        if (is_string($latest) && str_contains($latest, $prefix)) {
-            $lastSerial = (int) substr($latest, -4);
-            $next = $lastSerial + 1;
-        }
-
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Extend the subscription end date by 1 month + grace period on a successful recurring charge.
-     * This ensures the access window always reflects the latest paid period.
-     */
-    private function extendSubscriptionEndDate(Company $company): void
-    {
-        if (! $company->hasActiveSubscription()) {
-            return;
-        }
-
-        $base = $company->subscription_ends_at && $company->subscription_ends_at->isFuture()
-            ? $company->subscription_ends_at->copy()
-            : now();
-
-        $months = match ($company->billing_period ?: (Company::plan($company->subscription_plan)['billing_period'] ?? 'monthly')) {
-            'quarterly' => 3,
-            'semiannual' => 6,
-            'annual' => 12,
-            default => 1,
-        };
-
-        $company->update(['subscription_ends_at' => $base->addMonths($months)->addDays(3)]);
-    }
-
-    private function renderInvoicePdf(Invoice $invoice): string
-    {
-        $invoice->loadMissing('company');
-
-        return Pdf::loadView('pdf.invoice', [
-            'invoice' => $invoice,
-            'company' => $invoice->company,
-        ])->output();
-    }
 }
