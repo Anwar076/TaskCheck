@@ -104,12 +104,43 @@
             animation:hero-v-shimmer 2.2s ease-in-out infinite;
         }
         @keyframes hero-v-shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+        .hero-color-reveal {
+            color:#0f172a;
+            background:linear-gradient(90deg,#2563eb 0%,#7c3aed 48%,#38bdf8 100%);
+            background-size:0% 100%; background-repeat:no-repeat;
+            -webkit-background-clip:text;background-clip:text;
+            animation:hero-color-reveal 1.15s .3s cubic-bezier(.22,.75,.2,1) forwards;
+        }
+        @keyframes hero-color-reveal { to { background-size:100% 100%; color:transparent; } }
+        .hero-drawn-line { stroke-dasharray:310; stroke-dashoffset:310; animation:hero-draw-line .9s 1.15s cubic-bezier(.25,.8,.25,1) forwards; }
+        @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
+        .task-stream { position:relative; height:440px; perspective:1000px; }
+        .task-stream::before { content:"";position:absolute;inset:4% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 82%,transparent); }
+        .task-stream-item { position:absolute;left:4%;right:4%;top:50%;display:flex;align-items:center;gap:14px;padding:18px 20px;border:1px solid rgba(226,232,240,.9);border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 12px 35px -22px rgba(15,23,42,.35);opacity:0;animation:task-stream-cycle 12s ease-in-out infinite;backdrop-filter:blur(14px); }
+        .task-stream-item:nth-child(1){animation-delay:0s}.task-stream-item:nth-child(2){animation-delay:3s}.task-stream-item:nth-child(3){animation-delay:6s}.task-stream-item:nth-child(4){animation-delay:9s}
+        @keyframes task-stream-cycle { 0%{opacity:0;transform:translateY(150px) scale(.86)} 10%,18%{opacity:.42;transform:translateY(78px) scale(.92)} 27%,42%{opacity:1;transform:translateY(-50%) scale(1.08);box-shadow:0 28px 60px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.65)} 51%,60%{opacity:.38;transform:translateY(-178px) scale(.9)} 70%,100%{opacity:0;transform:translateY(-260px) scale(.82)} }
+        .task-stream-check { display:grid;height:42px;width:42px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:13px;color:transparent;background:white;animation:task-check-cycle 12s ease-in-out infinite; }
+        .task-stream-item:nth-child(1) .task-stream-check{animation-delay:0s}.task-stream-item:nth-child(2) .task-stream-check{animation-delay:3s}.task-stream-item:nth-child(3) .task-stream-check{animation-delay:6s}.task-stream-item:nth-child(4) .task-stream-check{animation-delay:9s}
+        @keyframes task-check-cycle { 0%,24%{color:transparent;background:#fff;border-color:#cbd5e1;transform:scale(.9)} 31%,45%{color:#fff;background:linear-gradient(135deg,#2563eb,#6366f1);border-color:transparent;transform:scale(1)} 55%,100%{color:#fff;background:#10b981;border-color:transparent;transform:scale(.94)} }
+        @media (max-width:639px) {
+            .task-stream{height:350px}
+            .task-stream::before{inset:7% 5%}
+            .task-stream-item{left:0;right:0;gap:11px;padding:14px 15px;border-radius:15px}
+            .task-stream-check{height:38px;width:38px;border-radius:11px}
+            @keyframes task-stream-cycle { 0%{opacity:0;transform:translateY(120px) scale(.88)} 10%,18%{opacity:.38;transform:translateY(62px) scale(.94)} 27%,42%{opacity:1;transform:translateY(-50%) scale(1.02);box-shadow:0 24px 48px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.65)} 51%,60%{opacity:.32;transform:translateY(-142px) scale(.92)} 70%,100%{opacity:0;transform:translateY(-210px) scale(.84)} }
+        }
         @media (prefers-reduced-motion:reduce) {
             .hero-v-blob,.hero-v-blob--2,.hero-v-orbit,.hero-v-card,.hero-v-row,.hero-v-pop,.hero-v-fill,.hero-v-shimmer{ animation:none !important; }
             .hero-v-row,.hero-v-pop{ opacity:1; transform:none; }
             .hero-v-fill{ width:var(--v-bar,100%) !important; }
             .hero-v-card{ transform:none; }
             .hero-v-orbit::after{ display:none; }
+            .hero-color-reveal{animation:none;color:transparent;background-size:100% 100%}
+            .hero-drawn-line{animation:none;stroke-dashoffset:0}
+            .task-stream{height:auto;padding-top:3rem}
+            .task-stream::before{display:none}
+            .task-stream-item{position:relative;inset:auto;margin-bottom:.75rem;opacity:1;transform:none;animation:none}
+            .task-stream-check{color:white;background:#2563eb;border-color:transparent;animation:none}
         }
         /* Mobiel: vloeiende horizontale scroll voor brede tabellen */
         .welcome-table-scroll {
@@ -132,7 +163,7 @@
 {{-- ══════════════════════════════════════
      HERO — 2 kolommen: tekst links, screenshot rechts
 ══════════════════════════════════════ --}}
-<section class="relative overflow-hidden bg-white pt-24 pb-12 sm:pt-28 sm:pb-16">
+<section class="relative min-h-[760px] overflow-hidden bg-white pb-16 pt-28 sm:pt-32 lg:flex lg:min-h-[860px] lg:items-center lg:py-28">
     {{-- Achtergrond --}}
     <div class="absolute inset-0 pointer-events-none">
         <svg class="absolute inset-0 w-full h-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -144,7 +175,7 @@
     </div>
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
 
             {{-- LINKS: tekst --}}
             <div class="min-w-0">
@@ -153,12 +184,12 @@
                     <span class="text-left leading-snug">Werkcontrole voor operationele teams</span>
                 </div>
 
-                <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.4rem]">
+                <h1 class="text-4xl font-extrabold leading-[1.02] tracking-[-.045em] text-slate-900 sm:text-6xl xl:text-[4.8rem]">
                     Nooit meer discussie over
                     <span class="relative mt-1 inline-block">
-                        <span style="background:linear-gradient(135deg,#2563eb,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">uitgevoerd werk</span>
+                        <span class="hero-color-reveal">uitgevoerd werk</span>
                         <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" preserveAspectRatio="none" style="height:5px" aria-hidden="true">
-                            <path d="M1 6 C75 1, 225 1, 299 6" stroke="url(#ul)" stroke-width="3" stroke-linecap="round" fill="none"/>
+                            <path class="hero-drawn-line" d="M1 6 C75 1, 225 1, 299 6" stroke="url(#ul)" stroke-width="3" stroke-linecap="round" fill="none"/>
                             <defs><linearGradient id="ul" x1="0" y1="0" x2="300" y2="0"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>
                         </svg>
                     </span>
@@ -195,56 +226,32 @@
                 </div>
             </div>
 
-            {{-- RECHTS: geanimeerde illustratie (CSS/SVG, geen afbeelding) --}}
-            <div class="relative flex min-h-[260px] items-center justify-center sm:min-h-[300px] lg:min-h-[400px]" aria-hidden="true">
-                <div class="hero-v-blob right-0 top-[6%] h-[min(180px,45vw)] w-[min(220px,55vw)] max-md:opacity-90 sm:-right-[10%] sm:top-[8%] sm:h-[200px] sm:w-[240px] bg-gradient-to-br from-blue-400/50 via-indigo-400/35 to-violet-400/25"></div>
-                <div class="hero-v-blob hero-v-blob--2 -left-[12%] bottom-[2%] h-[min(160px,40vw)] w-[min(180px,45vw)] sm:-left-[20%] sm:bottom-[5%] sm:h-[180px] sm:w-[200px] bg-gradient-to-tr from-emerald-400/35 via-cyan-400/20 to-transparent"></div>
-                <div class="hero-v-orbit hidden sm:block"></div>
+            {{-- RECHTS: taken schuiven door en worden op het actieve moment afgevinkt --}}
+            <div class="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]" aria-label="Live voorbeeld van taken die worden uitgevoerd">
+                <div class="pointer-events-none absolute inset-x-[8%] inset-y-[3%] rounded-[3rem] bg-gradient-to-b from-blue-50/80 via-indigo-50/45 to-transparent blur-2xl"></div>
+                <div class="absolute right-4 top-3 z-10 flex items-center gap-2 text-xs font-semibold text-slate-500 sm:right-8">
+                    <span class="relative flex h-2 w-2"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span><span class="relative h-2 w-2 rounded-full bg-emerald-500"></span></span>
+                    Live · Rotterdam Centrum
+                </div>
 
-                <div class="hero-v-card w-full max-w-[min(100%,380px)] rounded-2xl border border-slate-200/90 bg-white/75 p-4 shadow-[0_24px_48px_-20px_rgba(37,99,235,.15),0_0_0_1px_rgba(255,255,255,.8)_inset] backdrop-blur-xl sm:p-6">
-                    <div class="mb-5 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                        <div class="flex items-center gap-2">
-                            <span class="relative flex h-2 w-2">
-                                <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping"></span>
-                                <span class="relative h-2 w-2 rounded-full bg-emerald-500"></span>
+                <div class="task-stream mx-auto max-w-[520px]">
+                    @foreach ([
+                        ['Opening keuken', 'Werkbanken gereinigd', 'Zojuist'],
+                        ['HACCP-controle', 'Koelcel gemeten: 4,2 °C', 'Bewijs toegevoegd'],
+                        ['Sluitingsronde', 'Afvalbakken geleegd', 'Rotterdam Centrum'],
+                        ['Leveringscontrole', 'THT en verpakking gecontroleerd', 'Goedgekeurd'],
+                    ] as [$title, $description, $meta])
+                        <div class="task-stream-item">
+                            <span class="task-stream-check" aria-hidden="true">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             </span>
-                            <span class="text-xs font-semibold tracking-wide text-slate-500">Live voortgang</span>
-                        </div>
-                        <span class="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">2 locaties</span>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="hero-v-row flex gap-3">
-                            <span class="hero-v-pop flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md shadow-blue-500/25">
-                                <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
+                                <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
                             </span>
-                            <div class="min-w-0 flex-1 pt-0.5">
-                                <p class="text-sm font-semibold text-slate-800">Opening checklist</p>
-                                <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                    <div class="hero-v-fill"></div>
-                                </div>
-                            </div>
+                            <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
                         </div>
-                        <div class="hero-v-row flex gap-3">
-                            <span class="hero-v-pop flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm">
-                                <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </span>
-                            <div class="min-w-0 flex-1 pt-0.5">
-                                <p class="text-sm font-semibold text-slate-800">HACCP-ronde</p>
-                                <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                    <div class="hero-v-fill"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="hero-v-row flex gap-3">
-                            <span class="hero-v-pop flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80">
-                                <span class="h-2 w-2 rounded-full bg-slate-300"></span>
-                            </span>
-                            <div class="min-w-0 flex-1 pt-0.5">
-                                <p class="text-sm font-semibold text-slate-600">Sluiting locatie</p>
-                                <div class="hero-v-shimmer mt-2 h-1.5 rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
 

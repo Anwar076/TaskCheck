@@ -20,14 +20,12 @@
             </a>
 
             <!-- Desktop Navigation -->
-            <div class="hidden items-center gap-3 md:flex">
-                <div class="flex items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1 shadow-inner shadow-slate-200/30">
+            <div class="hidden items-center gap-8 md:flex">
+                <div class="flex items-center gap-7">
                     @foreach ([['Home', route('welcome'), request()->is('/')], ['Prijzen', route('pricing'), request()->is('pricing')], ['Blog', route('blog'), request()->is('blog*')], ['Contact', route('contact'), request()->is('contact')]] as [$label, $href, $active])
-                        <a href="{{ $href }}" class="group relative inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 {{ $active ? 'bg-white text-blue-700 shadow-[0_4px_14px_rgba(37,99,235,0.10)] ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950 hover:shadow-sm' }}">
-                            @if ($active)
-                                <span class="h-1.5 w-1.5 rounded-full bg-blue-600 shadow-[0_0_0_3px_rgba(37,99,235,0.10)]"></span>
-                            @endif
+                        <a href="{{ $href }}" class="group relative py-2 text-sm font-semibold transition-colors duration-200 {{ $active ? 'text-blue-700' : 'text-slate-600 hover:text-slate-950' }}">
                             {{ $label }}
+                            <span class="absolute inset-x-0 -bottom-0.5 h-px origin-left bg-blue-600 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
                         </a>
                     @endforeach
                 </div>
@@ -35,7 +33,7 @@
                     @auth
                         <a href="{{ auth()->user()->homeDashboardUrl() }}" class="group inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-blue-600/20">Dashboard <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
                     @else
-                        <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-600/25">Inloggen <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
+                        <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">Inloggen <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
                     @endauth
                 @endif
             </div>
