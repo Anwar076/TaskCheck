@@ -260,7 +260,7 @@
             </div>
 
             {{-- RECHTS: taken schuiven door en worden op het actieve moment afgevinkt --}}
-            <div class="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]" aria-label="Live voorbeeld van taken die worden uitgevoerd">
+            <div class="relative min-h-[360px] sm:min-h-[420px] lg:flex lg:min-h-[520px] lg:items-center" aria-label="Live voorbeeld van taken die worden uitgevoerd">
                 <div class="pointer-events-none absolute inset-x-[8%] inset-y-[3%] rounded-[3rem] bg-gradient-to-b from-blue-50/80 via-indigo-50/45 to-transparent blur-2xl"></div>
                 @php
                     $heroTasks = [
@@ -273,7 +273,7 @@
                         ['Frituurcontrole', 'Oliekwaliteit gecontroleerd', 'Binnen norm'],
                     ];
                 @endphp
-                <div class="task-stream mx-auto max-w-[520px]" data-task-stream>
+                <div class="task-stream mx-auto w-full max-w-[520px]" data-task-stream>
                     <div class="task-stream-track" data-task-stream-track>
                         @foreach (range(1, 3) as $copy)
                             <div class="task-stream-list" data-task-stream-list>
