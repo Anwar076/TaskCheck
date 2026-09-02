@@ -130,16 +130,16 @@
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
         .task-stream { position:relative; height:400px; perspective:1000px; overflow:hidden; mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
         .task-stream::before { content:"";position:absolute;inset:7% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent); }
-        .task-stream-item { position:absolute;left:4%;right:4%;top:52%;display:flex;align-items:center;gap:11px;min-height:58px;padding:9px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;animation:task-stream-cycle 18s linear infinite;backdrop-filter:blur(14px); }
+        .task-stream-item { position:absolute;left:4%;right:4%;top:52%;display:flex;height:58px;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;animation:task-stream-cycle 18s linear infinite;backdrop-filter:blur(14px); }
         .task-stream-item:nth-child(1){animation-delay:-1.5s}.task-stream-item:nth-child(2){animation-delay:-4.5s}.task-stream-item:nth-child(3){animation-delay:-7.5s}.task-stream-item:nth-child(4){animation-delay:-10.5s}.task-stream-item:nth-child(5){animation-delay:-13.5s}.task-stream-item:nth-child(6){animation-delay:-16.5s}
         @keyframes task-stream-cycle {
-            0%,5%{opacity:0;transform:translateY(186px) scale(.88)}
-            8.33%,13.5%{opacity:.46;transform:translateY(124px) scale(.91)}
-            16.67%,30%{opacity:.7;transform:translateY(62px) scale(.95)}
-            33.33%,46.5%{opacity:1;transform:translateY(-50%) scale(1.045);box-shadow:0 24px 52px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.72)}
-            50%,63.5%{opacity:.7;transform:translateY(-120px) scale(.95)}
-            66.67%,80%{opacity:.46;transform:translateY(-182px) scale(.91)}
-            83.33%,100%{opacity:0;transform:translateY(-244px) scale(.88)}
+            0%,5%{opacity:0;transform:translateY(calc(-50% + 186px)) scaleX(.96)}
+            8.33%,13.5%{opacity:.46;transform:translateY(calc(-50% + 124px)) scaleX(.97)}
+            16.67%,30%{opacity:.7;transform:translateY(calc(-50% + 62px)) scaleX(.985)}
+            33.33%,46.5%{opacity:1;transform:translateY(-50%) scaleX(1.045);box-shadow:0 24px 52px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.72)}
+            50%,63.5%{opacity:.7;transform:translateY(calc(-50% - 62px)) scaleX(.985)}
+            66.67%,80%{opacity:.46;transform:translateY(calc(-50% - 124px)) scaleX(.97)}
+            83.33%,100%{opacity:0;transform:translateY(calc(-50% - 186px)) scaleX(.96)}
         }
         .task-stream-check { display:grid;height:34px;width:34px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:10px;color:transparent;background:white;animation:task-check-cycle 18s linear infinite; }
         .task-stream-item:nth-child(1) .task-stream-check{animation-delay:-1.5s}.task-stream-item:nth-child(2) .task-stream-check{animation-delay:-4.5s}.task-stream-item:nth-child(3) .task-stream-check{animation-delay:-7.5s}.task-stream-item:nth-child(4) .task-stream-check{animation-delay:-10.5s}.task-stream-item:nth-child(5) .task-stream-check{animation-delay:-13.5s}.task-stream-item:nth-child(6) .task-stream-check{animation-delay:-16.5s}
@@ -147,16 +147,16 @@
         @media (max-width:639px) {
             .task-stream{height:320px}
             .task-stream::before{inset:7% 5%}
-            .task-stream-item{left:0;right:0;top:53%;gap:9px;min-height:52px;padding:7px 11px;border-radius:13px}
+            .task-stream-item{left:0;right:0;top:53%;height:48px;gap:9px;padding:6px 11px;border-radius:13px}
             .task-stream-check{height:31px;width:31px;border-radius:9px}
             @keyframes task-stream-cycle {
-                0%,5%{opacity:0;transform:translateY(156px) scale(.9)}
-                8.33%,13.5%{opacity:.42;transform:translateY(104px) scale(.92)}
-                16.67%,30%{opacity:.68;transform:translateY(52px) scale(.96)}
-                33.33%,46.5%{opacity:1;transform:translateY(-50%) scale(1.01);box-shadow:0 20px 42px -26px rgba(37,99,235,.4);border-color:rgba(96,165,250,.7)}
-                50%,63.5%{opacity:.68;transform:translateY(-104px) scale(.96)}
-                66.67%,80%{opacity:.42;transform:translateY(-156px) scale(.92)}
-                83.33%,100%{opacity:0;transform:translateY(-208px) scale(.9)}
+                0%,5%{opacity:0;transform:translateY(calc(-50% + 156px)) scaleX(.97)}
+                8.33%,13.5%{opacity:.42;transform:translateY(calc(-50% + 104px)) scaleX(.98)}
+                16.67%,30%{opacity:.68;transform:translateY(calc(-50% + 52px)) scaleX(.99)}
+                33.33%,46.5%{opacity:1;transform:translateY(-50%) scaleX(1.01);box-shadow:0 20px 42px -26px rgba(37,99,235,.4);border-color:rgba(96,165,250,.7)}
+                50%,63.5%{opacity:.68;transform:translateY(calc(-50% - 52px)) scaleX(.99)}
+                66.67%,80%{opacity:.42;transform:translateY(calc(-50% - 104px)) scaleX(.98)}
+                83.33%,100%{opacity:0;transform:translateY(calc(-50% - 156px)) scaleX(.97)}
             }
         }
         @media (prefers-reduced-motion:reduce) {
@@ -279,7 +279,7 @@
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             </span>
                             <span class="min-w-0 flex-1">
-                                <span class="block text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
+                                <span class="block truncate text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
                                 <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
                             </span>
                             <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
