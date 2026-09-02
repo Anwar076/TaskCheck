@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Billing\Invoice;
 use App\Models\Organisation\Company;
+use App\Services\Billing\InvoiceService;
 use App\Services\Billing\MollieService;
+use App\Services\Billing\RecurringSubscriptionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +24,9 @@ class SubscriptionController extends Controller
     private const VAT_RATE = 21.00;
 
     public function __construct(
-        private readonly MollieService $mollieService
+        private readonly MollieService $mollieService,
+        private readonly InvoiceService $invoiceService,
+        private readonly RecurringSubscriptionService $recurringSubscriptionService,
     ) {}
 
     /**
@@ -357,7 +361,7 @@ class SubscriptionController extends Controller
                     return redirect()->route('subscription.show')
                         ->with('warning', 'Betaling ontvangen voor een geannuleerd abonnement. Het abonnement blijft opgezegd.');
                 }
-                $this->sendPaymentReceiptEmail($company, $payment);
+                $this->invoiceService->sendReceipt($company, $payment);
                 $this->finalizePaidPayment($company, $payment);
 
                 return redirect()->route('subscription.show')
@@ -398,10 +402,10 @@ class SubscriptionController extends Controller
                 if ($this->shouldIgnorePaidActivation($company, $paymentId)) {
                     return response('ok', 200);
                 }
-                $this->sendPaymentReceiptEmail($company, $payment);
+                $this->invoiceService->sendReceipt($company, $payment);
                 if (! $this->isActivationPayment($company, $paymentId, $payment)) {
                     // Recurring charge for already-active subscription: extend the access window.
-                    $this->extendSubscriptionEndDate($company);
+                    $this->recurringSubscriptionService->extendPaidAccess($company);
 
                     return response('ok', 200);
                 }
@@ -434,7 +438,7 @@ class SubscriptionController extends Controller
             abort(403);
         }
 
-        $pdf = $this->renderInvoicePdf($invoice);
+        $pdf = $this->invoiceService->renderPdf($invoice);
 
         return response($pdf)
             ->header('Content-Type', 'application/pdf')
