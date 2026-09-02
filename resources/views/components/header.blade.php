@@ -20,18 +20,19 @@
             </a>
 
             <!-- Desktop Navigation -->
-            <div class="hidden items-center gap-8 md:flex">
-                <div class="flex items-center gap-7">
+            <div class="hidden items-center gap-7 md:flex">
+                <div class="relative flex items-center gap-8 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-slate-200/80">
                     @foreach ([['Home', route('welcome'), request()->is('/')], ['Prijzen', route('pricing'), request()->is('pricing')], ['Blog', route('blog'), request()->is('blog*')], ['Contact', route('contact'), request()->is('contact')]] as [$label, $href, $active])
-                        <a href="{{ $href }}" class="group relative py-2 text-sm font-semibold transition-colors duration-200 {{ $active ? 'text-blue-700' : 'text-slate-600 hover:text-slate-950' }}">
-                            {{ $label }}
-                            <span class="absolute inset-x-0 -bottom-0.5 h-px origin-left bg-blue-600 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
+                        <a href="{{ $href }}" class="group relative z-10 py-3 text-sm font-semibold tracking-[-.01em] transition-all duration-300 hover:-translate-y-px {{ $active ? 'text-blue-700' : 'text-slate-600 hover:text-slate-950' }}">
+                            <span @if($active) style="background:linear-gradient(90deg,#1d4ed8,#4f46e5);-webkit-background-clip:text;background-clip:text;color:transparent" @endif>{{ $label }}</span>
+                            <span class="absolute inset-x-0 bottom-0 h-0.5 origin-left rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
                         </a>
                     @endforeach
                 </div>
                 @if (Route::has('login'))
+                    <span class="h-7 w-px bg-slate-200" aria-hidden="true"></span>
                     @auth
-                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="group inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-blue-600/20">Dashboard <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="group inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-blue-700">Dashboard <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
                     @else
                         <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700">Inloggen <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
                     @endauth

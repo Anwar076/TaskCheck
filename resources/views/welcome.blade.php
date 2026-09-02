@@ -124,20 +124,20 @@
         @keyframes hero-color-reveal { to { clip-path:inset(0 0 0 0); } }
         .hero-drawn-line { stroke-dasharray:310; stroke-dashoffset:310; animation:hero-draw-line .9s 1.15s cubic-bezier(.25,.8,.25,1) forwards; }
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
-        .task-stream { position:relative; height:440px; perspective:1000px; }
+        .task-stream { position:relative; height:440px; perspective:1000px; overflow:hidden; mask-image:linear-gradient(to bottom,transparent 0,#000 8%,#000 92%,transparent 100%); }
         .task-stream::before { content:"";position:absolute;inset:4% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 82%,transparent); }
-        .task-stream-item { position:absolute;left:4%;right:4%;top:50%;display:flex;align-items:center;gap:14px;padding:18px 20px;border:1px solid rgba(226,232,240,.9);border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 12px 35px -22px rgba(15,23,42,.35);opacity:0;animation:task-stream-cycle 12s ease-in-out infinite;backdrop-filter:blur(14px); }
-        .task-stream-item:nth-child(1){animation-delay:0s}.task-stream-item:nth-child(2){animation-delay:3s}.task-stream-item:nth-child(3){animation-delay:6s}.task-stream-item:nth-child(4){animation-delay:9s}
-        @keyframes task-stream-cycle { 0%{opacity:0;transform:translateY(150px) scale(.86)} 10%,18%{opacity:.42;transform:translateY(78px) scale(.92)} 27%,42%{opacity:1;transform:translateY(-50%) scale(1.08);box-shadow:0 28px 60px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.65)} 51%,60%{opacity:.38;transform:translateY(-178px) scale(.9)} 70%,100%{opacity:0;transform:translateY(-260px) scale(.82)} }
-        .task-stream-check { display:grid;height:42px;width:42px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:13px;color:transparent;background:white;animation:task-check-cycle 12s ease-in-out infinite; }
-        .task-stream-item:nth-child(1) .task-stream-check{animation-delay:0s}.task-stream-item:nth-child(2) .task-stream-check{animation-delay:3s}.task-stream-item:nth-child(3) .task-stream-check{animation-delay:6s}.task-stream-item:nth-child(4) .task-stream-check{animation-delay:9s}
-        @keyframes task-check-cycle { 0%,24%{color:transparent;background:#fff;border-color:#cbd5e1;transform:scale(.9)} 31%,45%{color:#fff;background:linear-gradient(135deg,#2563eb,#6366f1);border-color:transparent;transform:scale(1)} 55%,100%{color:#fff;background:#10b981;border-color:transparent;transform:scale(.94)} }
+        .task-stream-item { position:absolute;left:4%;right:4%;top:50%;display:flex;align-items:center;gap:12px;padding:14px 18px;border:1px solid rgba(226,232,240,.9);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 10px 30px -23px rgba(15,23,42,.32);opacity:0;animation:task-stream-cycle 18s linear infinite;backdrop-filter:blur(14px); }
+        .task-stream-item:nth-child(1){animation-delay:-1.5s}.task-stream-item:nth-child(2){animation-delay:-4.5s}.task-stream-item:nth-child(3){animation-delay:-7.5s}.task-stream-item:nth-child(4){animation-delay:-10.5s}.task-stream-item:nth-child(5){animation-delay:-13.5s}.task-stream-item:nth-child(6){animation-delay:-16.5s}
+        @keyframes task-stream-cycle { 0%{opacity:0;transform:translateY(240px) scale(.82)} 8.33%{opacity:.34;transform:translateY(190px) scale(.87)} 25%{opacity:.62;transform:translateY(95px) scale(.93)} 41.67%{opacity:1;transform:translateY(-50%) scale(1.06);box-shadow:0 26px 58px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.72)} 58.33%{opacity:.62;transform:translateY(-145px) scale(.93)} 75%{opacity:.34;transform:translateY(-240px) scale(.87)} 91.67%,100%{opacity:0;transform:translateY(-290px) scale(.82)} }
+        .task-stream-check { display:grid;height:38px;width:38px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:11px;color:transparent;background:white;animation:task-check-cycle 18s linear infinite; }
+        .task-stream-item:nth-child(1) .task-stream-check{animation-delay:-1.5s}.task-stream-item:nth-child(2) .task-stream-check{animation-delay:-4.5s}.task-stream-item:nth-child(3) .task-stream-check{animation-delay:-7.5s}.task-stream-item:nth-child(4) .task-stream-check{animation-delay:-10.5s}.task-stream-item:nth-child(5) .task-stream-check{animation-delay:-13.5s}.task-stream-item:nth-child(6) .task-stream-check{animation-delay:-16.5s}
+        @keyframes task-check-cycle { 0%,37%{color:transparent;background:#fff;border-color:#cbd5e1;transform:scale(.92)} 41%,48%{color:#fff;background:linear-gradient(135deg,#2563eb,#6366f1);border-color:transparent;transform:scale(1)} 52%,100%{color:#fff;background:#10b981;border-color:transparent;transform:scale(.94)} }
         @media (max-width:639px) {
             .task-stream{height:350px}
             .task-stream::before{inset:7% 5%}
             .task-stream-item{left:0;right:0;gap:11px;padding:14px 15px;border-radius:15px}
-            .task-stream-check{height:38px;width:38px;border-radius:11px}
-            @keyframes task-stream-cycle { 0%{opacity:0;transform:translateY(120px) scale(.88)} 10%,18%{opacity:.38;transform:translateY(62px) scale(.94)} 27%,42%{opacity:1;transform:translateY(-50%) scale(1.02);box-shadow:0 24px 48px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.65)} 51%,60%{opacity:.32;transform:translateY(-142px) scale(.92)} 70%,100%{opacity:0;transform:translateY(-210px) scale(.84)} }
+            .task-stream-check{height:36px;width:36px;border-radius:10px}
+            @keyframes task-stream-cycle { 0%{opacity:0;transform:translateY(190px) scale(.84)} 8.33%{opacity:.3;transform:translateY(145px) scale(.88)} 25%{opacity:.6;transform:translateY(72px) scale(.94)} 41.67%{opacity:1;transform:translateY(-50%) scale(1.01);box-shadow:0 22px 44px -26px rgba(37,99,235,.4);border-color:rgba(96,165,250,.7)} 58.33%{opacity:.6;transform:translateY(-112px) scale(.94)} 75%{opacity:.3;transform:translateY(-184px) scale(.88)} 91.67%,100%{opacity:0;transform:translateY(-225px) scale(.84)} }
         }
         @media (prefers-reduced-motion:reduce) {
             .hero-v-blob,.hero-v-blob--2,.hero-v-orbit,.hero-v-card,.hero-v-row,.hero-v-pop,.hero-v-fill,.hero-v-shimmer{ animation:none !important; }
@@ -250,6 +250,8 @@
                         ['HACCP-controle', 'Koelcel gemeten: 4,2 °C', 'Bewijs toegevoegd'],
                         ['Sluitingsronde', 'Afvalbakken geleegd', 'Rotterdam Centrum'],
                         ['Leveringscontrole', 'THT en verpakking gecontroleerd', 'Goedgekeurd'],
+                        ['Temperatuurregistratie', 'Vriezer gemeten: -18,6 °C', 'Binnen norm'],
+                        ['Schoonmaakcontrole', 'Foto van afzuigkap toegevoegd', 'Bewijs opgeslagen'],
                     ] as [$title, $description, $meta])
                         <div class="task-stream-item">
                             <span class="task-stream-check" aria-hidden="true">
