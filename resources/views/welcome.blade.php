@@ -128,9 +128,9 @@
         @keyframes hero-base-hide { to { color:transparent; } }
         .hero-drawn-line { stroke-dasharray:310; stroke-dashoffset:310; animation:hero-draw-line .9s 1.15s cubic-bezier(.25,.8,.25,1) forwards; }
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
-        .task-stream { --task-step:82px;--task-start:27px;position:relative;height:440px;perspective:1000px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
+        .task-stream { --task-step:76px;--task-start:39px;position:relative;height:440px;perspective:1000px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
         .task-stream::before { content:"";position:absolute;inset:7% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent); }
-        .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:24px;will-change:transform;transition:transform .68s cubic-bezier(.22,.75,.2,1); }
+        .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:18px;will-change:transform;transition:transform .68s cubic-bezier(.22,.75,.2,1); }
         .task-stream-track.is-resetting { transition:none; }
         .task-stream-item { display:flex;height:58px;flex:none;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;transform:scaleX(.96);transition:opacity .5s ease,transform .5s ease,border-color .5s ease,box-shadow .5s ease;backdrop-filter:blur(14px); }
         .task-stream-item.is-edge { opacity:.46;transform:scaleX(.97); }
@@ -140,9 +140,9 @@
         .task-stream-item.is-done .task-stream-check { color:#fff;background:#10b981;border-color:transparent;transform:scale(.94); }
         .task-stream-item.is-active.is-checked .task-stream-check { color:#fff;background:linear-gradient(135deg,#2563eb,#4f46e5);border-color:transparent;transform:scale(1); }
         @media (max-width:639px) {
-            .task-stream{--task-step:64px;--task-start:18px;height:340px}
+            .task-stream{--task-step:66px;--task-start:14px;height:340px}
             .task-stream::before{inset:7% 5%}
-            .task-stream-track{left:0;right:0;gap:16px}
+            .task-stream-track{left:0;right:0;gap:18px}
             .task-stream-item{height:48px;gap:9px;padding:6px 11px;border-radius:13px}
             .task-stream-check{height:31px;width:31px;border-radius:9px}
             .task-stream-item.is-active{transform:scaleX(1.01)}
