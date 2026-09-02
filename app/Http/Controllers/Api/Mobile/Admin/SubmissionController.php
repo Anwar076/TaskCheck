@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile\Admin;
 
+use App\Enums\SubmissionStatus;
 use App\Http\Controllers\Api\Mobile\MobileController;
 use App\Models\Submissions\Submission;
 use App\Services\Mobile\MobileSerializer;
@@ -23,20 +24,20 @@ class SubmissionController extends MobileController
         if ($request->filled('tab')) {
             $tab = $request->get('tab');
             if ($tab === 'to_review') {
-                $query->where('status', 'completed');
+                $query->where('status', SubmissionStatus::COMPLETED->value);
             } elseif ($tab === 'done') {
-                $query->whereIn('status', ['reviewed', 'rejected']);
+                $query->whereIn('status', SubmissionStatus::closedValues());
             } elseif ($tab === 'in_progress') {
-                $query->where('status', 'in_progress');
+                $query->where('status', SubmissionStatus::IN_PROGRESS->value);
             }
         }
 
         $base = Submission::where('company_id', $companyId)
             ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true));
         $meta = [
-            'to_review_count' => (clone $base)->where('status', 'completed')->count(),
-            'done_count' => (clone $base)->whereIn('status', ['reviewed', 'rejected'])->count(),
-            'in_progress_count' => (clone $base)->where('status', 'in_progress')->count(),
+            'to_review_count' => (clone $base)->where('status', SubmissionStatus::COMPLETED->value)->count(),
+            'done_count' => (clone $base)->whereIn('status', SubmissionStatus::closedValues())->count(),
+            'in_progress_count' => (clone $base)->where('status', SubmissionStatus::IN_PROGRESS->value)->count(),
         ];
 
         $items = $query->get()
@@ -79,7 +80,7 @@ class SubmissionController extends MobileController
         ];
 
         $metadata = is_array($submission->metadata) ? $submission->metadata : [];
-        if (!empty($validated['admin_notes'])) {
+        if (! empty($validated['admin_notes'])) {
             $metadata['admin_notes'] = $validated['admin_notes'];
         }
 

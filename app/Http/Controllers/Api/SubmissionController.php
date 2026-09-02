@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionTaskStatus;
 use App\Helpers\MetricValidationHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Submissions\Submission;
@@ -47,9 +49,9 @@ class SubmissionController extends Controller
             if ($request->filled('tab')) {
                 $tab = $request->get('tab');
                 if ($tab === 'to_review') {
-                    $query->where('status', 'completed');
+                    $query->where('status', SubmissionStatus::COMPLETED->value);
                 } elseif ($tab === 'done') {
-                    $query->whereIn('status', ['reviewed', 'rejected']);
+                    $query->whereIn('status', SubmissionStatus::closedValues());
                 }
             } elseif ($request->filled('status')) {
                 $query->where('status', $request->get('status'));
@@ -73,19 +75,19 @@ class SubmissionController extends Controller
                 ->where('company_id', $companyId)
                 ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true));
             $meta = [
-                'to_review_count' => (clone $baseQuery)->where('status', 'completed')->count(),
-                'done_count' => (clone $baseQuery)->whereIn('status', ['reviewed', 'rejected'])->count(),
-                'in_progress_count' => (clone $baseQuery)->where('status', 'in_progress')->count(),
-                'completed_count' => (clone $baseQuery)->where('status', 'completed')->count(),
-                'reviewed_count' => (clone $baseQuery)->where('status', 'reviewed')->count(),
-                'rejected_count' => (clone $baseQuery)->where('status', 'rejected')->count(),
+                'to_review_count' => (clone $baseQuery)->where('status', SubmissionStatus::COMPLETED->value)->count(),
+                'done_count' => (clone $baseQuery)->whereIn('status', SubmissionStatus::closedValues())->count(),
+                'in_progress_count' => (clone $baseQuery)->where('status', SubmissionStatus::IN_PROGRESS->value)->count(),
+                'completed_count' => (clone $baseQuery)->where('status', SubmissionStatus::COMPLETED->value)->count(),
+                'reviewed_count' => (clone $baseQuery)->where('status', SubmissionStatus::REVIEWED->value)->count(),
+                'rejected_count' => (clone $baseQuery)->where('status', SubmissionStatus::REJECTED->value)->count(),
             ];
 
             // Add calculated fields
             $submissions->getCollection()->transform(function ($submission) {
                 $totalTasks = $submission->submissionTasks->count();
                 $completedTasks = $submission->submissionTasks
-                    ->whereIn('status', ['completed', 'approved'])
+                    ->whereIn('status', SubmissionTaskStatus::finishedValues())
                     ->count();
                 $hasMetricDeviation = $submission->submissionTasks->contains(function ($submissionTask) {
                     $rules = is_array($submissionTask->task->validation_rules)
@@ -95,7 +97,7 @@ class SubmissionController extends Controller
                     return MetricValidationHelper::isDeviation($rules, $submissionTask->proof_text);
                 });
 
-                $submission->progress_percentage = $submission->status === 'reviewed'
+                $submission->progress_percentage = $submission->status === SubmissionStatus::REVIEWED->value
                     ? 100
                     : ($totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0);
 
@@ -159,11 +161,11 @@ class SubmissionController extends Controller
                         fn ($query) => $query->where('company_id', auth()->user()->company_id)
                     ),
                 ],
-                'status' => 'sometimes|in:in_progress,completed,reviewed,rejected',
+                'status' => ['sometimes', Rule::in(SubmissionStatus::values())],
                 'notes' => 'nullable|string',
             ]);
 
-            $validated['status'] = $validated['status'] ?? 'in_progress';
+            $validated['status'] = $validated['status'] ?? SubmissionStatus::IN_PROGRESS->value;
             $validated['started_at'] = now();
 
             $validated['company_id'] = auth()->user()->company_id;
@@ -238,13 +240,13 @@ class SubmissionController extends Controller
             }
 
             $validated = $request->validate([
-                'status' => 'sometimes|in:in_progress,completed,reviewed,rejected',
+                'status' => ['sometimes', Rule::in(SubmissionStatus::values())],
                 'notes' => 'nullable|string',
                 'admin_notes' => 'nullable|string',
                 'reviewed_by' => 'nullable|exists:users,id',
             ]);
 
-            if (isset($validated['status']) && $validated['status'] === 'reviewed') {
+            if (isset($validated['status']) && $validated['status'] === SubmissionStatus::REVIEWED->value) {
                 $validated['reviewed_at'] = now();
                 $validated['reviewed_by'] = $validated['reviewed_by'] ?? auth()->id();
             }
@@ -303,7 +305,7 @@ class SubmissionController extends Controller
             $submission->loadMissing('taskList');
             // Check if all required tasks are completed
             $pendingRequiredTasks = $submission->submissionTasks()
-                ->whereNotIn('status', ['completed', 'approved'])
+                ->whereNotIn('status', SubmissionTaskStatus::finishedValues())
                 ->whereHas('task', function ($query) {
                     $query->where('is_required', true);
                 })
