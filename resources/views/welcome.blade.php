@@ -128,38 +128,24 @@
         @keyframes hero-base-hide { to { color:transparent; } }
         .hero-drawn-line { stroke-dasharray:310; stroke-dashoffset:310; animation:hero-draw-line .9s 1.15s cubic-bezier(.25,.8,.25,1) forwards; }
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
-        .task-stream { position:relative; height:440px; perspective:1000px; overflow:hidden; mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
+        .task-stream { --task-step:82px;--task-start:27px;position:relative;height:440px;perspective:1000px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
         .task-stream::before { content:"";position:absolute;inset:7% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent); }
-        .task-stream-item { position:absolute;left:4%;right:4%;top:52%;display:flex;height:58px;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;animation:task-stream-cycle 18s linear infinite;backdrop-filter:blur(14px); }
-        .task-stream-item:nth-child(1){animation-delay:-1.286s}.task-stream-item:nth-child(2){animation-delay:-3.857s}.task-stream-item:nth-child(3){animation-delay:-6.429s}.task-stream-item:nth-child(4){animation-delay:-9s}.task-stream-item:nth-child(5){animation-delay:-11.571s}.task-stream-item:nth-child(6){animation-delay:-14.143s}.task-stream-item:nth-child(7){animation-delay:-16.714s}
-        @keyframes task-stream-cycle {
-            0%,10%{opacity:0;transform:translateY(calc(-50% + 246px)) scaleX(.96)}
-            14.286%,24%{opacity:.46;transform:translateY(calc(-50% + 164px)) scaleX(.97)}
-            28.571%,38%{opacity:.7;transform:translateY(calc(-50% + 82px)) scaleX(.985)}
-            42.857%,52%{opacity:1;transform:translateY(-50%) scaleX(1.045);box-shadow:0 24px 52px -28px rgba(37,99,235,.42);border-color:rgba(96,165,250,.72)}
-            57.143%,67%{opacity:.7;transform:translateY(calc(-50% - 82px)) scaleX(.985)}
-            71.429%,81%{opacity:.46;transform:translateY(calc(-50% - 164px)) scaleX(.97)}
-            85.714%,95%{opacity:0;transform:translateY(calc(-50% - 246px)) scaleX(.96)}
-            100%{opacity:0;transform:translateY(calc(-50% + 246px)) scaleX(.96)}
-        }
-        .task-stream-check { display:grid;height:34px;width:34px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:10px;color:transparent;background:white;animation:task-check-cycle 18s linear infinite; }
-        .task-stream-item:nth-child(1) .task-stream-check{animation-delay:-1.286s}.task-stream-item:nth-child(2) .task-stream-check{animation-delay:-3.857s}.task-stream-item:nth-child(3) .task-stream-check{animation-delay:-6.429s}.task-stream-item:nth-child(4) .task-stream-check{animation-delay:-9s}.task-stream-item:nth-child(5) .task-stream-check{animation-delay:-11.571s}.task-stream-item:nth-child(6) .task-stream-check{animation-delay:-14.143s}.task-stream-item:nth-child(7) .task-stream-check{animation-delay:-16.714s}
-        @keyframes task-check-cycle { 0%,41%{color:transparent;background:#fff;border-color:#cbd5e1;transform:scale(.92)} 44%,53%{color:#fff;background:linear-gradient(135deg,#2563eb,#6366f1);border-color:transparent;transform:scale(1)} 57%,82%{color:#fff;background:#10b981;border-color:transparent;transform:scale(.94)} 85%,100%{color:transparent;background:#fff;border-color:#cbd5e1;transform:scale(.92)} }
+        .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:24px;will-change:transform;transition:transform .68s cubic-bezier(.22,.75,.2,1); }
+        .task-stream-track.is-resetting { transition:none; }
+        .task-stream-item { display:flex;height:58px;flex:none;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;transform:scaleX(.96);transition:opacity .5s ease,transform .5s ease,border-color .5s ease,box-shadow .5s ease;backdrop-filter:blur(14px); }
+        .task-stream-item.is-edge { opacity:.46;transform:scaleX(.97); }
+        .task-stream-item.is-adjacent { opacity:.7;transform:scaleX(.985); }
+        .task-stream-item.is-active { opacity:1;transform:scaleX(1.045);border-color:rgba(96,165,250,.72);box-shadow:0 24px 52px -28px rgba(37,99,235,.42); }
+        .task-stream-check { display:grid;height:34px;width:34px;flex:none;place-items:center;border:1.5px solid #cbd5e1;border-radius:10px;color:transparent;background:white;transform:scale(.92);transition:all .35s ease; }
+        .task-stream-item.is-done .task-stream-check { color:#fff;background:#10b981;border-color:transparent;transform:scale(.94); }
+        .task-stream-item.is-active.is-checked .task-stream-check { color:#fff;background:linear-gradient(135deg,#2563eb,#4f46e5);border-color:transparent;transform:scale(1); }
         @media (max-width:639px) {
-            .task-stream{height:340px}
+            .task-stream{--task-step:64px;--task-start:18px;height:340px}
             .task-stream::before{inset:7% 5%}
-            .task-stream-item{left:0;right:0;top:53%;height:48px;gap:9px;padding:6px 11px;border-radius:13px}
+            .task-stream-track{left:0;right:0;gap:16px}
+            .task-stream-item{height:48px;gap:9px;padding:6px 11px;border-radius:13px}
             .task-stream-check{height:31px;width:31px;border-radius:9px}
-            @keyframes task-stream-cycle {
-                0%,10%{opacity:0;transform:translateY(calc(-50% + 192px)) scaleX(.97)}
-                14.286%,24%{opacity:.42;transform:translateY(calc(-50% + 128px)) scaleX(.98)}
-                28.571%,38%{opacity:.68;transform:translateY(calc(-50% + 64px)) scaleX(.99)}
-                42.857%,52%{opacity:1;transform:translateY(-50%) scaleX(1.01);box-shadow:0 20px 42px -26px rgba(37,99,235,.4);border-color:rgba(96,165,250,.7)}
-                57.143%,67%{opacity:.68;transform:translateY(calc(-50% - 64px)) scaleX(.99)}
-                71.429%,81%{opacity:.42;transform:translateY(calc(-50% - 128px)) scaleX(.98)}
-                85.714%,95%{opacity:0;transform:translateY(calc(-50% - 192px)) scaleX(.97)}
-                100%{opacity:0;transform:translateY(calc(-50% + 192px)) scaleX(.97)}
-            }
+            .task-stream-item.is-active{transform:scaleX(1.01)}
         }
         @media (prefers-reduced-motion:reduce) {
             .hero-v-blob,.hero-v-blob--2,.hero-v-orbit,.hero-v-card,.hero-v-row,.hero-v-pop,.hero-v-fill,.hero-v-shimmer{ animation:none !important; }
@@ -170,10 +156,11 @@
             .hero-color-reveal{animation:none;color:transparent}
             .hero-color-reveal::after{animation:none;clip-path:inset(0)}
             .hero-drawn-line{animation:none;stroke-dashoffset:0}
-            .task-stream{height:auto;padding-top:3rem}
+            .task-stream{height:auto;padding-top:3rem;mask-image:none}
             .task-stream::before{display:none}
-            .task-stream-item{position:relative;inset:auto;margin-bottom:.75rem;opacity:1;transform:none;animation:none}
-            .task-stream-check{color:white;background:#2563eb;border-color:transparent;animation:none}
+            .task-stream-track{position:relative;inset:auto;transform:none!important;transition:none}
+            .task-stream-item{display:none;opacity:1;transform:none;transition:none}
+            .task-stream-item.is-edge,.task-stream-item.is-adjacent,.task-stream-item.is-active{display:flex}
         }
         /* Mobiel: vloeiende horizontale scroll voor brede tabellen */
         .welcome-table-scroll {
@@ -267,8 +254,8 @@
                     Live · Rotterdam Centrum
                 </div>
 
-                <div class="task-stream mx-auto max-w-[520px]">
-                    @foreach ([
+                @php
+                    $heroTasks = [
                         ['Opening keuken', 'Werkbanken gereinigd', 'Zojuist'],
                         ['HACCP-controle', 'Koelcel gemeten: 4,2 °C', 'Bewijs toegevoegd'],
                         ['Sluitingsronde', 'Afvalbakken geleegd', 'Rotterdam Centrum'],
@@ -276,18 +263,25 @@
                         ['Temperatuurregistratie', 'Vriezer gemeten: -18,6 °C', 'Binnen norm'],
                         ['Schoonmaakcontrole', 'Foto van afzuigkap toegevoegd', 'Bewijs opgeslagen'],
                         ['Frituurcontrole', 'Oliekwaliteit gecontroleerd', 'Binnen norm'],
-                    ] as [$title, $description, $meta])
-                        <div class="task-stream-item">
-                            <span class="task-stream-check" aria-hidden="true">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                            </span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
-                                <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
-                            </span>
-                            <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
-                        </div>
-                    @endforeach
+                    ];
+                @endphp
+                <div class="task-stream mx-auto max-w-[520px]" data-task-stream>
+                    <div class="task-stream-track" data-task-stream-track>
+                        @foreach (range(1, 3) as $copy)
+                            @foreach ($heroTasks as [$title, $description, $meta])
+                                <div class="task-stream-item" data-task-stream-item>
+                                    <span class="task-stream-check" aria-hidden="true">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                    </span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
+                                        <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
+                                    </span>
+                                    <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
+                                </div>
+                            @endforeach
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -995,6 +989,68 @@
         }, { threshold: 0.3 });
         mo.observe(el);
     });
+})();
+
+// Doorlopende werklijst: stop, vink af en schuif daarna de volledige lijst één taak door.
+(function initHeroTaskStream() {
+    var stream = document.querySelector('[data-task-stream]');
+    if (!stream) return;
+
+    var track = stream.querySelector('[data-task-stream-track]');
+    var items = Array.from(stream.querySelectorAll('[data-task-stream-item]'));
+    var baseCount = items.length / 3;
+    var activeIndex = baseCount + 2;
+    var checked = false;
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function metrics() {
+        var styles = getComputedStyle(stream);
+        return {
+            step: parseFloat(styles.getPropertyValue('--task-step')),
+            start: parseFloat(styles.getPropertyValue('--task-start')),
+        };
+    }
+
+    function render() {
+        var layout = metrics();
+        track.style.transform = 'translateY(' + (layout.start - (activeIndex - 2) * layout.step) + 'px)';
+
+        items.forEach(function (item, index) {
+            var distance = index - activeIndex;
+            item.classList.toggle('is-active', distance === 0);
+            item.classList.toggle('is-adjacent', Math.abs(distance) === 1);
+            item.classList.toggle('is-edge', Math.abs(distance) === 2);
+            item.classList.toggle('is-done', distance < 0);
+            item.classList.toggle('is-checked', distance === 0 && checked);
+        });
+    }
+
+    function advance() {
+        checked = false;
+        activeIndex += 1;
+        render();
+
+        window.setTimeout(function () {
+            if (activeIndex >= (baseCount * 2) + 2) {
+                track.classList.add('is-resetting');
+                activeIndex -= baseCount;
+                render();
+                track.getBoundingClientRect();
+                track.classList.remove('is-resetting');
+            }
+        }, 720);
+    }
+
+    render();
+    window.addEventListener('resize', render, { passive: true });
+
+    if (!reducedMotion) {
+        window.setInterval(function () {
+            checked = true;
+            render();
+            window.setTimeout(advance, 1150);
+        }, 3000);
+    }
 })();
 
 function toggleFaq(trigger) {
