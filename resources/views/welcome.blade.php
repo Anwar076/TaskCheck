@@ -108,6 +108,7 @@
             position:relative;
             display:inline-block;
             color:#0f172a;
+            animation:hero-base-hide 0s 1.45s forwards;
         }
         .hero-color-reveal::after {
             content:attr(data-text);
@@ -122,6 +123,7 @@
             animation:hero-color-reveal 1.15s .3s cubic-bezier(.22,.75,.2,1) forwards;
         }
         @keyframes hero-color-reveal { to { clip-path:inset(0 0 0 0); } }
+        @keyframes hero-base-hide { to { color:transparent; } }
         .hero-drawn-line { stroke-dasharray:310; stroke-dashoffset:310; animation:hero-draw-line .9s 1.15s cubic-bezier(.25,.8,.25,1) forwards; }
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
         .task-stream { position:relative; height:400px; perspective:1000px; overflow:hidden; mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
@@ -161,6 +163,7 @@
             .hero-v-fill{ width:var(--v-bar,100%) !important; }
             .hero-v-card{ transform:none; }
             .hero-v-orbit::after{ display:none; }
+            .hero-color-reveal{animation:none;color:transparent}
             .hero-color-reveal::after{animation:none;clip-path:inset(0)}
             .hero-drawn-line{animation:none;stroke-dashoffset:0}
             .task-stream{height:auto;padding-top:3rem}
@@ -210,9 +213,9 @@
                     <span class="text-left leading-snug">Werkcontrole voor operationele teams</span>
                 </div>
 
-                <h1 class="text-4xl font-extrabold leading-[1.02] tracking-[-.045em] text-slate-900 sm:text-6xl xl:text-[4.8rem]">
+                <h1 class="text-4xl font-extrabold leading-[1.02] tracking-[-.045em] text-slate-900 sm:text-6xl xl:text-[4.3rem]">
                     Nooit meer discussie over
-                    <span class="relative mt-1 inline-block">
+                    <span class="relative mt-1 inline-block whitespace-nowrap">
                         <span class="hero-color-reveal" data-text="uitgevoerd werk">uitgevoerd werk</span>
                         <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" preserveAspectRatio="none" style="height:5px" aria-hidden="true">
                             <path class="hero-drawn-line" d="M1 6 C75 1, 225 1, 299 6" stroke="url(#ul)" stroke-width="3" stroke-linecap="round" fill="none"/>
