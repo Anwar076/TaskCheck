@@ -250,11 +250,6 @@
             {{-- RECHTS: taken schuiven door en worden op het actieve moment afgevinkt --}}
             <div class="relative min-h-[360px] sm:min-h-[420px] lg:min-h-[520px]" aria-label="Live voorbeeld van taken die worden uitgevoerd">
                 <div class="pointer-events-none absolute inset-x-[8%] inset-y-[3%] rounded-[3rem] bg-gradient-to-b from-blue-50/80 via-indigo-50/45 to-transparent blur-2xl"></div>
-                <div class="absolute right-4 top-3 z-10 flex items-center gap-2 text-xs font-semibold text-slate-500 sm:right-8">
-                    <span class="relative flex h-2 w-2"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span><span class="relative h-2 w-2 rounded-full bg-emerald-500"></span></span>
-                    Live · Rotterdam Centrum
-                </div>
-
                 @php
                     $heroTasks = [
                         ['Opening keuken', 'Werkbanken gereinigd', 'Zojuist'],
