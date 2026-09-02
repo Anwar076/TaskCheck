@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTaskListRequest;
+use App\Http\Requests\Admin\UpdateTaskListRequest;
 use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskList;
 use App\Models\Checklist\TaskTemplate;
@@ -14,7 +16,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class TaskListController extends Controller
@@ -104,63 +105,13 @@ class TaskListController extends Controller
         return view('admin.lists.create', compact('templates', 'locations'));
     }
 
-    public function store(Request $request)
+    public function store(StoreTaskListRequest $request)
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'compliance_framework' => 'nullable|string|max:255',
-            'policy_reference' => 'nullable|string|max:255',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'schedule_type' => 'required|in:once,daily,weekly,monthly',
-            'due_date' => 'nullable|date',
-            'parent_list_id' => 'nullable|exists:task_lists,id',
-            'requires_signature' => 'boolean',
-            'requires_review' => 'boolean',
-            'auto_accept_without_review' => 'boolean',
-            'is_template' => 'boolean',
-            'is_active' => 'boolean',
-            'schedule_config' => 'nullable|array',
-            'template_id' => 'nullable|exists:task_templates,id',
-            'selected_days' => 'nullable|array',
-            'selected_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
-            'location_id' => [
-                'nullable',
-                Rule::exists('locations', 'id')->where(function ($query) {
-                    $query->where('company_id', auth()->user()->company_id);
-                }),
-            ],
-            'default_time_slot_enabled' => 'boolean',
-            'default_time_slot_start' => 'nullable|date_format:H:i|required_if:default_time_slot_enabled,1',
-            'default_time_slot_end' => 'nullable|date_format:H:i',
-            'time_slots' => 'nullable|array',
-            'time_slots.*.weekday' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
-            'time_slots.*.start_time' => 'required|date_format:H:i',
-            'time_slots.*.end_time' => 'nullable|date_format:H:i',
-        ]);
-
-        if ($request->boolean('default_time_slot_enabled')
-            && $request->filled('default_time_slot_start')
-            && $request->filled('default_time_slot_end')
-            && $request->input('default_time_slot_end') <= $request->input('default_time_slot_start')) {
-            return back()
-                ->withErrors(['default_time_slot_end' => 'Eindtijd moet na starttijd liggen.'])
-                ->withInput();
-        }
+        $validatedData = $request->validated();
 
         $rawTimeSlots = collect($request->input('time_slots', []))
             ->filter(fn ($slot) => is_array($slot) && ! empty($slot['weekday']) && ! empty($slot['start_time']))
             ->values();
-
-        foreach ($rawTimeSlots as $index => $slot) {
-            $end = $slot['end_time'] ?? null;
-            if ($end && $end <= $slot['start_time']) {
-                return back()
-                    ->withErrors(["time_slots.{$index}.end_time" => 'Eindtijd moet na starttijd liggen.'])
-                    ->withInput();
-            }
-        }
 
         // Set creator and company
         $validatedData['created_by'] = auth()->id();
@@ -173,11 +124,6 @@ class TaskListController extends Controller
 
         if ($validatedData['schedule_type'] === 'weekly') {
             $selectedDays = $validatedData['selected_days'] ?? [];
-            if ($selectedDays === []) {
-                return back()
-                    ->withErrors(['selected_days' => 'Selecteer minimaal één dag voor een wekelijkse lijst.'])
-                    ->withInput();
-            }
         }
 
         if ($validatedData['schedule_type'] !== 'once') {
@@ -212,6 +158,7 @@ class TaskListController extends Controller
         unset($validatedData['selected_days']);
         unset($validatedData['default_time_slot_enabled'], $validatedData['default_time_slot_start'], $validatedData['default_time_slot_end']);
         unset($validatedData['time_slots']);
+        unset($validatedData['ai_tasks']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
 
         // Decouple from template: store which template was used for reference, but clear
@@ -350,50 +297,14 @@ class TaskListController extends Controller
         return view('admin.lists.edit', compact('list', 'locations', 'timeSlots', 'defaultTimeSlot'));
     }
 
-    public function update(Request $request, TaskList $list)
+    public function update(UpdateTaskListRequest $request, TaskList $list)
     {
         // Ensure list belongs to same company
         if ($list->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access to task list.');
         }
 
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
-            'compliance_framework' => 'nullable|string|max:255',
-            'policy_reference' => 'nullable|string|max:255',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'schedule_type' => 'required|in:once,daily,weekly,monthly',
-            'due_date' => 'nullable|date',
-            'parent_list_id' => 'nullable|exists:task_lists,id',
-            'requires_signature' => 'boolean',
-            'requires_review' => 'boolean',
-            'auto_accept_without_review' => 'boolean',
-            'is_template' => 'boolean',
-            'is_active' => 'boolean',
-            'schedule_config' => 'nullable|array',
-            'selected_days' => 'nullable|array',
-            'selected_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
-            'location_id' => [
-                'nullable',
-                Rule::exists('locations', 'id')->where(function ($query) {
-                    $query->where('company_id', auth()->user()->company_id);
-                }),
-            ],
-            'default_time_slot_enabled' => 'boolean',
-            'default_time_slot_start' => 'nullable|date_format:H:i|required_if:default_time_slot_enabled,1',
-            'default_time_slot_end' => 'nullable|date_format:H:i',
-        ]);
-
-        if ($request->boolean('default_time_slot_enabled')
-            && $request->filled('default_time_slot_start')
-            && $request->filled('default_time_slot_end')
-            && $request->input('default_time_slot_end') <= $request->input('default_time_slot_start')) {
-            return back()
-                ->withErrors(['default_time_slot_end' => 'Eindtijd moet na starttijd liggen.'])
-                ->withInput();
-        }
+        $validatedData = $request->validated();
 
         // Handle improved schedule configuration
         $existingConfig = is_array($list->schedule_config) ? $list->schedule_config : [];
@@ -401,11 +312,6 @@ class TaskListController extends Controller
 
         if ($validatedData['schedule_type'] === 'weekly') {
             $selectedDays = $validatedData['selected_days'] ?? [];
-            if ($selectedDays === []) {
-                return back()
-                    ->withErrors(['selected_days' => 'Selecteer minimaal één dag voor een wekelijkse lijst.'])
-                    ->withInput();
-            }
         }
 
         if ($validatedData['schedule_type'] !== 'once') {
@@ -446,6 +352,7 @@ class TaskListController extends Controller
         // Remove selected_days from the main data as it's now in schedule_config
         unset($validatedData['selected_days']);
         unset($validatedData['default_time_slot_enabled'], $validatedData['default_time_slot_start'], $validatedData['default_time_slot_end']);
+        unset($validatedData['time_slots'], $validatedData['template_id'], $validatedData['ai_tasks']);
         $validatedData['location_id'] = $validatedData['location_id'] ?? null;
         $validatedData['requires_review'] = $request->boolean('requires_review');
         $validatedData['auto_accept_without_review'] = ! $validatedData['requires_review']
