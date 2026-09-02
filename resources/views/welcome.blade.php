@@ -133,6 +133,7 @@
         .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:18px;will-change:transform;transition:transform .82s cubic-bezier(.45,0,.25,1); }
         .task-stream-track.is-resetting { transition:none; }
         .task-stream-track.is-resetting .task-stream-item { transition:none; }
+        .task-stream-list { display:flex;flex-direction:column;gap:18px; }
         .task-stream-item { display:flex;height:58px;flex:none;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;transform:scaleX(.96);transition:opacity .5s ease,transform .5s ease,border-color .5s ease,box-shadow .5s ease;backdrop-filter:blur(14px); }
         .task-stream-item.is-edge { opacity:.46;transform:scaleX(.97); }
         .task-stream-item.is-adjacent { opacity:.7;transform:scaleX(.985); }
@@ -144,6 +145,7 @@
             .task-stream{--task-step:66px;--task-start:14px;height:340px}
             .task-stream::before{inset:7% 5%}
             .task-stream-track{left:0;right:0;gap:18px}
+            .task-stream-list{gap:18px}
             .task-stream-item{height:48px;gap:9px;padding:6px 11px;border-radius:13px}
             .task-stream-check{height:31px;width:31px;border-radius:9px}
             .task-stream-item.is-active{transform:scaleX(1.01)}
@@ -264,18 +266,20 @@
                 <div class="task-stream mx-auto max-w-[520px]" data-task-stream>
                     <div class="task-stream-track" data-task-stream-track>
                         @foreach (range(1, 3) as $copy)
-                            @foreach ($heroTasks as [$title, $description, $meta])
-                                <div class="task-stream-item" data-task-stream-item>
-                                    <span class="task-stream-check" aria-hidden="true">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                    </span>
-                                    <span class="min-w-0 flex-1">
-                                        <span class="block truncate text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
-                                        <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
-                                    </span>
-                                    <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
-                                </div>
-                            @endforeach
+                            <div class="task-stream-list" data-task-stream-list>
+                                @foreach ($heroTasks as [$title, $description, $meta])
+                                    <div class="task-stream-item" data-task-stream-item>
+                                        <span class="task-stream-check" aria-hidden="true">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                        </span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate text-sm font-bold text-slate-900 sm:text-base">{{ $title }}</span>
+                                            <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ $description }}</span>
+                                        </span>
+                                        <span class="hidden shrink-0 text-[11px] font-semibold text-slate-400 sm:block">{{ $meta }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
                         @endforeach
                     </div>
                 </div>
@@ -994,8 +998,9 @@
 
     var track = stream.querySelector('[data-task-stream-track]');
     var items = Array.from(stream.querySelectorAll('[data-task-stream-item]'));
-    var baseCount = items.length / 3;
-    var activeIndex = baseCount + 2;
+    var firstList = stream.querySelector('[data-task-stream-list]');
+    var baseCount = firstList.querySelectorAll('[data-task-stream-item]').length;
+    var activeIndex = 2;
     var checked = false;
     var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1026,12 +1031,14 @@
         activeIndex += 1;
         render();
 
-        if (activeIndex >= (baseCount * 2) + 2) {
+        if (activeIndex >= baseCount + 2) {
             track.addEventListener('transitionend', function resetContinuousTrack(event) {
                 if (event.target !== track || event.propertyName !== 'transform') return;
                 track.removeEventListener('transitionend', resetContinuousTrack);
                 track.classList.add('is-resetting');
+                track.appendChild(track.firstElementChild);
                 activeIndex -= baseCount;
+                items = Array.from(stream.querySelectorAll('[data-task-stream-item]'));
                 render();
                 track.getBoundingClientRect();
                 requestAnimationFrame(function () {
