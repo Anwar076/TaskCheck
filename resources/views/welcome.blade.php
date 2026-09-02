@@ -132,6 +132,7 @@
         .task-stream::before { content:"";position:absolute;inset:7% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent); }
         .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:18px;will-change:transform;transition:transform .82s cubic-bezier(.45,0,.25,1); }
         .task-stream-track.is-resetting { transition:none; }
+        .task-stream-track.is-resetting .task-stream-item { transition:none; }
         .task-stream-item { display:flex;height:58px;flex:none;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;transform:scaleX(.96);transition:opacity .5s ease,transform .5s ease,border-color .5s ease,box-shadow .5s ease;backdrop-filter:blur(14px); }
         .task-stream-item.is-edge { opacity:.46;transform:scaleX(.97); }
         .task-stream-item.is-adjacent { opacity:.7;transform:scaleX(.985); }
@@ -1030,15 +1031,21 @@
         activeIndex += 1;
         render();
 
-        window.setTimeout(function () {
-            if (activeIndex >= (baseCount * 2) + 2) {
+        if (activeIndex >= (baseCount * 2) + 2) {
+            track.addEventListener('transitionend', function resetContinuousTrack(event) {
+                if (event.target !== track || event.propertyName !== 'transform') return;
+                track.removeEventListener('transitionend', resetContinuousTrack);
                 track.classList.add('is-resetting');
                 activeIndex -= baseCount;
                 render();
                 track.getBoundingClientRect();
-                track.classList.remove('is-resetting');
-            }
-        }, 880);
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        track.classList.remove('is-resetting');
+                    });
+                });
+            });
+        }
     }
 
     render();
