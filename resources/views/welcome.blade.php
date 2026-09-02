@@ -130,7 +130,7 @@
         @keyframes hero-draw-line { to { stroke-dashoffset:0; } }
         .task-stream { --task-step:76px;--task-start:39px;position:relative;height:440px;perspective:1000px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%); }
         .task-stream::before { content:"";position:absolute;inset:7% 12%;background:repeating-linear-gradient(90deg,rgba(99,102,241,.12) 0 2px,transparent 2px 9px);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent); }
-        .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:18px;will-change:transform;transition:transform .68s cubic-bezier(.22,.75,.2,1); }
+        .task-stream-track { position:absolute;left:4%;right:4%;top:0;display:flex;flex-direction:column;gap:18px;will-change:transform;transition:transform .82s cubic-bezier(.45,0,.25,1); }
         .task-stream-track.is-resetting { transition:none; }
         .task-stream-item { display:flex;height:58px;flex:none;align-items:center;gap:11px;padding:8px 15px;border:1px solid rgba(226,232,240,.9);border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 9px 25px -22px rgba(15,23,42,.3);opacity:0;transform:scaleX(.96);transition:opacity .5s ease,transform .5s ease,border-color .5s ease,box-shadow .5s ease;backdrop-filter:blur(14px); }
         .task-stream-item.is-edge { opacity:.46;transform:scaleX(.97); }
@@ -1038,7 +1038,7 @@
                 track.getBoundingClientRect();
                 track.classList.remove('is-resetting');
             }
-        }, 720);
+        }, 880);
     }
 
     render();
