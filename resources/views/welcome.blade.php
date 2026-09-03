@@ -429,7 +429,7 @@
 {{-- ══════════════════════════════════════
      HERO — 2 kolommen: tekst links, screenshot rechts
 ══════════════════════════════════════ --}}
-<section class="relative min-h-[720px] overflow-hidden bg-white pb-12 pt-28 sm:pt-32 lg:flex lg:min-h-[740px] lg:items-center lg:pb-16 lg:pt-32">
+<section class="relative min-h-[720px] overflow-hidden bg-white pb-12 pt-28 sm:pt-32 lg:min-h-[720px] lg:pb-12 lg:pt-36">
     {{-- Achtergrond --}}
     <div class="absolute inset-0 pointer-events-none">
         <svg class="absolute inset-0 w-full h-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -441,7 +441,7 @@
     </div>
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid items-center gap-12 lg:translate-y-16 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
+        <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
 
             {{-- LINKS: tekst --}}
             <div class="min-w-0">
