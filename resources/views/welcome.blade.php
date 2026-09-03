@@ -524,7 +524,7 @@
 {{-- ══════════════════════════════════════
      PRODUCTOVERZICHT
 ══════════════════════════════════════ --}}
-<section class="relative z-10 -mt-12 overflow-hidden pb-12 pt-0 sm:-mt-20 sm:pb-16 lg:-mt-32 lg:pb-24">
+<section class="relative z-10 overflow-hidden pb-12 pt-8 sm:pb-16 sm:pt-10 lg:pb-24 lg:pt-12">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="product-showcase fade-up">
             <div class="product-chip" style="top:8%;left:-34px;transform:rotate(-2deg)">
