@@ -15,7 +15,7 @@
                          height="160"
                          loading="lazy"
                          decoding="async"
-                         class="h-14 sm:h-16 w-auto max-w-full object-contain object-left">
+                         class="h-auto w-64 sm:w-80 max-w-full object-contain object-left">
                 </a>
                 <p class="text-sm text-slate-500 leading-relaxed max-w-xs">
                     Geef teams duidelijke taken en managers realtime overzicht. Minder discussie, meer grip.

@@ -28,7 +28,7 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
 
 <!-- Local compiled Tailwind -->
 @vite('resources/css/app.css')
@@ -60,7 +60,64 @@
 @endif
 
 <style> 
-    body { font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif; }
+    body,
+    body.font-sans { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    h1, h2 { letter-spacing: -0.018em !important; }
+    h3, h4, h5, h6 { letter-spacing: -0.008em !important; }
+
+    #siteHeader { font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; }
+
+    .tc-text-reveal {
+        position: relative;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    .tc-text-reveal-base,
+    .tc-text-reveal-color {
+        display: block;
+        font: inherit;
+        letter-spacing: inherit;
+    }
+    .tc-text-reveal-color {
+        position: absolute;
+        inset: 0 0 -.35em;
+        background: linear-gradient(105deg, #2563eb 0%, #4f46e5 58%, #6366f1 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        clip-path: inset(0 100% 0 0);
+        transition: clip-path .85s cubic-bezier(.22,.75,.2,1);
+        pointer-events: none;
+    }
+    .tc-text-reveal-curve {
+        position: absolute;
+        right: 0;
+        bottom: -.28em;
+        left: 0;
+        width: 100%;
+        height: .14em;
+        min-height: 4px;
+        overflow: visible;
+        pointer-events: none;
+    }
+    .tc-text-reveal-curve path {
+        stroke-dasharray: 310;
+        stroke-dashoffset: 310;
+        transition: stroke-dashoffset .72s .52s cubic-bezier(.22,.75,.2,1);
+    }
+    .tc-text-reveal.is-visible .tc-text-reveal-color { clip-path: inset(0); }
+    .tc-text-reveal.is-visible .tc-text-reveal-curve path { stroke-dashoffset: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .tc-text-reveal-color { clip-path: inset(0); transition: none; }
+        .tc-text-reveal-curve path { stroke-dashoffset: 0; transition: none; }
+    }
 
     @keyframes fadeUp { from { opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
     @keyframes fadeIn { from { opacity:0;} to {opacity:1;} }

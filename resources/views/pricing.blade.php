@@ -178,6 +178,7 @@
             box-shadow: 0 7px 18px -12px rgba(15, 23, 42, .35)
         }
 
+
         .pricing-plans-grid {
             min-width: 0;
             margin-top: var(--pricing-section-gap)
@@ -399,6 +400,7 @@
                 transition: none
             }
 
+
             .price-button::after {
                 display: none
             }
@@ -427,7 +429,7 @@
                         </svg></span>
                     <h1
                         class="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-                        Eerlijke prijzen,<span class="block text-[#4f6bff]">gemaakt voor elk team</span></h1>
+                        Eerlijke prijzen,<span class="block"><x-text-reveal text="gemaakt voor elk team" /></span></h1>
                     <p class="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-slate-500 sm:text-base">Kies het plan
                         dat past bij jouw organisatie. Start direct — geen creditcard nodig voor je proefperiode.</p>
                     <div
