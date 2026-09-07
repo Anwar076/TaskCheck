@@ -72,7 +72,7 @@
         border-radius: 6px;
         box-shadow: 0 1px 3px rgb(15 23 42 / .12);
     }
-    .calendar-overlap-event:hover,
+    .calendar-overlap-event.is-pointer-expanded,
     .calendar-overlap-event:focus-visible {
         z-index: 100;
         left: 2px !important;

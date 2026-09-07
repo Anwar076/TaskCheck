@@ -7,6 +7,29 @@ export function initCalendarSlotPicker() {
         return;
     }
 
+    // Hit-test the collapsed cards, so the expanded preview never captures
+    // the pointer above a neighbouring appointment's original lane.
+    let expandedCard = null;
+    const collapsePreview = () => {
+        expandedCard?.classList.remove('is-pointer-expanded');
+        expandedCard = null;
+    };
+    grid.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch' || event.buttons) {
+            return;
+        }
+
+        collapsePreview();
+        const card = document.elementFromPoint(event.clientX, event.clientY)
+            ?.closest('.calendar-overlap-event');
+        if (card && grid.contains(card)) {
+            expandedCard = card;
+            card.classList.add('is-pointer-expanded');
+        }
+    });
+    grid.addEventListener('pointerleave', collapsePreview);
+    grid.addEventListener('pointercancel', collapsePreview);
+
     const dayStartHour = parseInt(grid.dataset.dayStartHour || '6', 10);
     const dayEndHour = parseInt(grid.dataset.dayEndHour || '22', 10);
     const slotMinutes = parseInt(grid.dataset.slotMinutes || '30', 10);
