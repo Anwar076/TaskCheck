@@ -24,13 +24,8 @@
         <aside class="hidden md:flex md:w-64 md:shrink-0 md:flex-col border-r border-slate-200 bg-white shadow-sm">
             <div class="flex h-screen flex-col pt-6 overflow-y-auto">
                 <div class="px-6 mb-8">
-                    <div class="flex items-center gap-3">
-                        <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-10 w-10 rounded-xl">
-                        <div>
-                            <h1 class="text-xl font-bold leading-tight text-slate-900">TaskCheck</h1>
-                            <p class="text-xs font-medium text-slate-500">Platformbeheer</p>
-                        </div>
-                    </div>
+                    <x-taskcheck-logo class="w-52" />
+                    <p class="mt-1 text-xs font-medium text-slate-500">Platformbeheer</p>
                 </div>
                 <nav class="flex-1 px-4 space-y-1">
                     <a href="{{ route('super-admin.dashboard') }}"
@@ -123,8 +118,7 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-2 md:hidden">
-                            <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck" class="h-8 w-8 rounded-lg">
-                            <h2 class="text-base font-semibold text-slate-900">TaskCheck</h2>
+                            <x-taskcheck-logo class="w-44 sm:w-52" />
                         </div>
                     </div>
                     <div class="flex min-w-0 shrink-0 items-center gap-2">
@@ -170,7 +164,7 @@
         <div class="absolute inset-0 bg-slate-900/60" id="sa-mobile-backdrop"></div>
         <div class="absolute inset-y-0 left-0 flex w-[min(20rem,90vw)] flex-col bg-white text-slate-900 shadow-2xl">
             <div class="app-safe-drawer-header flex items-center justify-between border-b border-slate-200 px-4 pb-4">
-                <span class="flex items-center gap-2 font-semibold"><img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="" class="h-8 w-8 rounded-lg">TaskCheck</span>
+                <x-taskcheck-logo class="w-52" />
                 <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-100" id="sa-mobile-close" aria-label="Sluiten">✕</button>
             </div>
             <nav class="flex-1 space-y-1 p-4">

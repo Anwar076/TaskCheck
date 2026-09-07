@@ -37,13 +37,7 @@
             <div class="sticky top-0 h-screen flex flex-col pt-6 bg-white shadow-sm border-r border-slate-200">
                 <!-- Clean Logo -->
                 <div class="flex items-center flex-shrink-0 px-6 mb-8">
-                    <div class="flex items-center space-x-3">
-                        <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="w-10 h-10 rounded-xl">
-                        <div>
-                            <h1 class="text-xl font-bold text-slate-900">TaskCheck</h1>
-                            <p class="text-xs text-slate-500 font-medium">Checklist &amp; kwaliteitscontrole</p>
-                        </div>
-                    </div>
+                    <x-taskcheck-logo class="w-52" />
                 </div>
 
                 <!-- Clean Navigation -->
@@ -133,11 +127,7 @@
                 <div class="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 flex-1 items-center">
                         <a href="{{ ($subscriptionLocked ?? false) ? route('admin.settings.edit') : route('admin.dashboard') }}" class="flex min-w-0 items-center gap-2 md:hidden">
-                            <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-8 w-8 shrink-0 rounded-lg sm:h-9 sm:w-9">
-                            <div class="min-w-0 leading-tight">
-                                <p class="truncate text-base font-semibold text-slate-900 sm:text-lg">TaskCheck</p>
-                                <p class="hidden truncate text-[11px] text-slate-500 sm:block">Checklist &amp; kwaliteitscontrole</p>
-                            </div>
+                            <x-taskcheck-logo class="w-44 sm:w-52" />
                         </a>
 
                         <!-- Breadcrumb -->
@@ -346,12 +336,9 @@
         <div class="mobile-menu-backdrop absolute inset-0 bg-slate-950/35 backdrop-blur-sm" id="mobile-menu-backdrop"></div>
         <aside id="mobile-menu-panel" class="absolute inset-y-0 right-0 flex w-[min(22rem,88vw)] translate-x-full flex-col bg-white shadow-2xl ring-1 ring-slate-200 transition-transform duration-300 ease-out">
             <div class="app-safe-drawer-header flex items-center justify-between border-b border-slate-100 px-5 pb-4">
-                <div class="flex items-center gap-3">
-                    <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg">
-                    <div class="leading-tight">
-                        <p class="text-base font-semibold text-slate-900">TaskCheck</p>
-                        <p class="text-[11px] text-slate-500">Menu</p>
-                    </div>
+                <div class="min-w-0">
+                    <x-taskcheck-logo class="w-52" />
+                    <p class="mt-1 text-[11px] text-slate-500">Menu</p>
                 </div>
                 <button type="button" aria-label="Menu sluiten" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700" id="close-mobile-menu">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
