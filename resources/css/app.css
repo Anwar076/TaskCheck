@@ -22,6 +22,25 @@ html.is-native-app {
     padding-top: max(0.625rem, var(--safe-top));
 }
 
+/* Keep the desktop logo divider level with the main header. */
+@media (min-width: 768px) {
+    .admin-shell-header {
+        height: calc(5rem + var(--safe-top));
+        padding-top: var(--safe-top);
+        padding-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    header.admin-shell-header {
+        display: flex;
+        align-items: center;
+    }
+
+    header.admin-shell-header > div {
+        width: 100%;
+    }
+}
+
 .app-safe-drawer-header {
     padding-top: max(1rem, var(--safe-top));
 }

@@ -22,10 +22,9 @@
     @endphp
     <div class="min-h-screen h-screen flex overflow-hidden">
         <aside class="hidden md:flex md:w-64 md:shrink-0 md:flex-col border-r border-slate-200 bg-white shadow-sm">
-            <div class="flex h-screen flex-col pt-6 overflow-y-auto">
-                <div class="px-6 mb-8">
+            <div class="flex h-screen flex-col overflow-y-auto">
+                <div class="admin-shell-header flex flex-col justify-center border-b border-slate-200 px-6 mb-8">
                     <x-taskcheck-logo class="w-52" />
-                    <p class="mt-1 text-xs font-medium text-slate-500">Platformbeheer</p>
                 </div>
                 <nav class="flex-1 px-4 space-y-1">
                     <a href="{{ route('super-admin.dashboard') }}"
@@ -44,7 +43,7 @@
                         Bedrijven
                     </a>
                     <a href="{{ route('super-admin.dashboard', ['tab' => 'users']) }}"
-                       class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'users' ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                       class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('super-admin.users.*') || (request()->routeIs('super-admin.dashboard') && $superAdminDashboardTab === 'users') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                         <x-super-admin-icon name="users" class="shrink-0" />
                         Gebruikers
                     </a>
@@ -102,7 +101,7 @@
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <header class="app-safe-header sticky top-0 z-40 shrink-0 border-b border-slate-200 bg-white pb-3 shadow-sm">
+            <header class="app-safe-header admin-shell-header sticky top-0 z-40 shrink-0 border-b border-slate-200 bg-white pb-3 shadow-sm">
                 <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 flex-1 items-center gap-2">
                         <button type="button" class="relative z-10 md:hidden inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100" id="sa-mobile-open" aria-label="Menu">
@@ -145,6 +144,9 @@
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     @if (session('success'))
                         <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">{{ session('success') }}</div>
+                    @endif
+                    @if ($errors->any())
+                        <div role="alert" class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-900">{{ $errors->first() }}</div>
                     @endif
                     @if (session('error'))
                         <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-900">{{ session('error') }}</div>
@@ -229,6 +231,7 @@
             }
         })();
     </script>
+    @include('super-admin.partials.record-interactions')
     @stack('scripts')
     @include('partials.page-transitions')
 </body>

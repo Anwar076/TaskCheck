@@ -139,23 +139,38 @@
                 <h3 class="text-lg font-semibold text-slate-900">Gebruikersoverzicht</h3>
                 <input type="search" data-table-search="users" class="w-full rounded-xl border-slate-300 text-sm sm:w-80" placeholder="Zoek naam, e-mail, bedrijf of rol…">
             </div>
-            <div class="overflow-x-auto rounded-xl border border-slate-100">
+            <div class="space-y-3 md:hidden">
+                @forelse($users as $user)
+                    <article data-record-url="{{ route('super-admin.users.show', $user) }}" class="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50/60" data-search-row="users" data-search-text="{{ strtolower($user->name.' '.$user->email.' '.($user->company?->name ?? '').' '.$user->role.' '.($user->location?->name ?? '')) }}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0"><a href="{{ route('super-admin.users.show', $user) }}" class="block truncate font-semibold text-slate-900 hover:text-blue-700">{{ $user->name }}</a><p class="mt-0.5 break-all text-xs text-slate-500">{{ $user->email }}</p></div>
+                            <span class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $user->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $user->is_active ? 'Actief' : 'Inactief' }}</span>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                            <div class="rounded-lg bg-slate-50 p-2.5"><span class="block text-slate-500">Bedrijf</span><strong class="mt-0.5 block text-slate-800">{{ $user->company?->name ?? '—' }}</strong></div>
+                            <div class="rounded-lg bg-slate-50 p-2.5"><span class="block text-slate-500">Rol</span><strong class="mt-0.5 block text-slate-800">{{ $user->role === 'employee' ? 'Medewerker' : 'Beheerder' }}</strong></div>
+                        </div>
+                        <div class="mt-3">@include('super-admin.partials.user-actions')</div>
+                    </article>
+                @empty
+                    <p class="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">Geen gebruikers gevonden.</p>
+                @endforelse
+            </div>
+            <div class="hidden overflow-x-auto rounded-xl border border-slate-100 md:block">
                 <table class="min-w-[900px] w-full text-sm">
                     <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                        <tr><th class="px-4 py-3">Gebruiker</th><th class="px-4 py-3">Bedrijf</th><th class="px-4 py-3">Rol</th><th class="px-4 py-3">Locatie</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actie</th></tr>
+                        <tr><th class="px-4 py-3">Gebruiker</th><th class="px-4 py-3">Bedrijf</th><th class="px-4 py-3">Rol</th><th class="px-4 py-3">Locatie</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Acties</th></tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($users as $user)
-                            <tr class="hover:bg-slate-50/60" data-search-row="users" data-search-text="{{ strtolower($user->name.' '.$user->email.' '.($user->company?->name ?? '').' '.$user->role.' '.($user->location?->name ?? '')) }}">
-                                <td class="px-4 py-3"><p class="font-semibold text-slate-900">{{ $user->name }}</p><p class="text-xs text-slate-500">{{ $user->email }}</p></td>
+                            <tr data-record-url="{{ route('super-admin.users.show', $user) }}" class="cursor-pointer transition-colors hover:bg-slate-50/60" data-search-row="users" data-search-text="{{ strtolower($user->name.' '.$user->email.' '.($user->company?->name ?? '').' '.$user->role.' '.($user->location?->name ?? '')) }}">
+                                <td class="px-4 py-3"><a href="{{ route('super-admin.users.show', $user) }}" class="font-semibold text-slate-900 hover:text-blue-700 focus-visible:underline">{{ $user->name }}</a><p class="text-xs text-slate-500">{{ $user->email }}</p></td>
                                 <td class="px-4 py-3 text-slate-700">{{ $user->company?->name ?? '—' }}</td>
                                 <td class="px-4 py-3">{{ $user->role === 'employee' ? 'Medewerker' : 'Beheerder' }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $user->location?->name ?? '—' }}</td>
                                 <td class="px-4 py-3"><span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">{{ $user->is_active ? 'Actief' : 'Inactief' }}</span></td>
                                 <td class="px-4 py-3 text-right">
-                                    @if($user->company)
-                                        <a href="{{ route('super-admin.companies.show', ['company' => $user->company, 'section' => 'users']) }}" class="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100">Beheren</a>
-                                    @endif
+                                    @include('super-admin.partials.user-actions')
                                 </td>
                             </tr>
                         @empty
@@ -502,10 +517,10 @@
             </div>
             <div class="space-y-3 md:hidden">
                 @forelse($companies as $company)
-                    <article class="rounded-xl border border-slate-200 bg-white p-4" data-search-row="companies" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.$company->subscription_status) }}">
+                    <article data-record-url="{{ route('super-admin.companies.show', $company) }}" class="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50/60" data-search-row="companies" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.$company->subscription_status) }}">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <h3 class="truncate font-semibold text-slate-900">{{ $company->name }}</h3>
+                                <h3 class="truncate font-semibold text-slate-900"><a href="{{ route('super-admin.companies.show', $company) }}" class="hover:text-blue-700">{{ $company->name }}</a></h3>
                                 <p class="mt-0.5 text-xs text-slate-500">{{ ucfirst($company->subscription_plan ?? 'geen plan') }} · {{ $company->total_users }} gebruikers · {{ (int) $company->active_locations }} locaties</p>
                             </div>
                             <span class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $company->subscription_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">{{ $company->subscription_status ?? '—' }}</span>
@@ -546,8 +561,8 @@
                     </thead>
                     <tbody>
                         @forelse($companies as $company)
-                            <tr class="border-b border-slate-100 hover:bg-slate-50/60 transition-colors" data-search-row="companies" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.$company->subscription_status) }}">
-                                <td class="py-3 px-3 pr-4 font-medium text-slate-900">{{ $company->name }}</td>
+                            <tr data-record-url="{{ route('super-admin.companies.show', $company) }}" class="cursor-pointer border-b border-slate-100 hover:bg-slate-50/60 transition-colors" data-search-row="companies" data-search-text="{{ strtolower($company->name.' '.$company->subscription_plan.' '.$company->subscription_status) }}">
+                                <td class="py-3 px-3 pr-4 font-medium text-slate-900"><a href="{{ route('super-admin.companies.show', $company) }}" class="hover:text-blue-700 focus-visible:underline">{{ $company->name }}</a></td>
                                 <td class="py-3 pr-4">{{ ucfirst($company->subscription_plan ?? 'geen') }}</td>
                                 <td class="py-3 pr-4">
                                     <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $company->subscription_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
@@ -770,7 +785,7 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-900">Monitoring</h2>
-            <p class="text-sm text-slate-500">Platformbelasting, e-mailalerts bij drempels, errors en incident tickets.</p>
+            <p class="text-sm text-slate-500">Platformgebruik, verwerkingsproblemen en incidenten.</p>
         </div>
         <form method="POST" action="{{ route('super-admin.platform-alerts.test') }}">
             @csrf
@@ -783,56 +798,74 @@
     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div>
-                <h3 class="text-lg font-semibold text-slate-900">Platformbelasting (live)</h3>
-                <p class="text-xs text-slate-500">Actief = sessie in de laatste {{ $platformHealth['metrics']['session_window_minutes'] }} minuten. Inzendingen = bijgewerkt in de laatste {{ $platformHealth['metrics']['submissions_activity_window_minutes'] }} min (min. {{ config('platform_alerts.submissions_min_active_users') }} gebruikers voor alert). E-mail bij overschrijding drempel (max. 1× per {{ config('platform_alerts.cooldown_minutes') }} min per type).</p>
+                <h3 class="text-lg font-semibold text-slate-900">Gebruik en achtergrondverwerking</h3>
+                <p class="mt-1 text-sm text-slate-500">Gebruikscijfers zijn informatief en veroorzaken geen e-mails. Deze momentopname omvat alle bedrijven.</p>
             </div>
-            <p class="text-xs text-slate-400">Laatste check: {{ \Carbon\Carbon::parse($platformHealth['metrics']['checked_at'])->timezone(config('app.timezone'))->format('d-m-Y H:i:s') }}</p>
+            <p class="text-xs text-slate-400">Momentopname: {{ \Carbon\Carbon::parse($platformHealth['metrics']['checked_at'])->timezone(config('app.timezone'))->format('d-m-Y H:i:s') }}</p>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-            @foreach($platformHealth['alerts'] as $alert)
-                <div class="rounded-xl border p-4 {{ $alert['exceeded'] ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-slate-50' }}">
-                    <p class="text-xs font-medium text-slate-500">{{ $alert['label'] }}</p>
-                    <p class="text-2xl font-bold mt-1 {{ $alert['exceeded'] ? 'text-red-700' : 'text-slate-900' }}">{{ number_format($alert['value'], 0, ',', '.') }}</p>
-                    <p class="text-xs mt-1 {{ $alert['exceeded'] ? 'text-red-600 font-semibold' : 'text-slate-500' }}">
-                        Drempel: {{ number_format($alert['threshold'], 0, ',', '.') }}
-                        @if($alert['exceeded']) · alert @endif
-                    </p>
+        <div class="grid gap-3 sm:grid-cols-3">
+            @foreach([
+                ['Actieve gebruikers', 'active_users', 'Laatste '.$platformHealth['metrics']['session_window_minutes'].' minuten'],
+                ['Actieve sessies', 'active_sessions', 'Laatste '.$platformHealth['metrics']['session_window_minutes'].' minuten'],
+                ['Actieve inzendingen', 'submissions_in_progress', 'Bijgewerkt in de laatste '.$platformHealth['metrics']['submissions_activity_window_minutes'].' minuten'],
+            ] as [$label, $key, $description])
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-xs font-medium text-slate-500">{{ $label }}</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900">{{ number_format($platformHealth['metrics'][$key], 0, ',', '.') }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ $description }} · geen e-mailalert</p>
                 </div>
             @endforeach
         </div>
-        <p class="text-xs text-slate-500 mt-3">
-            Openstaande inzendingen (totaal, niet voor alerts): {{ number_format($platformHealth['metrics']['submissions_in_progress_total'] ?? 0, 0, ',', '.') }}
+        <p class="mt-3 text-xs text-slate-500">Openstaande inzendingen (alle tijd): {{ number_format($platformHealth['metrics']['submissions_in_progress_total'], 0, ',', '.') }}</p>
+        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            @foreach($platformHealth['alerts'] as $alert)
+                <div class="rounded-xl border p-4 {{ $alert['exceeded'] ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white' }}">
+                    <div class="flex items-center justify-between gap-3">
+                        <h4 class="text-sm font-semibold text-slate-900">{{ $alert['label'] }}</h4>
+                        <span class="text-xs font-medium {{ $alert['exceeded'] ? 'text-red-700' : 'text-slate-500' }}">{{ !$alert['available'] ? 'Niet gemeten' : ($alert['threshold'] <= 0 ? 'Meldingen uitgeschakeld' : ($alert['exceeded'] ? 'Aandacht nodig' : 'Onder de grens')) }}</span>
+                    </div>
+                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ $alert['available'] ? number_format($alert['value'], 0, ',', '.') : '—' }}</p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        @if($alert['key'] === 'stalled_jobs')
+                            Minstens {{ $platformHealth['metrics']['stalled_jobs_minutes'] }} minuten vertraagd. Toekomstige taken tellen niet mee.
+                        @else
+                            Mislukt in de laatste {{ $platformHealth['metrics']['failed_jobs_window_minutes'] }} minuten. Oude fouten tellen niet mee.
+                        @endif
+                        @if($alert['threshold'] > 0) Meldingsgrens: {{ $alert['threshold'] }}. @endif
+                    </p>
+                    @unless($alert['available'])<p class="mt-2 text-xs text-amber-700">Deze meting is niet beschikbaar voor de ingestelde verwerking of foutregistratie. Hiervoor wordt geen probleem- of herstelmail verstuurd.</p>@endunless
+                </div>
+            @endforeach
+        </div>
+        <p class="mt-4 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            @if(config('platform_alerts.enabled'))
+                Eén mail bij een nieuw verwerkingsprobleem. Geen herhaalmails zolang het aanhoudt. Eén herstelmail nadat de meting {{ config('platform_alerts.recovery_minutes') }} minuten onder de grens blijft.
+            @else
+                Automatische e-mailmeldingen zijn uitgeschakeld.
+            @endif
         </p>
-        @if($recentPlatformAlerts->isNotEmpty())
-            <div class="mt-4 border-t border-slate-100 pt-4">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Recent verstuurde alert-mails</p>
-                <ul class="space-y-1 text-sm text-slate-600">
-                    @foreach($recentPlatformAlerts as $log)
-                        <li>
-                            {{ config('platform_alerts.labels.'.$log->alert_key, $log->alert_key) }}:
-                            {{ number_format($log->metric_value, 0, ',', '.') }} / {{ number_format($log->threshold, 0, ',', '.') }}
-                            · {{ $log->sent_at->timezone(config('app.timezone'))->format('d-m-Y H:i') }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        <p class="mt-2 text-xs text-slate-500">Herstel betekent dat de meting weer onder de grens ligt. Eerder mislukte taken worden niet automatisch opnieuw uitgevoerd.</p>
+        <div class="mt-5 border-t border-slate-100 pt-4">
+            <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Laatste 10 mailmeldingen · historie</h4>
+            <p class="mt-1 text-xs text-slate-400">Dit overzicht kan oudere meldingen bevatten. Geregistreerd na verzending aan de maildienst; bezorging is niet bevestigd.</p>
+            <ul class="mt-3 divide-y divide-slate-100 text-sm">
+                @forelse($recentPlatformAlerts as $log)
+                    <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <span class="text-slate-700"><span class="font-semibold">{{ match($log->event_type) { 'opened' => 'Nieuw probleem', 'recovered' => 'Herstel', default => 'Oude drempelmelding' } }}</span> · {{ config('platform_alerts.labels.'.$log->alert_key, $log->alert_key) }}: {{ $log->metric_value }} / {{ $log->threshold }}</span>
+                        <time datetime="{{ $log->sent_at->toIso8601String() }}" class="text-xs text-slate-500">{{ $log->sent_at->timezone(config('app.timezone'))->format('d-m-Y H:i') }}</time>
+                    </li>
+                @empty
+                    <li class="py-3 text-slate-500">Nog geen automatische mailmeldingen geregistreerd.</li>
+                @endforelse
+            </ul>
+        </div>
         @php
-            $platformAlertRecipients = collect(explode(',', (string) config('platform_alerts.recipients')))
-                ->map(fn ($email) => trim($email))
-                ->filter()
-                ->values();
-            if ($platformAlertRecipients->isEmpty()) {
-                $platformAlertRecipients = collect(config('app.super_admin_emails', []))->filter()->values();
-            }
-            $platformAlertRecipientsLabel = $platformAlertRecipients->isNotEmpty()
-                ? $platformAlertRecipients->implode(', ')
-                : 'niet geconfigureerd';
+            $configuredRecipients = trim((string) config('platform_alerts.recipients'));
+            $platformAlertRecipients = collect($configuredRecipients !== '' ? explode(',', $configuredRecipients) : config('app.super_admin_emails', []))
+                ->map(fn ($email) => strtolower(trim($email)))
+                ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))->unique();
         @endphp
-        <p class="text-xs text-slate-500 mt-4">
-            Ontvangers: {{ $platformAlertRecipientsLabel }}.
-            Productie: zet cron op <code class="text-blue-700">* * * * * php artisan schedule:run</code>.
-        </p>
+        <p class="mt-4 text-xs text-slate-500">Ontvangers: {{ $platformAlertRecipients->isNotEmpty() ? $platformAlertRecipients->implode(', ') : 'niet geconfigureerd' }}.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">

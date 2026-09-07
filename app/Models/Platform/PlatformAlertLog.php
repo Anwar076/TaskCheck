@@ -10,6 +10,7 @@ class PlatformAlertLog extends Model
 
     protected $fillable = [
         'alert_key',
+        'event_type',
         'metric_value',
         'threshold',
         'sent_at',

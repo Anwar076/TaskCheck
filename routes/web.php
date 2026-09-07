@@ -411,6 +411,8 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::post('/marketing-links', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'store'])->name('marketing-links.store');
     Route::delete('/marketing-links/{marketingLink}', [\App\Http\Controllers\SuperAdmin\MarketingLinkCampaignController::class, 'destroy'])->name('marketing-links.destroy');
     Route::post('/platform-alerts/test', [SuperAdminDashboardController::class, 'sendPlatformAlertTest'])->name('platform-alerts.test');
+    Route::get('/users/{user}', [CompanyUserController::class, 'showUser'])->name('users.show');
+    Route::delete('/users/{user}', [CompanyUserController::class, 'destroyUser'])->name('users.destroy');
     Route::get('/companies/create', [CompanyController::class, 'createCompany'])->name('companies.create');
     Route::get('/subscriptions', [CompanySubscriptionController::class, 'subscriptions'])->name('subscriptions.index');
     Route::get('/subscriptions/create', [CompanySubscriptionController::class, 'createSubscriptionPlan'])->name('subscriptions.create');

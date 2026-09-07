@@ -1,5 +1,6 @@
 <dialog id="edit-company-user-{{ $dialogUser->id }}" class="w-[calc(100%-2rem)] max-w-xl rounded-2xl p-0 shadow-2xl backdrop:bg-slate-950/50">
     <form method="POST" action="{{ route('super-admin.companies.users.update', [$company, $dialogUser]) }}">@csrf @method('PUT')
+        @if($returnToUserDetail ?? false)<input type="hidden" name="return_to_user_detail" value="1">@endif
         <div class="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><h3 class="text-lg font-semibold text-slate-900">{{ $dialogUser->name }} bewerken</h3><p class="mt-0.5 text-sm text-slate-500">Pas accountgegevens, rol en locatie aan.</p></div><button type="button" data-close-dialog class="rounded-lg p-2 text-slate-400 hover:bg-slate-100" aria-label="Sluiten">✕</button></div>
         <div class="grid gap-4 p-5 sm:grid-cols-2">
             <div><label class="mb-1.5 block text-sm font-medium text-slate-700">Naam</label><input name="name" value="{{ $dialogUser->name }}" required class="w-full rounded-xl border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500"></div>

@@ -34,9 +34,9 @@
     <div class="min-h-screen h-screen flex overflow-hidden">
         <!-- Clean Sidebar -->
         <div class="hidden md:flex md:w-64 md:flex-col md:shrink-0">
-            <div class="sticky top-0 h-screen flex flex-col pt-6 bg-white shadow-sm border-r border-slate-200">
+            <div class="sticky top-0 h-screen flex flex-col bg-white shadow-sm border-r border-slate-200">
                 <!-- Clean Logo -->
-                <div class="flex items-center flex-shrink-0 px-6 mb-8">
+                <div class="admin-shell-header flex items-center border-b border-slate-200 px-6 mb-8">
                     <x-taskcheck-logo class="w-52" />
                 </div>
 
@@ -123,7 +123,7 @@
         <!-- Clean Main content -->
         <div class="flex-1 flex flex-col overflow-hidden min-h-0">
             <!-- Clean Top navigation -->
-            <header class="app-safe-header sticky top-0 z-40 shrink-0 bg-white border-b border-slate-200 px-3 pb-3 shadow-sm sm:px-6 sm:pb-4">
+            <header class="app-safe-header admin-shell-header sticky top-0 z-40 shrink-0 bg-white border-b border-slate-200 px-3 pb-3 shadow-sm sm:px-6 sm:pb-4">
                 <div class="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 flex-1 items-center">
                         <a href="{{ ($subscriptionLocked ?? false) ? route('admin.settings.edit') : route('admin.dashboard') }}" class="flex min-w-0 items-center gap-2 md:hidden">
@@ -338,7 +338,6 @@
             <div class="app-safe-drawer-header flex items-center justify-between border-b border-slate-100 px-5 pb-4">
                 <div class="min-w-0">
                     <x-taskcheck-logo class="w-52" />
-                    <p class="mt-1 text-[11px] text-slate-500">Menu</p>
                 </div>
                 <button type="button" aria-label="Menu sluiten" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700" id="close-mobile-menu">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">

@@ -579,7 +579,7 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertOk()
             ->assertSee('Gebruiker toevoegen')
             ->assertSee('Aangepaste Medewerker')
-            ->assertSee('Bewerken');
+            ->assertSee('Aangepaste Medewerker bewerken');
     }
 
     public function test_super_admin_cannot_edit_a_user_through_another_company(): void

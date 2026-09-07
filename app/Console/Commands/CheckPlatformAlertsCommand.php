@@ -20,9 +20,9 @@ class CheckPlatformAlertsCommand extends Command
             ['Meting', 'Waarde', 'Drempel', 'Status'],
             collect($snapshot['alerts'])->map(fn ($a) => [
                 $a['label'],
-                $a['value'],
+                $a['value'] ?? '—',
                 $a['threshold'],
-                $a['exceeded'] ? 'ALERT' : 'ok',
+                ! $a['available'] ? 'onbekend' : ($a['threshold'] <= 0 ? 'uitgeschakeld' : ($a['exceeded'] ? 'ALERT' : 'ok')),
             ])->all()
         );
 
@@ -42,7 +42,7 @@ class CheckPlatformAlertsCommand extends Command
         $sent = $alerts->checkAndNotify();
 
         if ($sent === []) {
-            $this->info('Geen nieuwe alerts (of cooldown actief).');
+            $this->info('Geen nieuwe probleem- of herstelmeldingen.');
 
             return self::SUCCESS;
         }

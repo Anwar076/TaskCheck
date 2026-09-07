@@ -9,7 +9,9 @@ return [
     */
     'recipients' => env('PLATFORM_ALERT_EMAIL', ''),
 
-    'cooldown_minutes' => (int) env('PLATFORM_ALERT_COOLDOWN_MINUTES', 60),
+    'recovery_minutes' => (int) env('PLATFORM_ALERT_RECOVERY_MINUTES', 15),
+    'failed_jobs_window_minutes' => (int) env('PLATFORM_ALERT_FAILED_JOBS_WINDOW_MINUTES', 15),
+    'stalled_jobs_minutes' => (int) env('PLATFORM_ALERT_STALLED_JOBS_MINUTES', 15),
 
     /** Users with session activity in the last N minutes count as "active". */
     'session_window_minutes' => (int) env('PLATFORM_ALERT_SESSION_WINDOW_MINUTES', 15),
@@ -20,14 +22,9 @@ return [
      */
     'submissions_activity_window_minutes' => (int) env('PLATFORM_ALERT_SUBMISSIONS_ACTIVITY_WINDOW_MINUTES', 60),
 
-    /** Only alert on active submissions when at least this many users are logged in. */
-    'submissions_min_active_users' => (int) env('PLATFORM_ALERT_SUBMISSIONS_MIN_ACTIVE_USERS', 5),
-
+    // Usage counts are informational; only processing problems trigger mail.
     'thresholds' => [
-        'active_users' => (int) env('PLATFORM_ALERT_ACTIVE_USERS_THRESHOLD', 100),
-        'active_sessions' => (int) env('PLATFORM_ALERT_ACTIVE_SESSIONS_THRESHOLD', 150),
-        'submissions_in_progress' => (int) env('PLATFORM_ALERT_SUBMISSIONS_IN_PROGRESS_THRESHOLD', 50),
-        'pending_jobs' => (int) env('PLATFORM_ALERT_PENDING_JOBS_THRESHOLD', 50),
+        'stalled_jobs' => (int) env('PLATFORM_ALERT_STALLED_JOBS_THRESHOLD', 1),
         'failed_jobs' => (int) env('PLATFORM_ALERT_FAILED_JOBS_THRESHOLD', 5),
     ],
 
@@ -35,6 +32,7 @@ return [
         'active_users' => 'Actieve gebruikers (ingelogd)',
         'active_sessions' => 'Actieve sessies',
         'submissions_in_progress' => 'Actieve inzendingen bezig',
+        'stalled_jobs' => 'Vertraagde achtergrondtaken',
         'pending_jobs' => 'Wachtrij jobs',
         'failed_jobs' => 'Mislukte jobs',
     ],
