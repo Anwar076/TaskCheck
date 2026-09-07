@@ -94,6 +94,7 @@
     </div>
 
     <div class="flex">
+        @if($calendarView !== 'week')
         <aside class="hidden w-56 shrink-0 border-r border-slate-200 p-3 xl:block">
             <div class="mb-2 flex items-center justify-between">
                 <span class="text-sm font-medium capitalize text-slate-700">{{ $miniMonth['title'] }}</span>
@@ -165,6 +166,7 @@
                 @endif
             </div>
         </aside>
+        @endif
 
         <div class="min-w-0 flex-1">
             @if($calendarView === 'month')
@@ -208,14 +210,15 @@
                 @endforeach
 
             @elseif($calendarView === 'week')
+                @include('admin.lists.partials.calendar-unscheduled-lists')
                 @include('admin.lists.partials.calendar-time-grid', [
                     'days' => $calendar['days'],
                     'timeHours' => $calendar['time_hours'] ?? [],
                     'weekQuery' => $weekQuery,
                     'filterQuery' => $filterQuery,
                     'scope' => 'company',
-                    'allLists' => $lists ?? collect(),
                     'forceAllDayRow' => $unscheduledLists->isNotEmpty(),
+                    'allLists' => $lists ?? collect(),
                 ])
 
             @else

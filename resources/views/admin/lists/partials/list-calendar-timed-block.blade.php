@@ -1,12 +1,12 @@
-@props(['entry', 'day', 'scope' => 'company', 'gridHeight' => 48, 'layout' => 'absolute'])
+@props(['entry', 'day', 'scope' => 'company', 'gridHeight' => 48, 'layout' => 'absolute', 'overlap' => false])
 
 @php
     $list = $entry['list'];
     $color = $entry['color'];
     $weekStart = \Carbon\Carbon::parse($day['date'])->startOfWeek(\Carbon\Carbon::MONDAY)->format('Y-m-d');
     $manageUrl = route('admin.lists.show', [$list, 'view' => 'day', 'day' => $day['key'], 'week' => $weekStart]);
-    $leftPercent = $entry['left_percent'] ?? 0;
-    $widthPercent = $entry['width_percent'] ?? 100;
+    $leftPercent = $overlap ? ($entry['overlap_left_percent'] ?? 0) : ($entry['left_percent'] ?? 0);
+    $widthPercent = $overlap ? ($entry['overlap_width_percent'] ?? 100) : ($entry['width_percent'] ?? 100);
     $heightPercent = $entry['height_percent'] ?? 100;
     $topRem = round(($entry['top_percent'] / 100) * $gridHeight, 4);
     $heightRem = round(($heightPercent / 100) * $gridHeight, 4);
@@ -29,6 +29,10 @@
     $positionClass = $layout === 'grid'
         ? 'absolute min-h-0'
         : 'absolute z-10';
+    if ($overlap) {
+        $positionClass .= ' calendar-overlap-event';
+        $positionStyle .= ' --calendar-stack-order: '.($entry['stack_order'] ?? 10).';';
+    }
 @endphp
 
 @if($layout === 'grid')
@@ -53,10 +57,13 @@
         class="calendar-timed-list-btn group {{ $positionClass }} m-0 appearance-none border-0 bg-transparent p-0 text-left shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 {{ empty($entry['is_default']) ? 'cursor-grab active:cursor-grabbing' : '' }}"
         style="{{ $positionStyle }}"
         title="{{ $entry['time_label'] }} — {{ $list->title }}{{ !empty($entry['is_default']) ? ' (standaard)' : '' }}{{ empty($entry['is_default']) ? ' (sleep om te verplaatsen)' : ' (klik om aan te passen)' }}">
-    <div class="relative flex h-full min-h-0 w-full overflow-hidden rounded shadow-sm transition-shadow hover:shadow {{ $color['hover'] }}">
+    <div class="calendar-event-content relative flex h-full min-h-0 w-full overflow-hidden rounded shadow-sm transition-shadow hover:shadow {{ $color['hover'] }}">
         <div class="w-[3px] shrink-0 {{ $accentClass }}"></div>
         <div class="min-w-0 flex-1 overflow-hidden {{ $color['bg'] }} {{ $color['text'] }} px-2 {{ $contentPaddingClass }} {{ $contentTextClass }} font-medium leading-tight">
-            @if($tiny)
+            @if($overlap)
+                <span class="block whitespace-normal break-words text-[11px] font-semibold leading-snug" style="display: -webkit-box; -webkit-line-clamp: {{ $tiny ? 1 : 3 }}; -webkit-box-orient: vertical; overflow: hidden;">{{ $list->title }}</span>
+                @unless($tiny)<span class="mt-0.5 block whitespace-normal text-[10px] leading-snug">{{ $entry['time_label'] }}</span>@endunless
+            @elseif($tiny)
                 <span class="block truncate">{{ $list->title }}</span>
             @elseif($compact)
                 <span class="block truncate font-semibold">{{ $entry['time_label'] }}@if(!empty($entry['is_default']))<span class="font-normal opacity-75"> · standaard</span>@endif</span>

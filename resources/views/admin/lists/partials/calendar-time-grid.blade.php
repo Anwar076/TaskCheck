@@ -16,11 +16,7 @@
     $forceAllDayRow = $forceAllDayRow ?? false;
     $gridCols = 'calendar-week-grid';
     $wrapperClass = 'w-full';
-    $dayColumnWidths = collect($days)->map(fn ($day) => max(
-        160,
-        (int) collect($day['timed_lists'] ?? [])->max('column_count') * 112
-    ));
-    $weekColumns = '3rem '.$dayColumnWidths->map(fn ($width) => 'minmax('.$width.'px, 1fr)')->implode(' ');
+    $weekColumns = '3rem repeat('.count($days).', minmax(0, 1fr))';
     $workingHoursByDay = collect($days)
         ->mapWithKeys(fn ($day) => [$day['key'] => $day['working_hours'] ?? null])
         ->filter()
@@ -69,6 +65,22 @@
     }
     .calendar-week-grid {
         grid-template-columns: var(--calendar-week-columns);
+    }
+    .calendar-overlap-event {
+        z-index: var(--calendar-stack-order, 10);
+        border: 1px solid white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgb(15 23 42 / .12);
+    }
+    .calendar-overlap-event:hover,
+    .calendar-overlap-event:focus-visible {
+        z-index: 100;
+        left: 2px !important;
+        width: calc(100% - 4px) !important;
+        box-shadow: 0 3px 10px rgb(15 23 42 / .2);
+    }
+    .calendar-overlap-event .calendar-event-content {
+        background-color: white;
     }
     .calendar-day-grid {
         display: grid;
@@ -123,19 +135,19 @@
     }
 </style>
 
-<div class="overflow-x-auto"
+<div class="min-w-0"
      data-calendar-slot-grid
      data-onboarding-target="calendar-schedule-grid"
      data-day-start-hour="{{ $timeAxis['start_hour'] ?? ListCalendarService::DAY_START_HOUR }}"
      data-day-end-hour="{{ $timeAxis['end_hour'] ?? ListCalendarService::DAY_END_HOUR }}"
      data-slot-minutes="{{ $slotMinutes }}">
-    <div class="{{ $wrapperClass }}" style="--calendar-week-columns: {{ $weekColumns }}; @unless($singleDay) min-width: calc(3rem + {{ $dayColumnWidths->sum() }}px); @endunless">
+    <div class="{{ $wrapperClass }}" style="--calendar-week-columns: {{ $weekColumns }};">
         @unless($singleDay)
             <p class="border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500" data-onboarding-target="calendar-schedule-help">
                 Klik of sleep in het tijdschema om een <span class="font-medium">lijst aan een tijdslot</span> te koppelen.
                 Klik op een bestaand blok om tijd of lijst aan te passen. Meerdere lijsten kunnen op hetzelfde tijdslot staan.
                 Lijsten zonder vaste tijd staan op de rij &ldquo;Hele dag&rdquo;.
-                Scroll bij drukke dagen horizontaal of klik op een datum voor de dagweergave.
+                Overlappende lijsten schuiven deels over elkaar. Wijs een blok aan of gebruik Tab om de volledige tekst te zien.
             </p>
 
             <div class="grid {{ $gridCols }} border-b border-slate-200">
@@ -149,7 +161,7 @@
                                 : route('admin.lists.show', array_merge([$list], $weekQuery ?? [], ['view' => 'day', 'day' => $day['key']]));
                         @endphp
                         <a href="{{ $dayLink }}"
-                           class="mx-auto mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full text-lg {{ $day['is_today'] ? 'bg-blue-600 font-medium text-white' : 'text-slate-800 hover:bg-slate-100' }}">
+                           class="mx-auto mt-1 inline-flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full text-lg {{ $day['is_today'] ? 'bg-blue-600 font-medium text-white' : 'text-slate-800 hover:bg-slate-100' }}">
                             {{ $day['day_number'] }}
                         </a>
                     </div>
@@ -317,7 +329,7 @@
                         </div>
 
                         @foreach(($day['timed_lists'] ?? []) as $entry)
-                            @include('admin.lists.partials.list-calendar-timed-block', ['entry' => $entry, 'day' => $day, 'scope' => $scope, 'gridHeight' => $gridHeight])
+                            @include('admin.lists.partials.list-calendar-timed-block', ['entry' => $entry, 'day' => $day, 'scope' => $scope, 'gridHeight' => $gridHeight, 'overlap' => true])
                         @endforeach
                     </div>
                 @endforeach

@@ -68,6 +68,14 @@ class CalendarLayoutService
                 $entry['column_count'] = $count;
                 $entry['width_percent'] = (100 * $span) / $count;
                 $entry['left_percent'] = ($entry['column_index'] / $count) * 100;
+                // Keep a visible leading strip per lane while letting cards
+                // extend underneath the next one, within the same day column.
+                $entry['overlap_left_percent'] = ($entry['column_index'] / ($count + 1)) * 100;
+                $entry['overlap_width_percent'] = min(
+                    100 - $entry['overlap_left_percent'],
+                    (($span + 1) / ($count + 1)) * 100
+                );
+                $entry['stack_order'] = $entry['column_index'] + 10;
                 $laidOut->push($entry);
             }
         }

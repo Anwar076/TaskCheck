@@ -52,6 +52,24 @@ class CalendarLayoutServiceTest extends TestCase
         $this->assertEqualsWithDelta(100 / 3, $result[1]['width_percent'], 0.001);
     }
 
+    public function test_staggered_cards_overlap_and_stay_inside_the_day(): void
+    {
+        $result = (new CalendarLayoutService)->layoutTimedColumns(collect([
+            ['id' => 1, 'start_minutes' => 540, 'end_minutes' => 600],
+            ['id' => 2, 'start_minutes' => 540, 'end_minutes' => 600],
+            ['id' => 3, 'start_minutes' => 540, 'end_minutes' => 600],
+            ['id' => 4, 'start_minutes' => 600, 'end_minutes' => 660],
+        ]));
+
+        $this->assertEquals([0, 25, 50, 0], $result->pluck('overlap_left_percent')->all());
+        $this->assertEquals([50, 50, 50, 100], $result->pluck('overlap_width_percent')->all());
+        foreach ($result as $entry) {
+            $this->assertLessThanOrEqual(100, $entry['overlap_left_percent'] + $entry['overlap_width_percent']);
+            $this->assertGreaterThanOrEqual($entry['width_percent'], $entry['overlap_width_percent']);
+        }
+        $this->assertGreaterThan($result[0]['stack_order'], $result[1]['stack_order']);
+    }
+
     public function test_default_duration_and_touching_boundaries(): void
     {
         $result = (new CalendarLayoutService)->layoutTimedColumns(collect([
