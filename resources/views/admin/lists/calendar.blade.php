@@ -9,7 +9,7 @@
 
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <div class="w-full mx-auto px-3 sm:px-6 lg:px-8">
         <div class="mb-6 sm:mb-8">
             <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
                 <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

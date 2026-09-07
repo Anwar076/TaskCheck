@@ -14,8 +14,13 @@
     $slotMinutes = ListCalendarService::DEFAULT_TASK_DURATION_MINUTES;
     $singleDay = $singleDay ?? (count($days) === 1);
     $forceAllDayRow = $forceAllDayRow ?? false;
-    $gridCols = $singleDay ? 'grid-cols-[5rem_minmax(0,1fr)]' : 'grid-cols-8';
-    $wrapperClass = $singleDay ? 'w-full' : 'min-w-[760px]';
+    $gridCols = 'calendar-week-grid';
+    $wrapperClass = 'w-full';
+    $dayColumnWidths = collect($days)->map(fn ($day) => max(
+        160,
+        (int) collect($day['timed_lists'] ?? [])->max('column_count') * 112
+    ));
+    $weekColumns = '3rem '.$dayColumnWidths->map(fn ($width) => 'minmax('.$width.'px, 1fr)')->implode(' ');
     $workingHoursByDay = collect($days)
         ->mapWithKeys(fn ($day) => [$day['key'] => $day['working_hours'] ?? null])
         ->filter()
@@ -62,9 +67,12 @@
     .calendar-timed-list-btn > div {
         height: 100%;
     }
+    .calendar-week-grid {
+        grid-template-columns: var(--calendar-week-columns);
+    }
     .calendar-day-grid {
         display: grid;
-        grid-template-columns: 5rem minmax(0, 1fr);
+        grid-template-columns: 3rem minmax(0, 1fr);
     }
     .calendar-day-events {
         display: grid;
@@ -121,12 +129,13 @@
      data-day-start-hour="{{ $timeAxis['start_hour'] ?? ListCalendarService::DAY_START_HOUR }}"
      data-day-end-hour="{{ $timeAxis['end_hour'] ?? ListCalendarService::DAY_END_HOUR }}"
      data-slot-minutes="{{ $slotMinutes }}">
-    <div class="{{ $wrapperClass }}">
+    <div class="{{ $wrapperClass }}" style="--calendar-week-columns: {{ $weekColumns }}; @unless($singleDay) min-width: calc(3rem + {{ $dayColumnWidths->sum() }}px); @endunless">
         @unless($singleDay)
             <p class="border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500" data-onboarding-target="calendar-schedule-help">
                 Klik of sleep in het tijdschema om een <span class="font-medium">lijst aan een tijdslot</span> te koppelen.
                 Klik op een bestaand blok om tijd of lijst aan te passen. Meerdere lijsten kunnen op hetzelfde tijdslot staan.
                 Lijsten zonder vaste tijd staan op de rij &ldquo;Hele dag&rdquo;.
+                Scroll bij drukke dagen horizontaal of klik op een datum voor de dagweergave.
             </p>
 
             <div class="grid {{ $gridCols }} border-b border-slate-200">

@@ -50,7 +50,7 @@
         data-update-url="{{ route('admin.lists.schedule-slot.update', [$list, $entry['slot_id']]) }}"
         data-delete-url="{{ route('admin.lists.schedule-slot.destroy', [$list, $entry['slot_id']]) }}"
         data-manage-url="{{ $manageUrl }}"
-        class="calendar-timed-list-btn group {{ $positionClass }} m-0 appearance-none border-0 bg-transparent p-0 text-left shadow-none {{ empty($entry['is_default']) ? 'cursor-grab active:cursor-grabbing' : '' }}"
+        class="calendar-timed-list-btn group {{ $positionClass }} m-0 appearance-none border-0 bg-transparent p-0 text-left shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 {{ empty($entry['is_default']) ? 'cursor-grab active:cursor-grabbing' : '' }}"
         style="{{ $positionStyle }}"
         title="{{ $entry['time_label'] }} — {{ $list->title }}{{ !empty($entry['is_default']) ? ' (standaard)' : '' }}{{ empty($entry['is_default']) ? ' (sleep om te verplaatsen)' : ' (klik om aan te passen)' }}">
     <div class="relative flex h-full min-h-0 w-full overflow-hidden rounded shadow-sm transition-shadow hover:shadow {{ $color['hover'] }}">

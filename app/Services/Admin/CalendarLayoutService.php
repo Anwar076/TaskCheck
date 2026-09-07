@@ -35,12 +35,39 @@ class CalendarLayoutService
         $laidOut = collect();
 
         foreach ($groups as $group) {
-            $count = count($group);
-            foreach (array_values($group) as $index => $entry) {
-                $entry['column_index'] = $index;
+            // Reuse a lane as soon as its previous entry ends. A chain of
+            // overlapping entries does not mean they all run simultaneously.
+            $columns = [];
+            $assigned = [];
+            foreach (collect($group)->sortBy('start_minutes')->values() as $entry) {
+                $columnIndex = 0;
+                while (isset($columns[$columnIndex])) {
+                    $lastEntry = $columns[$columnIndex][array_key_last($columns[$columnIndex])];
+                    if (! $this->rangesOverlap($entry, $lastEntry, $defaultDurationMinutes)) {
+                        break;
+                    }
+                    $columnIndex++;
+                }
+                $entry['column_index'] = $columnIndex;
+                $columns[$columnIndex][] = $entry;
+                $assigned[] = $entry;
+            }
+
+            $count = count($columns);
+            foreach ($assigned as $entry) {
+                // Expand into adjacent free lanes without covering another event.
+                $span = 1;
+                for ($next = $entry['column_index'] + 1; $next < $count; $next++) {
+                    foreach ($columns[$next] as $other) {
+                        if ($this->rangesOverlap($entry, $other, $defaultDurationMinutes)) {
+                            break 2;
+                        }
+                    }
+                    $span++;
+                }
                 $entry['column_count'] = $count;
-                $entry['width_percent'] = 100 / $count;
-                $entry['left_percent'] = ($index / $count) * 100;
+                $entry['width_percent'] = (100 * $span) / $count;
+                $entry['left_percent'] = ($entry['column_index'] / $count) * 100;
                 $laidOut->push($entry);
             }
         }
