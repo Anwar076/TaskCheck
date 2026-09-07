@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # TaskCheck Deployment Script
 # This script helps deploy the TaskCheck application to production
@@ -17,10 +18,13 @@ if [ -d ".git" ]; then
     git pull origin main
 fi
 
+# Plesk Git actions may not include Node.js in PATH.
+export PATH="/opt/plesk/node/24/bin:/opt/plesk/node/22/bin:$PATH"
+
 # Install/update dependencies
 echo "📦 Installing dependencies..."
 composer install --no-dev --optimize-autoloader
-npm ci
+npm ci --include=dev
 
 # Build assets
 echo "🎨 Building assets..."

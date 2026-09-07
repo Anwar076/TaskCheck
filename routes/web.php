@@ -426,6 +426,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::get('/companies/{company}/lists/ai-import', [AiChecklistImportController::class, 'aiImportPage'])->name('companies.lists.ai-import');
     Route::post('/companies/{company}/lists/ai-import/generate', [AiChecklistImportController::class, 'aiImportGenerate'])->name('companies.lists.ai-import.generate');
     Route::post('/companies/{company}/lists/ai-import/store', [AiChecklistImportController::class, 'aiImportStore'])->name('companies.lists.ai-import.store');
+    Route::post('/companies/{company}/logbook', [\App\Http\Controllers\SuperAdmin\CompanyLogController::class, 'store'])->name('companies.logbook.store');
     Route::put('/companies/{company}/profile', [CompanyController::class, 'updateCompanyProfile'])->name('companies.profile.update');
     Route::put('/companies/{company}/identity', [CompanyController::class, 'updateCompanyIdentity'])->name('companies.identity.update');
     Route::post('/companies/{company}/identity/scim-token', [CompanyController::class, 'rotateCompanyScimToken'])->name('companies.identity.scim-token');

@@ -23,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        foreach ([\App\Models\Organisation\Company::class, \App\Models\Organisation\User::class, \App\Models\Organisation\Location::class] as $model) {
+            $model::observe(\App\Observers\CompanyLogObserver::class);
+        }
+
         if (! $this->app->runningInConsole() && request()->getHost() === '10.0.2.2') {
             URL::forceRootUrl('http://10.0.2.2:8000');
 

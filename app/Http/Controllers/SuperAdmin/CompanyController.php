@@ -108,6 +108,21 @@ class CompanyController extends Controller
             }
         }
 
+        $logEntries = null;
+        if (request('section') === 'logbook') {
+            $filters = request()->validate([
+                'log_search' => ['nullable', 'string', 'max:200'],
+                'log_type' => ['nullable', Rule::in(array_keys(\App\Models\Platform\CompanyLogEntry::CATEGORIES))],
+            ]);
+            $logEntries = \App\Models\Platform\CompanyLogEntry::where('company_id', $company->id)
+                ->when($filters['log_type'] ?? null, fn ($query, $type) => $query->where('category', $type))
+                ->when($filters['log_search'] ?? null, function ($query, $search) {
+                    $query->where(fn ($query) => $query->where('title', 'like', '%'.$search.'%')
+                        ->orWhere('body', 'like', '%'.$search.'%')->orWhere('actor_name', 'like', '%'.$search.'%'));
+                })
+                ->orderByDesc('occurred_at')->orderByDesc('id')->paginate(25)->withQueryString();
+        }
+
         return view('super-admin.companies.show', compact(
             'company',
             'metrics',
@@ -122,6 +137,7 @@ class CompanyController extends Controller
             'aiTokens',
             'lastActivityAt',
             'mollieBilling',
+            'logEntries',
         ));
     }
 

@@ -28,6 +28,7 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    @include('partials.admin-header-alignment')
 </head>
 <body class="font-sans antialiased bg-slate-50">
     @include('partials.impersonation-banner')

@@ -72,7 +72,7 @@
     </section>
 
     @php
-        $primaryCompanySections = ['overview' => ['dashboard','Overzicht'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen']];
+        $primaryCompanySections = ['overview' => ['dashboard','Overzicht'], 'logbook' => ['communication','Logboek'], 'users' => ['users','Gebruikers'], 'lists' => ['templates','Takenlijsten'], 'billing' => ['invoices','Abonnement & facturen']];
         $moreCompanySections = ['reporting' => ['invoices','Rapportages'], 'identity' => ['subscriptions','Microsoft SSO'], 'activity' => ['usage','Activiteit'], 'settings' => ['companies','Bedrijfsgegevens']];
         $moreSectionActive = array_key_exists($companySection, $moreCompanySections);
     @endphp
@@ -287,6 +287,10 @@
             </section>
         </aside>
     </div>
+
+    @if($companySection === 'logbook')
+        @include('super-admin.companies._logbook')
+    @endif
 
     @if($companySection === 'users')
         @include('super-admin.companies._users')

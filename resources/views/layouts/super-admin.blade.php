@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="theme-color" content="#2563eb">
+    @include('partials.admin-header-alignment')
 </head>
 <body class="font-sans antialiased bg-slate-50 text-slate-900">
     @php

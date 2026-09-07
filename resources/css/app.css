@@ -22,25 +22,6 @@ html.is-native-app {
     padding-top: max(0.625rem, var(--safe-top));
 }
 
-/* Keep the desktop logo divider level with the main header. */
-@media (min-width: 768px) {
-    .admin-shell-header {
-        height: calc(5rem + var(--safe-top));
-        padding-top: var(--safe-top);
-        padding-bottom: 0;
-        flex-shrink: 0;
-    }
-
-    header.admin-shell-header {
-        display: flex;
-        align-items: center;
-    }
-
-    header.admin-shell-header > div {
-        width: 100%;
-    }
-}
-
 .app-safe-drawer-header {
     padding-top: max(1rem, var(--safe-top));
 }
@@ -73,5 +54,91 @@ html.is-native-app {
     body.employee-portal .realtime-toast-stack,
     body.employee-portal .employee-floating-toast {
         bottom: calc(5.25rem + max(48px, var(--safe-bottom))) !important;
+    }
+}
+
+/* Marketing navigation echoes the handwritten accent in the hero. */
+.site-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 0;
+    color: #475569;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.015em;
+    transition: color 180ms ease;
+}
+.site-nav-link:hover,
+.site-nav-link.is-active,
+.site-nav-link:focus-visible { color: #2563eb; }
+.site-nav-stroke {
+    position: absolute;
+    bottom: 1px;
+    left: -3px;
+    width: calc(100% + 6px);
+    height: 6px;
+    color: #6366f1;
+    opacity: 0;
+    transform: scaleX(.3);
+    transform-origin: left;
+    transition: transform 280ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease;
+}
+.site-nav-link:hover .site-nav-stroke,
+.site-nav-link:focus-visible .site-nav-stroke,
+.site-nav-link.is-active .site-nav-stroke {
+    opacity: 1;
+    transform: scaleX(1);
+}
+.site-nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    background: linear-gradient(115deg, #2563eb, #4f46e5 55%, #4338ca);
+    background-size: 180% 100%;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 5px 15px -5px rgb(79 70 229 / .4), inset 0 1px 0 rgb(255 255 255 / .2);
+    transition: transform 220ms ease, background-position 300ms ease, box-shadow 220ms ease;
+}
+.site-nav-cta:hover {
+    background-position: 100% 0;
+    transform: translateY(-1px);
+    box-shadow: 0 9px 22px -6px rgb(79 70 229 / .45), inset 0 1px 0 rgb(255 255 255 / .2);
+}
+.site-nav-arrow { display: inline-block; transition: transform 220ms ease; }
+.site-nav-cta:hover .site-nav-arrow { transform: translateX(3px); }
+.site-mobile-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    color: #334155;
+    font-family: 'Outfit', sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -.025em;
+    transition: color 180ms ease;
+}
+.site-mobile-link .site-nav-arrow { color: #94a3b8; font-size: 20px; }
+.site-mobile-link:hover,
+.site-mobile-link.is-active { color: #2563eb; }
+.site-mobile-link.is-active .site-nav-arrow { color: #6366f1; }
+.site-mobile-link:hover .site-nav-arrow { transform: translate(2px, -2px); }
+.site-nav-link:focus-visible,
+.site-nav-cta:focus-visible,
+.site-mobile-link:focus-visible { outline: 2px solid #2563eb; outline-offset: 5px; }
+@media (prefers-reduced-motion: reduce) {
+    .site-nav-link, .site-nav-stroke, .site-nav-cta, .site-nav-arrow, .site-mobile-link {
+        transition: none;
+    }
+    .site-nav-cta:hover, .site-nav-cta:hover .site-nav-arrow, .site-mobile-link:hover .site-nav-arrow {
+        transform: none;
     }
 }

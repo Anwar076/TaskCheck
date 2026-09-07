@@ -15,31 +15,31 @@
                     height="160"
                     fetchpriority="high"
                     decoding="async"
-                    class="h-auto w-64 shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03] sm:w-80"
+                    class="h-auto w-64 shrink-0 object-contain object-left transition-transform group-hover:scale-[1.03] sm:w-80 md:w-56 lg:w-80"
                 >
             </a>
 
             <!-- Desktop Navigation -->
-            <div class="hidden items-center gap-5 md:flex">
-                <div class="flex items-center gap-1 rounded-xl bg-slate-50/80 p-1">
+            <div class="hidden items-center gap-8 md:flex lg:gap-10">
+                <div class="flex items-center gap-6 lg:gap-8">
                     @foreach ([['Home', route('welcome'), request()->is('/')], ['Prijzen', route('pricing'), request()->is('pricing')], ['Blog', route('blog'), request()->is('blog*')], ['Contact', route('contact'), request()->is('contact')]] as [$label, $href, $active])
-                        <a href="{{ $href }}" class="group relative rounded-lg px-3.5 py-2 text-sm font-semibold tracking-[-.01em] transition-all duration-200 {{ $active ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-slate-950' }}">
+                        <a href="{{ $href }}" @if($active) aria-current="page" @endif class="site-nav-link {{ $active ? 'is-active' : '' }}">
                             <span>{{ $label }}</span>
-                            <span class="absolute inset-x-3 bottom-1 h-px origin-left rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
+                            <svg class="site-nav-stroke" aria-hidden="true" viewBox="0 0 80 8" preserveAspectRatio="none"><path d="M2 6 Q38 1 78 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
                         </a>
                     @endforeach
                 </div>
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="group inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/10 transition-all hover:-translate-y-px hover:bg-blue-700">Dashboard <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="site-nav-cta">Dashboard <span class="site-nav-arrow" aria-hidden="true">→</span></a>
                     @else
-                        <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-px hover:shadow-blue-600/30">Inloggen <span class="transition-transform group-hover:translate-x-0.5">→</span></a>
+                        <a href="{{ route('login') }}" class="site-nav-cta">Inloggen <span class="site-nav-arrow" aria-hidden="true">→</span></a>
                     @endauth
                 @endif
             </div>
 
             <!-- Mobile Menu Button -->
-            <button id="mobileMenuBtn" class="rounded-xl border border-slate-200 bg-slate-50 p-2.5 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 md:hidden" aria-label="Open menu" aria-expanded="false">
+            <button id="mobileMenuBtn" class="rounded-xl p-2.5 text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 md:hidden" aria-label="Open menu" aria-expanded="false">
                 <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
@@ -55,23 +55,25 @@
         <aside id="mobileMenuPanel" class="absolute inset-y-0 right-0 flex translate-x-full flex-col border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-out" style="width:min(88vw,400px)">
             <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6" style="padding-top:env(safe-area-inset-top)">
                 <span class="text-xs font-bold uppercase tracking-[.18em] text-blue-600">Menu</span>
-                <button id="mobileMenuClose" type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-0 text-slate-700 transition hover:border-blue-200 hover:bg-blue-50" aria-label="Sluit menu">
+                <button id="mobileMenuClose" type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl p-0 text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700" aria-label="Sluit menu">
                     <svg class="block h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
                 </button>
             </div>
             <div class="flex flex-1 flex-col overflow-y-auto px-5 py-6" style="padding-bottom:max(24px,env(safe-area-inset-bottom))">
                 <div class="space-y-2">
-                    <a href="{{ route('welcome') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('/') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Home</a>
-                    <a href="{{ route('pricing') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('pricing') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Prijzen</a>
-                    <a href="{{ route('blog') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('blog*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Blog</a>
-                    <a href="{{ route('contact') }}" class="block rounded-xl px-4 py-3.5 text-base font-semibold transition {{ request()->is('contact') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' }}">Contact</a>
+                    @foreach ([['Home', route('welcome'), request()->is('/')], ['Prijzen', route('pricing'), request()->is('pricing')], ['Blog', route('blog'), request()->is('blog*')], ['Contact', route('contact'), request()->is('contact')]] as [$label, $href, $active])
+                        <a href="{{ $href }}" @if($active) aria-current="page" @endif class="site-mobile-link {{ $active ? 'is-active' : '' }}">
+                            <span>{{ $label }}</span>
+                            <span class="site-nav-arrow" aria-hidden="true">↗</span>
+                        </a>
+                    @endforeach
                 </div>
                 <div class="mt-auto border-t border-slate-100 pt-5">
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ auth()->user()->homeDashboardUrl() }}" class="block rounded-xl bg-slate-950 px-4 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-blue-700">Dashboard</a>
+                            <a href="{{ auth()->user()->homeDashboardUrl() }}" class="site-nav-cta w-full justify-center">Dashboard <span class="site-nav-arrow" aria-hidden="true">→</span></a>
                         @else
-                            <a href="{{ route('login') }}" class="block rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3.5 text-center text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition">Inloggen →</a>
+                            <a href="{{ route('login') }}" class="site-nav-cta w-full justify-center">Inloggen <span class="site-nav-arrow" aria-hidden="true">→</span></a>
                         @endauth
                     @endif
                 </div>
