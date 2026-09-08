@@ -1,6 +1,6 @@
 @php
-    $seoTitle = 'HACCP Formulieren Digitaal Invullen | HACCP Registratie App | TaskCheck';
-        $seoDescription = 'Stop met papieren HACCP formulieren. Registreer temperaturen, schoonmaak en controles digitaal met TaskCheck. Start 14 dagen gratis.';
+    $seoTitle = 'HACCP Formulieren Digitaal voor Horeca, Bakkerijen & Slagerijen | TaskCheck';
+        $seoDescription = 'Stop met papieren HACCP formulieren. Registreer temperaturen, schoonmaak en voedselveiligheid volledig digitaal met TaskCheck. Geschikt voor restaurants, hotels, bakkerijen en meer. Probeer 14 dagen gratis – geen creditcard nodig.';
         $seoUrl = route('seo.haccp-formulieren');
         $seoImage = asset('images/taskcheck-horeca-seo-hero.webp');
         $ctaHeading = 'Start vandaag met digitale HACCP formulieren';
@@ -321,7 +321,8 @@
                     ['Restaurant checklist app', route('seo.restaurant-checklist-app')],
                     ['HACCP checklist app', route('seo.haccp-checklist-app')],
                     ['Opening checklist horeca', route('seo.opening-checklist-horeca')],
-                    ['Prijzen', route('pricing')],
+                    ['Prijzen', route('pricing')],                    ['Schoonmaak checklist', route('seo.schoonmaak-checklist')],
+                    ['Sluitings checklist horeca', route('seo.sluitings-checklist-horeca')],
                 ] as $link)
                 <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                     {{ $link[0] }}
