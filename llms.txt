@@ -51,6 +51,7 @@ TaskCheck helpt organisaties om dagelijkse controles, HACCP-registraties, schoon
 - [Takenlijst Personeel](https://taskcheck.nl/takenlijst-personeel): Digitale takenlijsten voor medewerkers
 - [Wat Is Een Checklist App](https://taskcheck.nl/wat-is-een-checklist-app): Uitleg over checklist software
 - [Beste Checklist App 2026](https://taskcheck.nl/beste-checklist-app-2026): Vergelijking van checklist apps
+- [Horeko app alternatief: Digitale checklists en HACCP | TaskCheck](https://taskcheck.nl/horeko-app): Op zoek naar een Horeko app? Probeer TaskCheck: digitale HACCP en NVWA checklists voor horeca. Start gratis en zonder creditcard!
 
 ## Blog
 

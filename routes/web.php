@@ -260,6 +260,10 @@ Route::get('/warenwet-horeca', function () {
     return view('seo.warenwet-horeca');
 })->name('seo.warenwet-horeca');
 
+Route::get('/horeko-app', function () {
+    return view('seo.horeko-app');
+})->name('seo.horeko-app');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
