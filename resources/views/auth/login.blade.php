@@ -2,12 +2,16 @@
     @php
         $taskcheckLogoPath = public_path('logos/taskcheck-logo.png');
         $taskcheckLogoVersion = file_exists($taskcheckLogoPath) ? filemtime($taskcheckLogoPath) : time();
-        $isAppLogin = request('source') === 'pwa';
+        $userAgent = strtolower((string) request()->userAgent());
+        $isAppLogin = request('source') === 'pwa'
+            || str_contains($userAgent, 'capacitor')
+            || str_contains($userAgent, 'taskcheck');
+        $loginUrl = $isAppLogin ? route('login', ['source' => 'pwa']) : route('login');
     @endphp
 
     <div class="taskcheck-login-logo mb-7 flex w-full flex-col items-center justify-center text-center sm:mb-8 {{ $isAppLogin ? 'pt-2' : '' }}">
         @if ($isAppLogin)
-            <div class="flex w-full flex-col items-center gap-3">
+            <a href="{{ $loginUrl }}" class="flex w-full flex-col items-center gap-3 no-underline" aria-label="TaskCheck inloggen">
                 <img
                     src="{{ asset('logos/taskcheck-favicon.png') }}?v={{ $taskcheckLogoVersion }}"
                     alt=""
@@ -21,9 +25,9 @@
                     <p class="text-[1.7rem] font-extrabold tracking-tight text-slate-900">TaskCheck</p>
                     <p class="text-sm font-medium text-slate-500">Maak elke controle aantoonbaar.</p>
                 </div>
-            </div>
+            </a>
         @else
-            <a href="{{ route('welcome') }}" class="inline-flex w-full max-w-[20rem] justify-center">
+            <a href="{{ $loginUrl }}" class="inline-flex w-full max-w-[20rem] justify-center" aria-label="TaskCheck inloggen">
                 <img
                     src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
                     alt="TaskCheck — Maak elke controle aantoonbaar"
