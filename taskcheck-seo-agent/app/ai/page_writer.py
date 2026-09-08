@@ -46,6 +46,12 @@ class PageWriter:
 
         blade = sanitize_blade_ld_json(self._render_blade(content, slug, route_name))
         self._assert_shared_layout(blade, slug)
+        # Extra hard fail: stale daemons of oude writers mogen nooit DOCTYPE naar pending schrijven.
+        if "<!DOCTYPE" in blade.upper() or re.search(r"<html\b", blade, re.I):
+            raise RuntimeError(
+                f"SEO-pagina '{slug}' bevat standalone HTML. "
+                "Herstart de SEO-agent zodat de gedeelde layouts.seo-page template actief is."
+            )
         output_path = self.config.generated_dir / f"{slug}.blade.php"
         self.config.generated_dir.mkdir(parents=True, exist_ok=True)
         write_blade(output_path, blade)

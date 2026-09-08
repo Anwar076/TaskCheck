@@ -110,7 +110,7 @@ class LaravelPublisher:
             _, branch = self._begin_git_publish(slug)
 
         target = self.config.seo_views_dir / f"{slug}.blade.php"
-        self._install_blade(source_path, target)
+        self._install_blade(source_path, target, page_type="seo")
         logger.info("Pagina geschreven in git werkmap: %s", target)
 
         route_added = self._add_route(slug)
@@ -148,7 +148,7 @@ class LaravelPublisher:
         if target.exists():
             shutil.copy2(target, backup)
 
-        self._install_blade(source, target)
+        self._install_blade(source, target, page_type="seo")
         logger.info("Optimalisatie geschreven in git werkmap: %s", target)
 
         discovery = self.discovery.touch_url(slug, page_type="seo")
@@ -184,7 +184,7 @@ class LaravelPublisher:
             _, branch = self._begin_git_publish(slug)
 
         target = self.config.blog_views_dir / f"{slug}.blade.php"
-        self._install_blade(source_path, target)
+        self._install_blade(source_path, target, page_type="blog")
         logger.info("Blog geschreven in git werkmap: %s", target)
 
         route_added = self._add_blog_route(slug)
@@ -334,25 +334,51 @@ Route::get('/blog/{slug}', function () {{
                     pending.append(blade_slug(path))
         return pending
 
-    def _install_blade(self, source: Path, target: Path) -> None:
+    def _install_blade(self, source: Path, target: Path, page_type: str | None = None) -> None:
         content = read_text(source)
-        if self._is_seo_view_target(target):
+        kind = page_type or self._infer_view_kind(target, source)
+        # Altijd afdwingen: path-compare kan op Windows/Plesk falen en de check overslaan.
+        if kind == "seo":
             self._assert_seo_shared_layout(content, target.name)
-        elif self._is_blog_view_target(target):
+        elif kind == "blog":
             self._assert_blog_shared_layout(content, target.name)
         write_blade(target, content)
 
+    def _infer_view_kind(self, target: Path, source: Path | None = None) -> str | None:
+        if self._is_seo_view_target(target):
+            return "seo"
+        if self._is_blog_view_target(target):
+            return "blog"
+        target_s = str(target).replace("\\", "/").lower()
+        source_s = str(source).replace("\\", "/").lower() if source else ""
+        if "/resources/views/seo/" in target_s or target_s.endswith("/seo"):
+            return "seo"
+        if "/resources/views/blog/" in target_s or target_s.endswith("/blog"):
+            return "blog"
+        name = (source.name if source else target.name).lower()
+        if name.startswith("blog-") or name.startswith("blog."):
+            return "blog"
+        if name.endswith(".blade.php") and "blog" not in name and ".optimized." not in name:
+            # Pending SEO blades heten {slug}.blade.php
+            if "pending" in source_s or "generated" in source_s:
+                return "seo"
+        return None
+
+    @staticmethod
+    def _norm_path(path: Path) -> str:
+        return str(path.resolve()).replace("\\", "/").casefold()
+
     def _is_seo_view_target(self, target: Path) -> bool:
         try:
-            return target.resolve().parent == self.config.seo_views_dir.resolve()
+            return self._norm_path(target.parent) == self._norm_path(self.config.seo_views_dir)
         except OSError:
-            return "resources/views/seo" in str(target).replace("\\", "/")
+            return "/resources/views/seo" in str(target).replace("\\", "/").lower()
 
     def _is_blog_view_target(self, target: Path) -> bool:
         try:
-            return target.resolve().parent == self.config.blog_views_dir.resolve()
+            return self._norm_path(target.parent) == self._norm_path(self.config.blog_views_dir)
         except OSError:
-            return "resources/views/blog" in str(target).replace("\\", "/")
+            return "/resources/views/blog" in str(target).replace("\\", "/").lower()
 
     def _assert_seo_shared_layout(self, content: str, filename: str) -> None:
         """Elke SEO Blade moet layouts.seo-page gebruiken (geen standalone HTML)."""
