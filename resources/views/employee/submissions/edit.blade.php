@@ -534,7 +534,7 @@
                                 @endif
 
                                 <div class="flex flex-col sm:flex-row justify-end">
-                                    <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-5 sm:px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 mt-2 sm:mt-0">
+                                    <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-5 sm:px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl mt-2 sm:mt-0 touch-manipulation">
                                             @if($isTaskDone)
                                                 Wijzigingen opslaan
                                             @elseif($task->requires_signature)
@@ -782,7 +782,7 @@
                                 <button type="submit"
                                         id="submit-checklist-btn"
                                         @if(!$allRequiredCompleted) disabled @endif
-                                        class="w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white transition-all duration-200 shadow-lg {{ $allRequiredCompleted ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl transform hover:scale-105' : 'bg-gray-300 cursor-not-allowed opacity-70' }}">
+                                        class="w-full sm:w-auto inline-flex items-center justify-center px-7 sm:px-8 py-3 border border-transparent text-sm font-semibold rounded-xl text-white transition-all duration-200 shadow-lg touch-manipulation {{ $allRequiredCompleted ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl' : 'bg-gray-300 cursor-not-allowed opacity-70' }}">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>

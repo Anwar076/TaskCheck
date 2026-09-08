@@ -16,6 +16,26 @@
 html.is-native-app {
     --safe-top: max(56px, env(safe-area-inset-top, 0px));
     --safe-bottom: max(48px, env(safe-area-inset-bottom, 0px));
+    touch-action: manipulation;
+}
+
+/* iOS zooms focused inputs under 16px; keep form text readable without zoom. */
+html.is-native-app input,
+html.is-native-app select,
+html.is-native-app textarea {
+    font-size: 16px !important;
+}
+
+@media (max-width: 640px) {
+    body.employee-portal input,
+    body.employee-portal select,
+    body.employee-portal textarea {
+        font-size: 16px !important;
+    }
+
+    body.employee-portal {
+        touch-action: manipulation;
+    }
 }
 
 .app-safe-header {

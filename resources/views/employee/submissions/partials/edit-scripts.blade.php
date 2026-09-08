@@ -972,6 +972,9 @@ function initializeChecklists() {
                 updateTaskToCompleted(taskId, data.completed_at, data.proof_files);
                 localStorage.removeItem(key);
                 updateProgressIndicator();
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
                 showNotification('Opgeslagen.', 'success');
                 updateFinalSubmissionForm();
                 hideLoadingOverlay();
