@@ -123,6 +123,21 @@
                 display: none !important;
             }
 
+            .taskcheck-login-logo {
+                width: 100%;
+                text-align: center;
+            }
+
+            .taskcheck-login-logo img {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            html.is-native-app .taskcheck-login-logo {
+                margin-bottom: 2rem;
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .taskcheck-login-grid {
                     animation: none;

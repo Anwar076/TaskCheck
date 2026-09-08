@@ -5,25 +5,31 @@
         $isAppLogin = request('source') === 'pwa';
     @endphp
 
-    <div class="mb-7 flex justify-center sm:mb-8 {{ $isAppLogin ? 'pt-1' : '' }}">
+    <div class="taskcheck-login-logo mb-7 flex w-full flex-col items-center justify-center text-center sm:mb-8 {{ $isAppLogin ? 'pt-2' : '' }}">
         @if ($isAppLogin)
-            <img
-                src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
-                alt="TaskCheck — Maak elke controle aantoonbaar"
-                width="640"
-                height="160"
-                class="h-14 w-auto object-contain sm:h-16"
-                decoding="async"
-                fetchpriority="high"
-            >
+            <div class="flex w-full flex-col items-center gap-3">
+                <img
+                    src="{{ asset('logos/taskcheck-favicon.png') }}?v={{ $taskcheckLogoVersion }}"
+                    alt=""
+                    width="64"
+                    height="64"
+                    class="h-16 w-16 rounded-[1.15rem] object-contain shadow-sm"
+                    decoding="async"
+                    fetchpriority="high"
+                >
+                <div class="space-y-1">
+                    <p class="text-[1.7rem] font-extrabold tracking-tight text-slate-900">TaskCheck</p>
+                    <p class="text-sm font-medium text-slate-500">Maak elke controle aantoonbaar.</p>
+                </div>
+            </div>
         @else
-            <a href="{{ route('welcome') }}" class="inline-flex">
+            <a href="{{ route('welcome') }}" class="inline-flex w-full max-w-[20rem] justify-center">
                 <img
                     src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
                     alt="TaskCheck — Maak elke controle aantoonbaar"
-                    width="640"
-                    height="160"
-                    class="h-14 w-auto object-contain sm:h-16"
+                    width="490"
+                    height="147"
+                    class="taskcheck-login-logo-img mx-auto h-14 w-auto max-w-full object-contain object-center sm:h-16"
                     decoding="async"
                     fetchpriority="high"
                 >
