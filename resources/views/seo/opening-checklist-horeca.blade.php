@@ -1,6 +1,6 @@
 @php
-    $seoTitle = 'Opening checklist horeca – digitaal voorbeeld & gratis proefaccount';
-        $seoDescription = 'Ontdek hoe een digitale opening checklist jouw horecazaak helpt fouten te voorkomen en te voldoen aan HACCP/NVWA. Inclusief voorbeeld en direct 14 dagen gratis proberen met TaskCheck.';
+    $seoTitle = 'Opening checklist horeca – digitaal voorbeeld voor restaurants, hotels & meer';
+        $seoDescription = 'Direct starten met een digitale opening checklist voor horeca. Minder fouten, bewijs per taak, klaar voor HACCP/NVWA. Inclusief voorbeeld & 14 dagen gratis proberen met TaskCheck.';
         $seoUrl = route('seo.opening-checklist-horeca');
         $seoImage = asset('images/seo-opening-checklist-horeca-hero.png');
         $ctaHeading = 'Start vandaag';
@@ -11,6 +11,8 @@
 @extends('layouts.seo-page')
 
 @section('content')
+        <section class="bg-[#f7f8fa] py-12"><div class="mx-auto max-w-4xl px-4"><h2 class="text-2xl font-bold mb-4">Voorbeeld opening checklist horeca</h2><p class="mb-4">Hieronder vind je een praktijkvoorbeeld van een digitale opening checklist voor horeca. Pas deze eenvoudig aan voor jouw restaurant, hotel of bakkerij:</p><ul class="list-disc pl-6 mb-6 text-slate-700"><li>Koeling controleren (temperatuur noteren)</li><li>Kassa aanzetten en controleren</li><li>Terras opruimen en inrichten</li><li>Toiletten schoonmaken en bijvullen</li><li>Voorraad checken (brood, vlees, dranken)</li><li>Oven op temperatuur brengen (bakkerij)</li><li>Personeel briefing geven</li><li>Allergeneninformatie zichtbaar maken</li><li>Vloeren controleren op veiligheid</li><li>Openingsrapport digitaal afvinken met bewijs (foto/video)</li></ul><p class="text-sm text-slate-500">Maak deze lijst digitaal in TaskCheck en voeg fotobewijs toe per stap. Zo ben je altijd klaar voor controle.</p></div></section>
+
         <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -348,7 +350,7 @@
                     ['Sluitings checklist horeca', route('seo.sluitings-checklist-horeca')],
                     ['HACCP checklist app', route('seo.haccp-checklist-app')],
                     ['Schoonmaak checklist app', route('seo.schoonmaak-checklist-app')],
-                    ['Restaurant checklist app', route('seo.restaurant-checklist-app')],
+                    ['Restaurant checklist app', route('seo.restaurant-checklist-app')],                    ['Digitale checklist app', route('seo.digitale-checklist-app')],
                 ] as $link)
                 <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                     {{ $link[0] }}
