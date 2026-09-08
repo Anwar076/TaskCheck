@@ -252,6 +252,10 @@ Route::get('/hygiëne-lijsten-horeca', function () {
     return view('seo.hygiëne-lijsten-horeca');
 })->name('seo.hygiëne-lijsten-horeca');
 
+Route::get('/alles-in-één-horeca-platform', function () {
+    return view('seo.alles-in-één-horeca-platform');
+})->name('seo.alles-in-één-horeca-platform');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
