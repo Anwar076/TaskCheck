@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from typing import Any
 
@@ -10,6 +11,13 @@ from app.ai.brain import AIBrain
 from app.seo.page_registry import get_page_registry
 from app.utils.config import get_config
 from app.utils.files import slugify, write_blade
+
+_CATEGORY_DOT = {
+    "Horeca": "bg-orange-500",
+    "NVWA": "bg-rose-500",
+    "Nieuws": "bg-blue-600",
+    "Praktijk": "bg-emerald-500",
+}
 
 
 class BlogWriter:
@@ -27,6 +35,7 @@ class BlogWriter:
 
         payload = self.brain.generate_blog_content(topic, source=source)
         blade = self._render_blog(payload, slug)
+        self._assert_shared_layout(blade, slug)
 
         generated_path = self.config.generated_dir / f"blog-{slug}.blade.php"
         pending_path = self.config.pending_dir / f"blog-{slug}.blade.php"
@@ -56,96 +65,148 @@ class BlogWriter:
         image = data.get("hero_image", "images/taskcheck-horeca-blog-hero.webp")
         image_alt = data.get("hero_alt", h1)
         read_minutes = data.get("read_minutes", "6 min lezen")
+        cta_heading = data.get("cta_title", "Wil je dit direct toepassen in jouw team?")
+        cta_lead = data.get(
+            "cta_text",
+            "Start met TaskCheck en zet je eerste digitale checklist live. 14 dagen gratis, zonder creditcard.",
+        )
         sections = data.get("sections", [])
         related = data.get("related_routes", [])
 
-        section_html = "\n".join(
-            f"""        <section class="mt-10">
-            <h2 class="text-2xl font-bold text-slate-900">{self._esc(s.get("title", ""))}</h2>
-            <div class="mt-3 text-slate-600 leading-relaxed">{s.get("body_html", "")}</div>
-        </section>"""
+        tag_dot = _CATEGORY_DOT.get(category, "bg-blue-600")
+
+        section_html = "\n\n".join(
+            f"""        <h2>{self._esc(s.get("title", ""))}</h2>
+        {s.get("body_html", "")}"""
             for s in sections[:8]
         )
-        related_html = "\n".join(
-            f"""            <a href="{{{{ route('{r.get("route", "blog")}') }}}}" class="group flex gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-blue-300">
-                <span class="text-sm font-semibold text-slate-900 group-hover:text-blue-700">{self._esc(r.get("label", ""))}</span>
-            </a>"""
-            for r in related[:4]
+
+        solution_items = []
+        blog_items = []
+        for r in related[:6]:
+            route = str(r.get("route", "")).strip()
+            label = str(r.get("label", "")).strip()
+            description = str(r.get("description", "Bekijk gerelateerde TaskCheck-oplossing.")).strip()
+            if not route or not label:
+                continue
+            if route.startswith("seo.") or route in {"pricing", "contact", "features"}:
+                solution_items.append((label, description, route))
+            else:
+                blog_items.append((label, route))
+
+        if not solution_items:
+            solution_items = [
+                ("Horeca App", "Checklists, HACCP en werkcontrole voor restaurantteams.", "seo.horeca-app"),
+                ("HACCP App", "Digitale HACCP-registratie met bewijs.", "seo.haccp-app"),
+                ("Restaurant Checklist App", "Opening, sluiting en hygiëne digitaal afvinken.", "seo.restaurant-checklist-app"),
+            ]
+
+        solutions_php = ",\n            ".join(
+            f"[{json.dumps(title, ensure_ascii=False)}, {json.dumps(desc, ensure_ascii=False)}, {json.dumps(route, ensure_ascii=False)}]"
+            for title, desc, route in solution_items[:3]
         )
 
-        return f"""<!DOCTYPE html>
-<html lang="{{{{ str_replace('_', '-', app()->getLocale()) }}}}">
-<head>
-    @php
-        $seoTitle = {json.dumps(title, ensure_ascii=False)};
-        $seoDescription = {json.dumps(desc, ensure_ascii=False)};
-        $seoUrl = route('blog.{slug}');
-        $seoImage = asset('{image}');
-    @endphp
-    <title>{{{{ $seoTitle }}}}</title>
-    @include('components.head')
-    <meta name="description" content="{{{{ $seoDescription }}}}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{{{ $seoUrl }}}}">
-    <meta property="og:type" content="article">
-    <meta property="article:published_time" content="{date_iso}">
-    <meta property="og:title" content="{{{{ $seoTitle }}}}">
-    <meta property="og:description" content="{{{{ $seoDescription }}}}">
-    <meta property="og:url" content="{{{{ $seoUrl }}}}">
-    <meta property="og:image" content="{{{{ $seoImage }}}}">
-    <script type="application/ld+json">
-    {{
-      "@@context":"https://schema.org",
-      "@@type":"Article",
-      "headline": {json.dumps(h1, ensure_ascii=False)},
-      "datePublished":"{date_iso}",
-      "author":{{"@@type":"Organization","name":"TaskCheck"}},
-      "publisher":{{"@@type":"Organization","name":"TaskCheck"}},
-      "mainEntityOfPage":{{"@@type":"WebPage","@@id":"{{{{ $seoUrl }}}}"}}
-    }}
-    </script>
-</head>
-<body class="min-h-screen bg-white text-slate-900 antialiased">
-@include('components.header')
-
-<header class="border-b border-slate-200 bg-white pt-28 pb-10">
-    <div class="max-w-3xl mx-auto px-6">
-        <nav class="mb-5 flex items-center gap-2 text-xs text-slate-400">
-            <a href="{{{{ route('blog') }}}}" class="hover:text-blue-600">Blog</a>
-            <span>/</span>
-            <span class="text-slate-500">{self._esc(category)}</span>
-        </nav>
-        <div class="mb-4 flex flex-wrap items-center gap-3">
-            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">{self._esc(category)}</span>
-            <span class="text-xs text-slate-400">{self._esc(date_label)} · {self._esc(read_minutes)}</span>
-        </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight text-slate-900">{self._esc(h1)}</h1>
-        <p class="mt-4 text-lg text-slate-500 leading-relaxed">{self._esc(intro)}</p>
-        <aside class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Bron: {self._esc(source_name)}
-        </aside>
-    </div>
-</header>
-
-<main class="max-w-3xl mx-auto px-6 py-10">
-    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
-        <img src="{{{{ asset('{image}') }}}}" alt="{self._esc(image_alt)}" class="w-full object-cover" loading="eager">
-    </figure>
-
-{section_html}
-
-    <div class="mt-12 border-t border-slate-200 pt-8">
-        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Meer lezen</h3>
-        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        if blog_items:
+            related_html = "\n".join(
+                f"""            <a href="{{{{ route('{route}') }}}}" class="blog-readmore group">
+                <div>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full {tag_dot}"></span>{self._esc(category)}</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">{self._esc(label)}</p>
+                </div>
+            </a>"""
+                for label, route in blog_items[:4]
+            )
+            related_block = f"""
+    <div class="mt-14 fade-up">
+        <p class="blog-kicker">Meer lezen</p>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
 {related_html}
         </div>
-    </div>
-</main>
+    </div>"""
+        else:
+            related_block = ""
 
-@include('components.footer')
-</body>
-</html>
+        return f"""@php
+    $seoTitle = {json.dumps(title, ensure_ascii=False)};
+    $seoDescription = {json.dumps(desc, ensure_ascii=False)};
+    $seoUrl = route('blog.{slug}');
+    $seoImage = asset('{image}');
+    $publishedAt = {json.dumps(date_iso, ensure_ascii=False)};
+    $ctaHeading = {json.dumps(cta_heading, ensure_ascii=False)};
+    $ctaLead = {json.dumps(cta_lead, ensure_ascii=False)};
+@endphp
+
+@extends('layouts.blog-article')
+
+@push('head')
+<script type="application/ld+json">
+{{
+  "@@context":"https://schema.org",
+  "@@type":"Article",
+  "headline": {json.dumps(h1, ensure_ascii=False)},
+  "datePublished":{json.dumps(date_iso, ensure_ascii=False)},
+  "author":{{"@@type":"Organization","name":"TaskCheck"}},
+  "publisher":{{"@@type":"Organization","name":"TaskCheck"}},
+  "image": "{{{{ $seoImage }}}}",
+  "description": "{{{{ $seoDescription }}}}",
+  "mainEntityOfPage":{{"@@type":"WebPage","@@id":"{{{{ $seoUrl }}}}"}}
+}}
+</script>
+@endpush
+
+@section('hero')
+    <nav class="fade-up mb-5 flex items-center gap-2 text-xs text-slate-400">
+        <a href="{{{{ route('blog') }}}}" class="transition hover:text-blue-600">Blog</a>
+        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-slate-500">{self._esc(category)}</span>
+    </nav>
+    <div class="fade-up delay-1 mb-4 flex flex-wrap items-center gap-2">
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full {tag_dot}"></span>{self._esc(category)}</span>
+        <span class="text-xs font-medium text-slate-400">{self._esc(date_label)} · {self._esc(read_minutes)}</span>
+    </div>
+    <h1 class="fade-up delay-1 text-3xl font-extrabold leading-[1.08] tracking-[-.045em] text-slate-900 sm:text-4xl lg:text-5xl">{self._esc(h1)}</h1>
+    <p class="fade-up delay-2 mt-4 text-lg leading-relaxed text-slate-500">{self._esc(intro)}</p>
+@endsection
+
+@section('content')
+    <figure class="blog-figure mb-10 fade-up">
+        <img src="{{{{ $seoImage }}}}"
+             alt="{self._esc(image_alt)}"
+             width="1200"
+             height="800"
+             loading="eager">
+        <figcaption>{self._esc(image_alt)}</figcaption>
+    </figure>
+
+    <aside class="blog-aside fade-up mb-8">
+        Bron: {self._esc(source_name)}
+    </aside>
+
+    <article class="prose-article fade-up">
+{section_html}
+    </article>
+
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            {solutions_php},
+        ],
+    ])
+{related_block}
+@endsection
 """
+
+    def _assert_shared_layout(self, blade: str, slug: str) -> None:
+        """Blokkeer oude standalone HTML; elke blog gebruikt layouts.blog-article."""
+        if "@extends('layouts.blog-article')" not in blade and '@extends("layouts.blog-article")' not in blade:
+            raise RuntimeError(
+                f"Blog '{slug}' mist @extends('layouts.blog-article'). "
+                "Nieuwe blogs moeten altijd de gedeelde blog-layout gebruiken."
+            )
+        if "<!DOCTYPE html>" in blade or re.search(r"<html\b", blade, re.I):
+            raise RuntimeError(
+                f"Blog '{slug}' bevat nog een standalone HTML-document. "
+                "Gebruik @extends('layouts.blog-article') in plaats van een eigen <html>/<body>."
+            )
 
     def _esc(self, text: str) -> str:
         return (

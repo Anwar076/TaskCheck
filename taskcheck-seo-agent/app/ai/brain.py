@@ -321,16 +321,20 @@ Geef ALLEEN geldige JSON:
   "read_minutes": "6 min lezen",
   "hero_image": "images/taskcheck-horeca-blog-hero.webp",
   "hero_alt": "beschrijving afbeelding",
+  "cta_title": "korte CTA-kop voor onderaan",
+  "cta_text": "korte CTA-tekst, max 1-2 zinnen",
   "sections": [
-    {{"title":"...", "body_html":"<p>...</p><p>...</p>"}}
+    {{"title":"...", "body_html":"<p>...</p><ul><li>...</li></ul><p>...</p>"}}
   ],
   "related_routes": [
-    {{"label":"...", "route":"seo.horeca-app"}},
-    {{"label":"...", "route":"blog"}}
+    {{"label":"Horeca App", "description":"korte omschrijving", "route":"seo.horeca-app"}},
+    {{"label":"HACCP App", "description":"korte omschrijving", "route":"seo.haccp-app"}},
+    {{"label":"ander blog", "description":"", "route":"blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists"}}
   ]
 }}
 
-Minimaal 4 secties.
+Minimaal 4 secties. body_html mag <p>, <ul>, <ol>, <li>, <strong>, <em>, <a> gebruiken.
+Gerelateerde routes: bij voorkeur 2-3 seo.* routes + eventueel 1-2 bestaande blog.* routes.
 """
         result = self._ask(prompt, system="Je bent een SEO redacteur. Antwoord alleen in JSON.")
         return extract_json_from_response(result)

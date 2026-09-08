@@ -338,6 +338,8 @@ Route::get('/blog/{slug}', function () {{
         content = read_text(source)
         if self._is_seo_view_target(target):
             self._assert_seo_shared_layout(content, target.name)
+        elif self._is_blog_view_target(target):
+            self._assert_blog_shared_layout(content, target.name)
         write_blade(target, content)
 
     def _is_seo_view_target(self, target: Path) -> bool:
@@ -345,6 +347,12 @@ Route::get('/blog/{slug}', function () {{
             return target.resolve().parent == self.config.seo_views_dir.resolve()
         except OSError:
             return "resources/views/seo" in str(target).replace("\\", "/")
+
+    def _is_blog_view_target(self, target: Path) -> bool:
+        try:
+            return target.resolve().parent == self.config.blog_views_dir.resolve()
+        except OSError:
+            return "resources/views/blog" in str(target).replace("\\", "/")
 
     def _assert_seo_shared_layout(self, content: str, filename: str) -> None:
         """Elke SEO Blade moet layouts.seo-page gebruiken (geen standalone HTML)."""
@@ -361,6 +369,23 @@ Route::get('/blog/{slug}', function () {{
             raise RuntimeError(
                 f"{filename} bevat nog een standalone HTML-document. "
                 "Gebruik @extends('layouts.seo-page') in plaats van eigen <html>/<body>."
+            )
+
+    def _assert_blog_shared_layout(self, content: str, filename: str) -> None:
+        """Elke blog Blade moet layouts.blog-article gebruiken (geen standalone HTML)."""
+        has_extends = (
+            "@extends('layouts.blog-article')" in content
+            or '@extends("layouts.blog-article")' in content
+        )
+        if not has_extends:
+            raise RuntimeError(
+                f"{filename} mist @extends('layouts.blog-article'). "
+                "Blogartikelen moeten de gedeelde blog-layout gebruiken."
+            )
+        if "<!DOCTYPE html>" in content or re.search(r"<html\b", content, re.I):
+            raise RuntimeError(
+                f"{filename} bevat nog een standalone HTML-document. "
+                "Gebruik @extends('layouts.blog-article') in plaats van eigen <html>/<body>."
             )
 
     def _commit_changes(

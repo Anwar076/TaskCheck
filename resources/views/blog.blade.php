@@ -165,7 +165,33 @@
                 </div>
             </article>
 
+            {{-- Raster --}}
             <div class="grid gap-6 sm:gap-8 md:grid-cols-2">
+                <article class="fade-up group blog-card">
+                    <a href="{{ route('blog.applicatie-voor-eigenaar-restaurant') }}" class="blog-card__media block">
+                        <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+                             alt="Applicatie voor restaurant eigenaren: digitale checklist in de keuken"
+                             loading="lazy"
+                             decoding="async"
+                             width="1024"
+                             height="682">
+                    </a>
+                    <div class="flex flex-1 flex-col p-5 sm:p-6">
+                        <div class="mb-3 flex flex-wrap items-center gap-2">
+                            <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>Horeca</span>
+                            <span class="text-xs text-slate-400">29 jun 2026 · 7 min lezen</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700 sm:text-xl">
+                            <a href="{{ route('blog.applicatie-voor-eigenaar-restaurant') }}">Applicatie voor restaurant eigenaren: zo houd je controle</a>
+                        </h2>
+                        <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-500">HACCP, NVWA en dagelijkse taken vragen om overzicht. Met een digitale checklist-app automatiseer je controles, verzamel je bewijs en zie je realtime wat je team doet.</p>
+                        <a href="{{ route('blog.applicatie-voor-eigenaar-restaurant') }}" class="blog-link mt-4">
+                            Lees artikel
+                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                        </a>
+                    </div>
+                </article>
+
                 <article class="fade-up group blog-card">
                     <a href="{{ route('blog.nvwa-controle-horeca-2026') }}" class="blog-card__media block">
                         <img src="{{ asset('images/blog-nvwa-controle-horeca-2026.jpg') }}?v=2"
