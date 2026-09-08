@@ -27,8 +27,8 @@ RELATED_LINKS_STATIC = re.compile(
 )
 
 STATIC_LINK_CLASSES = (
-    "inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white "
-    "px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50"
+    "inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white "
+    "px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700"
 )
 
 # PageWriter schrijft meta-strings met json.dumps (dubbele quotes), de
@@ -112,7 +112,20 @@ class PageOptimizer:
 
         extra_section = improvements.get("extra_content_section")
         if extra_section:
-            result = result.replace("</main>", f"{extra_section}\n</main>", 1)
+            # Shared layout pages hebben geen </main> in @section('content').
+            # Plaats extra content vóór de gerelateerde-pagina's sectie of vóór @endsection.
+            if "</main>" in result:
+                result = result.replace("</main>", f"{extra_section}\n</main>", 1)
+            elif "Gerelateerde pagina" in result:
+                result = re.sub(
+                    r"(<section[^>]*>[\s\S]*?Gerelateerde pagina)",
+                    extra_section + r"\n\n        \1",
+                    result,
+                    count=1,
+                    flags=re.IGNORECASE,
+                )
+            elif "@endsection" in result:
+                result = result.replace("@endsection", f"{extra_section}\n@endsection", 1)
 
         links = improvements.get("internal_links_to_add", [])
         if links:
