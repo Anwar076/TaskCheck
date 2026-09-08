@@ -280,18 +280,27 @@
 
         }
 
-        .faq-card {
+        .pricing-faq-section {
+            padding-top: var(--pricing-section-gap);
+            padding-bottom: var(--pricing-section-gap)
+        }
+
+        .pricing-faq details {
             transition: border-color .2s ease, box-shadow .2s ease
         }
 
-        .faq-card:hover {
+        .pricing-faq details:hover,
+        .pricing-faq details[open] {
             border-color: #cbd5e1;
             box-shadow: 0 10px 28px -24px rgba(15, 23, 42, .3)
         }
 
-        .pricing-faq-section {
-            padding-top: var(--pricing-section-gap);
-            padding-bottom: var(--pricing-section-gap)
+        .pricing-faq summary {
+            list-style: none
+        }
+
+        .pricing-faq summary::-webkit-details-marker {
+            display: none
         }
 
         @media (min-width: 640px) {
@@ -546,26 +555,27 @@
         </section>
         <section class="pricing-faq-section relative">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="pricing-reveal">
+                <div class="pricing-reveal mx-auto max-w-3xl text-center">
                     <p class="text-xs font-bold uppercase tracking-[.14em] text-slate-400">Veelgestelde vragen</p>
-                    <h2 class="mt-2 text-2xl font-bold">Alles wat je wilt weten</h2>
+                    <h2 class="mt-2 text-2xl font-bold sm:text-3xl">Alles wat je wilt weten</h2>
                 </div>
-                <div class="mt-7 grid gap-4 md:grid-cols-2">
-                    @foreach ([['Hoe werkt betalen?', 'Na je proefperiode ga je naar een beveiligde Mollie-checkout. Je abonnement wordt direct geactiveerd na betaling.'], ['Kan ik tussentijds wisselen?', 'Ja, op- en afschalen kan vanuit je abonnementspagina. Je betaalt naar wat je gebruikt.'], ['Wat na 14 dagen gratis?', 'Je kiest pas daarna een plan. Geen automatische incasso zonder jouw akkoord.'], ['Korting op jaarbetaling?', 'Neem contact op — voor jaarabonnementen maken we graag maatwerk.']] as [$question, $answer])
-                        <div class="pricing-reveal faq-card flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5">
-                            <span
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4f6bff]"><svg
-                                        class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
-                                        viewBox="0 0 24 24">
-                                        <circle cx="12" cy="12" r="8" />
-                                        <path d="m9 12 2 2 4-5" />
-                                </svg></span>
-                            <div class="min-w-0 flex-1">
-                                <h3 class="text-sm font-bold text-slate-900">{{ $question }}</h3>
-                                <p class="mt-1.5 text-xs leading-relaxed text-slate-500">{{ $answer }}</p>
-                            </div>
-                            <span class="mt-2 text-slate-700" aria-hidden="true">›</span>
-                        </div>
+                <div class="pricing-faq mx-auto mt-8 max-w-3xl space-y-3">
+                    @foreach ([
+                        ['Hoe werkt betalen?', 'Na je proefperiode ga je naar een beveiligde Mollie-checkout. Je abonnement wordt direct geactiveerd na betaling.'],
+                        ['Kan ik tussentijds wisselen?', 'Ja, op- en afschalen kan vanuit je abonnementspagina. Je betaalt naar wat je gebruikt.'],
+                        ['Wat gebeurt er na 14 dagen gratis?', 'Je kiest pas daarna een plan. Er volgt geen automatische incasso zonder jouw akkoord.'],
+                        ['Krijg ik korting bij jaarbetaling?', 'Neem contact op — voor jaarabonnementen maken we graag een passend voorstel.'],
+                        ['Kan ik later upgraden naar Enterprise?', 'Ja. Start met Starter of Pro en schaal op wanneer je meer locaties, gebruikers of maatwerk nodig hebt.'],
+                    ] as [$question, $answer])
+                        <details class="pricing-reveal group cursor-pointer rounded-xl border border-slate-200 bg-white px-5 py-4 sm:px-6">
+                            <summary class="flex items-center justify-between gap-4 text-left">
+                                <span class="text-sm font-bold text-slate-900">{{ $question }}</span>
+                                <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                            </summary>
+                            <p class="mt-3 pr-8 text-sm leading-relaxed text-slate-600">{{ $answer }}</p>
+                        </details>
                     @endforeach
                 </div>
                 <div
@@ -594,6 +604,16 @@
     @include('components.footer')
     <script>
         (function() {
+            var faqItems = document.querySelectorAll('.pricing-faq details');
+            faqItems.forEach(function(item) {
+                item.addEventListener('toggle', function() {
+                    if (!item.open) return;
+                    faqItems.forEach(function(other) {
+                        if (other !== item) other.open = false;
+                    });
+                });
+            });
+
             var cards = document.querySelectorAll('[data-pricing-card]');
             cards.forEach(function(card, index) {
                 card.classList.add('pricing-reveal', 'pricing-reveal-delay-' + Math.min(index + 1, 3));
