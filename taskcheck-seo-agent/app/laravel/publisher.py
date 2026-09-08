@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from datetime import datetime
+import time
 from pathlib import Path
 
 from app.laravel.blog_index import BlogIndexUpdater
@@ -404,7 +404,7 @@ Route::get('/blog/{slug}', function () {{
         """
         base = self.config.git_base_branch
         try:
-            self._run_git(["checkout", base], repo_root)
+            self._checkout_if_needed(repo_root, base)
             self._run_git(
                 ["merge", "--no-ff", branch, "-m", f"Merge {branch} into {base}"],
                 repo_root,
@@ -412,7 +412,7 @@ Route::get('/blog/{slug}', function () {{
         except RuntimeError as exc:
             logger.error("Samenvoegen met %s mislukt: %s", base, exc)
             try:
-                self._run_git(["checkout", branch], repo_root)
+                self._checkout_if_needed(repo_root, branch)
                 logger.info("Wijzigingen blijven op branch %s staan", branch)
             except RuntimeError:
                 logger.exception("Kon niet terugschakelen naar %s", branch)
@@ -431,16 +431,51 @@ Route::get('/blog/{slug}', function () {{
             return "create blog"
         return action_type.replace("_", " ")
 
+    def _current_branch(self, repo_root: Path) -> str:
+        return (self._run_git(["rev-parse", "--abbrev-ref", "HEAD"], repo_root).stdout or "").strip()
+
+    def _checkout_if_needed(self, repo_root: Path, branch: str) -> None:
+        """Wissel alleen van branch als dat nodig is.
+
+        Op Windows faalt `git checkout` van de huidige branch vaak met
+        `couldn't set HEAD` als Cursor of GitHub Desktop .git/HEAD open heeft.
+        """
+        if self._current_branch(repo_root) == branch:
+            logger.info("Al op branch %s — checkout overgeslagen", branch)
+            return
+
+        last_error: RuntimeError | None = None
+        for attempt in range(1, 4):
+            try:
+                self._run_git(["checkout", branch], repo_root)
+                return
+            except RuntimeError as exc:
+                last_error = exc
+                text = str(exc)
+                if "couldn't set 'HEAD'" not in text and "unable to update HEAD" not in text:
+                    raise
+                if self._current_branch(repo_root) == branch:
+                    logger.warning("HEAD was vergrendeld, maar we staan al op %s", branch)
+                    return
+                logger.warning("Checkout %s poging %s mislukt: %s", branch, attempt, exc)
+                time.sleep(0.4 * attempt)
+
+        raise RuntimeError(
+            f"{last_error}\n\n"
+            "Git kan HEAD niet bijwerken omdat een ander programma de repo open heeft "
+            "(vaak GitHub Desktop of Cursor). Sluit die even, of keur opnieuw goed "
+            f"terwijl je al op `{branch}` staat."
+        )
+
     def _ensure_branch(self, repo_root: Path, slug: str) -> str:
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        branch = f"seo-agent/{slug}-{timestamp}"
         base = self.config.git_base_branch
-
         self._assert_target_paths_clean(repo_root, slug)
-
-        self._run_git(["checkout", base], repo_root)
-        self._run_git(["checkout", "-b", branch], repo_root)
-        return branch
+        self._checkout_if_needed(repo_root, base)
+        # Geen extra feature-branch: die vereist HEAD herschrijven en wordt
+        # daarna sowieso terug gemerged naar main. Committen op main is genoeg
+        # voor /push → GitHub → Plesk.
+        self._active_branch = base
+        return base
 
     def _assert_target_paths_clean(self, repo_root: Path, slug: str) -> None:
         """Blokkeer alleen als de bestanden die de agent zélf herschrijft
