@@ -528,3 +528,7 @@ Route::get('/blog/haccp-temperatuur-lijsten', function () {
 Route::get('/blog/logboek-horeca', function () {
     return view('blog.logboek-horeca');
 })->name('blog.logboek-horeca');
+Route::get('/blog/applicatie-voor-eigenaar-restaurant', function () {
+    return view('blog.applicatie-voor-eigenaar-restaurant');
+})->name('blog.applicatie-voor-eigenaar-restaurant');
+

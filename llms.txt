@@ -67,6 +67,7 @@ TaskCheck helpt organisaties om dagelijkse controles, HACCP-registraties, schoon
 - [HACCP richtlijnen checklist: praktische tips voor horeca | TaskCheck](https://taskcheck.nl/blog/haccp-richtlijnen-checklist): Ontdek hoe een HACCP richtlijnen checklist helpt bij NVWA-controle, voedselveiligheid en dagelijkse horeca-operatie. Praktisch en direct toepasbaar.
 - [HACCP temperatuur lijsten: zo houd je voedselveiligheid op orde](https://taskcheck.nl/blog/haccp-temperatuur-lijsten): Alles over HACCP temperatuur lijsten voor horeca: praktisch, NVWA-proof en eenvoudig digitaal bijhouden met TaskCheck.
 - [Logboek horeca: essentieel voor NVWA, HACCP en dagelijkse controle](https://taskcheck.nl/blog/logboek-horeca): Ontdek waarom een digitaal logboek horeca onmisbaar is voor HACCP, NVWA-inspecties en dagelijkse hygiënechecks. Praktische tips voor ondernemers.
+- [Applicatie voor restaurant eigenaren: grip op HACCP en NVWA-controles](https://taskcheck.nl/blog/applicatie-voor-eigenaar-restaurant): Ontdek hoe een digitale checklist applicatie restaurant eigenaren helpt bij HACCP, NVWA-controles en dagelijkse werkprocessen.
 
 ## Functies
 
