@@ -29,12 +29,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Check if request is from PWA
-        $isPwa = $request->query('source') === 'pwa' || 
-                 $request->header('User-Agent') && str_contains($request->header('User-Agent'), 'wv') ||
-                 $request->header('X-PWABuilder-Rewrite') ||
-                 request()->headers->get('sec-fetch-dest') === 'empty';
-
         // Redirect based on user role
         $user = Auth::user();
         if ($user->role === 'admin') {
@@ -49,8 +43,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('employee.dashboard');
         }
 
-        // If from PWA, redirect to appropriate dashboard, otherwise to generic dashboard
-        if ($isPwa) {
+        if ($this->isAppShellRequest($request)) {
             return redirect()->route('dashboard', ['source' => 'pwa']);
         }
 
@@ -68,16 +61,35 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        // Check if request is from PWA and redirect to login with PWA source
-        $isPwa = $request->query('source') === 'pwa' || 
-                 $request->header('User-Agent') && str_contains($request->header('User-Agent'), 'wv') ||
-                 $request->header('X-PWABuilder-Rewrite') ||
-                 request()->headers->get('sec-fetch-dest') === 'empty';
+        $params = ['logout' => time()];
 
-        if ($isPwa) {
-            return redirect()->route('login', ['source' => 'pwa', 'logout' => time()]);
+        if ($this->isAppShellRequest($request)) {
+            $params['source'] = 'pwa';
         }
 
-        return redirect('/')->with('logout', time());
+        return redirect()->route('login', $params);
+    }
+
+    private function isAppShellRequest(Request $request): bool
+    {
+        if ($request->query('source') === 'pwa' || $request->input('source') === 'pwa') {
+            return true;
+        }
+
+        if ($request->header('X-PWABuilder-Rewrite')) {
+            return true;
+        }
+
+        $userAgent = (string) $request->userAgent();
+
+        if ($userAgent !== '' && (
+            str_contains($userAgent, 'Capacitor')
+            || str_contains($userAgent, 'TaskCheck')
+            || str_contains($userAgent, 'wv')
+        )) {
+            return true;
+        }
+
+        return $request->headers->get('sec-fetch-dest') === 'empty';
     }
 }

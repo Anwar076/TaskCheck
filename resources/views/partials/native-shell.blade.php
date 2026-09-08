@@ -9,5 +9,21 @@
         return;
     }
     document.documentElement.classList.add('is-native-app');
+
+    function pointLogoutFormsToLogin() {
+        document.querySelectorAll('form[action*="/logout"]').forEach(function (form) {
+            try {
+                var url = new URL(form.getAttribute('action'), window.location.origin);
+                url.searchParams.set('source', 'pwa');
+                form.setAttribute('action', url.pathname + url.search);
+            } catch (e) {}
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', pointLogoutFormsToLogin, { once: true });
+    } else {
+        pointLogoutFormsToLogin();
+    }
 })();
 </script>
