@@ -11,8 +11,6 @@
 @extends('layouts.seo-page')
 
 @section('content')
-<section class="py-12 border-t border-[#e6e8ec] bg-white"><div class="max-w-4xl mx-auto px-4"><h2 class="text-2xl font-bold mb-4">Voorbeeld opening checklist horeca (inclusief download)</h2><p class="mb-2">Hieronder vind je een praktisch voorbeeld van een digitale opening checklist zoals gebruikt door restaurants, lunchrooms en hotels. Download het <a href="/voorbeeld-opening-checklist-horeca.pdf" class="text-blue-600 underline">PDF voorbeeld</a> of neem het direct over in TaskCheck.</p><ul class="list-disc pl-5 text-slate-700"><li>Koeling temperaturen controleren en registreren</li><li>Kassa opstarten & wisselgeld tellen</li><li>Hygiënecontrole van keuken, werkbladen en entree</li><li>Menukaarten schoonmaken en aanvullen</li><li>Terras en zaal klaarzetten</li><li>Voorraad checken en aanvullen</li><li>Openingsrapportage versturen</li></ul><p class="mt-4">Met TaskCheck kun je deze checklist aanpassen aan jouw zaak en direct digitaal gebruiken.</p></div></section>
-
         <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -203,9 +201,9 @@
                 <div>
                     <span class="blog-kicker">Voorbeeld</span>
                     <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Praktisch voorbeeld: opening checklist restaurant</h2>
-                    <p class="mt-3 leading-relaxed text-slate-600">Dit is een voorbeeld voor een restaurant. Pas het aan op jouw menu, locatie en wetgeving.</p>
+                    <p class="mt-3 leading-relaxed text-slate-600">Dit is een voorbeeld voor een restaurant. Pas het aan op jouw menu, locatie en wetgeving — of neem het 1-op-1 over in TaskCheck.</p>
                     <div class="mt-4 space-y-1.5">
-                        @php $keuken = ['Koeling 1 controleren (temp. max. 4°C)', 'Koeling 2 controleren (temp. max. 4°C)', 'Datumcontrole gekoelde producten', 'Werkstations reinigen en desinfecteren', 'Friteuses voorverwarmen', 'Mise en place voorbereiden voor lunch', 'Snijplanken en messen gereed']; @endphp
+                        @php $keuken = ['Koeling 1 controleren (temp. max. 4°C)', 'Koeling 2 controleren (temp. max. 4°C)', 'Datumcontrole gekoelde producten', 'Werkstations reinigen en desinfecteren', 'Voorraad checken en aanvullen', 'Friteuses voorverwarmen', 'Mise en place voorbereiden voor lunch', 'Snijplanken en messen gereed']; @endphp
                         <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Keuken</p>
                         @foreach($keuken as $item)
                         <div class="flex items-center gap-2.5 rounded-lg border border-blue-100 bg-white px-3.5 py-2.5 text-sm text-slate-700">
@@ -224,7 +222,7 @@
                         {{ $item }}
                     </div>
                     @endforeach
-                    @php $kassa = ['Kassa opstarten en wisselgeld tellen', 'PIN-apparaat testen', 'Reserveringssysteem controleren']; @endphp
+                    @php $kassa = ['Kassa opstarten en wisselgeld tellen', 'PIN-apparaat testen', 'Reserveringssysteem controleren', 'Openingsrapportage versturen']; @endphp
                     <p class="mb-2 mt-4 text-xs font-bold uppercase tracking-wide text-slate-500">Kassa &amp; systemen</p>
                     @foreach($kassa as $item)
                     <div class="flex items-center gap-2.5 rounded-lg border border-blue-100 bg-white px-3.5 py-2.5 text-sm text-slate-700">
@@ -342,12 +340,13 @@
                     ['Horeca app personeel', route('seo.horeca-app-personeel')],
                     ['Takenlijst personeel', route('seo.takenlijst-personeel')],
                     ['Werkcontrole app', route('seo.werkcontrole-app')],
-                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],                    ['Alles-in-één horeca platform', route('seo.alles-in-één-horeca-platform')],
+                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],
+                    ['Alles-in-één horeca platform', route('seo.alles-in-één-horeca-platform')],
                     ['Digitale HACCP registratie', route('seo.digitale-haccp-registratie')],
                     ['Schoonmaak checklist voorbeeld', route('seo.schoonmaak-checklist-voorbeeld')],
                     ['Temperatuurregistratie horeca', route('seo.temperatuurregistratie-horeca')],
                     ['Sluitings checklist horeca', route('seo.sluitings-checklist-horeca')],
-                    ['Checklist app met foto-bewijs', route('seo.checklist-app-met-foto-bewijs')],                    ['HACCP checklist app', route('seo.haccp-checklist-app')],
+                    ['HACCP checklist app', route('seo.haccp-checklist-app')],
                     ['Schoonmaak checklist app', route('seo.schoonmaak-checklist-app')],
                     ['Restaurant checklist app', route('seo.restaurant-checklist-app')],
                 ] as $link)

@@ -112,26 +112,47 @@ class PageOptimizer:
 
         extra_section = improvements.get("extra_content_section")
         if extra_section:
-            # Shared layout pages hebben geen </main> in @section('content').
-            # Plaats extra content vóór de gerelateerde-pagina's sectie of vóór @endsection.
-            if "</main>" in result:
-                result = result.replace("</main>", f"{extra_section}\n</main>", 1)
-            elif "Gerelateerde pagina" in result:
-                result = re.sub(
-                    r"(<section[^>]*>[\s\S]*?Gerelateerde pagina)",
-                    extra_section + r"\n\n        \1",
-                    result,
-                    count=1,
-                    flags=re.IGNORECASE,
-                )
-            elif "@endsection" in result:
-                result = result.replace("@endsection", f"{extra_section}\n@endsection", 1)
+            result = self._insert_extra_section(result, extra_section)
 
         links = improvements.get("internal_links_to_add", [])
         if links:
             result = self._add_internal_links(result, links)
 
         return result
+
+    def _insert_extra_section(self, content: str, extra_section: str) -> str:
+        """Plaats extra content netjes vóór FAQ/gerelateerde links — nooit vóór de hero."""
+        extra = (extra_section or "").strip()
+        if not extra:
+            return content
+
+        # Oude standalone pagina's
+        if "</main>" in content:
+            return content.replace("</main>", f"{extra}\n</main>", 1)
+
+        # Alleen de gerelateerde-pagina's sectie (niet vanaf de eerste <section> tot daar).
+        related = re.search(
+            r"(<section[^>]*class=\"[^\"]*border-t[^\"]*\"[^>]*>\s*"
+            r"(?:<p[^>]*>)?[^<]*Gerelateerde pagina)",
+            content,
+            flags=re.IGNORECASE,
+        )
+        if related:
+            return content[: related.start()] + extra + "\n\n        " + content[related.start() :]
+
+        faq = re.search(
+            r"(<section[^>]*>\s*<div[^>]*>\s*<span class=\"blog-kicker\">FAQ</span>)",
+            content,
+            flags=re.IGNORECASE,
+        )
+        if faq:
+            return content[: faq.start()] + extra + "\n\n        " + content[faq.start() :]
+
+        if "@endsection" in content:
+            return content.replace("@endsection", f"{extra}\n@endsection", 1)
+
+        logger.warning("Kon extra_content_section niet veilig plaatsen; overgeslagen")
+        return content
 
     def _replace_php_string(
         self,
