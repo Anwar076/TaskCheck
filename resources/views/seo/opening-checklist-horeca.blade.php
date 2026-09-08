@@ -1,6 +1,6 @@
 @php
-    $seoTitle = 'Opening checklist horeca – voorkom fouten bij de start';
-        $seoDescription = 'Een goede opening checklist horeca voorkomt fouten, stress en gemiste taken. Bekijk een praktisch voorbeeld en start gratis met TaskCheck.';
+    $seoTitle = 'Opening checklist horeca – voorbeeld & digitale tool (gratis proefaccount)';
+        $seoDescription = 'Voorkom fouten en stress met een digitale opening checklist voor horeca. Bekijk een praktisch voorbeeld, ontdek de voordelen en start direct gratis met TaskCheck.';
         $seoUrl = route('seo.opening-checklist-horeca');
         $seoImage = asset('images/seo-opening-checklist-horeca-hero.png');
         $ctaHeading = 'Start vandaag';
@@ -340,7 +340,12 @@
                     ['Horeca app personeel', route('seo.horeca-app-personeel')],
                     ['Takenlijst personeel', route('seo.takenlijst-personeel')],
                     ['Werkcontrole app', route('seo.werkcontrole-app')],
-                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],
+                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],                    ['Alles-in-één horeca platform', route('seo.alles-in-één-horeca-platform')],
+                    ['Digitale HACCP registratie', route('seo.digitale-haccp-registratie')],
+                    ['Schoonmaak checklist voorbeeld', route('seo.schoonmaak-checklist-voorbeeld')],
+                    ['Temperatuurregistratie horeca', route('seo.temperatuurregistratie-horeca')],
+                    ['Sluitings checklist horeca', route('seo.sluitings-checklist-horeca')],
+                    ['Checklist app met foto-bewijs', route('seo.checklist-app-met-foto-bewijs')],
                 ] as $link)
                 <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                     {{ $link[0] }}
