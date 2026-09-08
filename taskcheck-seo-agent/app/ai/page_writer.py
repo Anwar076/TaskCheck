@@ -45,6 +45,7 @@ class PageWriter:
         content = self.brain.generate_page_content(keyword, competitor_data)
 
         blade = sanitize_blade_ld_json(self._render_blade(content, slug, route_name))
+        self._assert_shared_layout(blade, slug)
         output_path = self.config.generated_dir / f"{slug}.blade.php"
         self.config.generated_dir.mkdir(parents=True, exist_ok=True)
         write_blade(output_path, blade)
@@ -285,6 +286,19 @@ class PageWriter:
 </div>
 @endsection
 """
+
+    def _assert_shared_layout(self, blade: str, slug: str) -> None:
+        """Blokkeer oude standalone HTML-pagina's; elke SEO-pagina gebruikt layouts.seo-page."""
+        if "@extends('layouts.seo-page')" not in blade and '@extends("layouts.seo-page")' not in blade:
+            raise RuntimeError(
+                f"SEO-pagina '{slug}' mist @extends('layouts.seo-page'). "
+                "Nieuwe pagina's moeten altijd de gedeelde SEO-layout gebruiken."
+            )
+        if "<!DOCTYPE html>" in blade or "<html" in blade.lower():
+            raise RuntimeError(
+                f"SEO-pagina '{slug}' bevat nog een standalone HTML-document. "
+                "Gebruik @extends('layouts.seo-page') in plaats van een eigen <html>/<body>."
+            )
 
     def _php_str(self, value: str) -> str:
         return json.dumps(value, ensure_ascii=False)

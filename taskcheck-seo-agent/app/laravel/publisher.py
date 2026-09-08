@@ -335,7 +335,33 @@ Route::get('/blog/{slug}', function () {{
         return pending
 
     def _install_blade(self, source: Path, target: Path) -> None:
-        write_blade(target, read_text(source))
+        content = read_text(source)
+        if self._is_seo_view_target(target):
+            self._assert_seo_shared_layout(content, target.name)
+        write_blade(target, content)
+
+    def _is_seo_view_target(self, target: Path) -> bool:
+        try:
+            return target.resolve().parent == self.config.seo_views_dir.resolve()
+        except OSError:
+            return "resources/views/seo" in str(target).replace("\\", "/")
+
+    def _assert_seo_shared_layout(self, content: str, filename: str) -> None:
+        """Elke SEO Blade moet layouts.seo-page gebruiken (geen standalone HTML)."""
+        has_extends = (
+            "@extends('layouts.seo-page')" in content
+            or '@extends("layouts.seo-page")' in content
+        )
+        if not has_extends:
+            raise RuntimeError(
+                f"{filename} mist @extends('layouts.seo-page'). "
+                "SEO-pagina's moeten de gedeelde layout gebruiken."
+            )
+        if "<!DOCTYPE html>" in content or re.search(r"<html\b", content, re.I):
+            raise RuntimeError(
+                f"{filename} bevat nog een standalone HTML-document. "
+                "Gebruik @extends('layouts.seo-page') in plaats van eigen <html>/<body>."
+            )
 
     def _commit_changes(
         self,
