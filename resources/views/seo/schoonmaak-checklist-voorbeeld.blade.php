@@ -1,30 +1,16 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle = 'Schoonmaak checklist voorbeeld – gratis template';
+@php
+    $seoTitle = 'Schoonmaak checklist voorbeeld – gratis template';
         $seoDescription = 'Gratis schoonmaak checklist voorbeeld voor kantoor, toilet en keuken. Praktische lijsten per ruimte en direct digitaal bijhouden met TaskCheck.';
         $seoUrl = route('seo.schoonmaak-checklist-voorbeeld');
         $seoImage = asset('images/seo-checklist-schoonmaak-hero.png');
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url" content="{{ $seoUrl }}">
-    <meta property="og:image" content="{{ $seoImage }}">
-    <style>
-        .cta-btn { background: linear-gradient(135deg, #2563eb, #4f46e5); }
-        .cta-btn:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca); }
-    </style>
-</head>
-<body class="bg-white text-slate-900 antialiased overflow-x-hidden">
-@include('components.header')
+        $ctaHeading = 'Start vandaag';
+        $ctaLead = 'Zet je schoonmaak checklist digitaal neer in minuten. Geen creditcard nodig, 14 dagen gratis proberen.';
+        $seoTheme = 'schoonmaak';
+@endphp
 
+@extends('layouts.seo-page')
+
+@section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -41,11 +27,8 @@
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <div class="min-w-0">
-                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
-                    <span class="text-left leading-snug">Gratis template · kantoor, toilet, keuken</span>
-                </div>
+            <div class="min-w-0 fade-up">
+                <p class="blog-kicker fade-up mb-6 sm:mb-7">Gratis template · kantoor, toilet, keuken</p>
 
                 <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.25rem]">
                     Schoonmaak checklist voorbeeld:
@@ -69,18 +52,18 @@
 
                 <div class="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Naar dashboard
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Start 14 dagen gratis
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @endauth
-                    <a href="{{ route('pricing') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
-                        Bekijk prijzen
+                    <a href="{{ route('contact') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl border border-[#e6e8ec] bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
+                        Plan een demo
                     </a>
                 </div>
 
@@ -95,8 +78,7 @@
             </div>
 
             <div class="relative mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none">
-                <div class="rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_24px_56px_-24px_rgba(37,99,235,.2),0_0_0_1px_rgba(241,245,249,.9)_inset] sm:p-3">
-                    <div class="overflow-hidden rounded-xl ring-1 ring-slate-100">
+                <div class="seo-hero-frame">
                         <img src="{{ asset('images/seo-checklist-schoonmaak-hero.png') }}"
                              alt="Schoonmaker met digitale checklist op tablet"
                              class="h-auto w-full object-cover"
@@ -105,14 +87,13 @@
                              loading="eager"
                              fetchpriority="high">
                     </div>
-                </div>
                 <p class="mt-3 text-center text-xs text-slate-400 lg:text-left">Zelfde template op papier of — beter — als vaste digitale lijst per locatie.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="border-b border-slate-200 bg-slate-50/80">
+<section class="border-y border-[#e6e8ec] bg-[#f7f8fa]">
     <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div class="flex gap-4">
@@ -155,7 +136,10 @@
     </div>
 </section>
 
-<main class="pb-20">
+
+<x-seo-product-visuals theme="schoonmaak" placement="showcase" />
+
+<div class="pb-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <section class="mt-12 max-w-3xl sm:mt-14">
@@ -165,7 +149,7 @@
 
         <section class="mt-16 sm:mt-20 lg:grid lg:grid-cols-2 lg:items-start lg:gap-16">
             <div>
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Het probleem</span>
+                <span class="blog-kicker">Het probleem</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Waarom een schoonmaak checklist belangrijk is</h2>
                 <p class="mt-4 leading-relaxed text-slate-600">Zonder checklist weet niemand precies wat zijn of haar taak is. De ene keer wordt de vloer gedweild, de andere keer niet. Bij een klacht is er vaak weinig om op terug te vallen als er geen registratie is.</p>
                 <p class="mt-3 leading-relaxed text-slate-600">Een checklist geeft grip: taken zijn duidelijk omschreven, medewerkers weten wat er verwacht wordt en je kunt controleren of alles gedaan is — zonder er de hele tijd fysiek bij te staan.</p>
@@ -192,9 +176,9 @@
             </div>
         </section>
 
-        <section class="mt-20 rounded-3xl bg-gradient-to-br from-slate-50 to-blue-50/60 p-8 sm:p-12 sm:mt-24">
+        <section class="mt-20 rounded-[18px] border border-[#e6e8ec] bg-[#f7f8fa] p-8 sm:p-12 sm:mt-24">
             <div class="mx-auto mb-10 max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Gratis voorbeeld</span>
+                <span class="blog-kicker">Gratis voorbeeld</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Schoonmaak checklist voorbeeld</h2>
                 <p class="mt-3 text-slate-500">Een algemene dagelijkse lijst als basis. Pas taken aan op jouw pand en afspraken met opdrachtgevers.</p>
             </div>
@@ -232,7 +216,7 @@
                     ];
                 @endphp
 
-                <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="rounded-2xl border border-[#e6e8ec] bg-white p-5 shadow-sm">
                     <p class="mb-3 text-xs font-bold uppercase tracking-wide text-blue-600">Dagelijkse taken (algemeen)</p>
                     <ul class="space-y-1.5">
                         @foreach($algemeen as $item)
@@ -244,7 +228,7 @@
                     </ul>
                 </div>
 
-                <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="rounded-2xl border border-[#e6e8ec] bg-white p-5 shadow-sm">
                     <p class="mb-3 text-xs font-bold uppercase tracking-wide text-blue-600">Sanitair &amp; toiletten</p>
                     <ul class="space-y-1.5">
                         @foreach($toiletten as $item)
@@ -256,7 +240,7 @@
                     </ul>
                 </div>
 
-                <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="rounded-2xl border border-[#e6e8ec] bg-white p-5 shadow-sm">
                     <p class="mb-3 text-xs font-bold uppercase tracking-wide text-blue-600">Keuken &amp; pantry</p>
                     <ul class="space-y-1.5">
                         @foreach($keuken as $item)
@@ -273,7 +257,7 @@
 
         <section class="mt-20 sm:mt-24">
             <div class="mx-auto max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Per ruimte</span>
+                <span class="blog-kicker">Per ruimte</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Checklist per ruimte: toilet, kantoor en keuken</h2>
                 <p class="mt-3 text-slate-500">Elke ruimte heeft andere taken en frequentie. Hier de belangrijkste punten per type ruimte.</p>
             </div>
@@ -402,7 +386,7 @@
 
         <section class="mt-20 sm:mt-24">
             <div class="mx-auto max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Valkuilen</span>
+                <span class="blog-kicker">Valkuilen</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Veelgemaakte fouten bij schoonmaakchecklists</h2>
             </div>
             <div class="mt-10 grid gap-4 sm:grid-cols-2">
@@ -426,7 +410,7 @@
         <section class="mt-20 rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/50 p-8 sm:p-12 sm:mt-24">
             <div class="lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
                 <div>
-                    <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">TaskCheck</span>
+                    <span class="blog-kicker">TaskCheck</span>
                     <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Hoe TaskCheck helpt</h2>
                     <p class="mt-3 leading-relaxed text-slate-600">TaskCheck is een digitale checklist app voor operationele teams. Je zet je schoonmaaklijst online, wijst medewerkers toe en ziet wat af is — per ruimte en locatie.</p>
                     <p class="mt-3 leading-relaxed text-slate-600">Medewerkers werken op de telefoon. Waar jij bewijs vereist, kunnen ze bijvoorbeeld een foto of notitie toevoegen voordat een taak op “klaar” staat.</p>
@@ -464,7 +448,7 @@
 
         <section class="mt-20 sm:mt-24">
             <div class="mx-auto max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Doelgroep</span>
+                <span class="blog-kicker">Doelgroep</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Voor wie is dit geschikt</h2>
                 <p class="mt-3 text-slate-500">Voor iedereen die schoonmaaktaken wil structureren — ongeacht de branche.</p>
             </div>
@@ -478,33 +462,21 @@
                     ['Teamleiders en managers', 'Overzicht op meerdere plekken zonder overal fysiek te zijn.'],
                 ]; @endphp
                 @foreach($doelgroepen as $d)
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md">
+                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#d7e2f7] hover:shadow-[0_12px_32px_-12px_rgba(23,43,99,.15)]">
                     <p class="text-sm font-bold text-slate-900">{{ $d[0] }}</p>
                     <p class="mt-1 text-sm leading-relaxed text-slate-500">{{ $d[1] }}</p>
                 </div>
                 @endforeach
             </div>
         </section>
+<x-seo-product-visuals theme="schoonmaak" placement="story" />
 
-        <section class="mt-20 text-center sm:mt-24">
-            <div class="rounded-3xl bg-gradient-to-r from-[#2563eb] to-[#4f46e5] px-6 py-12 text-white shadow-xl shadow-blue-500/20 sm:px-12 sm:py-16">
-                <h2 class="text-3xl font-extrabold sm:text-4xl">Start vandaag</h2>
-                <p class="mx-auto mt-3 max-w-xl text-lg text-white/90">Zet je schoonmaak checklist digitaal neer in minuten. Geen creditcard nodig, 14 dagen gratis proberen.</p>
-                <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Naar dashboard</a>
-                    @else
-                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Start 14 dagen gratis</a>
-                    @endauth
-                    <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border-2 border-white/40 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/10">Bekijk prijzen</a>
-                </div>
-                <p class="mt-4 text-sm text-white/80">Geen verplichtingen · Geen creditcard · Direct aan de slag</p>
-            </div>
-        </section>
+
+        
 
         <section class="mt-20 sm:mt-24">
             <div class="mx-auto max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">FAQ</span>
+                <span class="blog-kicker">FAQ</span>
                 <h2 class="mt-2 text-3xl font-bold text-slate-900">Veelgestelde vragen</h2>
             </div>
             <div class="mx-auto mt-10 max-w-3xl space-y-3">
@@ -516,7 +488,7 @@
                     ['Kan ik per locatie een eigen lijst maken?', 'Ja. Je maakt aparte checklists of varianten per locatie of object, zodat elke vestiging zijn eigen standaard heeft.'],
                 ]; @endphp
                 @foreach($faqs as $faq)
-                <details class="group cursor-pointer rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-blue-200 sm:px-6">
+                <details class="group cursor-pointer rounded-2xl border border-[#e6e8ec] bg-white px-5 py-4 transition hover:border-[#d7e2f7] sm:px-6">
                     <summary class="flex list-none items-center justify-between gap-3 font-semibold text-slate-900">
                         <span class="text-left text-sm">{{ $faq[0] }}</span>
                         <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -528,7 +500,7 @@
         </section>
 
         <section class="mb-4 mt-16 border-t border-slate-200 pt-12 sm:mt-20">
-            <p class="text-center text-sm font-semibold text-slate-900">Gerelateerde pagina&rsquo;s</p>
+            <p class="blog-kicker mx-auto">Gerelateerde pagina&rsquo;s</p>
             <div class="mx-auto mt-5 flex max-w-4xl flex-wrap justify-center gap-2">
                 @foreach([
                     ['Checklist app schoonmaak', route('seo.checklist-app-schoonmaak')],
@@ -537,7 +509,7 @@
                     ['Takenlijst personeel', route('seo.takenlijst-personeel')],
                     ['Blog: beste checklist app schoonmaak', route('blog.beste-checklist-app-voor-schoonmaakbedrijven')],
                 ] as $link)
-                <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
+                <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                     {{ $link[0] }}
                     <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                 </a>
@@ -545,8 +517,5 @@
             </div>
         </section>
     </div>
-</main>
-
-@include('components.footer')
-</body>
-</html>
+</div>
+@endsection

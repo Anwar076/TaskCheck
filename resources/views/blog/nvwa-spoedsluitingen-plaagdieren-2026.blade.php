@@ -1,68 +1,51 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle = 'NVWA: recordaantal spoedsluitingen door plaagdieren (begin 2026) | TaskCheck Blog';
-        $seoDescription = 'De NVWA sloot in de eerste weken van 2026 22 winkels en horecagelegenheden vanwege plaagdieroverlast — vaak muizen en ratten. Wat betekent dit voor voedselveiligheid?';
-        $seoUrl = route('blog.nvwa-spoedsluitingen-plaagdieren-2026');
-        $seoImage = asset('images/blog-nvwa-plaagdier-situatie.png');
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type" content="article">
-    <meta property="article:published_time" content="2026-02-13T11:24:00+01:00">
-    <meta property="og:title" content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url" content="{{ $seoUrl }}">
-    <meta property="og:image" content="{{ $seoImage }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoTitle }}">
-    <meta name="twitter:description" content="{{ $seoDescription }}">
-    <meta name="twitter:image" content="{{ $seoImage }}">
-    <script type="application/ld+json">
-        {
-            "@@context": "https://schema.org",
-            "@@type": "Article",
-            "headline": "NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren",
-            "datePublished": "2026-02-13T11:24:00+01:00",
-            "author": { "@@type": "Organization", "name": "TaskCheck" },
-            "publisher": { "@@type": "Organization", "name": "TaskCheck" },
-            "description": "{{ $seoDescription }}",
-            "mainEntityOfPage": { "@@type": "WebPage", "@@id": "{{ $seoUrl }}" }
-        }
-    </script>
-</head>
-<body class="min-h-screen bg-white font-sans text-slate-900 antialiased">
-@include('components.header')
+@php
+    $seoTitle = 'NVWA: recordaantal spoedsluitingen door plaagdieren (begin 2026) | TaskCheck Blog';
+    $seoDescription = 'De NVWA sloot in de eerste weken van 2026 22 winkels en horecagelegenheden vanwege plaagdieroverlast — vaak muizen en ratten. Wat betekent dit voor voedselveiligheid?';
+    $seoUrl = route('blog.nvwa-spoedsluitingen-plaagdieren-2026');
+    $seoImage = asset('images/blog-nvwa-plaagdier-situatie.png');
+    $publishedAt = '2026-02-13T11:24:00+01:00';
+    $ctaHeading = 'Checklists en werkcontrole in jouw team?';
+    $ctaLead = 'Rondes, HACCP-achtige controles en bewijs per taak — TaskCheck helpt je om het vast te leggen.';
+@endphp
 
-<header class="border-b border-slate-200 bg-white pt-28 pb-10">
-    <div class="max-w-3xl mx-auto px-6">
-        <nav class="flex items-center gap-2 text-xs text-slate-400 mb-5">
-            <a href="{{ route('blog') }}" class="hover:text-blue-600 transition">Blog</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-500">Voedselveiligheid</span>
-        </nav>
-        <div class="flex flex-wrap items-center gap-3 mb-4">
-            <span class="rounded-full bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1">Nieuws</span>
-            <span class="text-xs text-slate-400">13 feb 2026 · ca. 4 min lezen</span>
-        </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren</h1>
-        <p class="mt-4 text-lg text-slate-500 leading-relaxed">In de eerste weken van 2026 sloot de NVWA fors meer horeca- en winkellocaties tijdelijk vanwege plaagdieroverlast dan in dezelfde periode een jaar eerder. Wat zijn de lessen voor jouw bedrijf?</p>
+@extends('layouts.blog-article')
 
-        <aside class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-relaxed">
-            <p class="font-semibold text-slate-800">Bron</p>
-            <p class="mt-1">Dit artikel is gebaseerd op een openbaar nieuwsbericht van de <a href="https://www.nvwa.nl/" class="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800" rel="noopener noreferrer" target="_blank">Nederlandse Voedsel- en Warenautoriteit (NVWA)</a>. Voor actuele officiële informatie, waarschuwingen en inspectieresultaten verwijzen we je rechtstreeks naar de website van de NVWA.</p>
-        </aside>
+@push('head')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "Article",
+    "headline": "NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren",
+    "datePublished": "2026-02-13T11:24:00+01:00",
+    "author": { "@@type": "Organization", "name": "TaskCheck" },
+    "publisher": { "@@type": "Organization", "name": "TaskCheck" },
+    "description": "{{ $seoDescription }}",
+    "mainEntityOfPage": { "@@type": "WebPage", "@@id": "{{ $seoUrl }}" }
+}
+</script>
+@endpush
+
+@section('hero')
+    <nav class="fade-up mb-5 flex items-center gap-2 text-xs text-slate-400">
+        <a href="{{ route('blog') }}" class="transition hover:text-blue-600">Blog</a>
+        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-slate-500">Voedselveiligheid</span>
+    </nav>
+    <div class="fade-up delay-1 mb-4 flex flex-wrap items-center gap-2">
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Nieuws</span>
+        <span class="text-xs font-medium text-slate-400">13 feb 2026 · ca. 4 min lezen</span>
     </div>
-</header>
+    <h1 class="fade-up delay-1 text-3xl font-extrabold leading-[1.08] tracking-[-.045em] text-slate-900 sm:text-4xl lg:text-5xl">NVWA: begin 2026 recordaantal spoedsluitingen door plaagdieren</h1>
+    <p class="fade-up delay-2 mt-4 text-lg leading-relaxed text-slate-500">In de eerste weken van 2026 sloot de NVWA fors meer horeca- en winkellocaties tijdelijk vanwege plaagdieroverlast dan in dezelfde periode een jaar eerder. Wat zijn de lessen voor jouw bedrijf?</p>
+    <aside class="blog-aside fade-up delay-2">
+        <p class="font-semibold text-slate-800">Bron</p>
+        <p class="mt-1">Dit artikel is gebaseerd op een openbaar nieuwsbericht van de <a href="https://www.nvwa.nl/" class="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800" rel="noopener noreferrer" target="_blank">Nederlandse Voedsel- en Warenautoriteit (NVWA)</a>. Voor actuele officiële informatie, waarschuwingen en inspectieresultaten verwijzen we je rechtstreeks naar de website van de NVWA.</p>
+    </aside>
+@endsection
 
-<div class="max-w-3xl mx-auto px-6 py-10">
-
-    <figure class="mb-10">
-        <div class="relative overflow-hidden rounded-2xl shadow-md ring-1 ring-slate-200/80">
+@section('content')
+    <figure class="blog-figure mb-10 fade-up">
+        <div class="relative">
             <img src="{{ asset('images/blog-nvwa-plaagdier-situatie.png') }}"
                  alt="Verwaarloosde ruimte met leidingen en zichtbare muizen- of rattenkeutels; voorbeeld van ernstige plaagdieroverlast in een bedrijfsomgeving (foto NVWA)"
                  class="w-full max-h-[min(28rem,70vh)] object-cover object-center sm:max-h-[min(32rem,75vh)]"
@@ -71,10 +54,10 @@
                 <p class="text-xs font-semibold uppercase tracking-[0.12em] text-white/95 sm:text-sm">Afbeelding van NVWA</p>
             </div>
         </div>
-        <figcaption class="mt-3 text-center text-xs text-slate-500">Illustratie: omstandigheden waarbij de NVWA kan ingrijpen — bron NVWA.</figcaption>
+        <figcaption>Illustratie: omstandigheden waarbij de NVWA kan ingrijpen — bron NVWA.</figcaption>
     </figure>
 
-    <article class="prose-article">
+    <article class="prose-article fade-up">
 
         <p>In de eerste zeven weken van 2026 heeft de Nederlandse Voedsel- en Warenautoriteit (NVWA) <strong>22 winkels en horecagelegenheden</strong> gesloten vanwege plaagdieroverlast. In dezelfde periode vorig jaar moesten <strong>7 locaties</strong> tijdelijk dicht van de NVWA. Bij het overgrote deel ging het om een muizenplaag; in een aantal gevallen ook om overlast van ratten. Bijna de helft van de spoedsluitingen waren in Amsterdam.</p>
 
@@ -116,112 +99,23 @@
         ],
     ])
 
-    <div class="border-t border-slate-100 my-12"></div>
-
-    <div class="rounded-2xl bg-slate-900 p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div>
-            <p class="text-lg font-bold text-white">Checklists en werkcontrole in jouw team?</p>
-            <p class="mt-1 text-sm text-slate-400 leading-relaxed max-w-md">Rondes, HACCP-achtige controles en bewijs per taak — TaskCheck helpt je om het vast te leggen.</p>
-        </div>
-        <div class="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-            <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-white font-semibold text-sm hover:bg-blue-500 transition whitespace-nowrap">Start 14 dagen gratis</a>
-            <a href="{{ route('seo.horeca-checklist-app') }}" class="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-white font-semibold text-sm hover:bg-white/20 transition whitespace-nowrap">Horeca checklist app</a>
-        </div>
-    </div>
-
-    <div class="mt-12">
-        <p class="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-5">Meer lezen</p>
-        <div class="grid sm:grid-cols-2 gap-5">
-            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
-               class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+    <div class="mt-14 fade-up">
+        <p class="blog-kicker">Meer lezen</p>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-readmore group">
+                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover">
                 <div>
-                    <span class="text-xs font-semibold text-blue-600">Horeca</span>
-                    <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Horeca personeel controleren met een checklist app</p>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>Horeca</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Horeca personeel controleren met een checklist app</p>
                 </div>
             </a>
-            <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}"
-               class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+            <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="blog-readmore group">
+                <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover">
                 <div>
-                    <span class="text-xs font-semibold text-orange-600">Horeca</span>
-                    <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Stoppen met papieren checklists</p>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>Horeca</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Stoppen met papieren checklists</p>
                 </div>
             </a>
         </div>
     </div>
-
-</div>
-
-<style>
-.prose-article h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-top: 2.5rem;
-    margin-bottom: 0.75rem;
-    padding-left: 0.75rem;
-    border-left: 3px solid #2563eb;
-    line-height: 1.35;
-}
-.prose-article h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-top: 1.75rem;
-    margin-bottom: 0.5rem;
-}
-.prose-article p {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #475569;
-    margin-bottom: 1rem;
-}
-.prose-article ul {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.prose-article ul li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
-    font-size: 0.9375rem;
-    color: #475569;
-    line-height: 1.6;
-}
-.prose-article ul li::before {
-    content: '';
-    display: inline-block;
-    width: 0.375rem;
-    height: 0.375rem;
-    background: #2563eb;
-    border-radius: 50%;
-    margin-top: 0.6rem;
-    flex-shrink: 0;
-}
-.prose-article a {
-    color: #2563eb;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-.prose-article a:hover { color: #1d4ed8; }
-.prose-article .callout {
-    background: #f0f9ff;
-    border-left: 3px solid #0ea5e9;
-    border-radius: 0.75rem;
-    padding: 1rem 1.25rem;
-    margin: 1.5rem 0;
-    color: #475569;
-    font-size: 0.9375rem;
-    line-height: 1.7;
-}
-</style>
-
-@include('components.footer')
-</body>
-</html>
+@endsection

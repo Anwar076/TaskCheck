@@ -1,30 +1,16 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle = 'Wat is een checklist app? Uitleg + voordelen | TaskCheck';
+@php
+    $seoTitle = 'Wat is een checklist app? Uitleg + voordelen | TaskCheck';
         $seoDescription = 'Wat is een checklist app en hoe werkt het? Ontdek de voordelen voor bedrijven en teams. Start gratis met TaskCheck.';
         $seoUrl = route('seo.wat-is-een-checklist-app');
         $seoImage = asset('images/seo-wat-is-checklist-app-hero.png');
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url" content="{{ $seoUrl }}">
-    <meta property="og:image" content="{{ $seoImage }}">
-    <style>
-        .cta-btn { background: linear-gradient(135deg, #2563eb, #4f46e5); }
-        .cta-btn:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca); }
-    </style>
-</head>
-<body class="bg-white text-slate-900 antialiased overflow-x-hidden">
-@include('components.header')
+        $ctaHeading = 'Start met TaskCheck';
+        $ctaLead = 'Wil je minder fouten en meer overzicht? Probeer TaskCheck 14 dagen gratis. Geen creditcard nodig.';
+        $seoTheme = 'generic';
+@endphp
 
+@extends('layouts.seo-page')
+
+@section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -41,11 +27,8 @@
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <div class="min-w-0">
-                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
-                    <span class="text-left leading-snug">Uitleg · digitale checklists voor teams</span>
-                </div>
+            <div class="min-w-0 fade-up">
+                <p class="blog-kicker fade-up mb-6 sm:mb-7">Uitleg · digitale checklists voor teams</p>
 
                 <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.25rem]">
                     Wat is een
@@ -69,18 +52,18 @@
 
                 <div class="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Naar dashboard
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Start 14 dagen gratis
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @endauth
-                    <a href="{{ route('pricing') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
-                        Bekijk prijzen
+                    <a href="{{ route('contact') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl border border-[#e6e8ec] bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
+                        Plan een demo
                     </a>
                 </div>
 
@@ -95,8 +78,7 @@
             </div>
 
             <div class="relative mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none">
-                <div class="rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_24px_56px_-24px_rgba(37,99,235,.2),0_0_0_1px_rgba(241,245,249,.9)_inset] sm:p-3">
-                    <div class="overflow-hidden rounded-xl ring-1 ring-slate-100">
+                <div class="seo-hero-frame">
                         <img src="{{ asset('images/seo-wat-is-checklist-app-hero.png') }}"
                              alt="Wat is een checklist app – uitleg met mobiel, bewijs, planning en team"
                              class="h-auto w-full object-cover"
@@ -105,14 +87,13 @@
                              loading="eager"
                              fetchpriority="high">
                     </div>
-                </div>
                 <p class="mt-3 text-center text-xs text-slate-400 lg:text-left">Checklists op mobiel — managers houden overzicht op afstand.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="border-b border-slate-200 bg-slate-50/80">
+<section class="border-y border-[#e6e8ec] bg-[#f7f8fa]">
     <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div class="flex gap-4">
@@ -155,19 +136,22 @@
     </div>
 </section>
 
-<main class="pb-20">
+
+<x-seo-product-visuals theme="generic" placement="showcase" />
+
+<div class="pb-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         <section class="mt-16 sm:mt-20">
             <div class="mx-auto max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Uitleg</span>
+                <span class="blog-kicker">Uitleg</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Hoe werkt een checklist app?</h2>
                 <p class="mt-3 text-slate-500">In vier stappen van taak naar bewijs.</p>
             </div>
             <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @php $stappen = [['1','Takenlijst maken','Maak een checklist met taken, instructies en bewijs regels.'],['2','Toewijzen aan team','Medewerkers krijgen hun persoonlijke takenlijst op mobiel.'],['3','Uitvoeren en afvinken','Taken worden afgevinkt, bewijs toegevoegd.'],['4','Manager controleert','Realtime inzicht, bijsturen waar nodig.']]; @endphp
                 @foreach($stappen as $s)
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm transition hover:border-blue-200 hover:shadow-md">
+                <div class="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm transition hover:border-[#d7e2f7] hover:shadow-[0_12px_32px_-12px_rgba(23,43,99,.15)]">
                     <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white">{{ $s[0] }}</span>
                     <h3 class="mt-3 text-sm font-bold text-slate-900 sm:text-base">{{ $s[1] }}</h3>
                     <p class="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">{{ $s[2] }}</p>
@@ -178,7 +162,7 @@
 
         <section class="mt-20 sm:mt-24 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
             <div>
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">Toepassingen</span>
+                <span class="blog-kicker">Toepassingen</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Waar wordt een checklist app voor gebruikt?</h2>
                 <p class="mt-4 leading-relaxed text-slate-600">Checklist apps worden gebruikt in schoonmaak, horeca, logistiek, bouw en retail. Overal waar taken gecontroleerd moeten worden, helpt checklist software om structuur te houden.</p>
                 <p class="mt-3 leading-relaxed text-slate-600">Steeds meer bedrijven stappen over van papier naar digitale checklists, omdat het sneller, duidelijker en beter controleerbaar is.</p>
@@ -192,7 +176,7 @@
 
         <section class="mt-20 rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/50 p-8 sm:p-12 sm:mt-24">
             <div class="mx-auto mb-10 max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">TaskCheck</span>
+                <span class="blog-kicker">TaskCheck</span>
                 <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Wat maakt TaskCheck anders?</h2>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -223,32 +207,20 @@
                 @endforeach
             </div>
         </section>
+<x-seo-product-visuals theme="generic" placement="story" />
 
-        <section class="mt-20 text-center sm:mt-24">
-            <div class="rounded-3xl bg-gradient-to-r from-[#2563eb] to-[#4f46e5] px-6 py-12 text-white shadow-xl shadow-blue-500/20 sm:px-12 sm:py-16">
-                <h2 class="text-3xl font-extrabold sm:text-4xl">Start met TaskCheck</h2>
-                <p class="mx-auto mt-3 max-w-xl text-lg text-white/90">Wil je minder fouten en meer overzicht? Probeer TaskCheck 14 dagen gratis. Geen creditcard nodig.</p>
-                <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Naar dashboard</a>
-                    @else
-                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Start 14 dagen gratis</a>
-                    @endauth
-                    <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border-2 border-white/40 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/10">Bekijk prijzen</a>
-                </div>
-                <p class="mt-4 text-sm text-white/80">Geen verplichtingen · Geen creditcard · Direct aan de slag</p>
-            </div>
-        </section>
+
+        
 
         <section class="mt-20 sm:mt-24">
             <div class="mx-auto max-w-2xl text-center">
-                <span class="text-sm font-semibold uppercase tracking-wide text-blue-600">FAQ</span>
+                <span class="blog-kicker">FAQ</span>
                 <h2 class="mt-2 text-3xl font-bold text-slate-900">Veelgestelde vragen</h2>
             </div>
             <div class="mx-auto mt-10 max-w-3xl space-y-3">
                 @php $faqs = [['Wat is een checklist app?','Een checklist app is een digitale tool waarmee je takenlijsten maakt en controleert. Medewerkers kunnen taken afvinken en bewijs uploaden zoals foto\'s, video\'s of handtekeningen.'],['Waarom een checklist app gebruiken?','Omdat je meer overzicht hebt, fouten voorkomt en werk beter kunt controleren dan met papier of Excel.'],['Is een checklist app geschikt voor kleine bedrijven?','Ja, ook kleine teams profiteren van meer structuur en overzicht. TaskCheck is betaalbaar en direct te gebruiken.'],['Kan ik foto\'s toevoegen aan taken?','Ja, met TaskCheck kun je per taak foto\'s, video\'s en handtekeningen toevoegen als bewijs.'],['Werkt een checklist app op mobiel?','Ja, TaskCheck werkt volledig op smartphone en desktop. Medewerkers werken op hun telefoon.'],['Wat kost een checklist app?','TaskCheck start vanaf €29 per maand. Je kunt gratis proberen zonder verplichtingen.']]; @endphp
                 @foreach($faqs as $faq)
-                <details class="group cursor-pointer rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-blue-200 sm:px-6">
+                <details class="group cursor-pointer rounded-2xl border border-[#e6e8ec] bg-white px-5 py-4 transition hover:border-[#d7e2f7] sm:px-6">
                     <summary class="flex list-none items-center justify-between gap-3 font-semibold text-slate-900">
                         <span class="text-left text-sm">{{ $faq[0] }}</span>
                         <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -269,7 +241,7 @@
                     ['Horeca checklist app', route('seo.horeca-checklist-app')],
                     ['Prijzen', route('pricing')],
                 ] as $link)
-                <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
+                <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                     {{ $link[0] }}
                     <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                 </a>
@@ -278,8 +250,5 @@
         </section>
 
     </div>
-</main>
-
-@include('components.footer')
-</body>
-</html>
+</div>
+@endsection

@@ -1,74 +1,54 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle = 'Waarom Restaurants Steeds Vaker Werken Met Digitale Checklists | TaskCheck';
-        $seoDescription = 'Steeds meer restaurants vervangen papieren checklists door digitale oplossingen. Ontdek waarom horecaondernemers kiezen voor digitale werkcontrole.';
-        $seoUrl = route('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
-        $seoImage = asset('images/blog-waarom-restaurants-steeds-vaker-werken-met-digitale-checklists.jpg');
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url" content="{{ $seoUrl }}">
-    <meta property="og:image" content="{{ $seoImage }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoTitle }}">
-    <meta name="twitter:description" content="{{ $seoDescription }}">
-    <meta name="twitter:image" content="{{ $seoImage }}">
-    <script type="application/ld+json">
-    {
-      "@@context":"https://schema.org",
-      "@@type":"Article",
-      "headline": "Waarom restaurants steeds vaker werken met digitale checklists",
-      "datePublished":"2026-06-01",
-      "author":{"@@type":"Organization","name":"TaskCheck"},
-      "publisher":{"@@type":"Organization","name":"TaskCheck"},
-      "image": "{{ $seoImage }}",
-      "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
-    }
-    </script>
-</head>
-<body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
-@include('components.header')
+@php
+    $seoTitle = 'Waarom Restaurants Steeds Vaker Werken Met Digitale Checklists | TaskCheck';
+    $seoDescription = 'Steeds meer restaurants vervangen papieren checklists door digitale oplossingen. Ontdek waarom horecaondernemers kiezen voor digitale werkcontrole.';
+    $seoUrl = route('blog.waarom-restaurants-steeds-vaker-werken-met-digitale-checklists');
+    $seoImage = asset('images/blog-waarom-restaurants-steeds-vaker-werken-met-digitale-checklists.jpg');
+    $ctaHeading = 'Probeer digitale checklists in jouw restaurant';
+    $ctaLead = 'TaskCheck 14 dagen gratis. Geen creditcard nodig.';
+@endphp
 
-{{-- ARTICLE HEADER --}}
-<header class="border-b border-slate-200 bg-white pt-28 pb-10">
-    <div class="max-w-3xl mx-auto px-6">
-        <nav class="flex items-center gap-2 text-xs text-slate-400 mb-5">
-            <a href="{{ route('blog') }}" class="hover:text-blue-600 transition">Blog</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-500">Horeca</span>
-        </nav>
-        <div class="flex flex-wrap items-center gap-3 mb-4">
-            <span class="rounded-full bg-orange-100 text-orange-700 text-xs font-semibold px-3 py-1">Horeca</span>
-            <span class="text-xs text-slate-400">Juni 2026</span>
-            <span class="text-xs text-slate-400">·</span>
-            <span class="text-xs text-slate-400">7 min lezen</span>
-        </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Waarom restaurants steeds vaker werken met digitale checklists</h1>
-        <p class="mt-4 text-lg text-slate-500 leading-relaxed">Papieren lijsten in de keuken lijken eenvoudig — maar steeds meer horecaondernemers kiezen voor digitale werkcontrole. Dit is waarom.</p>
+@extends('layouts.blog-article')
+
+@push('head')
+<script type="application/ld+json">
+{
+  "@@context":"https://schema.org",
+  "@@type":"Article",
+  "headline": "Waarom restaurants steeds vaker werken met digitale checklists",
+  "datePublished":"2026-06-01",
+  "author":{"@@type":"Organization","name":"TaskCheck"},
+  "publisher":{"@@type":"Organization","name":"TaskCheck"},
+  "image": "{{ $seoImage }}",
+  "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
+}
+</script>
+@endpush
+
+@section('hero')
+    <nav class="fade-up mb-5 flex items-center gap-2 text-xs text-slate-400">
+        <a href="{{ route('blog') }}" class="transition hover:text-blue-600">Blog</a>
+        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-slate-500">Horeca</span>
+    </nav>
+    <div class="fade-up delay-1 mb-4 flex flex-wrap items-center gap-2">
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>Horeca</span>
+        <span class="text-xs font-medium text-slate-400">Juni 2026 · 7 min lezen</span>
     </div>
-</header>
+    <h1 class="fade-up delay-1 text-3xl font-extrabold leading-[1.08] tracking-[-.045em] text-slate-900 sm:text-4xl lg:text-5xl">Waarom restaurants steeds vaker werken met digitale checklists</h1>
+    <p class="fade-up delay-2 mt-4 text-lg leading-relaxed text-slate-500">Papieren lijsten in de keuken lijken eenvoudig — maar steeds meer horecaondernemers kiezen voor digitale werkcontrole. Dit is waarom.</p>
+@endsection
 
-<div class="max-w-3xl mx-auto px-6 py-10">
-
-    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
+@section('content')
+    <figure class="blog-figure mb-10 fade-up">
         <img src="{{ $seoImage }}"
              alt="Kok aan de mise-en-place in een restaurantkeuken, waar digitale checklists opening, HACCP en voorbereiding vastleggen"
-             class="w-full object-cover object-center"
              width="1024"
              height="682"
              loading="eager">
-        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Digitale checklists houden mise-en-place, HACCP en openingsrondes gelijk — ook als de dienst druk is.</figcaption>
+        <figcaption>Digitale checklists houden mise-en-place, HACCP en openingsrondes gelijk — ook als de dienst druk is.</figcaption>
     </figure>
 
-    <article class="prose-article">
+    <article class="prose-article fade-up">
 
         <h2>Het einde van papieren checklists in de horeca</h2>
 
@@ -211,116 +191,23 @@
         ],
     ])
 
-    <div class="border-t border-slate-100 my-12"></div>
-
-    <div class="rounded-2xl bg-slate-900 p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div>
-            <p class="text-lg font-bold text-white">Probeer digitale checklists in jouw restaurant</p>
-            <p class="mt-1 text-sm text-slate-400 leading-relaxed max-w-md">TaskCheck 14 dagen gratis. Geen creditcard nodig.</p>
-        </div>
-        <div class="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-            <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-orange-500 px-5 py-2.5 text-white font-semibold text-sm hover:bg-orange-400 transition whitespace-nowrap">Start 14 dagen gratis</a>
-            <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-white font-semibold text-sm hover:bg-white/20 transition whitespace-nowrap">Bekijk prijzen</a>
-        </div>
-    </div>
-
-    <div class="mt-12">
-        <p class="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-5">Meer lezen</p>
-        <div class="grid sm:grid-cols-2 gap-5">
-            <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}"
-               class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+    <div class="mt-14 fade-up">
+        <p class="blog-kicker">Meer lezen</p>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="blog-readmore group">
+                <img src="{{ asset('images/blog-waarom-horeca-stopt-met-papieren-checklists.jpg') }}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover">
                 <div>
-                    <span class="text-xs font-semibold text-orange-600">Horeca</span>
-                    <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Waarom horeca stopt met papieren checklists</p>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>Horeca</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Waarom horeca stopt met papieren checklists</p>
                 </div>
             </a>
-            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
-               class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/blog-horeca-personeel-controleren-checklist-app.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-readmore group">
+                <img src="{{ asset('images/blog-horeca-personeel-controleren-checklist-app.jpg') }}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover">
                 <div>
-                    <span class="text-xs font-semibold text-blue-600">Horeca</span>
-                    <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Horeca personeel controleren met een checklist app</p>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>Horeca</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Horeca personeel controleren met een checklist app</p>
                 </div>
             </a>
         </div>
     </div>
-
-</div>
-
-<style>
-.prose-article h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-top: 2.5rem;
-    margin-bottom: 0.75rem;
-    padding-left: 0.75rem;
-    border-left: 3px solid #f97316;
-    line-height: 1.35;
-}
-.prose-article h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-top: 1.75rem;
-    margin-bottom: 0.5rem;
-}
-.prose-article p {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #475569;
-    margin-bottom: 1rem;
-}
-.prose-article ul {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.prose-article ul li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
-    font-size: 0.9375rem;
-    color: #475569;
-    line-height: 1.6;
-}
-.prose-article ul li::before {
-    content: '';
-    display: inline-block;
-    width: 0.375rem;
-    height: 0.375rem;
-    background: #f97316;
-    border-radius: 50%;
-    margin-top: 0.6rem;
-    flex-shrink: 0;
-}
-.prose-article a {
-    color: #2563eb;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-.prose-article a:hover { color: #1d4ed8; }
-.prose-article strong {
-    color: #1e293b;
-    font-weight: 600;
-}
-.prose-article .callout {
-    background: #fff7ed;
-    border-left: 3px solid #f97316;
-    border-radius: 0.75rem;
-    padding: 1rem 1.25rem;
-    margin: 1.5rem 0;
-    color: #475569;
-    font-size: 0.9375rem;
-    line-height: 1.7;
-}
-</style>
-
-@include('components.footer')
-</body>
-</html>
+@endsection

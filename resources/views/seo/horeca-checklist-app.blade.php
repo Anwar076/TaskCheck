@@ -1,35 +1,16 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle       = 'Horeca checklist app voor restaurants en keukens | TaskCheck';
+@php
+    $seoTitle       = 'Horeca checklist app voor restaurants en keukens | TaskCheck';
         $seoDescription = 'Horeca checklist app voor restaurants: taken beheren, personeel controleren en bewijs verzamelen met foto en video. Start 14 dagen gratis.';
         $seoUrl         = route('seo.horeca-checklist-app');
         $seoImage       = asset('images/taskcheck-horeca-seo-hero.webp');
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url"         content="{{ $seoUrl }}">
-    <meta property="og:image"       content="{{ $seoImage }}">
-    <style>
-        .cta-btn { background: linear-gradient(135deg, #2563eb, #4f46e5); }
-        .cta-btn:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca); }
-        .bar-track { background: #e2e8f0; border-radius: 9999px; overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 9999px; }
-        .star { color: #fbbf24; }
-        .operatie-card { transition: box-shadow .2s ease, border-color .2s ease; }
-        .operatie-card:hover { box-shadow: 0 10px 40px -20px rgba(15,23,42,.1); border-color: rgb(203 213 225); }
-    </style>
-</head>
-<body class="bg-white text-slate-900 antialiased overflow-x-hidden">
-@include('components.header')
+        $ctaHeading = 'Start vandaag gratis';
+        $ctaLead = 'Probeer TaskCheck 14 dagen gratis. Geen creditcard nodig.';
+        $seoTheme = 'horeca';
+@endphp
 
+@extends('layouts.seo-page')
+
+@section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -46,11 +27,8 @@
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <div class="min-w-0">
-                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
-                    <span class="text-left leading-snug">Horeca checklist app · opening, service, sluiting</span>
-                </div>
+            <div class="min-w-0 fade-up">
+                <p class="blog-kicker fade-up mb-6 sm:mb-7">Horeca checklist app · opening, service, sluiting</p>
 
                 <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.25rem]">
                     Checklists die
@@ -74,18 +52,18 @@
 
                 <div class="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Naar dashboard
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Start 14 dagen gratis
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @endauth
-                    <a href="{{ route('pricing') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
-                        Bekijk prijzen
+                    <a href="{{ route('contact') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl border border-[#e6e8ec] bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
+                        Plan een demo
                     </a>
                 </div>
 
@@ -100,8 +78,7 @@
             </div>
 
             <div class="relative mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none">
-                <div class="rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_24px_56px_-24px_rgba(37,99,235,.2),0_0_0_1px_rgba(241,245,249,.9)_inset] sm:p-3">
-                    <div class="overflow-hidden rounded-xl ring-1 ring-slate-100">
+                <div class="seo-hero-frame">
                         <img src="{{ asset('images/taskcheck-horeca-seo-hero.webp') }}"
                              alt="Horeca checklist app in gebruik — restaurant team"
                              class="h-auto w-full object-cover"
@@ -110,14 +87,13 @@
                              loading="eager"
                              fetchpriority="high">
                     </div>
-                </div>
                 <p class="mt-3 text-center text-xs text-slate-400 lg:text-left">Zelfde werkwijze per dienst — iedereen ziet wat klaar is en wat nog openstaat.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="border-b border-slate-200 bg-slate-50/80">
+<section class="border-y border-[#e6e8ec] bg-[#f7f8fa]">
     <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div class="flex gap-4">
@@ -160,12 +136,14 @@
     </div>
 </section>
 
-<main>
+<x-seo-product-visuals theme="horeca" placement="showcase" />
+
+<div>
 <section class="border-b border-slate-100 bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-16 lg:grid-cols-2">
             <div>
-                <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Dagelijkse operatie</p>
+                <p class="blog-kicker mb-3">Dagelijkse operatie</p>
                 <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">
                     Eén helder stappenplan voor elke dienst
                 </h2>
@@ -195,7 +173,7 @@
             </div>
 
             <div>
-                <figure class="overflow-hidden rounded-xl border border-slate-200/90 bg-slate-50 shadow-[0_20px_50px_-24px_rgba(15,23,42,0.18)]">
+                <figure class="seo-hero-frame">
                     <img src="{{ asset('images/seo-opening-checklist-horeca-hero.png') }}"
                          alt="Opening checklist horeca op telefoon"
                          loading="lazy" decoding="async" width="800" height="600"
@@ -213,7 +191,7 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-16 lg:grid-cols-2">
             <div>
-                <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Resultaten</p>
+                <p class="blog-kicker mb-3">Resultaten</p>
                 <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">
                     Wat verandert er na TaskCheck?
                 </h2>
@@ -280,7 +258,7 @@
 <section class="border-b border-slate-100 bg-slate-50 py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto mb-14 max-w-2xl text-center">
-            <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Waarom TaskCheck</p>
+            <p class="blog-kicker mb-3">Waarom TaskCheck</p>
             <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">Alles wat je op de vloer nodig hebt</h2>
             <p class="mt-4 text-lg leading-relaxed text-slate-500">
                 Eén plek om af te vinken, bewijs vast te leggen en overzicht te houden — zonder losse apps of eindeloze groepschats.
@@ -337,7 +315,7 @@
             <div class="hidden lg:col-span-2 lg:block">
                 <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl" style="background:linear-gradient(135deg,#eff6ff,#f0f9ff)">
                     <div class="p-8 text-center">
-                        <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">Op de vloer</p>
+                        <p class="blog-kicker">Op de vloer</p>
                         <p class="mt-3 text-2xl font-extrabold text-slate-900">Opening · Service · Sluiting</p>
                         <p class="mt-2 text-sm text-slate-600">Eén proces — iedere dienst hetzelfde</p>
                         <div class="mt-8 flex flex-wrap justify-center gap-2">
@@ -376,10 +354,12 @@
     </div>
 </section>
 
+<x-seo-product-visuals theme="horeca" placement="story" />
+
 <section class="bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div class="mb-12 text-center">
-            <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">FAQ</p>
+            <p class="blog-kicker mb-3">FAQ</p>
             <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">Veelgestelde vragen</h2>
         </div>
         <div class="space-y-3">
@@ -390,7 +370,7 @@
                 ['Werkt de app op mobiel?','Ja, TaskCheck werkt op elke smartphone. Medewerkers kunnen via de browser werken; waar beschikbaar ook als installeerbare app.'],
                 ['Wat als een medewerker vergeet in te loggen?','Taken die niet zijn afgerond, staan zichtbaar als open of gemist in het dashboard. Je ziet snel waar iets blijft liggen.'],
             ] as [$q,$a])
-            <details class="group cursor-pointer rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-blue-200 sm:px-6">
+            <details class="group cursor-pointer rounded-2xl border border-[#e6e8ec] bg-white px-5 py-4 transition hover:border-[#d7e2f7] sm:px-6">
                 <summary class="flex list-none items-center justify-between gap-3 font-semibold text-slate-900">
                     <span class="text-left text-sm">{{ $q }}</span>
                     <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -402,27 +382,9 @@
     </div>
 </section>
 
-<section class="pb-20">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="rounded-3xl bg-gradient-to-r from-[#2563eb] to-[#4f46e5] px-6 py-12 text-center text-white shadow-xl shadow-blue-500/20 sm:px-12 sm:py-16">
-            <h2 class="text-3xl font-extrabold sm:text-4xl">Start vandaag gratis</h2>
-            <p class="mx-auto mt-3 max-w-xl text-lg text-white/90">Probeer TaskCheck 14 dagen gratis. Geen creditcard nodig.</p>
-            <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Naar dashboard</a>
-                @else
-                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Start 14 dagen gratis</a>
-                @endauth
-                <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border-2 border-white/40 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/10">Bekijk prijzen</a>
-            </div>
-            <p class="mt-4 text-sm text-white/80">Geen verplichtingen · Direct aan de slag</p>
-        </div>
-    </div>
-</section>
-
 <section class="border-t border-slate-200 bg-white py-10">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-sm font-semibold text-slate-900">Gerelateerde pagina&rsquo;s</p>
+        <p class="blog-kicker mx-auto">Gerelateerde pagina&rsquo;s</p>
         <div class="mx-auto mt-5 flex max-w-4xl flex-wrap justify-center gap-2">
             @foreach([
                 ['Horeca app personeel', route('seo.horeca-app-personeel')],
@@ -430,7 +392,7 @@
                 ['Checklist app schoonmaak', route('seo.checklist-app-schoonmaak')],
                 ['Blog: horeca personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],
             ] as $link)
-            <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
+            <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                 {{ $link[0] }}
                 <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
             </a>
@@ -438,8 +400,5 @@
         </div>
     </div>
 </section>
-</main>
-
-@include('components.footer')
-</body>
-</html>
+</div>
+@endsection

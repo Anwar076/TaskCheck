@@ -1,8 +1,5 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle       = 'HACCP app voor horeca | Digitaal registreren | TaskCheck';
+@php
+    $seoTitle       = 'HACCP app voor horeca | Digitaal registreren | TaskCheck';
         $seoDescription = 'Gebruik TaskCheck als HACCP app voor horeca. Registreer temperaturen, schoonmaak, controles en bewijs digitaal. Start 14 dagen gratis.';
         $seoKeywords    = 'HACCP app, digitale HACCP registratie, HACCP checklist app, HACCP horeca, temperatuurregistratie horeca, schoonmaakrooster horeca';
         $seoUrl         = route('seo.haccp-app');
@@ -14,19 +11,15 @@
             ['Is TaskCheck geschikt voor meerdere locaties?', 'Ja. Je kunt checklists en rapportages per locatie beheren.'],
             ['Vervangt TaskCheck papieren HACCP formulieren?', 'TaskCheck helpt je om controles digitaal vast te leggen. Controleer altijd zelf welke registraties voor jouw bedrijf verplicht zijn.'],
         ];
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="keywords" content="{{ $seoKeywords }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url"         content="{{ $seoUrl }}">
-    <meta property="og:image"       content="{{ $seoImage }}">
-    <script type="application/ld+json">
+        $ctaHeading = 'Start met digitale HACCP registratie';
+        $ctaLead = 'Wil je minder gedoe met papieren formulieren en meer grip op je controles? Met TaskCheck start je snel met digitale HACCP checklists voor jouw horecazaak.';
+        $seoTheme = 'haccp';
+@endphp
+
+@extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
     {
         "@@context": "https://schema.org",
         "@@type": "FAQPage",
@@ -44,16 +37,9 @@
         ]
     }
     </script>
-    <style>
-        .cta-btn { background: linear-gradient(135deg, #2563eb, #4f46e5); }
-        .cta-btn:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca); }
-        .feature-card { transition: box-shadow .2s ease, border-color .2s ease; }
-        .feature-card:hover { box-shadow: 0 10px 40px -20px rgba(15,23,42,.1); border-color: rgb(203 213 225); }
-    </style>
-</head>
-<body class="bg-white text-slate-900 antialiased overflow-x-hidden">
-@include('components.header')
+@endpush
 
+@section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full opacity-[.03]" xmlns="http://www.w3.org/2000/svg">
@@ -69,11 +55,8 @@
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <div class="min-w-0">
-                <div class="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 sm:mb-7 sm:px-4 sm:text-xs">
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
-                    <span class="text-left leading-snug">HACCP app · temperatuur, schoonmaak &amp; bewijs</span>
-                </div>
+            <div class="min-w-0 fade-up">
+                <p class="blog-kicker fade-up mb-6 sm:mb-7">HACCP app · temperatuur, schoonmaak &amp; bewijs</p>
 
                 <h1 class="text-3xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl xl:text-[3.25rem]">
                     HACCP app voor
@@ -100,18 +83,18 @@
 
                 <div class="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ auth()->user()->homeDashboardUrl() }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Naar dashboard
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
+                        <a href="{{ route('register') }}" class="cta-btn inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200/60 transition-all sm:w-auto sm:min-h-0 touch-manipulation">
                             Start 14 dagen gratis
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                         </a>
                     @endauth
-                    <a href="{{ route('pricing') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
-                        Bekijk prijzen
+                    <a href="{{ route('contact') }}" class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl border border-[#e6e8ec] bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 sm:w-auto sm:min-h-0 touch-manipulation">
+                        Plan een demo
                     </a>
                 </div>
 
@@ -126,8 +109,7 @@
             </div>
 
             <div class="relative mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none">
-                <div class="rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_24px_56px_-24px_rgba(37,99,235,.2),0_0_0_1px_rgba(241,245,249,.9)_inset] sm:p-3">
-                    <div class="overflow-hidden rounded-xl ring-1 ring-slate-100">
+                <div class="seo-hero-frame">
                         <img src="{{ asset('images/taskcheck-horeca-seo-hero.webp') }}"
                              alt="HACCP app voor horeca — digitale temperatuur- en hygiënecontroles"
                              class="h-auto w-full object-cover"
@@ -136,14 +118,13 @@
                              loading="eager"
                              fetchpriority="high">
                     </div>
-                </div>
                 <p class="mt-3 text-center text-xs text-slate-400 lg:text-left">Controles op de vloer — met bewijs per taak en overzicht voor managers.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="border-b border-slate-200 bg-slate-50/80">
+<section class="border-y border-[#e6e8ec] bg-[#f7f8fa]">
     <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             @php $stats = [
@@ -167,12 +148,14 @@
     </div>
 </section>
 
-<main>
+<x-seo-product-visuals theme="haccp" placement="showcase" />
+
+<div>
 <section class="border-b border-slate-100 bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-start gap-16 lg:grid-cols-2">
             <div>
-                <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Waarom digitaal</p>
+                <p class="blog-kicker mb-3">Waarom digitaal</p>
                 <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">Waarom een HACCP app gebruiken?</h2>
                 <p class="mt-4 text-lg leading-relaxed text-slate-500">
                     In de horeca moet je kunnen aantonen dat controles goed worden uitgevoerd. Denk aan temperaturen, schoonmaak, leverancierscontrole en bereiding.
@@ -202,7 +185,7 @@
 <section class="border-b border-slate-100 bg-slate-50 py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
-            <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Registraties</p>
+            <p class="blog-kicker mb-3">Registraties</p>
             <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">Wat kun je registreren met TaskCheck?</h2>
             <p class="mt-4 text-lg text-slate-500">Met TaskCheck kun je onder andere deze HACCP-controles vastleggen:</p>
         </div>
@@ -237,7 +220,7 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-16 lg:grid-cols-2">
             <div>
-                <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Checklists</p>
+                <p class="blog-kicker mb-3">Checklists</p>
                 <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">HACCP controles digitaal uitvoeren</h2>
                 <p class="mt-4 text-lg leading-relaxed text-slate-500">
                     Met TaskCheck maak je vaste checklists per locatie, afdeling of shift. Medewerkers zien precies wat ze moeten doen. Managers zien realtime wat klaar is en wat nog openstaat.
@@ -249,12 +232,10 @@
                     @endforeach
                 </div>
             </div>
-            <figure class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
-                <img src="{{ asset('images/seo-opening-checklist-horeca-hero.png') }}"
+            <figure class="seo-hero-frame"><img src="{{ asset('images/seo-opening-checklist-horeca-hero.png') }}"
                      alt="HACCP checklist op telefoon in de keuken"
                      loading="lazy" decoding="async" width="800" height="600"
-                     class="w-full object-cover">
-            </figure>
+                     class="w-full object-cover"></figure>
         </div>
     </div>
 </section>
@@ -279,7 +260,7 @@
                 </div>
             </div>
             <div class="order-1 lg:order-2">
-                <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Bewijs</p>
+                <p class="blog-kicker mb-3">Bewijs</p>
                 <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">Bewijs toevoegen per taak</h2>
                 <p class="mt-4 text-lg leading-relaxed text-slate-500">
                     Bij belangrijke controles kun je bewijs verplicht maken. Zo kun je later aantonen wat er is gedaan — handig bij audits en inspecties.
@@ -292,7 +273,7 @@
 <section class="border-b border-slate-100 bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
-            <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Voordelen</p>
+            <p class="blog-kicker mb-3">Voordelen</p>
             <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">Voordelen van een HACCP app</h2>
             <p class="mt-4 text-lg text-slate-500">Met TaskCheck krijg je:</p>
         </div>
@@ -318,7 +299,7 @@
 <section class="border-b border-slate-100 bg-slate-50 py-20 sm:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
-            <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">Doelgroep</p>
+            <p class="blog-kicker mb-3">Doelgroep</p>
             <h2 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">Voor wie is deze HACCP app geschikt?</h2>
             <p class="mt-4 text-lg text-slate-500">TaskCheck is geschikt voor:</p>
         </div>
@@ -330,15 +311,17 @@
     </div>
 </section>
 
+<x-seo-product-visuals theme="haccp" placement="story" />
+
 <section class="bg-white py-20 sm:py-24">
     <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div class="mb-12 text-center">
-            <p class="mb-3 text-sm font-bold uppercase tracking-wider text-blue-600">FAQ</p>
+            <p class="blog-kicker mb-3">FAQ</p>
             <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">Veelgestelde vragen</h2>
         </div>
         <div class="space-y-3">
             @foreach($faqItems as [$q, $a])
-            <details class="group cursor-pointer rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-blue-200 sm:px-6">
+            <details class="group cursor-pointer rounded-2xl border border-[#e6e8ec] bg-white px-5 py-4 transition hover:border-[#d7e2f7] sm:px-6">
                 <summary class="flex list-none items-center justify-between gap-3 font-semibold text-slate-900">
                     <span class="text-left text-sm">{{ $q }}</span>
                     <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -350,29 +333,9 @@
     </div>
 </section>
 
-<section class="border-t border-slate-100 bg-slate-50 py-20 sm:py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="rounded-3xl bg-gradient-to-r from-[#2563eb] to-[#4f46e5] px-6 py-12 text-center text-white shadow-xl shadow-blue-500/20 sm:px-12 sm:py-16">
-            <h2 class="text-3xl font-extrabold sm:text-4xl">Start met digitale HACCP registratie</h2>
-            <p class="mx-auto mt-3 max-w-xl text-lg text-white/90">
-                Wil je minder gedoe met papieren formulieren en meer grip op je controles? Met TaskCheck start je snel met digitale HACCP checklists voor jouw horecazaak.
-            </p>
-            <p class="mt-2 text-base font-medium text-white/95">Start 14 dagen gratis. Geen creditcard nodig.</p>
-            <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Naar dashboard</a>
-                @else
-                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50">Start 14 dagen gratis</a>
-                @endauth
-                <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border-2 border-white/40 px-8 py-4 text-base font-semibold text-white transition hover:bg-white/10">Bekijk prijzen</a>
-            </div>
-        </div>
-    </div>
-</section>
-
 <section class="border-t border-slate-200 bg-white py-10">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-sm font-semibold text-slate-900">Gerelateerde pagina&rsquo;s</p>
+        <p class="blog-kicker mx-auto">Gerelateerde pagina&rsquo;s</p>
         <div class="mx-auto mt-5 flex max-w-4xl flex-wrap justify-center gap-2">
             @foreach([
                 ['HACCP checklist app', route('seo.haccp-checklist-app')],
@@ -381,7 +344,7 @@
                 ['Schoonmaakrooster horeca', route('seo.schoonmaakrooster-horeca')],
                 ['Prijzen', route('pricing')],
             ] as $link)
-            <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50">
+            <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                 {{ $link[0] }}
                 <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
             </a>
@@ -389,8 +352,5 @@
         </div>
     </div>
 </section>
-</main>
-
-@include('components.footer')
-</body>
-</html>
+</div>
+@endsection

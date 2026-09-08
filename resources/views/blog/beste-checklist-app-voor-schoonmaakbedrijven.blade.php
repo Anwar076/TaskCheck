@@ -1,73 +1,53 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle = 'Beste checklist app voor schoonmaakbedrijven | TaskCheck Blog';
-        $seoDescription = 'Ontdek waar de beste checklist app voor schoonmaakbedrijven aan moet voldoen: werkcontrole, bewijs, planning en rapportage.';
-        $seoUrl = route('blog.beste-checklist-app-voor-schoonmaakbedrijven');
-        $seoImage = asset('images/blog-beste-checklist-app-voor-schoonmaakbedrijven.jpg');
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url" content="{{ $seoUrl }}">
-    <meta property="og:image" content="{{ $seoImage }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoTitle }}">
-    <meta name="twitter:description" content="{{ $seoDescription }}">
-    <meta name="twitter:image" content="{{ $seoImage }}">
-    <script type="application/ld+json">
-    {
-      "@@context":"https://schema.org",
-      "@@type":"Article",
-      "headline": "Beste checklist app voor schoonmaakbedrijven",
-      "author":{"@@type":"Organization","name":"TaskCheck"},
-      "publisher":{"@@type":"Organization","name":"TaskCheck"},
-      "image": "{{ $seoImage }}",
-      "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
-    }
-    </script>
-</head>
-<body class="bg-white min-h-screen font-sans text-slate-900 antialiased">
-@include('components.header')
+@php
+    $seoTitle = 'Beste checklist app voor schoonmaakbedrijven | TaskCheck Blog';
+    $seoDescription = 'Ontdek waar de beste checklist app voor schoonmaakbedrijven aan moet voldoen: werkcontrole, bewijs, planning en rapportage.';
+    $seoUrl = route('blog.beste-checklist-app-voor-schoonmaakbedrijven');
+    $seoImage = asset('images/blog-beste-checklist-app-voor-schoonmaakbedrijven.jpg');
+    $ctaHeading = 'Wil je dit toepassen in jouw bedrijf?';
+    $ctaLead = 'Start met TaskCheck en zet je eerste digitale checklist live in minuten.';
+@endphp
 
-{{-- ARTICLE HEADER --}}
-<header class="border-b border-slate-200 bg-white pt-28 pb-10">
-    <div class="max-w-3xl mx-auto px-6">
-        <nav class="flex items-center gap-2 text-xs text-slate-400 mb-5">
-            <a href="{{ route('blog') }}" class="hover:text-blue-600 transition">Blog</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-500">Schoonmaak</span>
-        </nav>
-        <div class="flex items-center gap-3 mb-4">
-            <span class="rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1">Schoonmaak</span>
-            <span class="text-xs text-slate-400">6 min lezen</span>
-        </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Beste checklist app voor schoonmaakbedrijven</h1>
-        <p class="mt-4 text-lg text-slate-500 leading-relaxed">Schoonmaakbedrijven draaien op betrouwbaarheid. Opdrachtgevers willen zicht op kwaliteit, teamleiders willen grip op uitvoering, en medewerkers willen duidelijke taken.</p>
+@extends('layouts.blog-article')
+
+@push('head')
+<script type="application/ld+json">
+{
+  "@@context":"https://schema.org",
+  "@@type":"Article",
+  "headline": "Beste checklist app voor schoonmaakbedrijven",
+  "author":{"@@type":"Organization","name":"TaskCheck"},
+  "publisher":{"@@type":"Organization","name":"TaskCheck"},
+  "image": "{{ $seoImage }}",
+  "mainEntityOfPage":{"@@type":"WebPage","@@id":"{{ $seoUrl }}"}
+}
+</script>
+@endpush
+
+@section('hero')
+    <nav class="fade-up mb-5 flex items-center gap-2 text-xs text-slate-400">
+        <a href="{{ route('blog') }}" class="transition hover:text-blue-600">Blog</a>
+        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-slate-500">Schoonmaak</span>
+    </nav>
+    <div class="fade-up delay-1 mb-4 flex flex-wrap items-center gap-2">
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Schoonmaak</span>
+        <span class="text-xs font-medium text-slate-400">6 min lezen</span>
     </div>
-</header>
+    <h1 class="fade-up delay-1 text-3xl font-extrabold leading-[1.08] tracking-[-.045em] text-slate-900 sm:text-4xl lg:text-5xl">Beste checklist app voor schoonmaakbedrijven</h1>
+    <p class="fade-up delay-2 mt-4 text-lg leading-relaxed text-slate-500">Schoonmaakbedrijven draaien op betrouwbaarheid. Opdrachtgevers willen zicht op kwaliteit, teamleiders willen grip op uitvoering, en medewerkers willen duidelijke taken.</p>
+@endsection
 
-<div class="max-w-3xl mx-auto px-6 py-10">
-
-    {{-- HERO IMAGE --}}
-    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
+@section('content')
+    <figure class="blog-figure mb-10 fade-up">
         <img src="{{ $seoImage }}"
              alt="Schoonmakers bekijken een digitale checklist op een tablet naast de schoonmaakkar"
-             class="w-full object-cover object-center"
              width="1024"
              height="576"
              loading="eager">
-        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Een checklist-app maakt rondes, bewijs en opvolging zichtbaar voor het team én de opdrachtgever.</figcaption>
+        <figcaption>Een checklist-app maakt rondes, bewijs en opvolging zichtbaar voor het team én de opdrachtgever.</figcaption>
     </figure>
 
-    {{-- ARTICLE BODY --}}
-    <article class="prose-article">
+    <article class="prose-article fade-up">
 
         <h2>Waarom een schoonmaakbedrijf een gespecialiseerde checklist app nodig heeft</h2>
         <p>In de praktijk werken veel schoonmaakteams nog met papieren rondelijsten of Excel-bestanden. Dat lijkt eenvoudig, maar bij meerdere panden, verschillende frequenties en wisselende teams ontstaat snel ruis. Taken verdwijnen tussen shifts, kwaliteitsissues worden te laat ontdekt en rapportages kosten veel handmatig werk.</p>
@@ -123,89 +103,23 @@
         ],
     ])
 
-    {{-- DIVIDER --}}
-    <div class="border-t border-slate-100 my-12"></div>
-
-    {{-- CTA --}}
-    <div class="rounded-2xl bg-slate-900 p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div>
-            <p class="text-lg font-bold text-white">Wil je dit toepassen in jouw bedrijf?</p>
-            <p class="mt-1 text-sm text-slate-400 leading-relaxed max-w-md">Start met TaskCheck en zet je eerste digitale checklist live in minuten.</p>
-        </div>
-        <div class="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-            <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-white font-semibold text-sm hover:bg-blue-500 transition whitespace-nowrap">Start 14 dagen gratis</a>
-            <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-white font-semibold text-sm hover:bg-white/20 transition whitespace-nowrap">Bekijk prijzen</a>
-        </div>
-    </div>
-
-    {{-- RELATED ARTICLES --}}
-    <div class="mt-12">
-        <p class="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-5">Meer lezen</p>
-        <div class="grid sm:grid-cols-2 gap-5">
-            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}"
-               class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+    <div class="mt-14 fade-up">
+        <p class="blog-kicker">Meer lezen</p>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-readmore group">
+                <img src="{{ asset('images/blog-horeca-personeel-controleren-checklist-app.jpg') }}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover">
                 <div>
-                    <span class="text-xs font-semibold text-blue-600">Horeca</span>
-                    <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Horeca personeel controleren met een checklist app</p>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>Horeca</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Horeca personeel controleren met een checklist app</p>
                 </div>
             </a>
-            <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}"
-               class="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition">
-                <img src="{{ asset('images/blog-waarom-bedrijven-stoppen-met-excel-checklists.jpg') }}" alt="" class="w-20 h-16 rounded-xl object-cover flex-shrink-0">
+            <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="blog-readmore group">
+                <img src="{{ asset('images/blog-waarom-bedrijven-stoppen-met-excel-checklists.jpg') }}" alt="" class="h-16 w-20 shrink-0 rounded-xl object-cover">
                 <div>
-                    <span class="text-xs font-semibold text-slate-500">Algemeen</span>
-                    <p class="mt-0.5 text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition leading-snug">Waarom bedrijven stoppen met Excel</p>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Algemeen</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Waarom bedrijven stoppen met Excel</p>
                 </div>
             </a>
         </div>
     </div>
-
-</div>
-
-<style>
-.prose-article h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-top: 2.5rem;
-    margin-bottom: 0.75rem;
-    padding-left: 0.75rem;
-    border-left: 3px solid #10b981;
-    line-height: 1.35;
-}
-.prose-article h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1e293b;
-    margin-top: 1.75rem;
-    margin-bottom: 0.5rem;
-}
-.prose-article p {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #475569;
-    margin-bottom: 1rem;
-}
-.prose-article a {
-    color: #2563eb;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-.prose-article a:hover { color: #1d4ed8; }
-.prose-article .callout {
-    background: #f0fdf4;
-    border-left: 3px solid #10b981;
-    border-radius: 0.75rem;
-    padding: 1rem 1.25rem;
-    margin: 1.5rem 0;
-    color: #475569;
-    font-size: 0.9375rem;
-    line-height: 1.7;
-}
-</style>
-
-@include('components.footer')
-</body>
-</html>
+@endsection

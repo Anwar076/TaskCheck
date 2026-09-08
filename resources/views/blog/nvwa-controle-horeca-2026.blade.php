@@ -1,101 +1,84 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    @php
-        $seoTitle = 'NVWA Controle Horeca 2026: Waar Wordt Op Gecontroleerd? | TaskCheck';
-        $seoDescription = 'Wat controleert de NVWA bij horeca in 2026? Lees over HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles organiseert.';
-        $seoKeywords = 'NVWA controle horeca, NVWA controle restaurant, NVWA inspectie horeca, NVWA controle checklist, HACCP controle horeca, voedselveiligheid horeca, NVWA temperatuur horeca, NVWA hygiëne horeca, NVWA controle voorbereiden';
-        $seoUrl = route('blog.nvwa-controle-horeca-2026');
-        $seoImage = asset('images/blog-nvwa-controle-horeca-2026.jpg').'?v=2';
-        $publishedAt = '2026-08-25T10:00:00+02:00';
-        $faqItems = [
-            ['Wat controleert de NVWA bij een restaurant?', 'De NVWA houdt toezicht op voedselveiligheid. Daarbij kunnen onder andere hygiënisch werken, temperatuur en houdbaarheid, voedselveiligheidsprocedures, allergenen en plaagdierbeheersing relevant zijn.'],
-            ['Is HACCP verplicht voor horeca?', 'Horecabedrijven moeten voedselveilig werken volgens de geldende voedselveiligheidsregels. Ondernemers kunnen daarvoor onder voorwaarden gebruikmaken van een goedgekeurde hygiënecode of een eigen voedselveiligheidsplan op basis van HACCP.'],
-            ['Moet ik temperatuurregistraties bewaren?', 'Welke registraties in jouw situatie nodig zijn en hoe je aan de geldende eisen moet voldoen, hangt af van je processen en de toepasselijke regels of hygiënecode. Raadpleeg daarvoor altijd de actuele officiële richtlijnen.'],
-            ['Kan ik HACCP-controles digitaal bijhouden?', 'Digitale systemen kunnen worden gebruikt om relevante werkzaamheden en registraties overzichtelijk vast te leggen. Zorg er wel voor dat jouw werkwijze aansluit bij de eisen die voor je bedrijf gelden.'],
-            ['Is TaskCheck een vervanging voor HACCP?', 'Nee. TaskCheck is een hulpmiddel voor checklists, taken, registraties en werkcontrole. Het vervangt geen HACCP-plan, hygiënecode, deskundig advies of wettelijke verplichtingen.'],
-        ];
-    @endphp
-    <title>{{ $seoTitle }}</title>
-    @include('components.head')
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="keywords" content="{{ $seoKeywords }}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
-    <link rel="canonical" href="{{ $seoUrl }}">
-    <meta property="og:type" content="article">
-    <meta property="article:published_time" content="{{ $publishedAt }}">
-    <meta property="og:title" content="{{ $seoTitle }}">
-    <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:url" content="{{ $seoUrl }}">
-    <meta property="og:image" content="{{ $seoImage }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoTitle }}">
-    <meta name="twitter:description" content="{{ $seoDescription }}">
-    <meta name="twitter:image" content="{{ $seoImage }}">
-    <script type="application/ld+json">
-        {
-            "@@context": "https://schema.org",
-            "@@type": "Article",
-            "headline": "NVWA-controle horeca in 2026: waar wordt op gecontroleerd?",
-            "description": @json($seoDescription),
-            "datePublished": "{{ $publishedAt }}",
-            "author": { "@@type": "Organization", "name": "TaskCheck" },
-            "publisher": { "@@type": "Organization", "name": "TaskCheck" },
-            "image": "{{ $seoImage }}",
-            "mainEntityOfPage": { "@@type": "WebPage", "@@id": "{{ $seoUrl }}" }
-        }
-    </script>
-    <script type="application/ld+json">
-        {
-            "@@context": "https://schema.org",
-            "@@type": "FAQPage",
-            "mainEntity": [
-                @foreach($faqItems as $i => $item)
-                {
-                    "@@type": "Question",
-                    "name": @json($item[0]),
-                    "acceptedAnswer": {
-                        "@@type": "Answer",
-                        "text": @json($item[1])
-                    }
-                }@if(!$loop->last),@endif
-                @endforeach
-            ]
-        }
-    </script>
-</head>
-<body class="min-h-screen bg-white font-sans text-slate-900 antialiased">
-@include('components.header')
+@php
+    $seoTitle = 'NVWA Controle Horeca 2026: Waar Wordt Op Gecontroleerd? | TaskCheck';
+    $seoDescription = 'Wat controleert de NVWA bij horeca in 2026? Lees over HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles organiseert.';
+    $seoKeywords = 'NVWA controle horeca, NVWA controle restaurant, NVWA inspectie horeca, NVWA controle checklist, HACCP controle horeca, voedselveiligheid horeca, NVWA temperatuur horeca, NVWA hygiëne horeca, NVWA controle voorbereiden';
+    $seoUrl = route('blog.nvwa-controle-horeca-2026');
+    $seoImage = asset('images/blog-nvwa-controle-horeca-2026.jpg').'?v=2';
+    $publishedAt = '2026-08-25T10:00:00+02:00';
+    $ctaHeading = 'Probeer TaskCheck 14 dagen gratis';
+    $ctaLead = 'Digitale checklists, temperatuurregistratie en bewijs per taak. Geen creditcard nodig.';
+    $faqItems = [
+        ['Wat controleert de NVWA bij een restaurant?', 'De NVWA houdt toezicht op voedselveiligheid. Daarbij kunnen onder andere hygiënisch werken, temperatuur en houdbaarheid, voedselveiligheidsprocedures, allergenen en plaagdierbeheersing relevant zijn.'],
+        ['Is HACCP verplicht voor horeca?', 'Horecabedrijven moeten voedselveilig werken volgens de geldende voedselveiligheidsregels. Ondernemers kunnen daarvoor onder voorwaarden gebruikmaken van een goedgekeurde hygiënecode of een eigen voedselveiligheidsplan op basis van HACCP.'],
+        ['Moet ik temperatuurregistraties bewaren?', 'Welke registraties in jouw situatie nodig zijn en hoe je aan de geldende eisen moet voldoen, hangt af van je processen en de toepasselijke regels of hygiënecode. Raadpleeg daarvoor altijd de actuele officiële richtlijnen.'],
+        ['Kan ik HACCP-controles digitaal bijhouden?', 'Digitale systemen kunnen worden gebruikt om relevante werkzaamheden en registraties overzichtelijk vast te leggen. Zorg er wel voor dat jouw werkwijze aansluit bij de eisen die voor je bedrijf gelden.'],
+        ['Is TaskCheck een vervanging voor HACCP?', 'Nee. TaskCheck is een hulpmiddel voor checklists, taken, registraties en werkcontrole. Het vervangt geen HACCP-plan, hygiënecode, deskundig advies of wettelijke verplichtingen.'],
+    ];
+@endphp
 
-<header class="border-b border-slate-200 bg-white pt-28 pb-10">
-    <div class="max-w-3xl mx-auto px-6">
-        <nav class="mb-5 flex items-center gap-2 text-xs text-slate-400">
-            <a href="{{ route('blog') }}" class="hover:text-blue-600 transition">Blog</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-500">Voedselveiligheid</span>
-        </nav>
-        <div class="mb-4 flex flex-wrap items-center gap-3">
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Nieuws</span>
-            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Horeca</span>
-            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">NVWA</span>
-            <span class="text-xs text-slate-400">25 aug 2026 · 9 min lezen</span>
-        </div>
-        <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight text-slate-900">NVWA-controle horeca in 2026: waar wordt op gecontroleerd?</h1>
-        <p class="mt-4 text-lg leading-relaxed text-slate-500">Wat controleert de NVWA bij restaurants, cafés en hotels? Lees over HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles overzichtelijk vastlegt.</p>
-        <aside class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
-            <p class="font-semibold text-slate-800">Bron</p>
-            <p class="mt-1">Gebaseerd op openbare informatie van de <a href="https://www.nvwa.nl/" class="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800" rel="noopener noreferrer" target="_blank">Nederlandse Voedsel- en Warenautoriteit (NVWA)</a>. Controleer voor actuele wettelijke eisen altijd de officiële NVWA-informatie.</p>
-        </aside>
+@extends('layouts.blog-article')
+
+@push('head')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "Article",
+    "headline": "NVWA-controle horeca in 2026: waar wordt op gecontroleerd?",
+    "description": @json($seoDescription),
+    "datePublished": "{{ $publishedAt }}",
+    "author": { "@@type": "Organization", "name": "TaskCheck" },
+    "publisher": { "@@type": "Organization", "name": "TaskCheck" },
+    "image": "{{ $seoImage }}",
+    "mainEntityOfPage": { "@@type": "WebPage", "@@id": "{{ $seoUrl }}" }
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
+    "mainEntity": [
+        @foreach($faqItems as $i => $item)
+        {
+            "@@type": "Question",
+            "name": @json($item[0]),
+            "acceptedAnswer": {
+                "@@type": "Answer",
+                "text": @json($item[1])
+            }
+        }@if(!$loop->last),@endif
+        @endforeach
+    ]
+}
+</script>
+@endpush
+
+@section('hero')
+    <nav class="fade-up mb-5 flex items-center gap-2 text-xs text-slate-400">
+        <a href="{{ route('blog') }}" class="transition hover:text-blue-600">Blog</a>
+        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-slate-500">Voedselveiligheid</span>
+    </nav>
+    <div class="fade-up delay-1 mb-4 flex flex-wrap items-center gap-2">
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Nieuws</span>
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>Horeca</span>
+        <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>NVWA</span>
+        <span class="text-xs font-medium text-slate-400">25 aug 2026 · 9 min lezen</span>
     </div>
-</header>
+    <h1 class="fade-up delay-1 text-3xl font-extrabold leading-[1.08] tracking-[-.045em] text-slate-900 sm:text-4xl lg:text-5xl">NVWA-controle horeca in 2026: waar wordt op gecontroleerd?</h1>
+    <p class="fade-up delay-2 mt-4 text-lg leading-relaxed text-slate-500">Wat controleert de NVWA bij restaurants, cafés en hotels? Lees over HACCP, hygiëne, temperatuur, allergenen en hoe je dagelijkse controles overzichtelijk vastlegt.</p>
+    <aside class="blog-aside fade-up delay-2">
+        <p class="font-semibold text-slate-800">Bron</p>
+        <p class="mt-1">Gebaseerd op openbare informatie van de <a href="https://www.nvwa.nl/" class="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800" rel="noopener noreferrer" target="_blank">Nederlandse Voedsel- en Warenautoriteit (NVWA)</a>. Controleer voor actuele wettelijke eisen altijd de officiële NVWA-informatie.</p>
+    </aside>
+@endsection
 
-<div class="max-w-3xl mx-auto px-6 py-10">
-    <figure class="mb-10 overflow-hidden rounded-2xl ring-1 ring-slate-200/80">
-        <img src="{{ $seoImage }}" alt="NVWA-inspectie in de horeca: een inspecteur controleert voedselcontainers in de koelcel terwijl een medewerker toekijkt" class="w-full object-cover object-center" width="1024" height="576" loading="eager">
-        <figcaption class="bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">Zo ziet een horeca-inspectie eruit: de NVWA controleert onder meer opslag, houdbaarheid en hygiëne.</figcaption>
+@section('content')
+    <figure class="blog-figure mb-10 fade-up">
+        <img src="{{ $seoImage }}" alt="NVWA-inspectie in de horeca: een inspecteur controleert voedselcontainers in de koelcel terwijl een medewerker toekijkt" width="1024" height="576" loading="eager">
+        <figcaption>Zo ziet een horeca-inspectie eruit: de NVWA controleert onder meer opslag, houdbaarheid en hygiëne.</figcaption>
     </figure>
 
-    <article class="prose-article">
+    <article class="prose-article fade-up">
         <p>Een bezoek van de Nederlandse Voedsel- en Warenautoriteit (NVWA) kan voor horecaondernemers spannend zijn. Zijn alle registraties bijgehouden? Zijn de temperaturen in orde? Is de keuken schoon en kan het personeel laten zien dat er volgens de juiste procedures wordt gewerkt?</p>
         <p>De NVWA houdt toezicht op de voedselveiligheid bij onder andere restaurants, cafés, hotels, lunchrooms en andere bedrijven die eten en drinken bereiden of verkopen.</p>
         <p>In dit artikel lees je waar je als horecaondernemer in 2026 rekening mee moet houden en hoe digitale checklists kunnen helpen om dagelijkse controles overzichtelijk vast te leggen.</p>
@@ -241,42 +224,19 @@
         <p>Wil je jouw dagelijkse horeca-controles digitaliseren?</p>
     </article>
 
-    <div class="mt-10 rounded-2xl border border-slate-200 bg-slate-900 p-6 sm:p-8">
-        <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div class="min-w-0">
-                <p class="text-lg font-bold leading-snug text-white sm:text-xl">Probeer TaskCheck 14 dagen gratis</p>
-                <p class="mt-2 max-w-md text-sm leading-relaxed text-slate-400">Digitale checklists, temperatuurregistratie en bewijs per taak. Geen creditcard nodig.</p>
-                <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-slate-400">
-                    <span class="inline-flex items-center gap-1.5">
-                        <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        Direct starten
-                    </span>
-                    <span class="inline-flex items-center gap-1.5">
-                        <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        Op telefoon en computer
-                    </span>
-                    <span class="inline-flex items-center gap-1.5">
-                        <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        Opzeggen wanneer je wilt
-                    </span>
-                </div>
-            </div>
-            <div class="flex flex-col gap-2.5 sm:flex-shrink-0">
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500">Naar dashboard</a>
-                @else
-                    <a href="{{ route('register') }}" class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500">Start 14 dagen gratis</a>
-                @endauth
-                <a href="{{ route('pricing') }}" class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">Bekijk prijzen</a>
-            </div>
-        </div>
-    </div>
+    @include('components.blog-related-solutions', [
+        'solutions' => [
+            ['HACCP App', 'Digitale HACCP-checklists en registratie voor horeca.', 'seo.haccp-app'],
+            ['Opening checklist horeca', 'Dagopening, hygiëne en controles vastleggen.', 'seo.opening-checklist-horeca'],
+            ['Sluitingschecklist horeca', 'Sluitronde en bewijs per taak digitaliseren.', 'seo.sluitings-checklist-horeca'],
+        ],
+    ])
 
-    <div class="mt-12">
-        <h2 class="text-2xl font-bold text-slate-900" style="padding-left:0.75rem;border-left:3px solid #2563eb;">Veelgestelde vragen</h2>
+    <div class="mt-14 fade-up">
+        <p class="blog-kicker">Veelgestelde vragen</p>
         <div class="mt-5 space-y-3">
             @foreach($faqItems as $item)
-            <details class="group rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-blue-200">
+            <details class="group rounded-2xl border border-[#e6e8ec] bg-white px-5 py-4 transition hover:border-[#d7e2f7]">
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-slate-900">
                     <span class="text-left text-sm">{{ $item[0] }}</span>
                     <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -287,106 +247,33 @@
         </div>
     </div>
 
-    <div class="mt-12 border-t border-slate-200 pt-8">
-        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Meer lezen</h3>
-        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-            <a href="{{ route('seo.haccp-app') }}" class="group flex gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-blue-300">
-                <span class="text-sm font-semibold text-slate-900 group-hover:text-blue-700">HACCP-app</span>
+    <div class="mt-14 fade-up">
+        <p class="blog-kicker">Meer lezen</p>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <a href="{{ route('blog.nvwa-update-horeca-inspecties-juni-2026') }}" class="blog-readmore group">
+                <div>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>NVWA</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">NVWA-update: horeca-inspecties juni 2026</p>
+                </div>
             </a>
-            <a href="{{ route('seo.opening-checklist-horeca') }}" class="group flex gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-blue-300">
-                <span class="text-sm font-semibold text-slate-900 group-hover:text-blue-700">Opening checklist horeca</span>
+            <a href="{{ route('blog.nvwa-spoedsluitingen-plaagdieren-2026') }}" class="blog-readmore group">
+                <div>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Nieuws</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Spoedsluitingen door plaagdieren</p>
+                </div>
             </a>
-            <a href="{{ route('seo.sluitings-checklist-horeca') }}" class="group flex gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-blue-300">
-                <span class="text-sm font-semibold text-slate-900 group-hover:text-blue-700">Sluitingschecklist horeca</span>
+            <a href="{{ route('blog.haccp-richtlijnen-checklist') }}" class="blog-readmore group">
+                <div>
+                    <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>HACCP</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">HACCP-richtlijnen checklist</p>
+                </div>
             </a>
-            <a href="{{ route('pricing') }}" class="group flex gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:border-blue-300">
-                <span class="text-sm font-semibold text-slate-900 group-hover:text-blue-700">Prijzen</span>
+            <a href="{{ route('pricing') }}" class="blog-readmore group">
+                <div>
+                    <span class="blog-tag">Prijzen</span>
+                    <p class="mt-2 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">Bekijk de TaskCheck-prijzen</p>
+                </div>
             </a>
         </div>
     </div>
-</div>
-
-<style>
-.prose-article h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-top: 2.5rem;
-    margin-bottom: 0.75rem;
-    padding-left: 0.75rem;
-    border-left: 3px solid #2563eb;
-    line-height: 1.35;
-}
-.prose-article p {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #475569;
-    margin-bottom: 1rem;
-}
-.prose-article ul, .prose-article ol {
-    padding: 0;
-    margin: 1rem 0 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.prose-article ul { list-style: none; }
-.prose-article ul li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
-    font-size: 0.9375rem;
-    color: #475569;
-    line-height: 1.6;
-}
-.prose-article ul li::before {
-    content: '';
-    display: inline-block;
-    width: 0.375rem;
-    height: 0.375rem;
-    background: #2563eb;
-    border-radius: 50%;
-    margin-top: 0.6rem;
-    flex-shrink: 0;
-}
-.prose-article ol {
-    list-style: none;
-    counter-reset: nvwa;
-}
-.prose-article ol li {
-    counter-increment: nvwa;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    font-size: 0.9375rem;
-    color: #475569;
-    line-height: 1.6;
-}
-.prose-article ol li::before {
-    content: counter(nvwa);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 9999px;
-    background: #eff6ff;
-    color: #1d4ed8;
-    font-size: 0.75rem;
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-top: 0.05rem;
-}
-.prose-article a {
-    color: #2563eb;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-.prose-article a:hover { color: #1d4ed8; }
-details summary::-webkit-details-marker { display: none; }
-</style>
-
-@include('components.footer')
-</body>
-</html>
+@endsection
