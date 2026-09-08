@@ -207,6 +207,12 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://taskcheck.nl/warenwet-horeca</loc>
+    <lastmod>2026-09-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- Blog -->
   <url>
     <loc>https://taskcheck.nl/blog/nvwa-controle-horeca-2026</loc>

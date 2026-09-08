@@ -256,6 +256,10 @@ Route::get('/alles-in-één-horeca-platform', function () {
     return view('seo.alles-in-één-horeca-platform');
 })->name('seo.alles-in-één-horeca-platform');
 
+Route::get('/warenwet-horeca', function () {
+    return view('seo.warenwet-horeca');
+})->name('seo.warenwet-horeca');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
