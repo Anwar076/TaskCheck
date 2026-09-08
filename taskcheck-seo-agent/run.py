@@ -12,13 +12,18 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.agent import SEOAgent
-from app.scheduler.daily import main as run_daemon, run_bot, run_daily_job
+from app.scheduler.daily import (
+    ALREADY_RUNNING_EXIT_CODE,
+    main as run_daemon,
+    run_bot,
+    run_daily_job,
+)
 from app.utils.logger import setup_logger
 
 logger = setup_logger("main")
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(description="TaskCheck SEO Agent")
     parser.add_argument(
         "command",
@@ -30,18 +35,20 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "daemon":
-        run_daemon()
-    elif args.command == "daily":
+        return run_daemon()
+    if args.command == "daily":
         run_daily_job()
     elif args.command == "bot":
-        run_bot()
+        if not run_bot():
+            return ALREADY_RUNNING_EXIT_CODE
     elif args.command == "analyze":
         agent = SEOAgent()
         agent.run_analysis_only()
     elif args.command == "pipeline":
         agent = SEOAgent()
         agent.run_full_pipeline()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

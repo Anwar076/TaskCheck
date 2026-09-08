@@ -26,6 +26,10 @@ while ($true) {
         Write-Host "Daemon gestopt (exit 0)."
         break
     }
+    if ($code -eq 3) {
+        Write-Host "Er draait al een SEO Agent op deze machine. Stop die eerst."
+        break
+    }
     Write-Host "Herstart over 10 seconden..."
     Start-Sleep -Seconds 10
 }

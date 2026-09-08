@@ -165,7 +165,7 @@ def detect_intent(message: str) -> str | None:
 
     for pattern in kansen_patterns:
         if re.search(pattern, text):
-            return "next"
+            return "kansen"
 
     for pattern in next_patterns:
         if re.search(pattern, text):

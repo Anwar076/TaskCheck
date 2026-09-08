@@ -373,6 +373,10 @@ Route::get('/blog/{slug}', function () {{
                 commit_sha = sha_out.stdout.strip()
                 created_commit = True
 
+        merged_into_base = False
+        if created_commit and branch and branch != self.config.git_base_branch:
+            merged_into_base = self._merge_into_base(repo_root, branch)
+
         return {
             "mode": "git_only",
             "slug": slug,
@@ -381,6 +385,8 @@ Route::get('/blog/{slug}', function () {{
             "base_branch": self.config.git_base_branch,
             "commit_sha": commit_sha,
             "committed": str(created_commit),
+            "merged_into_base": str(merged_into_base),
+            "live_branch": self.config.git_base_branch if merged_into_base else (branch or self._active_branch or ""),
             "paths": ", ".join(rel_paths),
             "repo_root": str(repo_root),
             **({"url": url} if url else {}),
@@ -388,6 +394,33 @@ Route::get('/blog/{slug}', function () {{
             **({"backup": backup} if backup else {}),
             **({"discovery": discovery} if discovery else {}),
         }
+
+    def _merge_into_base(self, repo_root: Path, branch: str) -> bool:
+        """Zet de commit ook op de basisbranch.
+
+        Zonder dit blijft de pagina achter op een zijbranch: zodra je terug naar
+        main gaat is het bestand en de route weer weg, en lijkt het alsof de
+        agent niets heeft aangemaakt.
+        """
+        base = self.config.git_base_branch
+        try:
+            self._run_git(["checkout", base], repo_root)
+            self._run_git(
+                ["merge", "--no-ff", branch, "-m", f"Merge {branch} into {base}"],
+                repo_root,
+            )
+        except RuntimeError as exc:
+            logger.error("Samenvoegen met %s mislukt: %s", base, exc)
+            try:
+                self._run_git(["checkout", branch], repo_root)
+                logger.info("Wijzigingen blijven op branch %s staan", branch)
+            except RuntimeError:
+                logger.exception("Kon niet terugschakelen naar %s", branch)
+            return False
+
+        self._active_branch = base
+        logger.info("Pagina staat nu op %s (branch %s blijft bewaard)", base, branch)
+        return True
 
     def _commit_prefix(self, action_type: str) -> str:
         if action_type == "create_page":
@@ -403,15 +436,53 @@ Route::get('/blog/{slug}', function () {{
         branch = f"seo-agent/{slug}-{timestamp}"
         base = self.config.git_base_branch
 
-        status = self._run_git(["status", "--porcelain"], repo_root)
-        if status.stdout.strip():
-            raise RuntimeError(
-                "Git werkmap is niet schoon. Commit of stash eerst handmatig, daarna opnieuw goedkeuren."
-            )
+        self._assert_target_paths_clean(repo_root, slug)
 
         self._run_git(["checkout", base], repo_root)
         self._run_git(["checkout", "-b", branch], repo_root)
         return branch
+
+    def _assert_target_paths_clean(self, repo_root: Path, slug: str) -> None:
+        """Blokkeer alleen als de bestanden die de agent zélf herschrijft
+        openstaande wijzigingen hebben.
+
+        Er wordt per pad gestaged (zie _commit_changes), dus overig werk in de
+        repo komt nooit in de commit terecht en hoeft publiceren niet te blokkeren.
+        """
+        targets = self._target_rel_paths(repo_root, slug)
+        if not targets:
+            return
+
+        status = self._run_git(["status", "--porcelain", "--", *targets], repo_root)
+        dirty = sorted({line[3:].strip() for line in status.stdout.splitlines() if line.strip()})
+        if dirty:
+            raise RuntimeError(
+                "Deze bestanden worden door de agent aangepast maar hebben nog "
+                "niet-gecommitte wijzigingen:\n"
+                + "\n".join(f"• {path}" for path in dirty)
+                + "\n\nCommit of stash ze eerst, daarna opnieuw goedkeuren."
+            )
+
+    def _target_rel_paths(self, repo_root: Path, slug: str) -> list[str]:
+        candidates = [
+            self.config.seo_views_dir / f"{slug}.blade.php",
+            self.config.blog_views_dir / f"{slug}.blade.php",
+            self.config.web_routes_file,
+            self.config.sitemap_path,
+            self.config.llms_txt_path,
+            self.config.laravel_root / "resources" / "views" / "blog.blade.php",
+        ]
+
+        rel_paths: list[str] = []
+        for path in candidates:
+            try:
+                rel = path.resolve().relative_to(repo_root.resolve())
+            except ValueError:
+                continue
+            rel_str = str(rel).replace("\\", "/")
+            if rel_str not in rel_paths:
+                rel_paths.append(rel_str)
+        return rel_paths
 
     def _run_git(self, args: list[str], repo_root: Path) -> subprocess.CompletedProcess[str]:
         proc = subprocess.run(

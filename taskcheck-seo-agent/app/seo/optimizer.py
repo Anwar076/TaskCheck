@@ -19,6 +19,45 @@ RELATED_LINKS_FOREACH = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 
+# Door de agent gegenereerde pagina's zetten de gerelateerde links als losse
+# <a>-tags in een flex-container in plaats van een @foreach.
+RELATED_LINKS_STATIC = re.compile(
+    r"(Gerelateerde pagina[\s\S]{0,400}?<div[^>]*>)([\s\S]*?)(\s*</div>)",
+    re.IGNORECASE,
+)
+
+STATIC_LINK_CLASSES = (
+    "inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white "
+    "px-4 py-2 text-sm font-medium text-blue-700 transition hover:border-blue-200 hover:bg-blue-50"
+)
+
+# PageWriter schrijft meta-strings met json.dumps (dubbele quotes), de
+# referentiepagina's gebruiken enkele quotes. Beide moeten matchen.
+PHP_STRING = r"(?:'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\")"
+
+
+def _php_assignment(variable: str) -> re.Pattern[str]:
+    return re.compile(rf"(\${variable}\s*=\s*){PHP_STRING}")
+
+
+SEO_TITLE_ASSIGNMENT = _php_assignment("seoTitle")
+SEO_DESCRIPTION_ASSIGNMENT = _php_assignment("seoDescription")
+
+
+def _php_single_quoted(value: str) -> str:
+    escaped = str(value).replace("\\", "\\\\").replace("'", "\\'")
+    return f"'{escaped}'"
+
+
+def _escape_html(value: str) -> str:
+    return (
+        str(value)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
 
 class PageOptimizer:
     def __init__(self) -> None:
@@ -58,19 +97,13 @@ class PageOptimizer:
         result = content
 
         if improvements.get("seo_title"):
-            result = re.sub(
-                r"\$seoTitle\s*=\s*'[^']*'",
-                f"$seoTitle       = '{improvements['seo_title']}'",
-                result,
-                count=1,
+            result = self._replace_php_string(
+                result, SEO_TITLE_ASSIGNMENT, improvements["seo_title"], "seoTitle"
             )
 
         if improvements.get("seo_description"):
-            result = re.sub(
-                r"\$seoDescription\s*=\s*'[^']*'",
-                f"$seoDescription = '{improvements['seo_description']}'",
-                result,
-                count=1,
+            result = self._replace_php_string(
+                result, SEO_DESCRIPTION_ASSIGNMENT, improvements["seo_description"], "seoDescription"
             )
 
         new_faq = improvements.get("new_faq_items", [])
@@ -86,6 +119,20 @@ class PageOptimizer:
             result = self._add_internal_links(result, links)
 
         return result
+
+    def _replace_php_string(
+        self,
+        content: str,
+        pattern: re.Pattern[str],
+        value: str,
+        label: str,
+    ) -> str:
+        literal = _php_single_quoted(value)
+        updated, count = pattern.subn(lambda m: f"{m.group(1)}{literal}", content, count=1)
+        if not count:
+            logger.warning("$%s niet gevonden in pagina; overgeslagen", label)
+            return content
+        return updated
 
     def _add_faq_items(self, content: str, new_items: list) -> str:
         match = re.search(r"(\$faqItems\s*=\s*\[)([\s\S]*?)(\];)", content)
@@ -106,28 +153,58 @@ class PageOptimizer:
 
     def _add_internal_links(self, content: str, links: list) -> str:
         match = RELATED_LINKS_FOREACH.search(content)
-        if not match:
-            logger.warning("Gerelateerde pagina's sectie niet gevonden; interne links overgeslagen")
-            return content
+        if match:
+            return self._add_links_to_foreach(content, match, links)
 
-        existing = match.group(2)
-        existing_routes = set(re.findall(r"route\('([^']+)'\)", existing))
-        additions: list[str] = []
+        match = RELATED_LINKS_STATIC.search(content)
+        if match:
+            return self._add_links_to_static_block(content, match, links)
 
+        logger.warning("Gerelateerde pagina's sectie niet gevonden; interne links overgeslagen")
+        return content
+
+    def _usable_links(self, links: list, existing_routes: set[str]) -> list[tuple[str, str]]:
+        usable: list[tuple[str, str]] = []
         for link in links:
-            label = link.get("label", "").replace("'", "\\'")
+            label = link.get("label", "")
             route = link.get("route", "")
             if not route or not is_valid_route(route):
                 logger.warning("Ongeldige route overgeslagen bij optimalisatie: %s", route)
                 continue
             if route in existing_routes:
                 continue
-            additions.append(f"                    ['{label}', route('{route}')],")
+            usable.append((label, route))
             existing_routes.add(route)
+        return usable
+
+    def _add_links_to_foreach(self, content: str, match: re.Match[str], links: list) -> str:
+        existing = match.group(2)
+        existing_routes = set(re.findall(r"route\('([^']+)'\)", existing))
+        additions = [
+            f"                    [{_php_single_quoted(label)}, route('{route}')],"
+            for label, route in self._usable_links(links, existing_routes)
+        ]
 
         if not additions:
             return content
 
         separator = "" if not existing.strip() or existing.rstrip().endswith(",") else ",\n"
         new_block = existing + separator + "\n".join(additions)
+        return content[: match.start(2)] + new_block + content[match.end(2) :]
+
+    def _add_links_to_static_block(self, content: str, match: re.Match[str], links: list) -> str:
+        existing = match.group(2)
+        existing_routes = set(re.findall(r"route\(['\"]([^'\"]+)['\"]\)", existing))
+        additions = [
+            f"            <a href=\"{{{{ route('{route}') }}}}\" class=\"{STATIC_LINK_CLASSES}\">"
+            f"{_escape_html(label)}</a>"
+            for label, route in self._usable_links(links, existing_routes)
+        ]
+
+        if not additions:
+            return content
+
+        prefix = existing.rstrip()
+        parts = [prefix, *additions] if prefix else ["", *additions]
+        new_block = "\n".join(parts)
         return content[: match.start(2)] + new_block + content[match.end(2) :]

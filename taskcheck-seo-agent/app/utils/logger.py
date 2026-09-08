@@ -9,6 +9,19 @@ from pathlib import Path
 from app.utils.config import get_config
 
 
+def _console_stream():
+    """Windows-consoles gebruiken standaard cp1252; emoji in logregels laten
+    logging dan crashen met een UnicodeEncodeError."""
+    stream = sys.stdout
+    reconfigure = getattr(stream, "reconfigure", None)
+    if reconfigure is not None:
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except (ValueError, OSError):
+            pass
+    return stream
+
+
 def setup_logger(name: str = "seo_agent") -> logging.Logger:
     config = get_config()
     config.data_dir.mkdir(parents=True, exist_ok=True)
@@ -23,7 +36,7 @@ def setup_logger(name: str = "seo_agent") -> logging.Logger:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    console = logging.StreamHandler(sys.stdout)
+    console = logging.StreamHandler(_console_stream())
     console.setFormatter(formatter)
     logger.addHandler(console)
 

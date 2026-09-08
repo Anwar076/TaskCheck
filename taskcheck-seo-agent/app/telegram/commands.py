@@ -455,7 +455,7 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
                     return (
                         "✅ Klaargezet via Git (nog niet live op productie).\n\n"
                         f"Repo: {result.get('repo_root', '—')}\n"
-                        f"Branch: {result.get('branch')}\n"
+                        f"{self._branch_summary(result)}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
                         f"Bestanden: {result.get('paths')}\n"
                         f"{self._discovery_summary(result)}\n\n"
@@ -475,7 +475,7 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
                 if result.get("mode") == "git_only":
                     return (
                         "✅ Optimalisatie klaargezet via Git (niet live gezet).\n\n"
-                        f"Branch: {result.get('branch')}\n"
+                        f"{self._branch_summary(result)}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
                         f"Bestanden: {result.get('paths')}\n"
                         f"{self._discovery_summary(result)}\n\n"
@@ -495,7 +495,7 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
                 if result.get("mode") == "git_only":
                     return (
                         "✅ Blog klaargezet via Git (niet live gezet).\n\n"
-                        f"Branch: {result.get('branch')}\n"
+                        f"{self._branch_summary(result)}\n"
                         f"Commit: {result.get('commit_sha') or 'nog niet gecommit'}\n"
                         f"Bestanden: {result.get('paths')}\n"
                         f"{self._discovery_summary(result)}\n\n"
@@ -660,6 +660,10 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
             return
         if regex_intent == "create_blogs_batch":
             await self.cmd_blogs_batch(update, context)
+            return
+        if regex_intent == "kansen":
+            fake_ctx = type("Ctx", (), {"args": []})()
+            await self.cmd_kansen(update, fake_ctx)
             return
         if regex_intent == "next":
             await self._proceed(update, applying=False)
@@ -886,9 +890,12 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
         base = self.config.git_base_branch
         remote = self.config.git_remote
         try:
+            # Losse lokale wijzigingen blokkeren pushen niet: er wordt alleen
+            # gepusht wat al gecommit is. Git klaagt zelf als een pull ze zou
+            # overschrijven, en die melding komt hieronder terug.
             status = self._git(["status", "--porcelain"], repo_root)
             if status.stdout.strip():
-                return "⚠️ Git status is niet schoon. Commit/stash eerst lokale wijzigingen."
+                logger.info("Push met openstaande lokale wijzigingen in de werkmap")
 
             branch_out = self._git(["rev-parse", "--abbrev-ref", "HEAD"], repo_root)
             current = branch_out.stdout.strip()
@@ -950,6 +957,21 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
             return format_gsc_telegram(gsc_result)
         except Exception as exc:
             return f"⚠️ GSC: {exc}"
+
+    def _branch_summary(self, result: dict) -> str:
+        """Waar de pagina nu staat — anders lijkt het na een branchwissel weg."""
+        branch = result.get("branch") or "—"
+        if result.get("merged_into_base") == "True":
+            base = result.get("base_branch") or "main"
+            return (
+                f"Staat nu op: {base} (samengevoegd vanaf {branch})\n"
+                "Direct te bekijken op je lokale server."
+            )
+        return (
+            f"Staat op branch: {branch}\n"
+            f"Let op: op {result.get('base_branch') or 'main'} zie je de pagina niet — "
+            "schakel naar deze branch om hem te bekijken."
+        )
 
     def _discovery_summary(self, result: dict) -> str:
         discovery = result.get("discovery")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from pathlib import Path
 from typing import Any
 
 from google.oauth2 import service_account
@@ -19,15 +20,46 @@ SCOPES = [
 ]
 
 
+class GSCUnavailableError(RuntimeError):
+    """Search Console is niet bruikbaar (ontbrekende of ongeldige credentials)."""
+
+
 class GSCClient:
+    """Search Console client die pas verbindt bij de eerste query.
+
+    Lazy, zodat de Telegram-bot en scheduler blijven starten wanneer de
+    credentials ontbreken; alleen GSC-afhankelijke commando's falen dan.
+    """
+
     def __init__(self) -> None:
         config = get_config()
-        credentials = service_account.Credentials.from_service_account_file(
-            str(config.gsc_credentials),
-            scopes=SCOPES,
-        )
-        self.service = build("searchconsole", "v1", credentials=credentials)
+        self.credentials_path = Path(config.gsc_credentials)
         self.site_url = config.gsc_site_url
+        self._service: Any | None = None
+
+    @property
+    def service(self) -> Any:
+        if self._service is None:
+            self._service = self._build_service()
+        return self._service
+
+    def _build_service(self) -> Any:
+        if not self.credentials_path.exists():
+            raise GSCUnavailableError(
+                f"Search Console credentials niet gevonden: {self.credentials_path}. "
+                "Zet GSC_CREDENTIALS in .env naar het service-account JSON-bestand."
+            )
+        try:
+            credentials = service_account.Credentials.from_service_account_file(
+                str(self.credentials_path),
+                scopes=SCOPES,
+            )
+        except Exception as exc:
+            raise GSCUnavailableError(
+                f"Search Console credentials ongeldig ({self.credentials_path}): {exc}"
+            ) from exc
+        logger.info("Search Console verbonden voor %s", self.site_url)
+        return build("searchconsole", "v1", credentials=credentials)
 
     def _date_range(self, days: int = 28) -> tuple[str, str]:
         end = date.today() - timedelta(days=3)

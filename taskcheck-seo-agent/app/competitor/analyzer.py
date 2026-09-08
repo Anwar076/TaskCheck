@@ -22,6 +22,10 @@ HEADERS = {
 
 OWN_DOMAINS = ("taskcheck.nl", "localhost")
 
+# Elke concurrent kost een HTTP-request + parse. De volledige lijst scrapen laat
+# /nieuw minuten hangen, dus zonder expliciete COMPETITOR_MAX_RESULTS cappen we.
+DEFAULT_COMPETITOR_LIMIT = 10
+
 
 class CompetitorAnalyzer:
     def __init__(self) -> None:
@@ -83,7 +87,7 @@ class CompetitorAnalyzer:
         configured_limit = self.config.competitor_max_results
         limit = max_results if max_results is not None else configured_limit
         if limit <= 0:
-            limit = len(self.competitors) if self.competitors else 10
+            limit = min(len(self.competitors), DEFAULT_COMPETITOR_LIMIT) if self.competitors else DEFAULT_COMPETITOR_LIMIT
 
         urls: list[str] = []
 

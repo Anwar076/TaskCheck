@@ -20,6 +20,17 @@ fi
 
 cd "$AGENT_DIR"
 
+# .env en credentials.json staan in .gitignore: een git pull zet ze dus NIET
+# op de server. Zonder deze twee start de bot niet of faalt elke GSC-query.
+missing=()
+[[ -f .env ]] || missing+=(".env")
+[[ -f credentials.json ]] || missing+=("credentials.json")
+if (( ${#missing[@]} > 0 )); then
+  echo "Ontbrekende bestanden in $AGENT_DIR: ${missing[*]}"
+  echo "Kopieer ze handmatig vanaf je pc (ze zitten niet in git)."
+  exit 1
+fi
+
 if [[ ! -d venv ]]; then
   echo "venv aanmaken..."
   curl -sS -o virtualenv.pyz https://bootstrap.pypa.io/virtualenv.pyz
