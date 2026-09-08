@@ -1,6 +1,7 @@
 <script>
 (function () {
-    var native = !!(window.Capacitor && (
+    var params = new URLSearchParams(window.location.search || '');
+    var native = params.get('source') === 'pwa' || !!(window.Capacitor && (
         typeof window.Capacitor.isNativePlatform === 'function'
             ? window.Capacitor.isNativePlatform()
             : window.Capacitor.isNative

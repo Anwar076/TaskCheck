@@ -2,20 +2,33 @@
     @php
         $taskcheckLogoPath = public_path('logos/taskcheck-logo.png');
         $taskcheckLogoVersion = file_exists($taskcheckLogoPath) ? filemtime($taskcheckLogoPath) : time();
+        $isAppLogin = request('source') === 'pwa';
     @endphp
 
-    <div class="mb-8 flex justify-center">
-        <a href="{{ route('welcome') }}" class="inline-flex">
+    <div class="mb-7 flex justify-center sm:mb-8 {{ $isAppLogin ? 'pt-1' : '' }}">
+        @if ($isAppLogin)
             <img
                 src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
                 alt="TaskCheck — Maak elke controle aantoonbaar"
                 width="640"
                 height="160"
-                class="h-16 w-auto object-contain"
+                class="h-14 w-auto object-contain sm:h-16"
                 decoding="async"
                 fetchpriority="high"
             >
-        </a>
+        @else
+            <a href="{{ route('welcome') }}" class="inline-flex">
+                <img
+                    src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
+                    alt="TaskCheck — Maak elke controle aantoonbaar"
+                    width="640"
+                    height="160"
+                    class="h-14 w-auto object-contain sm:h-16"
+                    decoding="async"
+                    fetchpriority="high"
+                >
+            </a>
+        @endif
     </div>
 
     @if (session('status'))
@@ -24,8 +37,11 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('login') }}" class="space-y-4" id="login-form">
+    <form method="POST" action="{{ $isAppLogin ? route('login', ['source' => 'pwa']) : route('login') }}" class="space-y-4" id="login-form">
             @csrf
+            @if ($isAppLogin)
+                <input type="hidden" name="source" value="pwa">
+            @endif
             <input type="hidden" name="remember" value="1">
 
             <!-- Email Address -->
@@ -40,7 +56,9 @@
                        required
                        autofocus
                        autocomplete="username"
-                       class="block w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 @error('email') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
+                       inputmode="email"
+                       enterkeyhint="next"
+                       class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:rounded-lg sm:py-3 sm:text-sm @error('email') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
                        placeholder="naam@bedrijf.nl">
                 @error('email')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -58,11 +76,12 @@
                            name="password"
                            required
                            autocomplete="current-password"
-                           class="block w-full rounded-lg border border-slate-200 bg-white px-4 py-3 pr-11 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 @error('password') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
+                           enterkeyhint="go"
+                           class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 pr-12 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:rounded-lg sm:py-3 sm:pr-11 sm:text-sm @error('password') border-red-300 focus:border-red-500 focus:ring-red-100 @enderror"
                            placeholder="********">
                     <button
                         type="button"
-                        class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center text-slate-400 transition hover:text-slate-600"
+                        class="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-slate-400 transition hover:text-slate-600 sm:w-11"
                         aria-label="Wachtwoord tonen"
                         data-password-toggle
                     >
@@ -78,29 +97,29 @@
             </div>
 
             <!-- Remember Me & Forgot Password -->
-            <div class="flex items-center justify-between gap-4">
-                <label for="remember_me" class="flex items-center text-sm text-slate-600">
-                    <input id="remember_me" 
-                           type="checkbox" 
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <label for="remember_me" class="flex min-h-[44px] items-center text-sm text-slate-600 sm:min-h-0">
+                    <input id="remember_me"
+                           type="checkbox"
                            name="remember"
                            value="1"
                            checked
-                           class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                    <span class="ml-2">Onthoud mij</span>
+                           class="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 sm:h-4 sm:w-4">
+                    <span class="ml-2.5">Onthoud mij</span>
                 </label>
 
                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" 
-                       class="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                    <a href="{{ route('password.request') }}"
+                       class="inline-flex min-h-[44px] items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-500 sm:min-h-0">
                         Wachtwoord vergeten?
                     </a>
                 @endif
             </div>
 
             <!-- Login Button -->
-            <div>
-                <button type="submit" 
-                        class="flex w-full items-center justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100">
+            <div class="pt-1">
+                <button type="submit"
+                        class="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-transparent bg-blue-600 px-4 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:min-h-0 sm:rounded-lg sm:py-3 sm:text-sm">
                     <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                     </svg>
@@ -109,12 +128,12 @@
             </div>
     </form>
 
-    <details class="group mt-5 rounded-xl border border-slate-200 bg-white" @if(old('login_method') === 'microsoft') open @endif>
-        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"><span class="flex items-center gap-2"><span class="grid h-5 w-5 grid-cols-2 gap-0.5"><i class="bg-[#f25022]"></i><i class="bg-[#7fba00]"></i><i class="bg-[#00a4ef]"></i><i class="bg-[#ffb900]"></i></span>Inloggen met Microsoft</span><svg class="h-4 w-4 transition group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg></summary>
-        <form method="POST" action="{{ route('entra.redirect') }}" class="space-y-3 border-t border-slate-100 p-4">@csrf<input type="hidden" name="login_method" value="microsoft"><label for="entra_email" class="block text-sm font-semibold text-slate-800">Zakelijk e-mailadres</label><input id="entra_email" name="email" type="email" required autocomplete="username" value="{{ old('email') }}" placeholder="naam@bedrijf.nl" class="block w-full rounded-lg border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-100"><button type="submit" class="flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Doorgaan met Microsoft</button></form>
+    <details class="group mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white" @if(old('login_method') === 'microsoft') open @endif>
+        <summary class="flex min-h-[48px] cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"><span class="flex items-center gap-2"><span class="grid h-5 w-5 grid-cols-2 gap-0.5"><i class="bg-[#f25022]"></i><i class="bg-[#7fba00]"></i><i class="bg-[#00a4ef]"></i><i class="bg-[#ffb900]"></i></span>Inloggen met Microsoft</span><svg class="h-4 w-4 transition group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg></summary>
+        <form method="POST" action="{{ route('entra.redirect') }}" class="space-y-3 border-t border-slate-100 p-4">@csrf<input type="hidden" name="login_method" value="microsoft"><label for="entra_email" class="block text-sm font-semibold text-slate-800">Zakelijk e-mailadres</label><input id="entra_email" name="email" type="email" required autocomplete="username" inputmode="email" value="{{ old('email') }}" placeholder="naam@bedrijf.nl" class="block w-full rounded-xl border border-slate-200 px-4 py-3.5 text-base shadow-sm focus:border-blue-500 focus:ring-blue-100 sm:rounded-lg sm:py-3 sm:text-sm"><button type="submit" class="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-slate-800 sm:min-h-0 sm:rounded-lg sm:py-3 sm:text-sm">Doorgaan met Microsoft</button></form>
     </details>
 
-    <p class="mt-6 text-center text-sm text-slate-500">
+    <p class="mt-6 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] text-center text-sm text-slate-500">
         Nog geen account?
         <a href="{{ route('register') }}" class="font-semibold text-blue-600 transition hover:text-blue-700">
             Maak er een aan

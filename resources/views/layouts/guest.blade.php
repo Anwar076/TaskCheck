@@ -2,12 +2,15 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @include('partials.native-shell')
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#eef3f9">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
@@ -27,6 +30,8 @@
 
             .taskcheck-login-scene {
                 background: #eef3f9;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
 
             .taskcheck-login-grid {
@@ -49,6 +54,75 @@
                     linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(238, 243, 249, 0.2));
             }
 
+            .taskcheck-login-shell {
+                position: relative;
+                z-index: 10;
+                display: flex;
+                min-height: 100vh;
+                min-height: 100dvh;
+                align-items: center;
+                justify-content: center;
+                padding:
+                    max(2.5rem, calc(env(safe-area-inset-top, 0px) + 2.5rem))
+                    max(1rem, env(safe-area-inset-right, 0px))
+                    max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 2.5rem))
+                    max(1rem, env(safe-area-inset-left, 0px));
+            }
+
+            .taskcheck-login-card {
+                width: 100%;
+                max-width: 28rem;
+                border-radius: 1rem;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                background: rgba(255, 255, 255, 0.95);
+                padding: 1.75rem;
+                box-shadow: 0 20px 40px -24px rgba(15, 23, 42, 0.35);
+                backdrop-filter: blur(8px);
+            }
+
+            @media (max-width: 640px) {
+                .taskcheck-login-shell {
+                    align-items: flex-start;
+                    padding-top: max(1.5rem, calc(env(safe-area-inset-top, 0px) + 1.5rem));
+                    padding-bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem));
+                }
+
+                .taskcheck-login-card {
+                    padding: 1.25rem 1.15rem;
+                    border-radius: 1.15rem;
+                    box-shadow: 0 12px 28px -20px rgba(15, 23, 42, 0.28);
+                }
+            }
+
+            html.is-native-app .taskcheck-login-shell {
+                align-items: flex-start;
+                padding-top: calc(var(--safe-top) + 1.25rem);
+                padding-right: max(1.1rem, var(--safe-right));
+                padding-bottom: calc(var(--safe-bottom) + 1.25rem);
+                padding-left: max(1.1rem, var(--safe-left));
+            }
+
+            html.is-native-app .taskcheck-login-card {
+                width: 100%;
+                max-width: 26rem;
+                margin-inline: auto;
+                border: 0;
+                background: transparent;
+                box-shadow: none;
+                backdrop-filter: none;
+                padding: 0.25rem 0 0;
+                border-radius: 0;
+            }
+
+            html.is-native-app .taskcheck-login-grid {
+                opacity: 0.55;
+                animation: none;
+            }
+
+            html.is-native-app [data-translate-root] {
+                display: none !important;
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .taskcheck-login-grid {
                     animation: none;
@@ -57,12 +131,11 @@
         </style>
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="taskcheck-login-scene relative min-h-screen overflow-hidden" data-page-transition-root>
+        <div class="taskcheck-login-scene relative overflow-hidden" data-page-transition-root>
             <div class="taskcheck-login-grid" aria-hidden="true"></div>
             <div class="taskcheck-login-vignette" aria-hidden="true"></div>
-            <!-- Auth Card -->
-            <div class="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+2.5rem))] sm:px-6">
-                <div class="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-7 shadow-xl backdrop-blur">
+            <div class="taskcheck-login-shell">
+                <div class="taskcheck-login-card">
                     {{ $slot }}
                 </div>
             </div>

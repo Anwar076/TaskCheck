@@ -11,7 +11,8 @@ window.Alpine = Alpine;
 Alpine.start();
 
 const markNativeShell = () => {
-    const native = !!(window.Capacitor && (
+    const params = new URLSearchParams(window.location.search || '');
+    const native = params.get('source') === 'pwa' || !!(window.Capacitor && (
         typeof window.Capacitor.isNativePlatform === 'function'
             ? window.Capacitor.isNativePlatform()
             : window.Capacitor.isNative
