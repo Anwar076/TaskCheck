@@ -264,6 +264,10 @@ Route::get('/horeko-app', function () {
     return view('seo.horeko-app');
 })->name('seo.horeko-app');
 
+Route::get('/haccp-registratie-formulier', function () {
+    return view('seo.haccp-registratie-formulier');
+})->name('seo.haccp-registratie-formulier');
+
 // Route::get('/careers', function () {
 //     return view('careers');
 // })->name('careers');
