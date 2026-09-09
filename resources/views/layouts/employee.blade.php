@@ -35,21 +35,26 @@
         @php
             $unreadNotifications = auth()->user()->unreadNotifications()->orderBy('created_at', 'desc')->take(5)->get();
             $unreadCount = auth()->user()->unreadNotifications()->count();
+            $taskcheckLogoPath = public_path('logos/taskcheck-logo.png');
+            $taskcheckLogoVersion = file_exists($taskcheckLogoPath) ? filemtime($taskcheckLogoPath) : time();
         @endphp
         <!-- Desktop top nav (xl+). On mobile/tablet the icon bar at the bottom replaces this. -->
         <nav class="sticky top-0 z-50 @hasSection('nav-extra') bg-white border-b border-gray-200 @else xl:bg-white xl:border-b xl:border-gray-200 @endif">
             <div class="hidden xl:block app-safe-header">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center min-h-14 gap-2 sm:h-16">
+                <div class="flex justify-between items-center min-h-16 gap-2 sm:h-20">
                     <div class="flex min-w-0 items-center">
                         <!-- Clean Logo -->
                         <div class="flex min-w-0 items-center">
-                            <a href="{{ ($subscriptionLocked ?? false) ? route('employee.settings.edit') : route('employee.dashboard') }}" class="flex min-w-0 items-center gap-2 sm:gap-3">
-                                <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-8 w-8 shrink-0 rounded-lg sm:h-9 sm:w-9">
-                                <div class="min-w-0 leading-tight">
-                                    <p class="truncate text-base font-semibold text-gray-900 sm:text-lg">TaskCheck</p>
-                                    <p class="hidden truncate text-[11px] text-gray-500 sm:block">Checklist &amp; kwaliteitscontrole</p>
-                                </div>
+                            <a href="{{ ($subscriptionLocked ?? false) ? route('employee.settings.edit') : route('employee.dashboard') }}" class="flex min-w-0 items-center">
+                                <img
+                                    src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
+                                    alt="TaskCheck"
+                                    width="640"
+                                    height="160"
+                                    decoding="async"
+                                    class="h-12 w-auto max-w-[18rem] shrink-0 object-contain object-left sm:h-14 sm:max-w-[20rem]"
+                                >
                             </a>
                         </div>
 
@@ -302,14 +307,15 @@
         <footer class="hidden xl:block bg-white border-t border-gray-200 py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
-                    <div class="flex items-center justify-center mb-2">
-                        <img src="{{ asset('logos/taskcheck-favicon.png') }}" alt="TaskCheck logo" class="h-9 w-9 rounded-lg mr-3">
-                        <div class="text-left leading-tight">
-                            <p class="text-lg font-semibold text-gray-900">TaskCheck</p>
-                            <p class="text-[11px] text-gray-500">Checklist &amp; kwaliteitscontrole</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500">&copy; {{ date('Y') }} TaskCheck. All rights reserved.</p>
+                    <img
+                        src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
+                        alt="TaskCheck"
+                        width="640"
+                        height="160"
+                        decoding="async"
+                        class="mx-auto h-16 w-auto max-w-[20rem] object-contain"
+                    >
+                    <p class="mt-3 text-sm text-gray-500">&copy; {{ date('Y') }} TaskCheck. All rights reserved.</p>
                 </div>
             </div>
         </footer>
