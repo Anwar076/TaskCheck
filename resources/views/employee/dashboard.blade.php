@@ -3,127 +3,52 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    <!-- Greeting + Progress Section -->
-    <div id="quickstart-employee-hero" class="pt-0 pb-4 sm:pb-6">
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <!-- Left: Greeting + Profile Picture -->
-                <div class="flex items-start gap-4 flex-1 min-w-0">
-                    <!-- Profile Picture -->
-                    <div class="flex-shrink-0">
-                        <div class="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                        </div>
-                    </div>
-                    
-                    <!-- Greeting Content -->
-                    <div class="flex-1 min-w-0">
-                        <div class="mb-4 sm:mb-6">
-                            @php
-                                $nowNl = now('Europe/Amsterdam')->locale('nl');
-                                $hourNl = (int) $nowNl->format('G');
-                                $greeting = $hourNl < 12 ? 'morgen' : ($hourNl < 17 ? 'middag' : 'avond');
-                            @endphp
-                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 break-words">
-                                Goede{{ $greeting }},
-                                <span class="text-blue-600">{{ explode(' ', auth()->user()->name)[0] }}</span>
-                            </h1>
-                            <p class="text-gray-600 text-sm sm:text-base lg:text-lg break-words">
-                                {{ $nowNl->translatedFormat('l, j F Y') }}
-                                <span class="ml-2 text-gray-500 font-medium" id="current-time">{{ $nowNl->format('H:i') }}</span>
-                            </p>
-                        </div>
-                        
-                        <!-- Linear Progress Bar -->
-                        <div class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
-                            @php
-                                $totalTasksToday = (int) ($stats['total_tasks_today'] ?? 0);
-                                $completedTasksToday = (int) ($stats['completed_today'] ?? 0);
-                                
-                                // Als er geen taken zijn vandaag, toon 0% voortgang
-                                if ($totalTasksToday == 0) {
-                                    $progressPercent = 0;
-                                    $progressColor = 'from-gray-400 to-gray-500';
-                                    $textColor = 'text-gray-600';
-                                } else {
-                                    $totalForProgress = $totalTasksToday;
-                                    // Alleen afgeronde taken tellen, max 100%
-                                    $progressPercent = min(100, round(($completedTasksToday / $totalForProgress) * 100));
-                                    
-                                    // Bepaal kleur op basis van voortgang
-                                    $progressColor = 'from-blue-500 to-blue-600';
-                                    $textColor = 'text-blue-600';
-                                    if ($progressPercent == 100) {
-                                        $progressColor = 'from-green-500 to-green-600';
-                                        $textColor = 'text-green-600';
-                                    } elseif ($progressPercent >= 50) {
-                                        $progressColor = 'from-orange-500 to-orange-600';
-                                        $textColor = 'text-orange-600';
-                                    } elseif ($progressPercent == 0) {
-                                        $progressColor = 'from-red-500 to-red-600';
-                                        $textColor = 'text-red-600';
-                                    }
-                                }
-                            @endphp
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
-                                <span class="text-sm font-medium text-gray-700">Voortgang Vandaag</span>
-                                <span class="text-sm font-bold {{ $textColor }}">
-                                    {{ $progressPercent }}%
-                                </span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div class="progress-bar h-full bg-gradient-to-r {{ $progressColor }} rounded-full transition-all duration-1000 ease-out shadow-sm" 
-                                     style="width: {{ $progressPercent }}%">
-                                </div>
-                            </div>
-                            <div class="flex flex-col xs:flex-row xs:justify-between text-xs text-gray-500 mt-2 gap-1">
-                                <span>{{ $completedTasksToday }} afgerond</span>
-                                @if($totalTasksToday > 0)
-                                    <span>{{ $totalTasksToday }} totaal</span>
-                                @else
-                                    <span>Geen taken vandaag</span>
-                                @endif
-                            </div>
-                        </div>
-                        
-                        <!-- Call to Actions -->
-                        @if($todaysLists->count() > 0)
-                        <div class="flex flex-col xs:flex-row flex-wrap gap-3 mt-4 sm:mt-6">
-                            <a href="#todays-tasks" class="inline-flex items-center justify-center min-h-[44px] px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base touch-manipulation">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                                </svg>
-                                Openstaande Taken Bekijken
-                            </a>
-                            @if($redoTasks->count() > 0)
-                            <a href="{{ route('employee.submissions.edit', $redoTasks->first()->submission) }}" class="inline-flex items-center justify-center min-h-[44px] px-4 py-3 sm:py-2 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg text-sm sm:text-base touch-manipulation">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                </svg>
-                                {{ $redoTasks->count() }} Taak/Taken Opnieuw Uitvoeren
-                            </a>
-                            @endif
-                        </div>
-                        @endif
-                    </div>
+    <!-- Greeting + Progress -->
+    @php
+        $firstName = explode(' ', auth()->user()->name)[0];
+        $nowNl = now('Europe/Amsterdam')->locale('nl');
+        $hourNl = (int) $nowNl->format('G');
+        $greeting = $hourNl < 12 ? 'morgen' : ($hourNl < 17 ? 'middag' : 'avond');
+        $totalListsToday = (int) ($stats['total_lists_today'] ?? 0);
+        $completedListsToday = (int) ($stats['completed_lists_today'] ?? 0);
+        $progressPercent = $totalListsToday > 0
+            ? min(100, (int) round(($completedListsToday / $totalListsToday) * 100))
+            : 0;
+        $redoCount = $redoTasks->count();
+        $listsLabel = $totalListsToday === 1 ? 'lijst' : 'lijsten';
+    @endphp
+    <div id="quickstart-employee-hero" class="pb-4 sm:pb-6">
+        <div class="rounded-xl sm:rounded-2xl border border-gray-200 bg-white px-4 py-5 sm:px-6 sm:py-6 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+                        Goede{{ $greeting }}, {{ $firstName }}
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        {{ $nowNl->translatedFormat('l j F Y') }}
+                        <span class="mx-1 text-gray-300">·</span>
+                        <span id="current-time" class="tabular-nums">{{ $nowNl->format('H:i') }}</span>
+                    </p>
                 </div>
-                
-                <!-- Right: Organisatie logo -->
-                @php $company = auth()->user()->company; @endphp
-                <div class="flex-shrink-0 flex items-center justify-center md:justify-end mt-4 md:mt-0">
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-6 border border-blue-100 shadow-sm">
-                        <div class="text-center">
-                            @if($company && $company->logo_path)
-                                <img src="{{ Storage::url($company->logo_path) }}" alt="{{ $company->name }}" class="h-12 sm:h-14 lg:h-16 w-auto mx-auto object-contain">
-                                <div class="text-[10px] sm:text-xs lg:text-sm text-gray-600 font-medium mt-2">{{ $company->name }}</div>
-                            @else
-                                <div class="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 mb-1 sm:mb-2">{{ $company->name ?? 'JAYAS' }}</div>
-                                <div class="text-[10px] sm:text-xs lg:text-sm text-gray-600 font-medium">Organisatie</div>
-                            @endif
-                        </div>
-                    </div>
+                <p class="flex-shrink-0 text-2xl font-bold tabular-nums text-blue-600">{{ $progressPercent }}%</p>
+            </div>
+
+            <div class="mt-4">
+                <div class="mb-1.5 flex items-center justify-between text-sm text-gray-600">
+                    <span>Voortgang vandaag</span>
+                    <span class="tabular-nums">{{ $completedListsToday }}/{{ $totalListsToday }} {{ $listsLabel }}</span>
+                </div>
+                <div class="h-2 overflow-hidden rounded-full bg-gray-100">
+                    <div class="progress-bar h-full rounded-full bg-blue-600" style="width: {{ $progressPercent }}%"></div>
                 </div>
             </div>
+
+            @if($redoCount > 0)
+                <a href="{{ route('employee.submissions.edit', $redoTasks->first()->submission) }}"
+                   class="mt-4 inline-flex min-h-[44px] items-center text-sm font-semibold text-amber-700 hover:text-amber-800 touch-manipulation">
+                    {{ $redoCount }} {{ $redoCount === 1 ? 'taak opnieuw doen' : 'taken opnieuw doen' }} →
+                </a>
+            @endif
         </div>
     </div>
 
@@ -450,7 +375,7 @@
         @endif -->
 
         <!-- Subtle Success Message -->
-        @if($stats['completed_today'] > 0)
+        @if(($stats['completed_lists_today'] ?? 0) > 0)
         <div class="mb-6 sm:mb-8">
             <div class="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-5 lg:p-6">
                 <div class="flex items-center gap-3 sm:gap-4">
@@ -462,9 +387,9 @@
                     <div class="min-w-0">
                         <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-green-900">Geweldige Voortgang Vandaag!</h3>
                         <p class="text-green-700 text-xs sm:text-sm lg:text-base">
-                            Je hebt vandaag al {{ $stats['completed_today'] }} 
-                            {{ $stats['completed_today'] === 1 ? 'Taak' : 'Taken' }} afgerond. 
-                            Ga zo door met je uitstekende werk!
+                            Je hebt vandaag al {{ $stats['completed_lists_today'] }}
+                            {{ $stats['completed_lists_today'] === 1 ? 'lijst' : 'lijsten' }} afgerond.
+                            Ga zo door!
                         </p>
                     </div>
                 </div>
@@ -902,8 +827,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Progress bar animation */
 .progress-bar {
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    background: linear-gradient(90deg, #3b82f6, #2563eb);
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    background-color: #2563eb;
 }
 
 /* Utility for truncating text on small screens */

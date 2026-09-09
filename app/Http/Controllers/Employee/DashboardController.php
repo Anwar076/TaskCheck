@@ -87,7 +87,7 @@ class DashboardController extends Controller
             return $list->tasks ? $list->tasks->count() : 0;
         });
 
-        // Aantal voltooide TAKEN vandaag (niet inzendingen) - voor voortgangsbalk
+        // Aantal voltooide TAKEN vandaag (niet inzendingen)
         $completedTasksToday = SubmissionTask::whereHas('submission', function ($q) use ($user) {
             $q->where('user_id', $user->id)
                 ->whereDate('created_at', today());
@@ -97,15 +97,27 @@ class DashboardController extends Controller
             ->count();
 
         // Totale werkdruk vandaag = wat al afgerond is + wat nog open staat.
-        // Hierdoor blijft voortgang correct als afgeronde lijsten uit het "vandaag"-overzicht verdwijnen.
         $totalTasksToday = $completedTasksToday + $remainingTasksToday;
+
+        // Voortgang op lijstniveau (afgeronde lijsten verdwijnen uit $todaysLists)
+        $openListsToday = $todaysLists->count();
+        $completedListsToday = (int) Submission::query()
+            ->where('user_id', $user->id)
+            ->whereDate('created_at', today())
+            ->whereIn('status', SubmissionStatus::finishedValues())
+            ->distinct()
+            ->count('list_id');
+        $totalListsToday = $openListsToday + $completedListsToday;
 
         // Get statistics
         $stats = [
-            'pending_tasks' => $todaysLists->count(),
+            'pending_tasks' => $openListsToday,
             'completed_today' => $completedTasksToday,
             'remaining_tasks_today' => $remainingTasksToday,
             'total_tasks_today' => $totalTasksToday,
+            'open_lists_today' => $openListsToday,
+            'completed_lists_today' => $completedListsToday,
+            'total_lists_today' => $totalListsToday,
             'total_completed' => Submission::where('user_id', $user->id)
                 ->whereIn('status', SubmissionStatus::finishedValues())
                 ->count(),
