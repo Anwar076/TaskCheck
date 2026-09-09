@@ -31,8 +31,8 @@
                 <img
                     src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
                     alt="TaskCheck — Maak elke controle aantoonbaar"
-                    width="490"
-                    height="147"
+                    width="640"
+                    height="160"
                     class="taskcheck-login-logo-img mx-auto h-14 w-auto max-w-full object-contain object-center sm:h-16"
                     decoding="async"
                     fetchpriority="high"
