@@ -25,8 +25,8 @@ class SubmissionController extends Controller
                 ->where('company_id', $companyId)
                 ->whereHas('taskList', fn ($taskListQuery) => $taskListQuery->where('requires_review', true))
                 ->orderByRaw("CASE status WHEN 'completed' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END")
-                ->orderByRaw('COALESCE(completed_at, created_at) ASC')
-                ->orderBy('id');
+                ->orderByRaw('COALESCE(completed_at, created_at) DESC')
+                ->orderByDesc('id');
 
             // Search functionality
             if ($request->filled('search')) {
