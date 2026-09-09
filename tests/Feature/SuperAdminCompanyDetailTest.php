@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Checklist\ListAssignment;
+use App\Models\Checklist\Task;
 use App\Models\Checklist\TaskList;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Location;
 use App\Models\Organisation\User;
+use App\Models\Submissions\Submission;
+use App\Models\Submissions\SubmissionTask;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -70,6 +74,39 @@ class SuperAdminCompanyDetailTest extends TestCase
         $users = User::factory()->count(2)->create(['company_id' => $company->id]);
         Location::query()->create(['company_id' => $company->id, 'name' => 'Testlocatie']);
 
+        $list = TaskList::query()->create([
+            'company_id' => $company->id,
+            'title' => 'Openingschecklist',
+            'created_by' => $users[0]->id,
+            'schedule_type' => 'daily',
+            'is_active' => true,
+        ]);
+        $task = Task::query()->create([
+            'list_id' => $list->id,
+            'title' => 'Koeling controleren',
+            'is_required' => true,
+            'order' => 1,
+        ]);
+        ListAssignment::query()->create([
+            'list_id' => $list->id,
+            'user_id' => $users[1]->id,
+            'assigned_date' => now()->toDateString(),
+            'is_active' => true,
+        ]);
+        $submission = Submission::query()->create([
+            'company_id' => $company->id,
+            'user_id' => $users[1]->id,
+            'list_id' => $list->id,
+            'status' => 'in_progress',
+            'started_at' => now(),
+        ]);
+        SubmissionTask::query()->create([
+            'submission_id' => $submission->id,
+            'task_id' => $task->id,
+            'status' => 'pending',
+            'reviewed_by' => $users[0]->id,
+        ]);
+
         $this->actingAs($admin)->delete(route('super-admin.companies.destroy', $company), [
             'confirmation_name' => 'Verwijderbare klant',
         ])->assertRedirect(route('super-admin.dashboard', ['tab' => 'companies']));
@@ -79,6 +116,8 @@ class SuperAdminCompanyDetailTest extends TestCase
             $this->assertDatabaseMissing('users', ['id' => $user->id]);
         }
         $this->assertDatabaseMissing('locations', ['company_id' => $company->id]);
+        $this->assertDatabaseMissing('lists', ['id' => $list->id]);
+        $this->assertDatabaseMissing('submissions', ['id' => $submission->id]);
     }
 
     public function test_company_deletion_continues_when_mollie_subscription_was_already_cancelled(): void

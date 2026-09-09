@@ -281,7 +281,16 @@ class CompanyController extends Controller
             ->pluck('id');
         $logoPath = $company->logo_path;
 
-        DB::transaction(fn () => $company->delete());
+        try {
+            DB::transaction(function () use ($company) {
+                $this->purgeCompanyDependentRecords($company);
+                $company->delete();
+            });
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'Het bedrijf kon niet worden verwijderd: '.$exception->getMessage());
+        }
 
         try {
             foreach ($submissionIds as $submissionId) {
@@ -296,6 +305,84 @@ class CompanyController extends Controller
 
         return redirect()->route('super-admin.dashboard', ['tab' => 'companies'])
             ->with('success', "{$companyName} en {$userCount} onderliggende gebruiker(s) zijn definitief verwijderd.");
+    }
+
+    /**
+     * Remove related rows that use RESTRICT foreign keys before cascading the company delete.
+     */
+    private function purgeCompanyDependentRecords(Company $company): void
+    {
+        $listIds = TaskList::withoutGlobalScope('company')
+            ->where('company_id', $company->id)
+            ->pluck('id');
+        $userIds = User::query()->where('company_id', $company->id)->pluck('id');
+        $submissionIds = Submission::withoutGlobalScope('company')
+            ->where('company_id', $company->id)
+            ->pluck('id');
+        $taskIds = $listIds->isNotEmpty()
+            ? Task::query()->whereIn('list_id', $listIds)->pluck('id')
+            : collect();
+
+        if ($submissionIds->isNotEmpty()) {
+            if (Schema::hasTable('submission_task_audit_events')) {
+                DB::table('submission_task_audit_events')
+                    ->where(function ($query) use ($submissionIds, $company) {
+                        $query->whereIn('submission_id', $submissionIds)
+                            ->orWhere('company_id', $company->id);
+                    })
+                    ->delete();
+            }
+
+            $nullableUserColumns = collect([
+                'reviewed_by',
+                'completed_by_user_id',
+                'corrective_action_owner_id',
+                'verified_by',
+            ])->filter(fn (string $column) => Schema::hasColumn('submission_tasks', $column))
+                ->mapWithKeys(fn (string $column) => [$column => null])
+                ->all();
+
+            if ($nullableUserColumns !== []) {
+                DB::table('submission_tasks')
+                    ->whereIn('submission_id', $submissionIds)
+                    ->update($nullableUserColumns);
+            }
+
+            DB::table('submission_tasks')->whereIn('submission_id', $submissionIds)->delete();
+            Submission::withoutGlobalScope('company')->whereIn('id', $submissionIds)->delete();
+        }
+
+        if ($listIds->isNotEmpty()) {
+            DB::table('list_assignments')->whereIn('list_id', $listIds)->delete();
+        }
+
+        if ($userIds->isNotEmpty()) {
+            DB::table('list_assignments')->whereIn('user_id', $userIds)->delete();
+        }
+
+        if ($taskIds->isNotEmpty()) {
+            if (Schema::hasTable('task_assignments')) {
+                DB::table('task_assignments')->whereIn('task_id', $taskIds)->delete();
+            }
+
+            // Any leftover submission tasks that still point at these tasks.
+            DB::table('submission_tasks')->whereIn('task_id', $taskIds)->delete();
+            Task::query()->whereIn('id', $taskIds)->delete();
+        }
+
+        if ($listIds->isNotEmpty()) {
+            TaskList::withoutGlobalScope('company')
+                ->whereIn('id', $listIds)
+                ->update(['parent_list_id' => null]);
+
+            TaskList::withoutGlobalScope('company')
+                ->whereIn('id', $listIds)
+                ->delete();
+        }
+
+        if ($userIds->isNotEmpty() && Schema::hasTable('notifications')) {
+            DB::table('notifications')->whereIn('user_id', $userIds)->delete();
+        }
     }
 
     public function updateCompanyProfile(Request $request, Company $company): RedirectResponse
