@@ -10,35 +10,17 @@
     @endphp
 
     <div class="taskcheck-login-logo mb-7 flex w-full flex-col items-center justify-center text-center sm:mb-8 {{ $isAppLogin ? 'pt-2' : '' }}">
-        @if ($isAppLogin)
-            <a href="{{ $loginUrl }}" class="flex w-full flex-col items-center gap-3 no-underline" aria-label="TaskCheck inloggen">
-                <img
-                    src="{{ asset('logos/taskcheck-favicon.png') }}?v={{ $taskcheckLogoVersion }}"
-                    alt=""
-                    width="64"
-                    height="64"
-                    class="h-16 w-16 rounded-[1.15rem] object-contain shadow-sm"
-                    decoding="async"
-                    fetchpriority="high"
-                >
-                <div class="space-y-1">
-                    <p class="text-[1.7rem] font-extrabold tracking-tight text-slate-900">TaskCheck</p>
-                    <p class="text-sm font-medium text-slate-500">Maak elke controle aantoonbaar.</p>
-                </div>
-            </a>
-        @else
-            <a href="{{ $loginUrl }}" class="inline-flex w-full max-w-[20rem] justify-center" aria-label="TaskCheck inloggen">
-                <img
-                    src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
-                    alt="TaskCheck — Maak elke controle aantoonbaar"
-                    width="640"
-                    height="160"
-                    class="taskcheck-login-logo-img mx-auto h-14 w-auto max-w-full object-contain object-center sm:h-16"
-                    decoding="async"
-                    fetchpriority="high"
-                >
-            </a>
-        @endif
+        <a href="{{ $loginUrl }}" class="taskcheck-login-logo-link inline-flex items-center justify-center no-underline" aria-label="TaskCheck inloggen">
+            <img
+                src="{{ asset('logos/taskcheck-logo.png') }}?v={{ $taskcheckLogoVersion }}"
+                alt="TaskCheck — Maak elke controle aantoonbaar"
+                width="640"
+                height="160"
+                class="taskcheck-login-logo-img h-14 w-auto max-w-[min(100%,20rem)] object-contain sm:h-16"
+                decoding="async"
+                fetchpriority="high"
+            >
+        </a>
     </div>
 
     @if (session('status'))

@@ -125,17 +125,33 @@
 
             .taskcheck-login-logo {
                 width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
                 text-align: center;
             }
 
-            .taskcheck-login-logo img {
+            .taskcheck-login-logo-link {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                max-width: 100%;
+            }
+
+            .taskcheck-login-logo-img {
                 display: block;
-                margin-left: auto;
-                margin-right: auto;
+                /* Logo PNG has extra transparent space on the right; shift so the mark sits optically centered. */
+                transform: translateX(11.5%);
             }
 
             html.is-native-app .taskcheck-login-logo {
                 margin-bottom: 2rem;
+            }
+
+            html.is-native-app .taskcheck-login-logo-img {
+                height: 3.75rem;
+                max-width: min(100%, 19rem);
             }
 
             @media (prefers-reduced-motion: reduce) {
