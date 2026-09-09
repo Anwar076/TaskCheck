@@ -263,7 +263,7 @@
         @include('partials.mobile-bottom-nav-employee')
 
         <!-- Page Content -->
-        <main class="flex-1" data-page-transition-root>
+        <main class="flex-1 pb-[calc(4.5rem+max(48px,var(--safe-bottom)))] xl:pb-0" data-page-transition-root>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Clean Flash Messages -->
                 @if (session('success'))
@@ -298,8 +298,8 @@
             @yield('content')
         </main>
 
-        <!-- Minimal Footer -->
-        <footer class="bg-white border-t border-gray-200 py-8 mt-16 pb-[calc(2rem+4.5rem+max(48px,var(--safe-bottom)))] xl:pb-8">
+        <!-- Minimal Footer (desktop only; mobile uses bottom nav) -->
+        <footer class="hidden xl:block bg-white border-t border-gray-200 py-8 mt-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex items-center justify-center mb-2">
