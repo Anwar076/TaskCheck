@@ -143,26 +143,26 @@
             </div>
         </div>
 
-        {{-- Tabel: zelfde layout overal, horizontaal scrollen op smalle schermen --}}
+        {{-- Compacte tabel; horizontaal scrollen alleen op smalle schermen --}}
         <div id="submissions-table-wrap" class="rounded-xl sm:rounded-2xl border border-slate-100 overflow-x-auto" style="display: none;">
-            <div id="submissions-table" class="w-full min-w-[1230px]">
+            <div id="submissions-table" class="w-full min-w-[820px]">
                 <table class="w-full table-fixed divide-y divide-slate-200">
                     <colgroup>
-                        <col style="width: 220px">
-                        <col style="width: 220px">
-                        <col style="width: 160px">
-                        <col style="width: 200px">
-                        <col style="width: 170px">
-                        <col style="width: 260px">
+                        <col>
+                        <col>
+                        <col style="width: 104px">
+                        <col style="width: 100px">
+                        <col style="width: 112px">
+                        <col style="width: 136px">
                     </colgroup>
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
-                            <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
-                            <th class="px-5 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Status</th>
-                            <th class="px-5 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Voortgang</th>
-                            <th class="px-5 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Ingediend</th>
-                            <th class="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
+                            <th class="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Medewerker(s)</th>
+                            <th class="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Takenlijst</th>
+                            <th class="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Status</th>
+                            <th class="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Voortgang</th>
+                            <th class="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Ingediend</th>
+                            <th class="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actie</th>
                         </tr>
                     </thead>
                     <tbody id="submissions-tbody" class="divide-y divide-slate-200">
@@ -478,19 +478,19 @@ function renderSubmissions(items) {
             : escapeHtml(userName);
 
         const employeeCell = hasDepartment
-            ? `<div class="flex items-center gap-2.5 min-w-0">
+            ? `<div class="flex items-center gap-2 min-w-0">
                     <div class="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                         <span class="text-xs font-semibold text-emerald-700">${departmentInitial}</span>
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 min-w-0">
                             <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 flex-shrink-0">Afdeling</span>
-                            <span class="text-sm font-medium text-slate-900 truncate" title="${departmentLabel}">${departmentLabel}</span>
+                            <span class="text-xs font-medium text-slate-900 truncate" title="${departmentLabel}">${departmentLabel}</span>
                         </div>
                     </div>
                </div>`
             : isTeam
-            ? `<div class="flex items-center gap-2.5 min-w-0">
+            ? `<div class="flex items-center gap-2 min-w-0">
                     <div class="flex -space-x-2 flex-shrink-0">
                         ${contributorAvatars || `<div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center"><span class="text-xs font-semibold text-indigo-700">${userInitial}</span></div>`}
                         ${extraContributors}
@@ -498,50 +498,50 @@ function renderSubmissions(items) {
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 min-w-0">
                             <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 text-indigo-800 flex-shrink-0">Team</span>
-                            <span class="text-sm font-medium text-slate-900 truncate">${teamNamesHtml}</span>
+                            <span class="text-xs font-medium text-slate-900 truncate">${teamNamesHtml}</span>
                         </div>
                     </div>
                </div>`
-            : `<div class="flex items-center gap-2.5 min-w-0">
+            : `<div class="flex items-center gap-2 min-w-0">
                     <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
                         <span class="text-xs font-semibold text-slate-700">${userInitial}</span>
                     </div>
-                    <span class="text-sm font-medium text-slate-900 truncate">${userName}</span>
+                    <span class="text-xs font-medium text-slate-900 truncate">${userName}</span>
                </div>`;
 
         const actionButtons = `
-            <a href="${actionUrl}" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
-            ${needsReview ? `<button type="button" onclick="approveAllSubmission(${s.id}, this)" class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 transition-colors">Alles goedkeuren</button>` : ''}
+            <a href="${actionUrl}" class="inline-flex items-center justify-center px-2 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${actionClass}">${actionLabel}</a>
+            ${needsReview ? `<button type="button" onclick="approveAllSubmission(${s.id}, this)" class="inline-flex items-center justify-center px-2 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 transition-colors">Alles goedkeuren</button>` : ''}
         `;
 
         rows.push(`
         <tr class="group hover:bg-slate-50/80 transition-colors border-l-[3px] ${st.border}">
-            <td class="px-4 py-3 align-middle">
+            <td class="px-3 py-2 align-middle">
                 ${employeeCell}
             </td>
-            <td class="px-4 py-3 align-middle">
+            <td class="px-3 py-2 align-middle">
                 <div class="flex items-center gap-2 min-w-0">
                     ${deviationBadge}
-                    <span class="text-sm font-medium text-slate-900 truncate" title="${listTitle}">${listTitle}</span>
+                    <span class="text-xs font-medium text-slate-900 truncate" title="${listTitle}">${listTitle}</span>
                 </div>
             </td>
-            <td class="px-5 py-3 align-middle whitespace-nowrap">
+            <td class="px-3 py-2 align-middle whitespace-nowrap">
                 <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${st.bg} ${st.text}">
                     <span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>
                     ${st.label}
                 </span>
             </td>
-            <td class="px-5 py-3 align-middle">
-                <div class="flex items-center gap-2.5">
-                    <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-[88px]">
+            <td class="px-3 py-2 align-middle">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-0">
                         <div class="h-full ${progressColor} rounded-full" style="width:${Math.min(progress, 100)}%"></div>
                     </div>
                     <span class="text-xs font-semibold tabular-nums text-slate-600 w-9 text-right flex-shrink-0">${progress}%</span>
                 </div>
             </td>
-            <td class="px-5 py-3 align-middle text-sm text-slate-600 whitespace-nowrap" title="${escapeAttr(submittedFmt.title)}">${submittedFmt.text}</td>
-            <td class="px-4 py-3 align-middle text-right">
-                <div class="inline-flex flex-wrap justify-end gap-1.5">
+            <td class="px-3 py-2 align-middle text-xs text-slate-600 whitespace-nowrap" title="${escapeAttr(submittedFmt.title)}">${submittedFmt.text}</td>
+            <td class="px-3 py-2 align-middle text-right">
+                <div class="flex flex-col items-end gap-1">
                     ${actionButtons}
                 </div>
             </td>
