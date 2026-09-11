@@ -781,7 +781,7 @@ function updateTaskToCompleted(taskId, completedAt, proofFiles) {
             const titleEl = taskHeader.querySelector('.task-title');
             if (titleEl) titleEl.classList.add('is-done');
 
-            const descEl = taskHeader.querySelector('p.task-detail');
+            const descEl = taskHeader.querySelector('.task-description');
             if (descEl) {
                 descEl.classList.remove('text-gray-600');
                 descEl.classList.add('text-green-700');

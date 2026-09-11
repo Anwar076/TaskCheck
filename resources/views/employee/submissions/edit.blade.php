@@ -110,6 +110,11 @@
                             <h3 class="task-title font-sans {{ $isTaskDone ? 'is-done' : '' }}">
                                 {{ $task->title }}@if($task->is_required)<span class="task-required-mark" title="Verplicht">*</span>@endif
                             </h3>
+                            @if($task->description)
+                                <p class="task-description {{ $isTaskDone ? 'text-green-700' : 'text-gray-600' }}">
+                                    {{ $task->description }}
+                                </p>
+                            @endif
                         </div>
 
                         <div class="task-actions">
@@ -141,11 +146,6 @@
                             </button>
                         </div>
 
-                        @if($task->description)
-                            <p class="task-detail {{ $isTaskDone ? 'text-green-700' : 'text-gray-600' }} {{ $startExpanded ? '' : 'hidden' }}">
-                                {{ $task->description }}
-                            </p>
-                        @endif
                         @if($task->instructions)
                             <div class="task-detail task-instructions {{ $startExpanded ? '' : 'hidden' }}">
                                 <p class="task-instructions-label">Gedetailleerde instructies</p>
@@ -1037,9 +1037,6 @@
 .task-title-row {
     grid-column: 2;
     grid-row: 1;
-    display: flex;
-    align-items: center;
-    gap: 6px;
     min-width: 0;
 }
 .task-title {
@@ -1049,8 +1046,24 @@
     font-size: 1.125rem;
     font-weight: 700;
     color: #111827;
-    line-height: 1.35;
+    line-height: 1.25rem;
     overflow-wrap: anywhere;
+}
+.task-description {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.task-card.is-expanded .task-description {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.task-card.is-expanded .task-index,
+.task-card.is-expanded .task-actions {
+    align-self: start;
 }
 .task-required-mark {
     color: #dc2626;
@@ -1140,7 +1153,6 @@
 .task-toggle-icon { transition: transform 0.2s ease; }
 
 @media (min-width: 640px) {
-    .task-title { font-size: 1.25rem; }
     .task-detail { font-size: 1rem; }
 }
 
@@ -1163,7 +1175,8 @@
         width: 2.25rem;
         height: 2.25rem;
     }
-    .task-title { font-size: 1rem; }
+    .task-title { font-size: 1rem; line-height: 1.125rem; }
+    .task-description { font-size: 0.75rem; line-height: 1.125rem; }
     .task-actions { gap: 6px; }
 }
 
