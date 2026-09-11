@@ -224,6 +224,7 @@
                                     $validationRules = is_array($task->validation_rules) ? $task->validation_rules : [];
                                     $metricType = $validationRules['metric'] ?? null;
                                     $hasMetricRule = in_array($metricType, ['temperature', 'ph'], true);
+                                    $showsNotesField = in_array($task->required_proof_type, ['text', 'any', 'none'], true) && !$hasMetricRule;
                                     $metricUnit = $validationRules['unit'] ?? ($metricType === 'ph' ? 'pH' : '°C');
                                     $metricMin = $validationRules['min'] ?? null;
                                     $metricMax = $validationRules['max'] ?? null;
@@ -332,7 +333,7 @@
                                 @endif
 
                                 <!-- Text Proof -->
-                                @if((in_array($task->required_proof_type, ['text', 'any']) || $task->required_proof_type === 'none') && !$hasMetricRule)
+                                @if($showsNotesField)
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             Notities/Opmerkingen
@@ -479,7 +480,7 @@
                                     </div>
                                 @endif
 
-                                @if($task->required_proof_type !== 'text')
+                                @if(!$showsNotesField)
                                 <details class="group rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white shadow-sm" @if($submissionTask->employee_comment) open @endif>
                                     <summary class="list-none cursor-pointer px-4 py-3.5 select-none">
                                         <div class="flex items-center justify-between gap-3">
