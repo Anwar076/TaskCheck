@@ -1,6 +1,6 @@
 @php
-    $seoTitle = 'Sluitings checklist horeca – sluit je zaak zonder fouten';
-        $seoDescription = 'Sluit je horecazaak elke avond zonder fouten. Bekijk een praktische sluitings checklist horeca en start gratis met TaskCheck.';
+    $seoTitle = 'Digitale sluitings checklist horeca – Foutloos afsluiten & NVWA-proof';
+        $seoDescription = 'Gebruik een digitale sluitings checklist voor horeca. Foutloos afsluiten, minder stress, altijd NVWA-proof. Maak je eigen checklist en start 14 dagen gratis met TaskCheck.';
         $seoUrl = route('seo.sluitings-checklist-horeca');
         $seoImage = asset('images/seo-opening-checklist-horeca-hero.png');
         $ctaHeading = 'Start vandaag';
@@ -382,6 +382,8 @@
             </div>
         </section>
 
+        <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16"><h2 class="text-2xl font-bold text-slate-900 mb-4">Wat staat er op een sluitings checklist horeca?</h2><ul class="list-disc pl-6 text-slate-700 mb-6"><li>Kassa afsluiten en geld tellen</li><li>Koelingen controleren en afsluiten</li><li>Apparatuur uitzetten (koffiemachine, ovens, frituur, etc.)</li><li>Afval verwijderen en vuilnisbakken legen</li><li>Vloeren vegen/dweilen</li><li>Alarm inschakelen</li><li>Binnen- en buitendeuren controleren</li><li>Sleutels veilig opbergen</li><li>Laatste check op vergeten producten</li></ul><p class="mb-6">Met TaskCheck digitaliseer je deze taken en voeg je per taak direct foto’s of videobewijs toe. Zo is elke sluiting aantoonbaar en altijd terug te vinden.</p><h2 class="text-2xl font-bold text-slate-900 mb-4">Specifieke checklists voor ieder type horecazaak</h2><p class="mb-6">Restaurants, hotels, bakkerijen en fastfoodzaken hebben elk hun eigen afsluitprocessen. In TaskCheck pas je de checklist eenvoudig aan per filiaal of team, zodat deze precies aansluit bij jouw bedrijfsvoering.</p><h2 class="text-2xl font-bold text-slate-900 mb-4">Veilig en compliant werken</h2><p>Met digitale checklists werk je altijd volgens de laatste eisen van de NVWA en HACCP. Alle data is veilig opgeslagen, inclusief audit trail.</p></section>
+
         <section class="mb-4 mt-16 border-t border-slate-200 pt-12 sm:mt-20">
             <p class="blog-kicker mx-auto">Gerelateerde pagina&rsquo;s</p>
             <div class="mx-auto mt-5 flex max-w-4xl flex-wrap justify-center gap-2">
@@ -391,7 +393,11 @@
                     ['Horeca app personeel', route('seo.horeca-app-personeel')],
                     ['Takenlijst personeel', route('seo.takenlijst-personeel')],
                     ['Werkcontrole app', route('seo.werkcontrole-app')],
-                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],
+                    ['Blog: personeel controleren', route('blog.horeca-personeel-controleren-checklist-app')],                    ['Alles-in-één horeca platform', route('seo.alles-in-één-horeca-platform')],
+                    ['Digitale checklist app', route('seo.digitale-checklist-app')],
+                    ['HACCP checklist app', route('seo.haccp-checklist-app')],
+                    ['Schoonmaak checklist voorbeeld', route('seo.schoonmaak-checklist-voorbeeld')],
+                    ['Restaurant checklist app', route('seo.restaurant-checklist-app')],
                 ] as $link)
                 <a href="{{ $link[1] }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e6e8ec] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#d7e2f7] hover:text-blue-700">
                     {{ $link[0] }}

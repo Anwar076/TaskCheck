@@ -447,7 +447,7 @@
             <div class="min-w-0">
                 <h1 class="text-4xl font-extrabold leading-[1.02] tracking-[-.045em] text-slate-900 sm:text-6xl xl:text-[4.3rem]">
                     Nooit meer discussie over
-                    <x-text-reveal text="uitgevoerd werk" trigger="load" class="mt-1" />
+                    uitgevoerd werk
                 </h1>
 
                 <p class="mt-5 max-w-lg text-base leading-relaxed text-slate-500 sm:mt-6 sm:text-lg">
@@ -564,8 +564,7 @@
 <section class="problem-compact">
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="fade-up text-center">
-            <p class="problem-kicker inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.2em]"><span class="h-px w-6"></span>Het probleem</p>
-            <h2 class="problem-heading mx-auto mt-4 max-w-2xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] sm:text-4xl lg:text-5xl">Je kunt niet <x-text-reveal text="managen" /><br>wat je niet kunt zien.</h2>
+            <h2 class="problem-heading mx-auto max-w-2xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] sm:text-4xl lg:text-5xl">Je kunt niet managen<br>wat je niet kunt zien.</h2>
             <p class="problem-lead mx-auto mt-4 max-w-2xl text-base leading-relaxed sm:text-lg">Zonder controle en bewijs loopt kwaliteit weg — en je weet het pas als er een klacht is.</p>
         </div>
 
@@ -610,8 +609,7 @@
 <section class="how-accordion" data-how-accordion>
     <div class="w-full px-4 sm:px-8 lg:px-12 xl:px-16">
         <div class="fade-up text-center">
-            <p class="how-kicker inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.2em]"><span class="h-px w-6"></span>Zo werkt het</p>
-            <h2 class="how-heading mx-auto mt-4 max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] sm:text-4xl lg:text-5xl">Van taak naar bewijs.<br>Van bewijs naar controle.</h2>
+            <h2 class="how-heading mx-auto max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-[-.035em] sm:text-4xl lg:text-5xl">Van taak naar bewijs.<br>Van bewijs naar controle.</h2>
             <p class="how-lead mx-auto mt-4 max-w-2xl text-base leading-relaxed sm:text-lg">Maak checklists, laat je team taken uitvoeren en houd realtime controle over kwaliteit en bewijs.</p>
         </div>
 
@@ -669,7 +667,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div class="fade-up">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Werk dat niet <x-text-reveal text="aantoonbaar" /> is, bestaat niet</h2>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Werk dat niet aantoonbaar is, bestaat niet</h2>
                 <p class="mt-4 text-slate-500 text-lg leading-relaxed">Zonder controle en bewijs loopt kwaliteit weg — en je weet het pas als er een klacht is.</p>
                 <ul class="mt-9 space-y-5">
                     @foreach([
@@ -701,7 +699,7 @@
 <section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-t border-slate-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-xl mb-10 sm:mb-14 fade-up">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Ontworpen voor <x-text-reveal text="operationele teams" /></h2>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Ontworpen voor operationele teams</h2>
             <p class="mt-4 text-slate-500 text-lg">Voor elk operationeel team een passende aanpak.</p>
         </div>
         <div class="stagger grid md:grid-cols-3 gap-7">
@@ -742,7 +740,6 @@
 <section class="py-14 sm:py-20 lg:py-24 bg-white border-t border-slate-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-xl mb-10 sm:mb-14 fade-up">
-            <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">Populaire oplossingen</p>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Kies de oplossing voor jouw team</h2>
             <p class="mt-4 text-slate-500 text-lg">Direct naar onze meest bezochte pagina&rsquo;s voor horeca en schoonmaak.</p>
         </div>
@@ -897,7 +894,7 @@
                      class="w-full rounded-2xl border border-slate-200/90 bg-slate-900 shadow-xl shadow-slate-900/10">
             </div>
             <div class="fade-up delay-1 order-1 lg:order-2">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Met TaskCheck heb je <x-text-reveal text="alles onder controle" /></h2>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Met TaskCheck heb je alles onder controle</h2>
                 <p class="mt-4 text-slate-500 text-lg leading-relaxed">Eén platform voor manager en medewerker — van taakaanmaak tot bewijs en rapportage.</p>
                 <ul class="mt-9 space-y-5">
                     @foreach([
@@ -938,7 +935,7 @@
         <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-16 fade-up">
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">
                 In 3 stappen
-                <x-text-reveal text="live" />
+                live
                 met je team
             </h2>
             <p class="mt-4 text-slate-500 text-lg">Maak checklists, laat je team taken uitvoeren en houd realtime controle over kwaliteit en bewijs.</p>
@@ -1126,7 +1123,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <div class="fade-up lg:sticky lg:top-28">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Alles wat je nodig hebt om werk <x-text-reveal text="onder controle" /> te houden</h2>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">Alles wat je nodig hebt om werk onder controle te houden</h2>
                 <p class="mt-4 text-slate-500 text-lg leading-relaxed">Van bewijs per taak tot AI-checklists en rapportages — gebouwd voor teams die resultaat willen aantonen.</p>
                 <div class="mt-8">
                     @guest
@@ -1164,19 +1161,16 @@
 {{-- Nieuwe productverhaal-secties --}}
 <section class="new-feature-section is-soft">
     <div class="new-feature-wrap">
-        <div class="new-feature-head is-center fade-up"><span class="new-feature-kicker">Realtime overzicht</span><h2 class="new-feature-title">Je hoeft niet meer te vragen of iets <x-text-reveal text="gedaan is" />.</h2><p class="new-feature-lead">Eén live dashboard voor al je locaties. Je ziet wat klaar is, wat loopt en wat aandacht nodig heeft — zonder iemand te bellen.</p></div>
+        <div class="new-feature-head is-center fade-up"><h2 class="new-feature-title">Je hoeft niet meer te vragen of iets gedaan is.</h2><p class="new-feature-lead">Eén live dashboard voor al je locaties. Je ziet wat klaar is, wat loopt en wat aandacht nodig heeft — zonder iemand te bellen.</p></div>
         <div class="new-shot fade-up mt-12 sm:mt-14">
             <div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/dashboard</span></div><img src="{{ asset('images/dashboard-product-showcase.jpg') }}" alt="TaskCheck dashboard — live voortgang per team en locatie"></div>
-            <div class="new-float-chip hidden lg:flex" style="left:18%;top:48%"><span>⌖</span><span><strong>Locatie filter</strong><small>ALLE VESTIGINGEN</small></span></div>
-            <div class="new-float-chip hidden lg:flex" style="right:8%;top:70%"><span>◷</span><span><strong>Wacht op beoordeling</strong><small>2 INZENDINGEN</small></span></div>
-            <div class="new-float-chip hidden lg:flex" style="left:15%;bottom:8%"><span>◉</span><span><strong>Teamoverzicht</strong><small>RECENT &amp; REALTIME</small></span></div>
         </div>
     </div>
 </section>
 
 <section class="new-feature-section">
     <div class="new-feature-wrap new-feature-grid">
-        <div class="fade-up"><div class="new-feature-head"><span class="new-feature-kicker">Bewijs per taak</span><h2 class="new-feature-title"><span class="new-feature-title-line">Niet alleen gedaan.</span><x-text-reveal text="Ook bewezen." /></h2><p class="new-feature-lead">Van schoonmaakcontrole tot HACCP-temperatuur: bewijs wordt automatisch gekoppeld aan de juiste taak, medewerker en locatie.</p></div>
+        <div class="fade-up"><div class="new-feature-head"><h2 class="new-feature-title"><span class="new-feature-title-line">Niet alleen gedaan.</span>Ook bewezen.</h2><p class="new-feature-lead">Van schoonmaakcontrole tot HACCP-temperatuur: bewijs wordt automatisch gekoppeld aan de juiste taak, medewerker en locatie.</p></div>
             <div class="new-points">@foreach(['Verplicht bewijs per taak instelbaar','Tijdstip, medewerker en locatie automatisch vastgelegd','Direct beschikbaar bij klachten of inspecties'] as $point)<div class="new-point"><span class="new-check">✓</span>{{ $point }}</div>@endforeach</div>
             <p class="mt-7 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">Bewijstypen</p>
             <div class="new-tags evidence-types">
@@ -1187,21 +1181,21 @@
                 <span class="new-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 10-3-3l-10 10L4 20zM14 7l3 3"/></svg>Handtekening</span>
             </div>
         </div>
-        <div class="new-shot fade-up"><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/werkcontroles</span></div><img src="{{ asset('images/how-it-works-beoordelen.jpg') }}" alt="TaskCheck — inzending beoordelen met voortgang 3 van 3 taken en beoordelingsacties"></div><div class="new-float-chip" style="left:-20px;bottom:7%"><span class="new-check">✓</span><span><strong>Keur alles goed (3)</strong><small>MILAN JANSEN · 3/3 TAKEN</small></span></div></div>
+        <div class="new-shot fade-up"><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/werkcontroles</span></div><img src="{{ asset('images/how-it-works-beoordelen.jpg') }}" alt="TaskCheck — inzending beoordelen met voortgang 3 van 3 taken en beoordelingsacties"></div></div>
     </div>
 </section>
 
 <section class="new-feature-section is-soft">
     <div class="new-feature-wrap new-feature-grid is-visual-left">
-        <div class="new-shot fade-up"><p class="mb-3 text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">● Locatiekaart · live</p><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/instellingen/locaties</span></div><img src="{{ asset('images/product-locations.jpg') }}" alt="TaskCheck locatiekaart — vestigingen in Rotterdam op de kaart"></div><div class="new-float-chip" style="left:-18px;top:48%"><span>⌖</span><span><strong>Rotterdam Centrum</strong><small>HAVENSTRAAT 12 · 3011 AA</small></span></div><div class="new-float-chip" style="right:-10px;bottom:16%"><span class="new-check">✓</span><span><strong>2 van 2 locaties in gebruik</strong><small>CENTRUM · NOORD</small></span></div></div>
-        <div class="fade-up"><div class="new-feature-head"><span class="new-feature-kicker">Multi-locatie</span><h2 class="new-feature-title"><span class="new-feature-title-line"><x-text-reveal text="Eén standaard." /></span>Iedere locatie.</h2><p class="new-feature-lead">Gebouwd voor franchises, ketens en organisaties met meerdere vestigingen — van 2 tot 200 locaties.</p></div>
+        <div class="new-shot fade-up"><p class="mb-3 text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">● Locatiekaart · live</p><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/instellingen/locaties</span></div><img src="{{ asset('images/product-locations.jpg') }}" alt="TaskCheck locatiekaart — vestigingen in Rotterdam op de kaart"></div></div>
+        <div class="fade-up"><div class="new-feature-head"><h2 class="new-feature-title"><span class="new-feature-title-line">Eén standaard.</span>Iedere locatie.</h2><p class="new-feature-lead">Gebouwd voor franchises, ketens en organisaties met meerdere vestigingen — van 2 tot 200 locaties.</p></div>
             <div class="new-number-list">@foreach([['Centraal aanmaken','Bouw processen één keer en rol ze uit naar elke vestiging.'],['Lokaal uitvoeren','Elke locatie werkt volgens dezelfde standaard, met eigen planning.'],['Globaal monitoren','Vergelijk locaties in één dashboard en stuur bij waar nodig.']] as $index => [$title,$copy])<div class="new-number-row"><span class="new-number">0{{ $index+1 }}</span><div><strong>{{ $title }}</strong><p>{{ $copy }}</p></div></div>@endforeach</div>
         </div>
     </div>
 </section>
 
 <section class="new-feature-section new-ai-section">
-    <div class="new-feature-wrap"><div class="new-feature-head is-center fade-up"><span class="new-feature-kicker">AI checklist-generator</span><h2 class="new-feature-title">Je bestaande werkwijze. <x-text-reveal text="Binnen minuten digitaal" />.</h2><p class="new-feature-lead">Upload een PDF, Excel of Word-document. TaskCheck AI zet het om naar een werkende checklist — jij controleert en publiceert.</p></div>
+    <div class="new-feature-wrap"><div class="new-feature-head is-center fade-up"><h2 class="new-feature-title">Je bestaande werkwijze. Binnen minuten digitaal.</h2><p class="new-feature-lead">Upload een PDF, Excel of Word-document. TaskCheck AI zet het om naar een werkende checklist — jij controleert en publiceert.</p></div>
         <div class="new-ai-flow fade-up"><div class="new-docs">@foreach([['PDF','HACCP-handboek.pdf','2,4 MB','#c0392b'],['XLS','Opening-checklist.xlsx','84 KB','#107c41'],['DOC','Schoonmaakprotocol.docx','312 KB','#1d4ed8']] as [$icon,$name,$meta,$color])<div class="new-doc"><span class="new-doc-icon" style="color:{{ $color }};font-size:{{ $icon === 'PDF' ? '11px' : '9px' }}">{{ $icon }}</span><span><strong>{{ $name }}</strong><small>{{ $meta }}</small></span><svg class="ml-auto h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M5 16v3h14v-3"/></svg></div>@endforeach</div><div class="new-ai-beam"><span>✦ TaskCheck AI</span></div><div class="new-ai-result"><img src="{{ asset('images/product-ai-checklist.jpg') }}" alt="TaskCheck-checklist Opening keuken, actief op locatie Rotterdam Centrum"></div></div>
         <p class="new-ai-caption mt-8 text-center text-[10px] font-bold uppercase tracking-[.12em]">AI als versneller — jij houdt de regie</p>
     </div>
@@ -1210,7 +1204,7 @@
 <section class="py-14 sm:py-20 lg:py-24 bg-slate-50 border-t border-slate-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-xl mb-10 sm:mb-14 fade-up">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Ontworpen voor <x-text-reveal text="operationele teams" /></h2>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Ontworpen voor operationele teams</h2>
             <p class="mt-4 text-slate-500 text-lg">Voor elk operationeel team een passende aanpak.</p>
         </div>
         <div class="stagger grid md:grid-cols-3 gap-7">
@@ -1246,15 +1240,15 @@
 
 <section class="new-feature-section">
     <div class="new-feature-wrap new-feature-grid">
-        <div class="fade-up"><div class="new-feature-head"><span class="new-feature-kicker">Rapportage &amp; audits</span><h2 class="new-feature-title">Als iemand bewijs vraagt, <x-text-reveal text="heb je het al" />.</h2><p class="new-feature-lead">Dagrapporten, weekoverzichten en een complete audit trail — ideaal voor HACCP, kwaliteitsaudits, klantverantwoording en interne controle.</p></div>
+        <div class="fade-up"><div class="new-feature-head"><h2 class="new-feature-title">Als iemand bewijs vraagt, heb je het al.</h2><p class="new-feature-lead">Dagrapporten, weekoverzichten en een complete audit trail — ideaal voor HACCP, kwaliteitsaudits, klantverantwoording en interne controle.</p></div>
             <div class="new-report-points">@foreach([['◷','Dag- en weekrapporten','Automatisch gegenereerd per locatie, team of checklist.'],['◇','Audit trail','Wie, wat, wanneer en waar — volledig terug te volgen.'],['↓','PDF-export','Deel overzichten met klanten, managers of auditors.'],['▣','Bewijs inbegrepen','Foto’s, video’s en metingen zitten direct in het rapport.']] as [$icon,$title,$copy])<div class="new-report-point"><span class="new-report-icon">{{ $icon }}</span><div><strong>{{ $title }}</strong><p>{{ $copy }}</p></div></div>@endforeach</div>
         </div>
-        <div class="new-shot fade-up"><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/rapportages</span></div><img src="{{ asset('images/product-reporting.jpg') }}" alt="TaskCheck rapportages — voltooiing 75 procent, teamscore en PDF-export"></div><div class="new-float-chip" style="right:0;bottom:9%"><span class="grid h-8 w-8 place-items-center rounded-lg bg-blue-600 text-white">↓</span><span><strong>PDF-rapport of ruwe data</strong><small>OVERZICHTELIJK · PER PERIODE</small></span></div></div>
+        <div class="new-shot fade-up"><div class="new-browser"><div class="new-browser-bar"><i></i><i></i><i></i><span>app.taskcheck.nl/rapportages</span></div><img src="{{ asset('images/product-reporting.jpg') }}" alt="TaskCheck rapportages — voltooiing 75 procent, teamscore en PDF-export"></div></div>
     </div>
 </section>
 
 <section class="new-feature-section is-soft">
-    <div class="new-feature-wrap"><div class="new-feature-head is-center fade-up"><span class="new-feature-kicker">Voor &amp; na</span><h2 class="new-feature-title">Excel, WhatsApp en papier zijn niet gebouwd voor <x-text-reveal text="werkcontrole" />.</h2><p class="new-feature-lead">TaskCheck wel.</p></div>
+    <div class="new-feature-wrap"><div class="new-feature-head is-center fade-up"><h2 class="new-feature-title">Excel, WhatsApp en papier zijn niet gebouwd voor werkcontrole.</h2><p class="new-feature-lead">TaskCheck wel.</p></div>
         <div class="new-compare">
             <div class="new-compare-card fade-up"><span class="new-compare-label">De oude manier</span><div class="new-compare-list">@foreach(['Berichten verspreid over tientallen chats','Geen bewijs van uitvoering','Elke locatie werkt anders','Handmatig achter taken aan','Geen centraal overzicht'] as $item)<div class="new-compare-item"><span class="new-compare-x"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>{{ $item }}</div>@endforeach</div></div>
             <div class="new-compare-card is-new fade-up"><div class="new-compare-label-row"><span class="new-compare-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4 4L19 7"/></svg></span><span class="new-compare-label">Met TaskCheck</span></div><div class="new-compare-list">@foreach(['Eén centrale workflow voor al je teams','Foto-, video- en controlebewijs per taak','Gestandaardiseerde processen per locatie','Realtime status zonder na te vragen','Automatische rapportages en audit trail'] as $item)<div class="new-compare-item"><span class="new-check">✓</span>{{ $item }}</div>@endforeach</div></div>
@@ -1296,7 +1290,6 @@
 
             {{-- Quick links --}}
             <div class="lg:pt-3">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Specifiek voor jouw branche</p>
                 <div class="space-y-2">
                     @foreach([
                         ['Horeca checklist app',    route('seo.horeca-checklist-app'),    '#2563eb'],

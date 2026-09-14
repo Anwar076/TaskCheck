@@ -95,7 +95,7 @@
 <body class="min-h-screen bg-white text-slate-900 antialiased overflow-x-hidden">
     <div class="welcome-page-glow" aria-hidden="true"></div>
 
-    @include('components.header')
+@include('components.header')
 
     <main>
         <section class="relative overflow-hidden bg-white pt-28 pb-12 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20">
@@ -110,7 +110,7 @@
                 </svg>
                 <div class="absolute -right-[200px] -top-[280px] h-[min(520px,120vw)] w-[min(520px,120vw)] rounded-full bg-[radial-gradient(circle,rgba(99,102,241,.1)_0%,transparent_65%)] md:h-[720px] md:w-[720px]"></div>
                 <div class="absolute -left-[120px] bottom-[-80px] h-[280px] w-[280px] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,.07)_0%,transparent_65%)] md:h-[400px] md:w-[400px]"></div>
-            </div>
+        </div>
 
             <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <p class="blog-kicker fade-up">Tips &amp; nieuws voor operationele teams</p>
@@ -124,10 +124,10 @@
                 <div class="fade-up delay-3 mt-7 flex flex-wrap gap-2">
                     @foreach (['Alle artikelen', 'Horeca', 'Schoonmaak', 'Werkcontrole'] as $tag)
                         <span class="blog-tag">{{ $tag }}</span>
-                    @endforeach
-                </div>
-            </div>
-        </section>
+            @endforeach
+        </div>
+    </div>
+</section>
 
         <section class="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8 lg:pb-24">
             <article class="fade-up group mb-14 grid items-center gap-8 border-b border-slate-100 pb-14 lg:mb-16 lg:grid-cols-2 lg:gap-14 lg:pb-16">
@@ -169,7 +169,7 @@
             <div class="grid gap-6 sm:gap-8 md:grid-cols-2">
                 <article class="fade-up group blog-card">
                     <a href="{{ route('blog.applicatie-voor-eigenaar-restaurant') }}" class="blog-card__media block">
-                        <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
+            <img src="{{ asset('images/taskcheck-horeca-blog-hero.webp') }}"
                              alt="Applicatie voor restaurant eigenaren: digitale checklist in de keuken"
                              loading="lazy"
                              decoding="async"
@@ -379,18 +379,18 @@
                     <div class="flex flex-1 flex-col p-5 sm:p-6">
                         <div class="mb-3 flex flex-wrap items-center gap-2">
                             <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>Horeca</span>
-                            <span class="text-xs text-slate-400">8 min lezen</span>
-                        </div>
+                <span class="text-xs text-slate-400">8 min lezen</span>
+            </div>
                         <h2 class="text-lg font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700 sm:text-xl">
-                            <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}">Hoe horeca personeel beter te controleren met een checklist app</a>
-                        </h2>
+                <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}">Hoe horeca personeel beter te controleren met een checklist app</a>
+            </h2>
                         <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-500">Van openingscheck tot HACCP-rondes: zo richt je een takenlijst personeel in die écht wordt uitgevoerd.</p>
                         <a href="{{ route('blog.horeca-personeel-controleren-checklist-app') }}" class="blog-link mt-4">
-                            Lees artikel
+                Lees artikel
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-                        </a>
-                    </div>
-                </article>
+            </a>
+        </div>
+    </article>
 
                 <article class="fade-up group blog-card">
                     <a href="{{ route('blog.waarom-horeca-stopt-met-papieren-checklists') }}" class="blog-card__media block">
@@ -429,18 +429,18 @@
                     <div class="flex flex-1 flex-col p-5 sm:p-6">
                         <div class="mb-3 flex flex-wrap items-center gap-2">
                             <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Schoonmaak</span>
-                            <span class="text-xs text-slate-400">6 min lezen</span>
-                        </div>
+                    <span class="text-xs text-slate-400">6 min lezen</span>
+                </div>
                         <h2 class="text-lg font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700 sm:text-xl">
-                            <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}">Beste checklist app voor schoonmaakbedrijven</a>
-                        </h2>
+                    <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}">Beste checklist app voor schoonmaakbedrijven</a>
+                </h2>
                         <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-500">Kwaliteitscontrole per locatie met bewijs per taak en realtime inzicht voor planners en leidinggevenden.</p>
                         <a href="{{ route('blog.beste-checklist-app-voor-schoonmaakbedrijven') }}" class="blog-link mt-4">
-                            Lees artikel
+                    Lees artikel
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-                        </a>
-                    </div>
-                </article>
+                </a>
+            </div>
+        </article>
 
                 <article class="fade-up group blog-card">
                     <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="blog-card__media block">
@@ -454,19 +454,19 @@
                     <div class="flex flex-1 flex-col p-5 sm:p-6">
                         <div class="mb-3 flex flex-wrap items-center gap-2">
                             <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Algemeen</span>
-                            <span class="text-xs text-slate-400">7 min lezen</span>
-                        </div>
+                    <span class="text-xs text-slate-400">7 min lezen</span>
+                </div>
                         <h2 class="text-lg font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700 sm:text-xl">
-                            <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}">Waarom bedrijven stoppen met Excel en overstappen op checklist apps</a>
-                        </h2>
+                    <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}">Waarom bedrijven stoppen met Excel en overstappen op checklist apps</a>
+                </h2>
                         <p class="mt-2 flex-1 text-sm leading-relaxed text-slate-500">Waarom losse spreadsheets zorgen voor fouten en hoe een werkcontrole app processen schaalbaar maakt.</p>
                         <a href="{{ route('blog.waarom-bedrijven-stoppen-met-excel-checklists') }}" class="blog-link mt-4">
-                            Lees artikel
+                    Lees artikel
                             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-                        </a>
-                    </div>
-                </article>
+                </a>
             </div>
+        </article>
+    </div>
 
             <div class="fade-up mt-16 sm:mt-20">
                 <p class="blog-kicker">Dieper in jouw sector</p>
@@ -487,9 +487,9 @@
                         <span class="blog-tag"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Schoonmaak</span>
                         <h3 class="mt-2 font-extrabold text-slate-900 transition group-hover:text-blue-700">Checklist app schoonmaak</h3>
                         <p class="text-sm leading-relaxed text-slate-500">Rondes, bewijs en rapportage per gebouw of opdrachtgever.</p>
-                    </a>
-                </div>
-            </div>
+            </a>
+        </div>
+    </div>
         </section>
 
         <section class="relative overflow-hidden py-20 sm:py-28 lg:py-32" style="background:#030712">
@@ -497,14 +497,14 @@
                 <div class="absolute -top-32 -left-32 h-[600px] w-[600px] rounded-full opacity-25" style="background:radial-gradient(circle,#2563eb,transparent 70%)"></div>
                 <div class="absolute -bottom-40 -right-24 h-[500px] w-[500px] rounded-full opacity-20" style="background:radial-gradient(circle,#6366f1,transparent 70%)"></div>
                 <div class="absolute inset-0 opacity-[.04]" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px"></div>
-            </div>
+    </div>
 
             <div class="relative mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8 fade-up">
                 <div class="mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-blue-300"
                      style="background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,.2)">
                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     Direct toepassen in jouw team
-                </div>
+        </div>
                 <h2 class="text-3xl font-extrabold leading-[1.06] tracking-tight text-white sm:text-4xl lg:text-5xl">
                     Wil je dit direct toepassen<br class="hidden sm:block">
                     <span style="background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">in jouw team?</span>
@@ -513,23 +513,23 @@
                     Start met TaskCheck en zet je eerste digitale checklist live in minuten. Inclusief bewijs, voortgang en realtime inzicht.
                 </p>
                 <div class="mt-8 flex flex-col items-stretch justify-center gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-                    <a href="{{ route('pricing') }}"
+            <a href="{{ route('pricing') }}"
                        class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2.5 rounded-2xl px-8 py-4 text-base font-extrabold text-white transition-all hover:scale-[1.02] touch-manipulation sm:w-auto sm:min-h-0"
                        style="background:linear-gradient(135deg,#2563eb,#6366f1);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 16px 40px rgba(37,99,235,.4)">
-                        Bekijk prijzen
+                Bekijk prijzen
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-                    </a>
-                    <a href="{{ route('contact') }}"
+            </a>
+            <a href="{{ route('contact') }}"
                        class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-base font-bold text-white transition-all hover:bg-white/10 touch-manipulation sm:w-auto sm:min-h-0"
                        style="border:1.5px solid rgba(255,255,255,.18)">
-                        Plan een demo
-                    </a>
-                </div>
-            </div>
+                Plan een demo
+            </a>
+        </div>
+    </div>
         </section>
-    </main>
+</main>
 
-    @include('components.footer')
+@include('components.footer')
 
     <script>
         (function () {
