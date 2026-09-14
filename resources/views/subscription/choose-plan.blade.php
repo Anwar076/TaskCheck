@@ -14,6 +14,16 @@
 @endphp
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            @if(session('error'))
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 shadow-sm" role="alert">
+                    <span class="text-red-800 font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
+            @if($errors->any())
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm" role="alert">
+                    <p class="text-red-800 font-medium">{{ $errors->first() }}</p>
+                </div>
+            @endif
             @if(session('warning'))
                 <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 shadow-sm" role="alert">
                     <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -100,6 +110,11 @@
                         </div>
                     @endif
 
+                    @if($company?->needsFirstPayment() && ! array_key_exists($company->subscription_plan, $plans))
+                        <div class="mb-8">
+                            @include('subscription.partials.pay-now')
+                        </div>
+                    @else
                     {{-- Abonnement kaarten --}}
                     <div class="grid md:grid-cols-3 gap-6 sm:gap-8">
                         @foreach($plans as $planKey => $plan)
@@ -137,7 +152,7 @@
                                         @endforeach
                                     </ul>
 
-                                    <form action="{{ route('subscription.activate') }}" method="POST">
+                                    <form action="{{ url('/subscription/activate') }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="plan" value="{{ $planKey }}">
                                         <button type="submit"
@@ -167,6 +182,7 @@
                             Er wordt bij het afrekenen 21% btw in rekening gebracht, het standaardtarief in Nederland.
                         </p>
                     </div>
+                    @endif
                 </div>
     </div>
     </div>

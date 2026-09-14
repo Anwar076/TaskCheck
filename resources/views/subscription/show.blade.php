@@ -5,6 +5,11 @@
 @section('content')
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-8 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            @if(session('error'))
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 shadow-sm" role="alert">
+                    <span class="text-red-800 font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
             @if(session('success'))
                 <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 shadow-sm" role="alert">
                     <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -108,7 +113,9 @@
                                     </span>
                                     @if($planDetails)
                                         <p class="text-2xl font-bold text-blue-600">{{ $planDetails['name'] }}</p>
-                                        <p class="text-slate-600">€{{ number_format($planDetails['price_monthly'], 2, ',', '.') }}/maand</p>
+                                        @if($company->billing_required && (float) ($planDetails['price_monthly'] ?? 0) > 0)
+                                            <p class="text-slate-600">€{{ number_format($planDetails['price_monthly'], 2, ',', '.') }}/maand</p>
+                                        @endif
                                     @endif
                                     @if(!is_null($daysUntilNextBilling))
                                         <p class="text-slate-600">
@@ -122,7 +129,7 @@
                                         </p>
                                     @endif
                                     @if($company->subscription_ends_at)
-                                        <p class="text-slate-600"><span class="font-medium">Verlengt op:</span> {{ $company->subscription_ends_at->format('d M Y') }}</p>
+                                        <p class="text-slate-600"><span class="font-medium">Toegang tot:</span> {{ $company->subscription_ends_at->format('d M Y') }}</p>
                                     @endif
                                     @if(!empty($pendingPlanDetails))
                                         <div class="rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-3">
@@ -166,15 +173,18 @@
                                         </svg>
                                         {{ ucfirst($company->subscription_status) }}
                                     </span>
-                                    <p class="text-slate-600">Kies een abonnement om verder te gaan.</p>
+                                    <p class="text-slate-600">
+                                        @if($company->needsFirstPayment())
+                                            Betaal hieronder je abonnement om verder te gaan.
+                                        @else
+                                            Kies een abonnement om verder te gaan.
+                                        @endif
+                                    </p>
                                 </div>
                             @endif
 
-                            @if($company->isManagedAccount() && $company->billing_required && !$company->mollie_subscription_id)
-                                <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                                    Het abonnement <strong>{{ $planDetails['name'] }}</strong> is al toegewezen. De betaaluitnodiging wordt op <strong>{{ ($company->billing_start_date ?: $company->trial_ends_at)?->format('d-m-Y') }}</strong> per e-mail verstuurd.
-                                </div>
-                                <form method="POST" action="{{ route('subscription.activate') }}">@csrf<input type="hidden" name="plan" value="{{ $company->subscription_plan }}"><button class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">Eerste betaling starten</button></form>
+                            @if($company->needsFirstPayment())
+                                @include('subscription.partials.pay-now')
                             @else
                                 <a href="{{ route('subscription.choose-plan') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>Abonnement wijzigen</a>
                             @endif

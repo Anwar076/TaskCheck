@@ -39,5 +39,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('reports:send-company')->everyMinute();
         $schedule->command('subscriptions:notify-trial-expired')->hourly();
         $schedule->command('subscriptions:send-first-payment-invitations')->hourly();
+        $schedule->command('subscriptions:send-trial-payment-reminders')->hourly();
     })
     ->create();

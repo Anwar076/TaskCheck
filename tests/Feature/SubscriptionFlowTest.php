@@ -177,4 +177,64 @@ class SubscriptionFlowTest extends TestCase
         $this->assertSame('2026-10-03', data_get($subscriptionPayload, 'startDate'));
         $this->assertSame('1 month', data_get($subscriptionPayload, 'interval'));
     }
+
+    public function test_assigned_private_plan_can_start_checkout_from_subscription_page(): void
+    {
+        Config::set('services.mollie.webhook_url', 'https://example.test/mollie/webhook');
+        SubscriptionPlan::query()->create([
+            'plan_key' => 'kwalitaria',
+            'name' => 'Kwalitaria',
+            'billing_period' => 'monthly',
+            'billing_amount' => 199,
+            'trial_duration_value' => 14,
+            'trial_duration_unit' => 'days',
+            'price_monthly' => 199,
+            'price_annual' => 0,
+            'max_users' => 10000,
+            'max_locations' => 1000,
+            'max_storage_gb' => 10000,
+            'is_public' => false,
+            'features' => [],
+        ]);
+
+        $company = Company::query()->create([
+            'name' => 'Kwalitaria Papendrecht',
+            'subscription_plan' => 'kwalitaria',
+            'subscription_status' => 'trial',
+            'billing_required' => true,
+            'billing_period' => 'monthly',
+            'signup_source' => Company::SIGNUP_SOURCE_MANAGED,
+            'trial_ends_at' => now()->endOfDay(),
+            'is_active' => true,
+        ]);
+        $user = User::factory()->create([
+            'role' => 'admin',
+            'email' => 'frans@example.com',
+            'company_id' => $company->id,
+        ]);
+
+        $capturedPayload = null;
+        $mollie = Mockery::mock(MollieService::class);
+        $mollie->shouldReceive('createCustomer')->once()->andReturn(['id' => 'cst_kwalitaria']);
+        $mollie->shouldReceive('createFirstPayment')->once()->andReturnUsing(function (array $payload) use (&$capturedPayload) {
+            $capturedPayload = $payload;
+
+            return ['id' => 'tr_kwalitaria', '_links' => ['checkout' => ['href' => 'https://checkout.mollie.com/payments/kwalitaria']]];
+        });
+        $this->instance(MollieService::class, $mollie);
+
+        $this->actingAs($user)
+            ->get(route('subscription.show'))
+            ->assertOk()
+            ->assertSee('Betaal je abonnement nu')
+            ->assertSee('Kwalitaria')
+            ->assertDontSee('Kies Professional');
+
+        $this->actingAs($user)
+            ->post(route('subscription.activate'), ['plan' => 'kwalitaria'])
+            ->assertRedirect('https://checkout.mollie.com/payments/kwalitaria');
+
+        $this->assertSame('kwalitaria', data_get($capturedPayload, 'metadata.plan'));
+        $this->assertSame('240.79', data_get($capturedPayload, 'amount.value'));
+    }
 }

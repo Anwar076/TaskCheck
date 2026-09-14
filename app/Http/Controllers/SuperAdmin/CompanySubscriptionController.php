@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Billing\SubscriptionPlan;
 use App\Models\Organisation\Company;
 use App\Services\Billing\MollieService;
+use App\Services\Billing\PaymentInvitationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 
 class CompanySubscriptionController extends Controller
 {
@@ -90,6 +92,21 @@ class CompanySubscriptionController extends Controller
         ]);
 
         return redirect()->route('super-admin.subscriptions.show', $plan)->with('success', 'Abonnement is bijgewerkt.');
+    }
+
+    public function sendPaymentInvitation(Company $company, PaymentInvitationService $invitations): RedirectResponse
+    {
+        try {
+            $recipient = $invitations->sendPaymentRequest($company);
+        } catch (RuntimeException $exception) {
+            return redirect()
+                ->route('super-admin.companies.show', ['company' => $company, 'section' => 'billing'])
+                ->with('error', $exception->getMessage());
+        }
+
+        return redirect()
+            ->route('super-admin.companies.show', ['company' => $company, 'section' => 'billing'])
+            ->with('success', "Betaalmail verstuurd naar {$recipient}.");
     }
 
     private function validateSubscriptionPlan(Request $request): array
@@ -197,16 +214,14 @@ class CompanySubscriptionController extends Controller
                 }
             } catch (\Throwable $exception) {
                 report($exception);
-
-                return back()->withInput()->with('error', 'De wijzigingen zijn niet opgeslagen, omdat Mollie het abonnement niet kon bijwerken: '.$exception->getMessage());
             }
         }
 
         $company->update([
             'subscription_plan' => $plan,
+            'subscription_status' => $subscriptionStatus,
             'custom_subscription_name' => $isCustom ? $validated['custom_subscription_name'] : null,
             'custom_monthly_price' => $isCustom ? $validated['custom_monthly_price'] : null,
-            'subscription_status' => $subscriptionStatus,
             'billing_required' => $billingRequired,
             'billing_period' => $validated['billing_period'],
             'billing_start_date' => $billingStartDate,

@@ -106,25 +106,40 @@ class SubscriptionController extends Controller
 
     public function activate(Request $request): RedirectResponse
     {
-        $request->validate([
-            'plan' => ['required', Rule::in(array_keys(Company::plans()))],
-        ]);
-
-        $company = Auth::user()->company;
+        $company = Auth::user()?->company;
 
         if (! $company) {
             return redirect()->route('subscription.choose-plan')
                 ->with('error', 'Organisatie niet gevonden.');
         }
 
+        $allowedPlans = array_keys(Company::plans());
+        if (filled($company->subscription_plan)) {
+            $allowedPlans[] = (string) $company->subscription_plan;
+        }
+
+        $request->validate([
+            'plan' => ['required', Rule::in(array_unique($allowedPlans))],
+        ]);
+
         $plan = $request->plan === $company->subscription_plan
             ? $company->getPlanDetails()
-            : Company::plan($request->plan);
+            : (Company::plan($request->plan) ?? []);
+
+        if ($plan === [] || ! isset($plan['name'])) {
+            return redirect()->route('subscription.show')
+                ->with('error', 'Dit abonnement staat niet in de plannenlijst. Voeg het plan toe of neem contact op met support.');
+        }
+
         $billingEmail = (string) Auth::user()->email;
         $isStarterTestOverride = $this->shouldUseStarterTestOverride($billingEmail, (string) $request->plan);
         $amountValue = $isStarterTestOverride
             ? '1.00'
-            : $this->calculateGrossAmount((float) $plan['billing_amount']);
+            : $this->calculateGrossAmount((float) ($plan['billing_amount'] ?? $plan['price_monthly'] ?? 0));
+        if ((float) $amountValue <= 0) {
+            return redirect()->route('subscription.show')
+                ->with('error', 'Dit abonnement heeft geen bedrag om te betalen. Neem contact op met support.');
+        }
         $subscriptionInterval = $this->resolveSubscriptionInterval($billingEmail, (string) $request->plan);
         if ($company->isManagedAccount() && $request->plan === $company->subscription_plan) {
             $subscriptionInterval = Company::billingPeriod($company->billing_period ?: 'monthly')['mollie_interval'];
@@ -217,7 +232,7 @@ class SubscriptionController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return redirect()->route('subscription.choose-plan')
+            return redirect()->route('subscription.show')
                 ->with('error', 'Mollie checkout kon niet worden gestart: '.$e->getMessage());
         }
 
@@ -401,7 +416,8 @@ class SubscriptionController extends Controller
                     return response('ok', 200);
                 }
                 $this->invoiceService->sendReceipt($company, $payment);
-                if (! $this->isActivationPayment($company, $paymentId, $payment)) {
+                $isFirstPayment = strtolower((string) data_get($payment, 'sequenceType', '')) === 'first';
+                if (! $isFirstPayment && ! $this->isActivationPayment($company, $paymentId, $payment)) {
                     // Recurring charge for already-active subscription: extend the access window.
                     $this->recurringSubscriptionService->extendPaidAccess($company);
 

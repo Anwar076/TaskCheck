@@ -52,4 +52,18 @@
         <div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3"><label class="flex items-start gap-2 text-sm text-slate-700"><input id="company-billing-required" type="checkbox" name="billing_required" value="1" class="mt-0.5 rounded border-slate-300 text-blue-600" @checked(old('billing_required', $company->billing_required))><span><strong class="font-medium text-slate-900">Automatische betaling</strong><br><span class="text-xs text-slate-500">Schakel dit uit voor gratis toegang. Facturatievelden worden dan genegeerd.</span></span></label><label class="flex items-start gap-2 border-t border-slate-200 pt-2 text-sm text-slate-700"><input type="checkbox" name="is_active" value="1" class="mt-0.5 rounded border-slate-300 text-blue-600" @checked(old('is_active', $company->is_active))><span><strong class="font-medium text-slate-900">Platformtoegang actief</strong><br><span class="text-xs text-slate-500">Gebruikers van dit bedrijf kunnen inloggen.</span></span></label></div>
         <button type="submit" class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Wijzigingen opslaan</button>
     </form>
+    @if($company->billing_required && ! filled($company->mollie_subscription_id))
+        <form method="POST" action="{{ route('super-admin.companies.subscription.payment-invitation', $company) }}" class="mt-3">
+            @csrf
+            <button type="submit" class="w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-800 hover:bg-blue-100">
+                Stuur betaalmail
+            </button>
+            <p class="mt-2 text-xs text-slate-500">
+                Stuurt een mail naar {{ $company->email ?: 'de eerste beheerder' }} met het abonnementsbedrag en een knop om direct via Mollie te betalen.
+                @if($company->payment_invitation_sent_at)
+                    Laatst verstuurd op {{ $company->payment_invitation_sent_at->format('d-m-Y H:i') }}.
+                @endif
+            </p>
+        </form>
+    @endif
 </section>

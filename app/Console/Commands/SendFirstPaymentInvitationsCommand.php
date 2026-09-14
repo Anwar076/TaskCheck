@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Mail\FirstPaymentInvitationMail;
 use App\Models\Organisation\Company;
+use App\Services\Billing\PaymentInvitationService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
+use RuntimeException;
 
 class SendFirstPaymentInvitationsCommand extends Command
 {
     protected $signature = 'subscriptions:send-first-payment-invitations';
     protected $description = 'Stuur beheerde klanten op hun eerste betaaldatum een uitnodiging voor de eerste Mollie-betaling';
 
-    public function handle(): int
+    public function handle(PaymentInvitationService $invitations): int
     {
         $companies = Company::query()
             ->where('signup_source', Company::SIGNUP_SOURCE_MANAGED)
@@ -24,14 +24,12 @@ class SendFirstPaymentInvitationsCommand extends Command
             ->get();
 
         foreach ($companies as $company) {
-            $recipient = $company->email ?: $company->users()->where('role', 'admin')->orderBy('id')->value('email');
-            if (!$recipient) {
-                continue;
+            try {
+                $recipient = $invitations->sendPaymentRequest($company);
+                $this->info("Betaaluitnodiging verstuurd: {$company->name} ({$recipient})");
+            } catch (RuntimeException $exception) {
+                $this->warn("Overgeslagen {$company->name}: {$exception->getMessage()}");
             }
-
-            Mail::to($recipient)->send(new FirstPaymentInvitationMail($company, route('subscription.show')));
-            $company->update(['payment_invitation_sent_at' => now()]);
-            $this->info("Betaaluitnodiging verstuurd: {$company->name} ({$recipient})");
         }
 
         return self::SUCCESS;

@@ -55,6 +55,7 @@ class Company extends Model
         'onboarding_completed_at',
         'trial_expired_email_sent_at',
         'payment_invitation_sent_at',
+        'trial_payment_reminders_sent',
         'entra_enabled',
         'entra_sso_required',
         'entra_mfa_required',
@@ -108,6 +109,7 @@ class Company extends Model
         'reporting_last_sent_at' => 'datetime',
         'trial_expired_email_sent_at' => 'datetime',
         'payment_invitation_sent_at' => 'datetime',
+        'trial_payment_reminders_sent' => 'array',
         'entra_enabled' => 'boolean',
         'entra_sso_required' => 'boolean',
         'entra_mfa_required' => 'boolean',
@@ -389,6 +391,14 @@ class Company extends Model
             && ! $this->subscription_ends_at);
     }
 
+    public function needsFirstPayment(): bool
+    {
+        return (bool) ($this->billing_required
+            && $this->is_active
+            && filled($this->subscription_plan)
+            && ! filled($this->mollie_subscription_id));
+    }
+
     public function hasCancelledButStillActiveAccess(): bool
     {
         return $this->subscription_status === 'cancelled'
@@ -451,6 +461,7 @@ class Company extends Model
             'billing_period' => 'monthly',
             'billing_start_date' => $trialEnd->toDateString(),
             'trial_expired_email_sent_at' => null,
+            'trial_payment_reminders_sent' => null,
         ]);
     }
 
@@ -481,6 +492,21 @@ class Company extends Model
 
         $details = self::plan($this->subscription_plan) ?? [];
         $details['billing_period'] = $this->billing_period ?: ($details['billing_period'] ?? 'monthly');
+
+        if (! isset($details['name'])) {
+            $details['name'] = filled($this->custom_subscription_name)
+                ? (string) $this->custom_subscription_name
+                : ucfirst(str_replace(['-', '_'], ' ', (string) $this->subscription_plan));
+            $details['billing_amount'] = (float) ($this->custom_monthly_price ?? 0);
+            $details['price_monthly'] = (float) ($this->custom_monthly_price ?? $details['price_monthly'] ?? 0);
+            $details['price_annual'] = (float) ($details['price_annual'] ?? 0);
+            $details['max_users'] = (int) ($this->max_users ?: 5);
+            $details['max_locations'] = (int) ($this->max_locations ?: 1);
+            $details['max_storage_gb'] = (int) ($this->max_storage_gb ?: 5);
+            $details['features'] = $details['features'] ?? [];
+            $details['trial_duration_value'] = (int) ($details['trial_duration_value'] ?? 14);
+            $details['trial_duration_unit'] = $details['trial_duration_unit'] ?? 'days';
+        }
 
         if ($this->subscription_plan === 'custom') {
             $details['name'] = $this->custom_subscription_name ?: $details['name'];
