@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een horeca app?', 'Een horeca app is software waarmee je taken, controles en registraties in je restaurant, lunchroom of hotel digitaal beheert en bijhoudt.'],
+            ['Hoe werkt TaskCheck als horeca app?', 'Met TaskCheck maak je digitale checklists voor personeel. Medewerkers voeren taken uit, registreren resultaten en voegen foto’s of video’s toe als bewijs.'],
+            ['Is een horeca app verplicht voor HACCP of NVWA?', 'Een horeca app is niet verplicht, maar digitale registratie maakt het makkelijker om aan HACCP- en NVWA-eisen te voldoen en bewijs te tonen.'],
+            ['Wat is het verschil tussen papieren en digitale checklists?', 'Digitale checklists zijn sneller, overzichtelijker en minder foutgevoelig. Je hebt altijd direct inzicht en bewijs, terwijl papier makkelijk kwijtraakt.'],
+            ['Kan de NVWA digitale registraties accepteren?', 'Ja, de NVWA accepteert digitale registraties zolang de gegevens volledig, actueel en controleerbaar zijn.'],];
     $seoTitle = 'Horeca App voor Personeel en Werkcontrole | TaskCheck';
         $seoDescription = 'Gebruik TaskCheck als horeca app voor personeel, checklists en werkcontrole. Houd grip op taken, HACCP en bewijs. Start 14 dagen gratis.';
         $seoUrl = route('seo.horeca-app');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
@@ -277,6 +304,8 @@
                 @endforeach
             </div>
         </section>
+
+        <section class="bg-white py-8"><div class="max-w-3xl mx-auto px-4"><h2 class="text-2xl font-bold mb-3">Wat is een horeca app?</h2><p>Een horeca app is een digitale oplossing waarmee je personeel, taken en controles eenvoudig beheert. Je maakt checklists voor HACCP, schoonmaak en temperatuur, en houdt alles centraal bij. Zo voldoe je makkelijker aan eisen van de NVWA en heb je altijd bewijs van uitgevoerde werkzaamheden.</p></div></section>
 
         <section class="mb-4 mt-16 border-t border-slate-200 pt-12 sm:mt-20">
             <p class="blog-kicker mx-auto">Gerelateerde pagina&rsquo;s</p>
