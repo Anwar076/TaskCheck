@@ -22,6 +22,9 @@ CHAT_ACTIONS = {
     "create_blog",
     "create_blogs_batch",
     "create_page",
+    "improve_aeo",
+    "aeo_status",
+    "aeo_kansen",
     "improve_page",
     "approve",
     "cancel",
@@ -57,6 +60,9 @@ Nieuw bericht van Anwar:
 {message}
 
 Kies ÉÉN intent en optionele parameters. Voorbeelden:
+- "hoe staat aeo" / "aeo score" → aeo_status
+- "aeo kansen" → aeo_kansen
+- "maak haccp-app aeo-klaar" → improve_aeo, slug=haccp-app
 - "hoe gaat seo" / "status deze week" → status, period=week
 - "stuur rapport" / "dagelijks overzicht" → report
 - "vergelijk 28 juni en 29 juni" / "seo checken 28-06 vs 29-06" → compare_dates
@@ -78,7 +84,7 @@ BELANGRIJK:
 
 Geef ALLEEN geldige JSON:
 {{
-  "intent": "chat|status|report|compare_dates|kansen|stijgers|dalers|create_blog|create_blogs_batch|create_page|improve_page|approve|cancel|hold|pending|push|next|help",
+  "intent": "chat|status|report|compare_dates|kansen|stijgers|dalers|create_blog|create_blogs_batch|create_page|improve_page|improve_aeo|aeo_status|aeo_kansen|approve|cancel|hold|pending|push|next|help",
   "params": {{
     "topic": "",
     "keyword": "",

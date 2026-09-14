@@ -5,6 +5,8 @@ from __future__ import annotations
 import subprocess
 from typing import TYPE_CHECKING
 
+from app.aeo.analyzer import AEOAnalyzer
+from app.aeo.optimizer import AEOOptimizer
 from app.ai.brain import AIBrain
 from app.ai.page_writer import PageAlreadyExistsError, PageWriter
 from app.blog.writer import BlogWriter
@@ -20,6 +22,7 @@ from app.gsc.periods import resolve_gsc_period
 from app.telegram.chat import ChatRouter
 from app.telegram.intents import (
     detect_intent,
+    extract_aeo_slug,
     extract_blog_topics_from_history,
     extract_compare_dates,
     extract_create_blog_topic,
@@ -45,6 +48,8 @@ class CommandHandler:
         self.writer = PageWriter()
         self.blog_writer = BlogWriter()
         self.optimizer = PageOptimizer()
+        self.aeo_analyzer = AEOAnalyzer()
+        self.aeo_optimizer = AEOOptimizer()
         self.publisher = LaravelPublisher()
         self.memory = MemoryStore()
         self.reporter = DailyReporter()
@@ -55,13 +60,14 @@ class CommandHandler:
     async def cmd_start(self, update, context) -> None:
         name = self.config.owner_name or "daar"
         await update.message.reply_text(
-            f"👋 Hoi {name}! Ik ben je TaskCheck SEO-assistent.\n\n"
+            f"👋 Hoi {name}! Ik ben je TaskCheck SEO- én AEO-assistent.\n\n"
             "Je kunt gewoon met me praten — stel vragen, vraag advies, of geef opdrachten in normale taal.\n\n"
             "Voorbeelden:\n"
             "• Hoe gaat SEO deze week?\n"
+            "• Hoe staat AEO ervoor?\n"
             "• Wat zijn onze grootste kansen?\n"
+            "• Maak haccp-app AEO-klaar\n"
             "• Maak een blog over NVWA inspecties\n"
-            "• Schrijf een pagina voor HACCP checklist\n"
             "• Ja, pas het toe / push naar live\n\n"
             "Ik onthoud het gesprek en werk met live Search Console-data.\n"
             "Typ /help voor alle commando's."
@@ -81,6 +87,9 @@ class CommandHandler:
             "/push — Naar GitHub main + live deploy\n"
             "/pending — Wat wacht op goedkeuring\n"
             "/volgende — Andere SEO-kans\n"
+            "/aeo — AEO-score (AI-antwoorden / ChatGPT / AI Overviews)\n"
+            "/aeokansen — Pagina's die AI nog niet goed kan citeren\n"
+            "/aeoverbeter [slug] — FAQ + definitie + schema voor AEO\n"
             "/cancel /hold — Concept afwijzen of parkeren"
         )
 
@@ -217,6 +226,89 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
                 lines.append(f"• {f['query']}: {f.get('prev_position', '?')} → {f['position']} ({f.get('change_position', 0)})")
             await update.message.reply_text("\n".join(lines))
         except Exception as exc:
+            await update.message.reply_text(f"⚠️ {exc}")
+
+    async def cmd_aeo(self, update, context) -> None:
+        await update.message.reply_text("🤖 AEO-score berekenen (FAQ, schema, llms.txt)...")
+        try:
+            report = self.aeo_analyzer.site_report(limit=5)
+            weak_lines = "\n".join(
+                f"• {p['slug']} — {p['score']}/100 ({', '.join(p['gaps'][:2]) or 'ok'})"
+                for p in report.get("weak", [])[:5]
+            ) or "• geen zwakke pagina's"
+            text = f"""🤖 AEO — TaskCheck
+
+AEO = Answer Engine Optimization: hoe goed AI (ChatGPT, Google AI Overviews, Perplexity) TaskCheck kan citeren.
+
+Pagina's: {report['page_count']}
+Gemiddelde score: {report['average_score']}/100
+llms.txt: {'aanwezig' if report.get('llms_ok') else 'ontbreekt'}
+Zonder FAQ: {report.get('missing_faq', 0)}
+Zonder FAQ-schema: {report.get('missing_schema', 0)}
+Niet in llms.txt: {report.get('missing_llms', 0)}
+
+Zwakste pagina's:
+{weak_lines}
+
+Typ /aeokansen of: maak [slug] AEO-klaar"""
+            await update.message.reply_text(text)
+        except Exception as exc:
+            logger.exception("AEO-status fout")
+            await update.message.reply_text(f"⚠️ AEO-status mislukt: {exc}")
+
+    async def cmd_aeo_kansen(self, update, context) -> None:
+        try:
+            report = self.aeo_analyzer.site_report(limit=8)
+            weak = [p for p in report.get("weak", []) if p["score"] < 80]
+            if not weak:
+                await update.message.reply_text("AEO ziet er goed uit — geen urgente gaten.")
+                return
+            lines = ["🎯 AEO-kansen (lage citeerbaarheid):\n"]
+            for p in weak[:8]:
+                lines.append(f"• {p['slug']} ({p['score']}/100)\n   {', '.join(p['gaps'])}")
+            lines.append("\nMaak AEO-klaar met: /aeoverbeter " + weak[0]["slug"])
+            await update.message.reply_text("\n".join(lines))
+        except Exception as exc:
+            await update.message.reply_text(f"⚠️ {exc}")
+
+    async def cmd_aeo_verbeter(self, update, context) -> None:
+        slug = context.args[0] if context.args else None
+        if not slug:
+            report = self.aeo_analyzer.site_report(limit=1)
+            weak = report.get("weak") or []
+            if not weak:
+                await update.message.reply_text("Gebruik: /aeoverbeter [slug]\nBijv: /aeoverbeter haccp-app")
+                return
+            slug = weak[0]["slug"]
+            await update.message.reply_text(f"Ik pak de zwakste pagina: {slug}")
+
+        await update.message.reply_text(f"🤖 AEO-optimalisatie: {slug}...")
+        try:
+            if not self.registry.is_seo_slug(slug):
+                await update.message.reply_text(
+                    f"⚠️ `{slug}` is geen SEO-landingspagina.\nGebruik een slug uit resources/views/seo/"
+                )
+                return
+            if self.memory.has_pending_for_slug(slug):
+                await update.message.reply_text(
+                    f"⏸️ Er wacht al een optimalisatie voor `{slug}`.\nStuur 'ja toepassen' of /cancel."
+                )
+                return
+            result = self.aeo_optimizer.optimize_page(slug)
+            action_id = self.memory.add_pending_action({
+                "type": "optimize_page",
+                "slug": slug,
+                "path": result["pending_path"],
+                "mode": "aeo",
+            })
+            self.bot.notifier.notify_page_optimized(result)
+            items = (result.get("improvements") or {}).get("improvements", [])
+            extra = "\n".join(f"- {i.get('description', '')}" for i in items[:6])
+            await update.message.reply_text(
+                f"✅ AEO-concept klaar voor `{slug}`.\n{extra}\n\nGebruik /approve om toe te passen."
+            )
+        except Exception as exc:
+            logger.exception("AEO verbeteren mislukt")
             await update.message.reply_text(f"⚠️ {exc}")
 
     async def cmd_nieuw(self, update, context) -> None:
@@ -641,6 +733,17 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
         if regex_intent == "pending":
             await self.cmd_pending(update, context)
             return
+        if regex_intent == "aeo_status":
+            await self.cmd_aeo(update, context)
+            return
+        if regex_intent == "aeo_kansen":
+            await self.cmd_aeo_kansen(update, context)
+            return
+        if regex_intent == "improve_aeo":
+            slug = extract_aeo_slug(message)
+            fake_ctx = type("Ctx", (), {"args": [slug] if slug else []})()
+            await self.cmd_aeo_verbeter(update, fake_ctx)
+            return
         if regex_intent == "status":
             await self.cmd_status(update, context)
             return
@@ -761,6 +864,20 @@ Positie: {a['position']} → {b['position']} ({ch['position']:+.1f})
         """Voer AI-actie uit. None = al afgehandeld via commando; str = tekstantwoord."""
         period_token = (params.get("period") or "").strip()
         fake_ctx = type("Ctx", (), {"args": period_token.split() if period_token else []})()
+
+        if intent == "aeo_status":
+            await self.cmd_aeo(update, context)
+            return None
+
+        if intent == "aeo_kansen":
+            await self.cmd_aeo_kansen(update, context)
+            return None
+
+        if intent == "improve_aeo":
+            slug = (params.get("slug") or params.get("keyword") or "").strip()
+            fake_ctx = type("Ctx", (), {"args": [slugify(slug)] if slug else []})()
+            await self.cmd_aeo_verbeter(update, fake_ctx)
+            return None
 
         if intent == "help":
             await self.cmd_help(update, context)

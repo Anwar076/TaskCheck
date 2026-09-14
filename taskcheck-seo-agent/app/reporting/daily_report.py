@@ -78,6 +78,7 @@ class DailyReporter:
             or (new_opps[0]["keyword"] if new_opps else "—")
         )
         competitor_note = self._competitor_note(top_keyword if top_keyword != "—" else "")
+        aeo_note = self._aeo_note()
 
         skipped_note = ""
         if skipped:
@@ -121,6 +122,9 @@ Nieuwe zoekwoorden:
 Concurrenten:
 {competitor_note}
 
+AEO (AI-antwoorden):
+{aeo_note}
+
 Advies vandaag:
 {decision.get('reason', 'Geen actie nodig')}
 
@@ -152,6 +156,22 @@ Actie:
             return "Geen opvallende concurrentie-wijzigingen"
         except Exception:
             return "Concurrentie-analyse niet beschikbaar"
+
+    def _aeo_note(self) -> str:
+        try:
+            from app.aeo.analyzer import AEOAnalyzer
+
+            report = AEOAnalyzer().site_report(limit=3)
+            weak = report.get("weak") or []
+            if not weak:
+                return f"Gemiddelde {report.get('average_score', 0)}/100 — geen zwakke pagina's"
+            top = weak[0]
+            return (
+                f"Gemiddelde {report.get('average_score', 0)}/100. "
+                f"Zwakste: {top['slug']} ({top['score']}/100). /aeoverbeter {top['slug']}"
+            )
+        except Exception:
+            return "AEO-scan niet beschikbaar"
 
     def _serialize_analysis(self, analysis: dict[str, Any]) -> dict[str, Any]:
         return {

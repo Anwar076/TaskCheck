@@ -108,7 +108,10 @@ class PageOptimizer:
 
         new_faq = improvements.get("new_faq_items", [])
         if new_faq:
-            result = self._add_faq_items(result, new_faq)
+            result = self._add_faq_items(result, [
+                item if isinstance(item, dict) else {"question": str(item), "answer": ""}
+                for item in new_faq
+            ])
 
         extra_section = improvements.get("extra_content_section")
         if extra_section:

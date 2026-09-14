@@ -68,6 +68,28 @@ def detect_intent(message: str) -> str | None:
         r"\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b.*\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b",
     ]
 
+    aeo_kansen_patterns = [
+        r"\baeo\s*kansen\b",
+        r"\b(ai|chatgpt|perplexity)\s*kansen\b",
+        r"welke pagina.? (zijn|is) (nog )?niet aeo",
+    ]
+
+    aeo_improve_patterns = [
+        r"(?:maak|zet|maak even).{0,40}aeo.?klaar",
+        r"\baeo.?klaar\b",
+        r"(?:optimaliseer|verbeter).{0,20}\baeo\b",
+        r"\baeoverbeter\b",
+    ]
+
+    aeo_status_patterns = [
+        r"\b(hoe staat aeo|aeo status|aeo score)\b",
+        r"\banswer engine\b",
+        r"\bai overviews?\b",
+        r"\bwordt taskcheck (genoemd|geciteerd)\b",
+        r"^/aeo\b",
+        r"\baeo\b",
+    ]
+
     status_patterns = [
         r"\b(hoe gaat (de )?seo|seo status|status vandaag)\b",
         r"\b(welke pagina.s stijgen|pagina.s stijgen)\b",
@@ -139,6 +161,18 @@ def detect_intent(message: str) -> str | None:
         if re.search(pattern, text):
             return "pending"
 
+    for pattern in aeo_kansen_patterns:
+        if re.search(pattern, text):
+            return "aeo_kansen"
+
+    for pattern in aeo_improve_patterns:
+        if re.search(pattern, text):
+            return "improve_aeo"
+
+    for pattern in aeo_status_patterns:
+        if re.search(pattern, text):
+            return "aeo_status"
+
     for pattern in status_patterns:
         if re.search(pattern, text):
             return "status"
@@ -183,6 +217,18 @@ def extract_create_blog_topic(message: str) -> str | None:
         match = re.search(pattern, text, re.IGNORECASE)
         if match:
             return match.group(1).strip()
+    return None
+
+
+def extract_aeo_slug(message: str) -> str | None:
+    text = message.strip()
+    match = re.search(
+        r"(?:aeoverbeter|aeo.?klaar|voor)\s+([a-z0-9-]{3,80})",
+        text,
+        re.IGNORECASE,
+    )
+    if match:
+        return match.group(1).strip().lower()
     return None
 
 

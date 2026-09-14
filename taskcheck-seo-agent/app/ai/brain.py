@@ -339,6 +339,63 @@ Gerelateerde routes: bij voorkeur 2-3 seo.* routes + eventueel 1-2 bestaande blo
         result = self._ask(prompt, system="Je bent een SEO redacteur. Antwoord alleen in JSON.")
         return extract_json_from_response(result)
 
+    def generate_aeo_improvements(self, slug: str, content: str) -> dict[str, Any]:
+        """Maak een pagina citeerbaar voor ChatGPT, Google AI Overviews en Perplexity."""
+        prompt = f"""
+{self.company_context}
+
+Je optimaliseert een TaskCheck-pagina voor AEO (Answer Engine Optimization).
+Doel: AI-systemen moeten TaskCheck als bron kunnen citeren.
+
+Slug: {slug}
+Huidige Blade (ingekort):
+{content[:9000]}
+
+Eisen:
+- Schrijf een heldere definitie van max 55 woorden: "{{onderwerp}} is …"
+- Voeg 4–6 FAQ's toe die mensen écht stellen (wat is, hoe werkt, verplicht, verschil papier/digitaal, NVWA).
+- Antwoorden kort, feitelijk, Nederlands B1. Geen loze marketing.
+- extra_content_section mag HTML zijn voor een 'Wat is …?'-blok, of leeg als de pagina dat al heeft.
+
+Geef ALLEEN JSON:
+{{
+  "definition": "",
+  "new_faq_items": [
+    {{"question": "", "answer": ""}}
+  ],
+  "extra_content_section": "",
+  "improvements": [
+    {{"description": ""}}
+  ]
+}}
+"""
+        result = self._ask(
+            prompt,
+            system="Je bent AEO-specialist. Antwoord alleen in JSON. Geen markdown.",
+            temperature=0.4,
+        )
+        try:
+            data = extract_json_from_response(result)
+        except json.JSONDecodeError:
+            logger.error("AEO-verbeteringen niet parsebaar: %s", result[:200])
+            topic = slug.replace("-", " ")
+            data = {
+                "definition": f"{topic[:1].upper() + topic[1:]} is een digitale manier om controles in de horeca vast te leggen met TaskCheck.",
+                "new_faq_items": [
+                    {
+                        "question": f"Wat is {topic}?",
+                        "answer": f"{topic[:1].upper() + topic[1:]} is het digitaal bijhouden van controles, bewijs en registraties in plaats van papier.",
+                    }
+                ],
+                "extra_content_section": "",
+                "improvements": [{"description": "Definitie en FAQ toegevoegd voor AI-citaten"}],
+            }
+        if not isinstance(data.get("new_faq_items"), list):
+            data["new_faq_items"] = []
+        if not isinstance(data.get("improvements"), list):
+            data["improvements"] = []
+        return data
+
     def chat_response(
         self,
         message: str,
@@ -354,8 +411,9 @@ Je praat met {owner} als collega: warm, direct, in het Nederlands (B1).
 
 Je kunt:
 - SEO-data uitleggen (Search Console, rankings, CTR, kansen)
-- Advies geven over pagina's, blogs en optimalisatie
+- Advies geven over pagina's, blogs, AEO (AI-citaten) en optimalisatie
 - Uitleggen hoe goedkeuren/push werkt (concept → ja toepassen → push)
+- AEO-commando's: /aeo, /aeokansen, /aeoverbeter
 
 Wees conversationeel. Geen lange commandolijsten tenzij gevraagd.
 Gebruik emoji spaarzaam. Geef concrete vervolgstappen als dat helpt.
