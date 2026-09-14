@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een takenlijst voor personeel?', 'Een takenlijst voor personeel is een lijst met taken die medewerkers moeten uitvoeren, vaak met naam, tijd en bewijs van afronding.'],
+            ['Hoe werkt een digitale takenlijst?', 'Medewerkers zien hun taken op mobiel of tablet, vinken deze af, en voegen bewijs toe zoals foto’s. Managers volgen de voortgang live.'],
+            ['Is een takenlijst verplicht voor horeca?', 'Voor bepaalde controles, zoals HACCP en NVWA, is het bijhouden van takenlijsten verplicht. Dit geldt vooral voor voedselveiligheid en hygiëne.'],
+            ['Wat is het verschil tussen een papieren en digitale takenlijst?', 'Een digitale takenlijst is altijd actueel, makkelijk aan te passen, en biedt direct bewijs. Papier raakt sneller kwijt en is lastiger te controleren.'],
+            ['Accepteert de NVWA een digitale takenlijst als bewijs?', 'Ja, de NVWA accepteert digitale lijsten en bewijs, zolang deze volledig en controleerbaar zijn.'],];
     $seoTitle = 'Takenlijst personeel app voor bedrijven | TaskCheck';
         $seoDescription = 'Maak een duidelijke takenlijst personeel met bewijs, deadlines en controle. Ideaal voor horeca, schoonmaak en operationele teams.';
         $seoUrl = route('seo.takenlijst-personeel');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
