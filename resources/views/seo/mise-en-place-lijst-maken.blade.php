@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een mise en place lijst?', 'Een mise en place lijst is een overzicht van alle taken en voorbereidingen die voor de opening van een horecazaak in de keuken moeten gebeuren.'],
+            ['Hoe maak je een mise en place lijst?', 'Je maakt een lijst met alle gerechten, ingrediënten en taken die per dag of dienst voorbereid moeten worden. Dit kan op papier of digitaal via een platform zoals TaskCheck.'],
+            ['Is een mise en place lijst verplicht voor de NVWA?', 'Een mise en place lijst is niet verplicht, maar helpt wel om aan de HACCP- en NVWA-eisen te voldoen door structuur en overzicht te bieden.'],
+            ['Wat is het verschil tussen een papieren en digitale mise en place lijst?', 'Een digitale lijst is altijd up-to-date, makkelijk te delen met het team en kan automatisch rapporteren en foto’s toevoegen. Papier raakt sneller kwijt en is minder overzichtelijk.'],
+            ['Waarom gebruiken restaurants een mise en place lijst?', 'Restaurants gebruiken een mise en place lijst om overzicht te houden, fouten te voorkomen en efficiënter te werken tijdens drukke momenten.'],];
     $seoTitle       = 'Mise en Place Lijst Maken voor Horeca | Gratis Digitale Checklist | TaskCheck';
         $seoDescription = 'Direct een mise en place lijst maken voor jouw restaurant, lunchroom, hotel of bakkerij? Digitaliseer je keukenvoorbereiding met TaskCheck. Inclusief gratis 14 dagen proefperiode, HACCP, NVWA en meer.';
         $seoUrl = route('seo.mise-en-place-lijst-maken');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
@@ -306,6 +333,8 @@
                 @endforeach
             </div>
         </section>
+
+        <section class="bg-white py-8"><div class="max-w-2xl mx-auto"><h2 class="text-xl font-bold mb-3">Wat is een mise en place lijst?</h2><p>Een mise en place lijst is een praktische checklist voor horecakeukens. Hierop staan alle taken en voorbereidingen die vóór de service moeten gebeuren, zodat het team efficiënt en zonder stress kan werken.</p></div></section>
 
         <section class="mb-4 mt-16 border-t border-slate-200 pt-12 sm:mt-20">
             <p class="blog-kicker mx-auto">Gerelateerde pagina&rsquo;s</p>
