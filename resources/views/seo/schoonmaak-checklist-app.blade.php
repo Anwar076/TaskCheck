@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een schoonmaak checklist app?', 'Een schoonmaak checklist app is een digitale lijst waarmee schoonmaaktaken worden gepland, uitgevoerd en gecontroleerd. Taken kunnen worden afgevinkt en bewijs kan worden toegevoegd.'],
+            ['Hoe werkt een schoonmaak checklist app?', 'Medewerkers voeren taken uit via hun telefoon of tablet. Ze vinken taken af en kunnen foto’s of video’s toevoegen als bewijs. Managers zien de voortgang en rapportages realtime.'],
+            ['Is een digitale schoonmaak checklist verplicht voor de NVWA?', 'Een digitale checklist is niet verplicht, maar maakt het makkelijker om aan te tonen dat er volgens de hygiëne-eisen en HACCP wordt gewerkt. Dit helpt bij NVWA-controles.'],
+            ['Wat is het verschil tussen een papieren en digitale checklist?', 'Een digitale checklist is sneller, overzichtelijker en voorkomt fouten. Taken zijn direct zichtbaar, bewijs kan worden toegevoegd en rapportages zijn automatisch beschikbaar.'],
+            ['Kan ik bewijs toevoegen aan taken in de app?', 'Ja, je kunt bij elke taak foto’s of video’s toevoegen. Zo bewijs je dat het werk is uitgevoerd volgens de richtlijnen.'],];
     $seoTitle = 'Schoonmaak checklist app voor kwaliteitscontrole | TaskCheck';
         $seoDescription = 'Schoonmaak checklist app voor bedrijven: werkcontrole per locatie, takenlijst personeel en bewijs met foto/video. Plan een proefperiode.';
         $seoUrl = route('seo.schoonmaak-checklist-app');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
@@ -217,6 +244,8 @@
 
 
         
+
+        <section class="wat-is-blok"><h2>Wat is een schoonmaak checklist app?</h2><p>Een schoonmaak checklist app is een digitale oplossing voor het plannen, uitvoeren en controleren van schoonmaaktaken. Met de app kunnen medewerkers eenvoudig taken afvinken en bewijs toevoegen, terwijl managers realtime overzicht houden en rapportages genereren. Dit ondersteunt bedrijven bij kwaliteitscontrole en naleving van hygiëne-eisen.</p></section>
 
         <section class="mt-20 sm:mt-24">
             <div class="mx-auto max-w-2xl text-center">
