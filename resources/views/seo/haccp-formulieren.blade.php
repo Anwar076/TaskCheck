@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een HACCP-formulier?', 'Een HACCP-formulier is een controlelijst waarmee bedrijven vastleggen of zij voldoen aan voedselveiligheidsregels, zoals temperatuur en schoonmaak.'],
+            ['Is het verplicht om HACCP-formulieren bij te houden?', 'Ja, volgens de Nederlandse wet moet elk bedrijf dat met voedsel werkt HACCP-controles uitvoeren en registreren.'],
+            ['Wat is het verschil tussen papieren en digitale HACCP-formulieren?', 'Papieren formulieren kunnen kwijtraken of onleesbaar zijn. Digitale formulieren zijn altijd terug te vinden, makkelijker in te vullen en sneller te delen bij controles.'],
+            ['Hoe werkt een digitaal HACCP-formulier?', 'Je vult de controles in via een app of computer. Alles wordt automatisch opgeslagen en je kunt makkelijk rapportages maken of bewijs toevoegen, zoals foto’s.'],
+            ['Accepteert de NVWA digitale HACCP-formulieren?', 'Ja, de NVWA accepteert digitale HACCP-registraties zolang ze volledig, actueel en goed terug te vinden zijn tijdens een inspectie.'],];
     $seoTitle = 'HACCP Formulieren Digitaal voor Horeca, Bakkerijen & Slagerijen | TaskCheck';
         $seoDescription = 'Stop met papieren HACCP formulieren. Registreer temperaturen, schoonmaak en voedselveiligheid volledig digitaal met TaskCheck. Geschikt voor restaurants, hotels, bakkerijen en meer. Probeer 14 dagen gratis – geen creditcard nodig.';
         $seoUrl = route('seo.haccp-formulieren');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
