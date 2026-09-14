@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een schoonmaak checklist?', 'Een schoonmaak checklist is een lijst met taken die je bij het schoonmaken moet uitvoeren. Je vinkt af wat klaar is. Zo weet je zeker dat alles is gedaan.'],
+            ['Is een schoonmaak checklist verplicht?', 'Een checklist is niet wettelijk verplicht, maar de NVWA verwacht wel dat je schoonmaak kunt aantonen. Een checklist helpt daarbij.'],
+            ['Wat is het verschil tussen een papieren en digitale schoonmaak checklist?', 'Op papier kun je taken afvinken, maar raakt snel kwijt. Digitaal kun je bewijs toevoegen, rapportages maken en is alles altijd terug te vinden.'],
+            ['Hoe werkt een digitale schoonmaak checklist?', 'Medewerkers openen de lijst op hun telefoon of tablet, voeren taken uit en vinken deze af. Je kunt foto’s toevoegen en alles wordt automatisch opgeslagen.'],
+            ['Waarom vraagt de NVWA om schoonmaaklijsten?', 'De NVWA controleert of je hygiënisch werkt. Met een checklist kun je laten zien dat je schoonmaaktaken echt uitvoert en bijhoudt.'],];
     $seoTitle = 'Schoonmaak checklist voorbeeld – gratis template';
         $seoDescription = 'Gratis schoonmaak checklist voorbeeld voor kantoor, toilet en keuken. Praktische lijsten per ruimte en direct digitaal bijhouden met TaskCheck.';
         $seoUrl = route('seo.schoonmaak-checklist-voorbeeld');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
