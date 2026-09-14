@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een app voor schoonmaakbedrijven?', 'Dit is een digitale tool waarmee schoonmaakbedrijven hun taken, controles en rapportages eenvoudig kunnen beheren en vastleggen.'],
+            ['Hoe werkt een digitale schoonmaak app?', 'Medewerkers voeren taken en controles uit via hun telefoon of tablet. Resultaten, foto’s en opmerkingen worden direct opgeslagen en zijn inzichtelijk voor leidinggevenden en opdrachtgevers.'],
+            ['Is een digitale schoonmaak app verplicht?', 'Nee, het is niet verplicht. Wel helpt het bij het aantoonbaar maken van uitgevoerde werkzaamheden en voldoet zo makkelijker aan eisen van opdrachtgevers of inspecties.'],
+            ['Wat is het verschil tussen papieren en digitale schoonmaaklijsten?', 'Papieren lijsten raken snel kwijt en zijn lastig te controleren. Digitale lijsten zijn altijd up-to-date, direct inzichtelijk en bieden bewijs via foto’s of rapportages.'],
+            ['Is een digitale schoonmaak app handig voor NVWA-controles?', 'Ja, digitale vastlegging maakt het makkelijker om tijdens NVWA-controles snel bewijs en rapportages te tonen van uitgevoerde schoonmaaktaken.'],];
     $seoTitle = 'App voor Schoonmaakbedrijven | Werkcontrole en Checklists | TaskCheck';
         $seoDescription = 'Digitaliseer schoonmaakcontroles, takenlijsten en kwaliteitscontroles. TaskCheck helpt schoonmaakbedrijven met werkcontrole, foto bewijs en rapportages.';
         $seoUrl = route('seo.app-schoonmaakbedrijf');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
