@@ -1,4 +1,10 @@
 @php
+        $faqItems = [
+            ['Wat is een horeca checklist app?', 'Een horeca checklist app is een digitale oplossing waarmee je taken en controles in de horeca eenvoudig uitvoert, afvinkt en bewaart. Denk aan schoonmaak, HACCP en temperatuurregistraties.'],
+            ['Hoe werkt een digitale checklist voor horeca?', 'Medewerkers vullen de checklist in op hun telefoon of tablet. Ze vinken taken af, voegen bewijs toe (foto/video) en de leiding ziet direct wat klaar is en wat nog moet gebeuren.'],
+            ['Is een digitale checklist verplicht voor de NVWA?', 'Een digitale checklist is niet verplicht, maar je moet wel kunnen aantonen dat je controles uitvoert. Met een app voldoe je makkelijker aan de eisen van de NVWA.'],
+            ['Wat is het verschil tussen een papieren en digitale checklist?', 'Een digitale checklist is sneller, overzichtelijker en minder foutgevoelig dan papier. Je hebt altijd een actueel overzicht en bewijs is makkelijk op te slaan en terug te vinden.'],
+            ['Kan ik TaskCheck gebruiken voor HACCP-controles?', 'Ja, TaskCheck is geschikt voor HACCP-controles. Je kunt taken instellen, temperatuur registreren en bewijs toevoegen. Alles wordt automatisch opgeslagen en is direct beschikbaar voor inspectie.'],];
     $seoTitle       = 'Horeca checklist app voor restaurants en keukens | TaskCheck';
         $seoDescription = 'Horeca checklist app voor restaurants: taken beheren, personeel controleren en bewijs verzamelen met foto en video. Start 14 dagen gratis.';
         $seoUrl         = route('seo.horeca-checklist-app');
@@ -9,6 +15,27 @@
 @endphp
 
 @extends('layouts.seo-page')
+
+@push('head')
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            @foreach($faqItems as $i => [$q, $a])
+            {
+                "@@type": "Question",
+                "name": @json($q),
+                "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": @json($a)
+                }
+            }@if(!$loop->last),@endif
+            @endforeach
+        ]
+    }
+    </script>
+@endpush
 
 @section('content')
 <section class="relative overflow-hidden bg-white pt-24 pb-14 sm:pt-28 sm:pb-16">
