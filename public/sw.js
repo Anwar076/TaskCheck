@@ -1,5 +1,5 @@
 // ==== BASIS CONFIG ====
-const CACHE_NAME = 'taskcheck-v5.3.5';
+const CACHE_NAME = 'taskcheck-v5.3.9';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/logos/taskcheck-favicon.png',
@@ -28,16 +28,23 @@ function shouldNeverCache(url) {
 // ==== INSTALL ====
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing…');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => {
-        console.log('[SW] Static assets cached');
-        // Auto update: activeer nieuwe service worker direct.
-        return self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.all(
+      STATIC_ASSETS.map(async (path) => {
+        try {
+          const response = await fetch(path, { cache: 'reload' });
+          if (response.ok) {
+            await cache.put(path, response);
+          }
+        } catch (err) {
+          console.error('[SW] Failed to cache', path, err);
+        }
       })
-      .catch((err) => console.error('[SW] Install error', err))
-  );
+    );
+    console.log('[SW] Static assets cached');
+    await self.skipWaiting();
+  })());
 });
 
 // ==== ACTIVATE ====
@@ -70,7 +77,7 @@ self.addEventListener('fetch', (event) => {
   // Routes die nooit gecached mogen worden (login/logout, api, csrf, etc.)
   if (shouldNeverCache(url)) {
     event.respondWith(
-      fetch(req).catch(() => {
+      fetch(req, { cache: 'no-store' }).catch(() => {
         // Als navigatie faalt → offline pagina
         if (req.mode === 'navigate' || req.destination === 'document') {
           return caches.match('/offline.html');
@@ -84,7 +91,7 @@ self.addEventListener('fetch', (event) => {
   // → zorgt dat CSRF tokens en sessies altijd vers zijn
   if (req.mode === 'navigate' || req.destination === 'document') {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-store' })
         .catch(() => caches.match('/offline.html'))
     );
     return;
