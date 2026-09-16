@@ -55,18 +55,14 @@ class CompanyController extends Controller
             ->latest()
             ->limit(8)
             ->get();
-        $recentLists = (clone $lists)
-            ->withCount(['tasks', 'submissions'])
-            ->latest()
-            ->limit(8)
-            ->get();
+        $recentLists = $this->withListUsageCounts((clone $lists)->latest()->limit(8), $company->id)->get();
         $recentInvoices = Invoice::query()
             ->where('company_id', $company->id)
             ->latest('paid_at')
             ->limit(8)
             ->get();
         $companyUsers = (clone $users)->with('location:id,name')->orderBy('name')->get();
-        $companyLists = (clone $lists)->withCount(['tasks', 'submissions'])->latest()->get();
+        $companyLists = $this->withListUsageCounts((clone $lists)->latest(), $company->id)->get();
         $companyInvoices = Invoice::query()->where('company_id', $company->id)->latest('paid_at')->get();
         $companyLocations = (clone $locations)->orderBy('name')->get();
         $company->load(['reportRecipients' => fn ($query) => $query->orderBy('id')]);
@@ -450,5 +446,27 @@ class CompanyController extends Controller
         return redirect()->route('super-admin.companies.show', ['company' => $company, 'section' => 'identity'])
             ->with('success', 'Nieuwe SCIM-token aangemaakt. Kopieer deze nu; hij wordt niet opnieuw getoond.')
             ->with('scim_token', $token);
+    }
+
+    private function withListUsageCounts($query, int $companyId)
+    {
+        $listsTable = (new TaskList)->getTable();
+        $submissionsTable = (new Submission)->getTable();
+
+        return $query
+            ->withCount('tasks')
+            ->selectSub(function ($sub) use ($companyId, $listsTable, $submissionsTable) {
+                $sub->from($submissionsTable)
+                    ->selectRaw('count(*)')
+                    ->where("{$submissionsTable}.company_id", $companyId)
+                    ->where(function ($inner) use ($listsTable, $submissionsTable) {
+                        $inner->whereColumn("{$submissionsTable}.list_id", "{$listsTable}.id")
+                            ->orWhereIn("{$submissionsTable}.list_id", function ($children) use ($listsTable) {
+                                $children->from("{$listsTable} as list_children")
+                                    ->select('list_children.id')
+                                    ->whereColumn('list_children.parent_list_id', "{$listsTable}.id");
+                            });
+                    });
+            }, 'submissions_count');
     }
 }

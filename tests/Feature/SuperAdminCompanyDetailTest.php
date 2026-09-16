@@ -41,6 +41,41 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee('Recente gebruikers');
     }
 
+    public function test_company_overview_shows_submission_counts_for_another_company(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $company = Company::query()->create([
+            'name' => 'Kwalitaria Telling',
+            'subscription_plan' => 'starter',
+            'subscription_status' => 'trial',
+            'is_active' => true,
+        ]);
+        $employee = User::factory()->create(['company_id' => $company->id, 'role' => 'employee']);
+        $list = TaskList::query()->create([
+            'company_id' => $company->id,
+            'title' => 'Openingslijst Papendrecht',
+            'created_by' => $employee->id,
+            'schedule_type' => 'daily',
+            'is_active' => true,
+        ]);
+        Submission::query()->create([
+            'company_id' => $company->id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'status' => 'completed',
+            'started_at' => now()->subHour(),
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('super-admin.companies.show', $company))
+            ->assertOk()
+            ->assertSee('Openingslijst Papendrecht')
+            ->assertSee('1 inzendingen');
+    }
+
     public function test_company_overview_shows_edit_and_delete_icon_actions(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();
