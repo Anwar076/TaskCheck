@@ -32,7 +32,7 @@
 <div class="footer">TaskCheck uitdraai · {{ $company->name }} · {{ $printMeta['generated'] }}</div>
 <div class="hero">
     <p class="brand">TaskCheck</p>
-    <h1>Uitdraai bewijs</h1>
+    <h1>Rapportage</h1>
     <p>{{ $printMeta['kind'] }} · {{ $company->name }}</p>
 </div>
 <table class="meta">
