@@ -99,6 +99,62 @@ class DossierTest extends TestCase
             ->assertHeader('content-type', 'application/pdf');
     }
 
+    public function test_dossier_includes_tasks_that_do_not_require_a_photo(): void
+    {
+        [$admin, $list] = $this->setupCompany();
+        $employee = User::factory()->create([
+            'company_id' => $admin->company_id,
+            'role' => 'employee',
+        ]);
+        $checkTask = Task::query()->create([
+            'list_id' => $list->id,
+            'title' => 'Deuren op slot',
+            'required_proof_type' => 'none',
+            'order' => 1,
+        ]);
+        $photoTask = Task::query()->create([
+            'list_id' => $list->id,
+            'title' => 'Koelkast foto',
+            'required_proof_type' => 'photo',
+            'order' => 2,
+        ]);
+        $submission = Submission::query()->create([
+            'company_id' => $admin->company_id,
+            'user_id' => $employee->id,
+            'list_id' => $list->id,
+            'status' => 'completed',
+        ]);
+        SubmissionTask::query()->create([
+            'submission_id' => $submission->id,
+            'task_id' => $checkTask->id,
+            'status' => 'completed',
+            'employee_comment' => 'Alles dicht',
+        ]);
+
+        $dayQuery = ['date' => now()->toDateString()];
+        $listQuery = [
+            'mode' => 'task',
+            'list_id' => $list->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->toDateString(),
+        ];
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.dossier', $dayQuery))
+            ->assertOk()
+            ->assertSee('Deuren op slot')
+            ->assertSee('Koelkast foto')
+            ->assertSee('Alles dicht')
+            ->assertDontSee('Geen foto nodig');
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.dossier', $listQuery))
+            ->assertOk()
+            ->assertSee('Deuren op slot')
+            ->assertSee('Koelkast foto')
+            ->assertDontSee('Geen foto nodig');
+    }
+
     private function setupCompany(): array
     {
         $company = Company::query()->create([

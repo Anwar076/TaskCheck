@@ -138,6 +138,7 @@ class DossierController extends Controller
                     'result' => null,
                     'comment' => null,
                     'image_path' => null,
+                    'proof_type' => 'none',
                     'files' => [],
                 ];
                 continue;
@@ -154,6 +155,7 @@ class DossierController extends Controller
                         'result' => $taskRow['result'],
                         'comment' => $taskRow['comment'],
                         'image_path' => $taskRow['image_path'],
+                        'proof_type' => $taskRow['proof_type'] ?? 'none',
                         'files' => $taskRow['files'],
                     ];
                 }

@@ -58,7 +58,7 @@ class DossierService
             })
             ->with([
                 'user',
-                'taskList',
+                'taskList.tasks' => fn ($query) => $query->orderBy('order')->orderBy('order_index'),
                 'submissionTasks.task',
             ])
             ->oldest('created_at')
@@ -78,7 +78,7 @@ class DossierService
                 'expected' => $expected,
                 'filled' => $daySubmissions->isNotEmpty(),
                 'status' => $this->listDayStatus($daySubmissions),
-                'submissions' => $daySubmissions->map(fn (Submission $submission) => $this->presentSubmission($submission))->values()->all(),
+                'submissions' => $daySubmissions->map(fn (Submission $submission) => $this->presentSubmission($submission, $list->tasks))->values()->all(),
             ];
         }
 
@@ -130,12 +130,12 @@ class DossierService
             }
 
             if ($dayTasks->isEmpty()) {
-                $entries[] = $this->emptyCompactEntry($day->copy(), $task->title);
+                $entries[] = $this->emptyCompactEntry($day->copy(), $task->title, $task->required_proof_type);
                 continue;
             }
 
             foreach ($dayTasks as $submissionTask) {
-                $entries[] = $this->presentCompactEntry($day->copy(), $submissionTask, $task->title);
+                $entries[] = $this->presentCompactEntry($day->copy(), $submissionTask, $task->title, $submissionTask->submission, $task->required_proof_type);
             }
         }
 
@@ -178,7 +178,7 @@ class DossierService
 
             if ($daySubmissions->isEmpty()) {
                 foreach ($list->tasks as $task) {
-                    $entries[] = $this->emptyCompactEntry($day->copy(), $task->title);
+                    $entries[] = $this->emptyCompactEntry($day->copy(), $task->title, $task->required_proof_type);
                 }
                 if ($list->tasks->isEmpty()) {
                     $entries[] = $this->emptyCompactEntry($day->copy(), $list->title);
@@ -187,13 +187,8 @@ class DossierService
             }
 
             foreach ($daySubmissions as $submission) {
-                foreach ($submission->submissionTasks as $submissionTask) {
-                    $entries[] = $this->presentCompactEntry(
-                        $day->copy(),
-                        $submissionTask,
-                        $submissionTask->task?->title ?? 'Taak',
-                        $submission
-                    );
+                foreach ($this->tasksForSubmission($submission, $list->tasks) as $taskRow) {
+                    $entries[] = $this->compactEntryFromPresented($day->copy(), $taskRow, $submission);
                 }
             }
         }
@@ -239,7 +234,7 @@ class DossierService
         return 'filled';
     }
 
-    private function presentSubmission(Submission $submission): array
+    private function presentSubmission(Submission $submission, ?Collection $listTasks = null): array
     {
         return [
             'id' => $submission->id,
@@ -247,47 +242,115 @@ class DossierService
             'employee' => $submission->user?->name,
             'submitted_at' => $submission->completed_at ?? $submission->created_at,
             'notes' => $submission->notes,
-            'tasks' => $submission->submissionTasks->map(function ($submissionTask) use ($submission) {
-                $approval = $this->approval($submissionTask->status, $submission->status);
-
-                return [
-                    'title' => $submissionTask->task?->title ?? 'Taak',
-                    'status' => $submissionTask->status,
-                    'approval_key' => $approval['key'],
-                    'approval_label' => $approval['label'],
-                    'result' => $submissionTask->proof_text,
-                    'comment' => $submissionTask->employee_comment,
-                    'files' => ProofFileHelper::withAbsoluteUrls($submissionTask->proof_files),
-                    'image_path' => $this->firstImagePath($submissionTask->proof_files),
-                ];
-            })->all(),
+            'tasks' => $this->tasksForSubmission($submission, $listTasks),
         ];
     }
 
-    private function presentCompactEntry(Carbon $date, SubmissionTask $submissionTask, string $title, ?Submission $submission = null): array
+    /**
+     * Every list task belongs in the dossier, including tasks that do not require a photo.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function tasksForSubmission(Submission $submission, ?Collection $listTasks = null): array
     {
-        $submission ??= $submissionTask->submission;
-        $approval = $this->approval($submissionTask->status, $submission?->status);
+        $listTasks ??= $submission->taskList?->tasks ?? collect();
+        $byTaskId = $submission->submissionTasks->keyBy('task_id');
+        $rows = [];
+
+        foreach ($listTasks as $task) {
+            $rows[] = $this->presentTaskRow($task, $byTaskId->get($task->id), $submission);
+        }
+
+        $listedIds = $listTasks->pluck('id')->all();
+        foreach ($submission->submissionTasks as $submissionTask) {
+            if (in_array($submissionTask->task_id, $listedIds, true)) {
+                continue;
+            }
+            $rows[] = $this->presentTaskRow($submissionTask->task, $submissionTask, $submission);
+        }
+
+        return $rows;
+    }
+
+    private function presentTaskRow(?Task $task, ?SubmissionTask $submissionTask, Submission $submission): array
+    {
+        $proofType = $task?->required_proof_type ?? $submissionTask?->task?->required_proof_type ?? 'none';
+        $title = $task?->title ?? $submissionTask?->task?->title ?? 'Taak';
+
+        if (! $submissionTask) {
+            $impliedStatus = in_array($submission->status, SubmissionStatus::finishedValues(), true) ? 'completed' : 'pending';
+            $approval = $this->approval($impliedStatus, $submission->status);
+
+            return [
+                'title' => $title,
+                'status' => $impliedStatus,
+                'approval_key' => $approval['key'],
+                'approval_label' => $approval['label'],
+                'result' => null,
+                'comment' => null,
+                'files' => [],
+                'image_path' => null,
+                'proof_type' => $proofType,
+                'employee' => $submission->user?->name,
+                'submission_id' => $submission->id,
+                'completed_at' => $submission->completed_at,
+            ];
+        }
+
+        $approval = $this->approval($submissionTask->status, $submission->status);
         $files = ProofFileHelper::withAbsoluteUrls($submissionTask->proof_files);
 
         return [
-            'date' => $date,
-            'filled' => true,
-            'task_title' => $title,
+            'title' => $title,
             'status' => $submissionTask->status,
             'approval_key' => $approval['key'],
             'approval_label' => $approval['label'],
-            'employee' => $submissionTask->completedBy?->name ?? $submission?->user?->name,
             'result' => $submissionTask->proof_text,
             'comment' => $submissionTask->employee_comment,
             'files' => $files,
             'image_path' => $this->firstImagePath($submissionTask->proof_files),
+            'proof_type' => $proofType,
+            'employee' => $submissionTask->completedBy?->name ?? $submission->user?->name,
             'submission_id' => $submissionTask->submission_id,
             'completed_at' => $submissionTask->completed_at,
         ];
     }
 
-    private function emptyCompactEntry(Carbon $date, string $title): array
+    private function presentCompactEntry(Carbon $date, SubmissionTask $submissionTask, string $title, ?Submission $submission = null, ?string $proofType = null): array
+    {
+        $submission ??= $submissionTask->submission;
+        if (! $submission) {
+            return $this->emptyCompactEntry($date, $title, $proofType);
+        }
+        $row = $this->presentTaskRow($submissionTask->task, $submissionTask, $submission);
+
+        return $this->compactEntryFromPresented($date, array_merge($row, [
+            'title' => $title,
+            'proof_type' => $proofType ?? $row['proof_type'],
+        ]), $submission);
+    }
+
+    private function compactEntryFromPresented(Carbon $date, array $taskRow, Submission $submission): array
+    {
+        return [
+            'date' => $date,
+            'filled' => true,
+            'task_title' => $taskRow['title'],
+            'status' => $taskRow['status'],
+            'approval_key' => $taskRow['approval_key'],
+            'approval_label' => $taskRow['approval_label'],
+            'employee' => $taskRow['employee'] ?? $submission->user?->name,
+            'result' => $taskRow['result'],
+            'comment' => $taskRow['comment'],
+            'files' => $taskRow['files'],
+            'image_path' => $taskRow['image_path'],
+            'proof_type' => $taskRow['proof_type'] ?? 'none',
+            'submission_id' => $taskRow['submission_id'] ?? $submission->id,
+            'completed_at' => $taskRow['completed_at'] ?? $submission->completed_at,
+        ];
+    }
+
+    private function emptyCompactEntry(Carbon $date, string $title, ?string $proofType = null): array
     {
         return [
             'date' => $date,
@@ -301,6 +364,7 @@ class DossierService
             'comment' => null,
             'files' => [],
             'image_path' => null,
+            'proof_type' => $proofType ?? 'none',
             'submission_id' => null,
             'completed_at' => null,
         ];

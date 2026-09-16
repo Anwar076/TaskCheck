@@ -18,7 +18,7 @@
         .inner { width: 100%; border-collapse: collapse; }
         .inner td { padding: 8px; vertical-align: top; }
         .thumb { width: 84px; height: 64px; }
-        .ph { width: 84px; height: 64px; background: #eff6ff; color: #93c5fd; font-size: 7px; text-align: center; line-height: 64px; }
+        .ph { width: 84px; height: 64px; background: #eff6ff; color: #93c5fd; font-size: 7px; text-align: center; line-height: 1.25; padding-top: 22px; }
         .t { font-size: 10px; font-weight: bold; margin: 0 0 3px; color: #0f172a; }
         .n { margin: 0; color: #64748b; font-size: 8px; }
         .ok { background: #dbeafe; color: #1d4ed8; }
@@ -52,21 +52,28 @@
                         ? $entry['date']->timezone('Europe/Amsterdam')->format('d-m-Y H:i')
                         : (is_object($entry['date']) && method_exists($entry['date'], 'format') ? $entry['date']->format('d-m-Y H:i') : (string) $entry['date']);
                     $badge = $entry['approval_key'] === 'approved' ? 'ok' : ($entry['approval_key'] === 'rejected' || $entry['approval_key'] === 'missing' ? 'no' : 'wait');
+                    $proofType = $entry['proof_type'] ?? 'none';
+                    $photoNeeded = in_array($proofType, ['photo', 'video', 'file', 'any'], true);
+                    $hasImage = ! empty($entry['image_path']);
+                    $showThumb = $hasImage || $photoNeeded;
                 @endphp
                 <td class="cell">
                     <table class="inner">
                         <tr>
-                            <td style="width:92px">
-                                @if(!empty($entry['image_path']))
-                                    <img class="thumb" src="{{ $entry['image_path'] }}" alt="">
-                                @else
-                                    <div class="ph">geen foto</div>
-                                @endif
-                            </td>
+                            @if($showThumb)
+                                <td style="width:92px">
+                                    @if($hasImage)
+                                        <img class="thumb" src="{{ $entry['image_path'] }}" alt="">
+                                    @else
+                                        <div class="ph">{{ ($entry['approval_key'] ?? '') === 'missing' ? 'niet ingevuld' : 'geen foto' }}</div>
+                                    @endif
+                                </td>
+                            @endif
                             <td>
                                 <p class="t">{{ $entry['task_title'] }}</p>
                                 <p class="n">{{ $dateLabel }}@if(!empty($entry['employee'])) · {{ $entry['employee'] }}@endif</p>
                                 @if(!empty($entry['result']))<p class="n">{{ $entry['result'] }}</p>@endif
+                                @if(!empty($entry['comment']))<p class="n">{{ $entry['comment'] }}</p>@endif
                                 <span class="badge {{ $badge }}">{{ $entry['approval_label'] }}</span>
                             </td>
                         </tr>

@@ -1,6 +1,10 @@
 @php
     $file = collect($files ?? [])->first(fn ($item) => is_array($item) && str_starts_with($item['mime_type'] ?? '', 'image/'));
     $approvalKey = $approvalKey ?? 'pending';
+    $proofType = $proofType ?? 'none';
+    $photoNeeded = in_array($proofType, ['photo', 'video', 'file', 'any'], true);
+    $showThumb = $file || $photoNeeded;
+    $placeholder = ($approvalKey === 'missing') ? 'Niet ingevuld' : 'Geen foto';
     $approvalClasses = [
         'approved' => 'bg-emerald-50 text-emerald-700 ring-emerald-100',
         'pending' => 'bg-amber-50 text-amber-700 ring-amber-100',
@@ -13,8 +17,8 @@
         <a href="{{ $file['url'] }}" target="_blank" rel="noopener" class="shrink-0 overflow-hidden rounded-xl ring-1 ring-slate-100">
             <img src="{{ $file['url'] }}" alt="" class="h-[4.5rem] w-[5.5rem] object-cover">
         </a>
-    @else
-        <div class="h-[4.5rem] w-[5.5rem] shrink-0 rounded-xl bg-slate-50 ring-1 ring-dashed ring-slate-200 text-[10px] font-medium text-slate-400 flex items-center justify-center text-center px-1">Geen foto</div>
+    @elseif($showThumb)
+        <div class="h-[4.5rem] w-[5.5rem] shrink-0 rounded-xl bg-slate-50 ring-1 ring-dashed ring-slate-200 text-[10px] font-medium text-slate-400 flex items-center justify-center text-center px-1 leading-tight">{{ $placeholder }}</div>
     @endif
     <div class="min-w-0 flex flex-col justify-center">
         <p class="text-sm font-semibold text-slate-900 leading-snug">{{ $title }}</p>
@@ -23,6 +27,9 @@
         @endif
         @if(!empty($result))
             <p class="mt-0.5 text-xs text-slate-600 truncate">{{ $result }}</p>
+        @endif
+        @if(!empty($comment))
+            <p class="mt-0.5 text-xs text-slate-500 truncate">{{ $comment }}</p>
         @endif
         <span class="mt-2 inline-flex self-start rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 {{ $approvalClasses[$approvalKey] ?? $approvalClasses['pending'] }}">{{ $approvalLabel }}</span>
     </div>

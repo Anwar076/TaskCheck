@@ -39,7 +39,7 @@
                         <div>
                             <p class="text-blue-200/80 text-xs sm:text-sm font-medium uppercase tracking-[0.14em] mb-1.5">Bewijsarchief</p>
                             <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Dossier</h1>
-                            <p class="text-blue-100/85 text-sm sm:text-base mt-2 max-w-xl">Terugvinden wat er is ingevuld. Per dag, lijst of taak — met foto en goedkeuring.</p>
+                            <p class="text-blue-100/85 text-sm sm:text-base mt-2 max-w-xl">Terugvinden wat er is ingevuld. Alle taken van de lijst, ook zonder foto.</p>
                         </div>
                     </div>
                     <div class="relative flex rounded-2xl bg-white/10 p-1 ring-1 ring-white/15">
@@ -151,7 +151,9 @@
                                             'title' => $taskRow['title'],
                                             'meta' => ($submission['employee'] ?? '').' · '.optional($submission['submitted_at'])->timezone('Europe/Amsterdam')->format('H:i'),
                                             'result' => $taskRow['result'],
+                                            'comment' => $taskRow['comment'] ?? null,
                                             'files' => $taskRow['files'],
+                                            'proofType' => $taskRow['proof_type'] ?? 'none',
                                             'approvalKey' => $taskRow['approval_key'],
                                             'approvalLabel' => $taskRow['approval_label'],
                                         ])
@@ -191,7 +193,9 @@
                             'title' => $entry['task_title'],
                             'meta' => $entry['date']->locale('nl')->translatedFormat('d M Y').($entry['employee'] ? ' · '.$entry['employee'] : ''),
                             'result' => $entry['result'],
+                            'comment' => $entry['comment'] ?? null,
                             'files' => $entry['files'],
+                            'proofType' => $entry['proof_type'] ?? 'none',
                             'approvalKey' => $entry['approval_key'],
                             'approvalLabel' => $entry['approval_label'],
                         ])
