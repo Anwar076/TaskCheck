@@ -100,8 +100,8 @@
                     
                     @if(auth()->user()->company?->hasPlanFeature('reports'))
                         <a href="{{ route('admin.weekly-overview') }}" 
-                           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.weekly-overview') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
-                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.weekly-overview') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                           class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.weekly-overview') || request()->routeIs('admin.reports.dossier*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('admin.weekly-overview') || request()->routeIs('admin.reports.dossier*') ? 'text-blue-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
                             </svg>
                             Rapportages
@@ -396,7 +396,7 @@
                     
                     @if(auth()->user()->company?->hasPlanFeature('reports'))
                         <a href="{{ route('admin.weekly-overview') }}" 
-                           class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.weekly-overview') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                           class="flex items-center rounded-xl px-3 py-3 text-base font-medium transition-colors {{ request()->routeIs('admin.weekly-overview') || request()->routeIs('admin.reports.dossier*') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             <svg class="mr-3 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
                             </svg>

@@ -6,6 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="min-h-screen bg-slate-50 pt-4 sm:pt-6 lg:pt-8 pb-10 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+        @include('admin.reports.partials.tabs', ['reportsTab' => 'overview'])
 
         {{-- Hero --}}
         <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-[0_1px_2px_rgba(15,23,42,.04),0_12px_40px_rgba(15,23,42,.08)] border border-slate-100/80 overflow-hidden">

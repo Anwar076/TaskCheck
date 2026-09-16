@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AiChecklistImportController;
 use App\Http\Controllers\Admin\CompanySettingsController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DossierController;
 use App\Http\Controllers\Admin\IdentitySettingsController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
@@ -388,6 +389,8 @@ Route::middleware(['auth', 'verified', 'subscription', 'admin', 'onboarding_comp
 
     // Weekly overview and daily sub-lists
     Route::get('/weekly-overview', [TaskListController::class, 'weeklyOverview'])->name('weekly-overview');
+    Route::get('/reports/dossier', [DossierController::class, 'index'])->name('reports.dossier');
+    Route::get('/reports/dossier/pdf', [DossierController::class, 'pdf'])->name('reports.dossier.pdf');
     Route::get('/reports/export/excel', [ReportExportController::class, 'excel'])->name('reports.export.excel');
     Route::get('/reports/export/pdf', [ReportExportController::class, 'pdf'])->name('reports.export.pdf');
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');
