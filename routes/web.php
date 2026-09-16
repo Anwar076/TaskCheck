@@ -459,6 +459,7 @@ Route::middleware(['auth', 'verified', 'super_admin'])->prefix('super-admin')->n
     Route::put('/companies/{company}/subscription', [CompanySubscriptionController::class, 'updateCompanySubscription'])->name('companies.subscription.update');
     Route::post('/companies/{company}/subscription/payment-invitation', [CompanySubscriptionController::class, 'sendPaymentInvitation'])->name('companies.subscription.payment-invitation');
     Route::get('/errors/feed', [IncidentController::class, 'errorsFeed'])->name('errors.feed');
+    Route::post('/errors/clear', [IncidentController::class, 'clearCustomerErrors'])->name('errors.clear');
     Route::post('/incidents', [IncidentController::class, 'createIncidentTicket'])->name('incidents.store');
     Route::get('/incidents/{incident}', [IncidentController::class, 'showIncidentTicket'])->name('incidents.show');
     Route::post('/incidents/{incident}/analyze', [IncidentController::class, 'analyzeIncidentTicket'])->name('incidents.analyze');

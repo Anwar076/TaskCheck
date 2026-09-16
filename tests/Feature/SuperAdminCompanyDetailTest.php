@@ -325,6 +325,18 @@ class SuperAdminCompanyDetailTest extends TestCase
             ->assertSee($admin->email);
     }
 
+    public function test_super_admin_can_clear_customer_error_notifications(): void
+    {
+        $admin = User::where('role', 'admin')->firstOrFail();
+        config()->set('app.super_admin_emails', [$admin->email]);
+
+        $this->actingAs($admin)
+            ->post(route('super-admin.errors.clear'))
+            ->assertRedirect(route('super-admin.dashboard', ['tab' => 'monitoring']));
+
+        $this->assertNotEmpty(cache()->get(\App\Http\Controllers\SuperAdmin\IncidentController::CUSTOMER_ERRORS_CLEARED_AT_CACHE_KEY));
+    }
+
     public function test_super_admin_can_open_company_creation_page(): void
     {
         $admin = User::where('role', 'admin')->firstOrFail();

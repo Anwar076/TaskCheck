@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Organisation\Company;
 use App\Models\Platform\IncidentTicket;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -16,12 +18,23 @@ use Illuminate\Validation\Rule;
 
 class IncidentController extends Controller
 {
+    public const CUSTOMER_ERRORS_CLEARED_AT_CACHE_KEY = 'super_admin.customer_errors_cleared_at';
+
     public function errorsFeed(): JsonResponse
     {
         return response()->json([
             'errors' => $this->parsedErrors(30),
             'generated_at' => now()->toIso8601String(),
         ]);
+    }
+
+    public function clearCustomerErrors(): RedirectResponse
+    {
+        Cache::forever(self::CUSTOMER_ERRORS_CLEARED_AT_CACHE_KEY, now()->toIso8601String());
+
+        return redirect()
+            ->route('super-admin.dashboard', ['tab' => 'monitoring'])
+            ->with('success', 'Foutmeldingen zijn gewist. Nieuwe fouten verschijnen hier weer.');
     }
 
     public function createIncidentTicket(Request $request): JsonResponse
@@ -365,13 +378,15 @@ PROMPT;
         }
 
         $displayTimezone = 'Europe/Amsterdam';
+        $clearedAt = $this->customerErrorsClearedAt();
 
-        return collect($lines)
+        $groups = collect($lines)
             ->filter(fn ($line) => str_contains($line, '.ERROR:') || str_contains($line, 'local.ERROR:'))
             ->take(-max($limit * 5, 100))
             ->reverse()
             ->values()
             ->map(function (string $line) use ($displayTimezone) {
+                $occurredAt = null;
                 $timestamp = null;
                 $level = 'ERROR';
                 $message = $line;
@@ -379,7 +394,8 @@ PROMPT;
                 if (preg_match('/^\[(.*?)\]\s+\w+\.([A-Z]+):\s*(.*)$/', $line, $matches)) {
                     $rawTimestamp = trim($matches[1]);
                     try {
-                        $timestamp = Carbon::parse($rawTimestamp, 'UTC')
+                        $occurredAt = Carbon::parse($rawTimestamp, 'UTC');
+                        $timestamp = $occurredAt->copy()
                             ->setTimezone($displayTimezone)
                             ->format('Y-m-d H:i:s');
                     } catch (\Throwable) {
@@ -420,6 +436,7 @@ PROMPT;
                 return [
                     'fingerprint' => sha1((string) $signature),
                     'timestamp' => $timestamp,
+                    'occurred_at' => $occurredAt?->toIso8601String(),
                     'level' => $level,
                     'message' => $safeMessage,
                     'raw' => $safeRaw,
@@ -429,6 +446,21 @@ PROMPT;
                     'user_agent' => $userAgent,
                     'device_type' => $deviceType,
                 ];
+            })
+            ->filter(function (array $error) use ($clearedAt) {
+                if (! $clearedAt) {
+                    return true;
+                }
+
+                if (empty($error['occurred_at'])) {
+                    return false;
+                }
+
+                try {
+                    return Carbon::parse($error['occurred_at'])->greaterThan($clearedAt);
+                } catch (\Throwable) {
+                    return false;
+                }
             })
             ->groupBy('fingerprint')
             ->map(function ($items) {
@@ -441,7 +473,76 @@ PROMPT;
                 return $latest;
             })
             ->take($limit)
-            ->values()
-            ->all();
+            ->values();
+
+        $companyIds = $groups->pluck('company_id')->filter()->unique()->all();
+        $companyNames = $companyIds === []
+            ? collect()
+            : Company::query()->whereIn('id', $companyIds)->pluck('name', 'id');
+
+        $fingerprints = $groups->pluck('fingerprint')->filter()->unique()->all();
+        $tickets = $fingerprints === []
+            ? collect()
+            : IncidentTicket::query()
+                ->whereIn('fingerprint', $fingerprints)
+                ->where('created_at', '>=', now()->subDay())
+                ->orderByDesc('id')
+                ->get()
+                ->unique('fingerprint')
+                ->keyBy('fingerprint');
+
+        return $groups->map(function (array $error) use ($companyNames, $tickets) {
+            $ticket = $tickets->get($error['fingerprint']);
+
+            $error['company_name'] = $error['company_id']
+                ? ($companyNames[$error['company_id']] ?? null)
+                : null;
+            $error['short_title'] = $this->summarizeErrorMessage((string) $error['message']);
+            $error['path'] = $this->errorPath($error['request_url'] ?? null);
+            $error['has_ticket'] = $ticket !== null;
+            $error['ticket_id'] = $ticket?->id;
+            $error['ticket_status'] = $ticket?->status;
+
+            return $error;
+        })->all();
+    }
+
+    private function summarizeErrorMessage(string $message): string
+    {
+        $first = explode('{', str_replace(["\r\n", "\n"], ' ', $message), 2)[0];
+        $first = trim((string) preg_replace('/\s+/', ' ', $first));
+
+        if (preg_match('/([A-Za-z0-9_\\\\]+(?:Exception|Error))\s*:\s*(.+)$/', $first, $matches)) {
+            $class = class_basename(str_replace('\\\\', '\\', $matches[1]));
+
+            return $class.': '.mb_substr(trim($matches[2]), 0, 80);
+        }
+
+        return mb_substr($first, 0, 110);
+    }
+
+    private function errorPath(?string $url): ?string
+    {
+        if (! $url) {
+            return null;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+
+        return is_string($path) && $path !== '' ? $path : null;
+    }
+
+    private function customerErrorsClearedAt(): ?Carbon
+    {
+        $value = Cache::get(self::CUSTOMER_ERRORS_CLEARED_AT_CACHE_KEY);
+        if (! $value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

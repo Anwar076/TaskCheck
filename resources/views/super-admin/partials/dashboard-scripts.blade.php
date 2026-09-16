@@ -187,25 +187,25 @@
         const escapedStatus = safeText(ticket.status || 'open');
 
         return `
-            <div class="rounded-lg border border-slate-200 p-3">
+            <div class="rounded-xl border border-slate-200 p-3">
                 <p class="text-xs text-slate-500">#${ticketId} · ${escapedStatus} · ${dateText}</p>
-                <p class="text-sm font-medium text-slate-900 mt-1">${escapedTitle}</p>
-                <p class="text-xs text-slate-600 mt-1 break-all">${escapedMessage}</p>
-                <div class="mt-2 flex items-center gap-2">
-                    <button type="button" class="rounded bg-slate-800 px-2 py-1 text-xs text-white hover:bg-slate-900 sa-ticket-open" data-ticket-id="${ticketId}">Open</button>
+                <p class="mt-1 text-sm font-medium text-slate-900">${escapedTitle}</p>
+                <p class="mt-1 break-all text-xs text-slate-600">${escapedMessage}</p>
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+                    <button type="button" class="sa-ticket-open rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700" data-ticket-id="${ticketId}">Open</button>
                     <form method="POST" action="${safeText(ticketStatusUrl(ticketId))}">
                         <input type="hidden" name="_token" value="${safeText(csrf || '')}">
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="status" value="resolved">
-                        <button type="submit" class="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700">Afronden</button>
+                        <button type="submit" class="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Afronden</button>
                     </form>
                     <form method="POST" action="${safeText(ticketStatusUrl(ticketId))}">
                         <input type="hidden" name="_token" value="${safeText(csrf || '')}">
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="status" value="ignored">
-                        <button type="submit" class="rounded bg-slate-500 px-2 py-1 text-xs text-white hover:bg-slate-600">Archiveer</button>
+                        <button type="submit" class="rounded-lg bg-slate-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-600">Archiveer</button>
                     </form>
-                    <span class="text-[11px] text-emerald-700">Net aangemaakt</span>
+                    <span class="text-[11px] font-semibold text-emerald-700">Net aangemaakt</span>
                 </div>
             </div>
         `;
@@ -323,21 +323,20 @@
 
     const renderErrors = (errors) => {
         if (!Array.isArray(errors) || errors.length === 0) {
-            listEl.innerHTML = '<p class="text-sm text-slate-500">Geen recente fouten gevonden.</p>';
+            listEl.innerHTML = '<div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center"><p class="text-sm font-semibold text-slate-800">Geen recente fouten</p><p class="mt-1 text-xs text-slate-500">Als dezelfde crash bij klanten terugkomt, zie je hier één kaart.</p></div>';
             return;
         }
-        listEl.innerHTML = errors.map((error) => `
-            <div class="sa-error-card rounded-xl border border-red-200 bg-red-50 p-3" data-error-level="${safeText(error.level || 'ERROR')}" data-error-text="${safeText((error.message || '').toLowerCase())}">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <p class="text-xs text-red-700 font-semibold">${safeText(error.level)} · ${error.count || 1}× · laatst ${safeText(error.last_seen || 'onbekend')}</p>
-                        <p class="text-sm text-slate-900 mt-1 break-words line-clamp-3">${safeText(error.message || '')}</p>
-                        <p class="mt-1 text-[11px] text-slate-500">Eerste keer: ${safeText(error.first_seen || 'onbekend')}</p>
-                    </div>
-                    <button
-                        class="shrink-0 rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 sa-ticket-btn"
-                        data-fingerprint="${error.fingerprint}"
-                        data-title="Automatisch error ticket"
+        listEl.innerHTML = errors.map((error) => {
+            const repeats = Number(error.count || 1);
+            const title = error.short_title || error.message || 'Fout in TaskCheck';
+            const search = `${title} ${error.message || ''} ${error.company_name || ''} ${error.path || ''}`.toLowerCase();
+            const company = error.company_name ? safeText(error.company_name) : 'Platform';
+            const path = error.path ? `<span class="truncate text-[11px] text-slate-400">${safeText(error.path)}</span>` : '';
+            const action = error.has_ticket
+                ? `<button type="button" class="sa-ticket-open shrink-0 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700" data-ticket-id="${safeText(error.ticket_id || '')}">Open ticket</button>`
+                : `<button class="sa-ticket-btn shrink-0 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                        data-fingerprint="${safeText(error.fingerprint || '')}"
+                        data-title="${safeText(title)}"
                         data-message="${safeText(error.message || '')}"
                         data-context="${safeText(error.raw || '')}"
                         data-company-id="${error.company_id ?? ''}"
@@ -346,10 +345,24 @@
                         data-http-method="${safeText(error.http_method || '')}"
                         data-user-agent="${safeText(error.user_agent || '')}"
                         data-device-type="${safeText(error.device_type || '')}"
-                    >Ticket</button>
+                    >Opvolgen</button>`;
+            return `
+            <div class="sa-error-card rounded-xl border ${repeats > 1 ? 'border-blue-200 bg-blue-50/60' : 'border-slate-200 bg-slate-50/70'} p-3.5" data-error-level="${safeText(error.level || 'ERROR')}" data-error-text="${safeText(search)}">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="inline-flex rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-blue-800 ring-1 ring-blue-200">${repeats}×</span>
+                            <span class="truncate text-[11px] font-semibold text-slate-700">${company}</span>
+                            ${path}
+                        </div>
+                        <p class="mt-1.5 text-sm font-semibold text-slate-900">${safeText(title)}</p>
+                        <p class="mt-1 line-clamp-2 break-words text-xs text-slate-500">${safeText(error.message || '')}</p>
+                        <p class="mt-1.5 text-[11px] text-slate-400">Laatst ${safeText(error.last_seen || 'onbekend')} · eerst ${safeText(error.first_seen || 'onbekend')}</p>
+                    </div>
+                    ${action}
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
         bindTicketButtons();
     };
 
